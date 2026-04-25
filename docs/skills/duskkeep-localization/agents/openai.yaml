@@ -1,0 +1,4 @@
+interface:
+  display_name: "Duskkeep Fronts Localization"
+  short_description: "Add multilingual Duskkeep Fronts UI text safely."
+  default_prompt: "Implement or review Duskkeep Fronts localization using translation keys, fallbacks, and visual-first UI rules."

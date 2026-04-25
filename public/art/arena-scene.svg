@@ -1,0 +1,63 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="arenaSky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F1820"/>
+      <stop offset="0.45" stop-color="#1E1820"/>
+      <stop offset="1" stop-color="#0B1118"/>
+    </linearGradient>
+    <linearGradient id="arenaStone" x1="800" y1="180" x2="800" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5F4537"/>
+      <stop offset="1" stop-color="#221A20"/>
+    </linearGradient>
+    <linearGradient id="arenaFloor" x1="800" y1="430" x2="800" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5A3222"/>
+      <stop offset="0.52" stop-color="#2B1C1F"/>
+      <stop offset="1" stop-color="#131822"/>
+    </linearGradient>
+    <filter id="arenaGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#arenaSky)"/>
+  <ellipse cx="800" cy="126" rx="320" ry="120" fill="#F5C451" fill-opacity="0.12"/>
+  <ellipse cx="800" cy="162" rx="220" ry="76" fill="#FFC86C" fill-opacity="0.12" filter="url(#arenaGlow)"/>
+
+  <ellipse cx="800" cy="430" rx="650" ry="220" fill="#4A281C"/>
+  <ellipse cx="800" cy="450" rx="578" ry="182" fill="#2A1B1D"/>
+  <ellipse cx="800" cy="480" rx="432" ry="122" fill="#1A1A21"/>
+
+  <g opacity="0.94">
+    <path d="M214 276C292 186 482 146 628 158H972C1118 146 1308 186 1386 276V420H214V276Z" fill="url(#arenaStone)"/>
+    <path d="M278 308C350 232 510 202 640 212H960C1090 202 1250 232 1322 308V410H278V308Z" fill="#241B1E"/>
+    <path d="M316 334C384 274 526 250 650 258H950C1074 250 1216 274 1284 334V402H316V334Z" fill="#312126"/>
+    <rect x="218" y="214" width="170" height="294" rx="42" fill="#3A2424"/>
+    <rect x="1212" y="214" width="170" height="294" rx="42" fill="#3A2424"/>
+    <path d="M274 214L320 142L366 214H274Z" fill="#8F5B33"/>
+    <path d="M1268 214L1314 142L1360 214H1268Z" fill="#8F5B33"/>
+    <circle cx="320" cy="204" r="16" fill="#F5C451"/>
+    <circle cx="1314" cy="204" r="16" fill="#F5C451"/>
+    <ellipse cx="320" cy="212" rx="52" ry="78" fill="#F5C451" fill-opacity="0.14" filter="url(#arenaGlow)"/>
+    <ellipse cx="1314" cy="212" rx="52" ry="78" fill="#F5C451" fill-opacity="0.14" filter="url(#arenaGlow)"/>
+  </g>
+
+  <g opacity="0.96">
+    <ellipse cx="800" cy="582" rx="524" ry="226" fill="#2F1E21"/>
+    <ellipse cx="800" cy="600" rx="462" ry="186" fill="url(#arenaFloor)"/>
+    <ellipse cx="800" cy="616" rx="334" ry="116" fill="#141821"/>
+    <path d="M440 630C540 566 656 542 800 542C944 542 1060 566 1160 630" stroke="#D39A56" stroke-width="10" stroke-opacity="0.28" stroke-linecap="round"/>
+    <rect x="450" y="466" width="232" height="164" rx="34" fill="#191821" stroke="#F5C451" stroke-opacity="0.18" stroke-width="3"/>
+    <rect x="684" y="430" width="232" height="206" rx="36" fill="#191821" stroke="#F5C451" stroke-opacity="0.2" stroke-width="3"/>
+    <rect x="918" y="466" width="232" height="164" rx="34" fill="#191821" stroke="#F5C451" stroke-opacity="0.18" stroke-width="3"/>
+    <rect x="736" y="532" width="128" height="30" rx="15" fill="#F5C451" fill-opacity="0.14"/>
+  </g>
+
+  <g opacity="0.8">
+    <path d="M560 258V370" stroke="#5E3B31" stroke-width="8" stroke-linecap="round"/>
+    <path d="M800 246V358" stroke="#6C503C" stroke-width="8" stroke-linecap="round"/>
+    <path d="M1040 258V370" stroke="#5E3B31" stroke-width="8" stroke-linecap="round"/>
+    <path d="M560 256L510 226H610L560 256Z" fill="#8A3848"/>
+    <path d="M800 244L750 214H850L800 244Z" fill="#C084FC"/>
+    <path d="M1040 256L990 226H1090L1040 256Z" fill="#7AA2FF"/>
+  </g>
+</svg>

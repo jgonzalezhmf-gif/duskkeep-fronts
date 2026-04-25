@@ -1,0 +1,250 @@
+import type { AdventureLevel } from "@/lib/types";
+
+// Grid is 4 wide x 5 tall. Obstacles live in the mid rows (y=2) so they matter
+// without blocking placements. Each cell reference is (x 0-3, y 0-4).
+const o = (x: number, y: number) => ({ x, y });
+
+export const ADVENTURE: AdventureLevel[] = [
+  // =============== Chapter 1: The Eclipse Rising ===============
+  {
+    id: "c1l1", chapter: 1, index: 1, name: "The Crossroads",
+    recommendedPower: 30,
+    enemyTeam: [
+      { heroId: "ren", level: 1, stars: 1 },
+      { heroId: "kara", level: 1, stars: 1 },
+    ],
+    rewards: { gold: 80, xp: 30, accountXp: 10 },
+    firstClearRewards: { gems: 20, shards: [{ heroId: "bran", amount: 3 }] },
+  },
+  {
+    id: "c1l2", chapter: 1, index: 2, name: "Broken Mill",
+    recommendedPower: 40,
+    enemyTeam: [
+      { heroId: "ren", level: 2, stars: 1 },
+      { heroId: "kara", level: 2, stars: 1 },
+      { heroId: "tovi", level: 1, stars: 1 },
+    ],
+    rewards: { gold: 100, xp: 40, accountXp: 12 },
+    firstClearRewards: { gems: 10, shards: [{ heroId: "vex", amount: 3 }] },
+  },
+  {
+    id: "c1l3", chapter: 1, index: 3, name: "Thistle Road",
+    recommendedPower: 50,
+    enemyTeam: [
+      { heroId: "bran", level: 2, stars: 1 },
+      { heroId: "kara", level: 3, stars: 1 },
+      { heroId: "ren", level: 2, stars: 1 },
+    ],
+    rewards: { gold: 120, dust: 20, xp: 45, accountXp: 14 },
+    firstClearRewards: { gems: 15, frontlineCards: [{ cardId: "order_shadow_dive" }] },
+    obstacles: [o(2, 2)],
+  },
+  {
+    id: "c1l4", chapter: 1, index: 4, name: "Hollow Chapel",
+    recommendedPower: 65,
+    enemyTeam: [
+      { heroId: "mira", level: 3, stars: 1 },
+      { heroId: "kara", level: 3, stars: 1 },
+      { heroId: "bran", level: 3, stars: 1 },
+    ],
+    rewards: { gold: 150, dust: 25, xp: 55, accountXp: 16 },
+    firstClearRewards: { shards: [{ heroId: "mira", amount: 4 }] },
+    obstacles: [o(1, 2)],
+  },
+  {
+    id: "c1l5", chapter: 1, index: 5, name: "Wolf's Gorge",
+    recommendedPower: 80,
+    enemyTeam: [
+      { heroId: "ursa", level: 4, stars: 1 },
+      { heroId: "vex", level: 3, stars: 1 },
+      { heroId: "ren", level: 4, stars: 1 },
+    ],
+    rewards: { gold: 180, dust: 30, xp: 70, accountXp: 18 },
+    firstClearRewards: { gems: 20, shards: [{ heroId: "ursa", amount: 3 }] },
+    obstacles: [o(0, 2), o(3, 2)],
+  },
+  {
+    id: "c1l6", chapter: 1, index: 6, name: "Ashmarket",
+    recommendedPower: 95,
+    enemyTeam: [
+      { heroId: "lyria", level: 4, stars: 1 },
+      { heroId: "kara", level: 5, stars: 1 },
+      { heroId: "bran", level: 5, stars: 1 },
+    ],
+    rewards: { gold: 200, dust: 35, xp: 80, accountXp: 20 },
+    firstClearRewards: { shards: [{ heroId: "lyria", amount: 4 }] },
+    obstacles: [o(1, 2), o(2, 2)],
+  },
+  {
+    id: "c1l7", chapter: 1, index: 7, name: "The Breach",
+    recommendedPower: 110,
+    enemyTeam: [
+      { heroId: "ursa", level: 5, stars: 2 },
+      { heroId: "vex", level: 5, stars: 1 },
+      { heroId: "mira", level: 5, stars: 1 },
+    ],
+    rewards: { gold: 220, dust: 40, xp: 90, accountXp: 22 },
+    firstClearRewards: { gems: 25, frontlineCards: [{ cardId: "tactic_core_burst" }] },
+    unlockAccountLevel: 3,
+    obstacles: [o(2, 2)],
+  },
+  {
+    id: "c1l8", chapter: 1, index: 8, name: "Salt Flats",
+    recommendedPower: 130,
+    enemyTeam: [
+      { heroId: "fenra", level: 6, stars: 1 },
+      { heroId: "vex", level: 6, stars: 1 },
+      { heroId: "ursa", level: 6, stars: 1 },
+    ],
+    rewards: { gold: 250, dust: 45, xp: 100, accountXp: 24 },
+    firstClearRewards: { shards: [{ heroId: "fenra", amount: 4 }] },
+  },
+  {
+    id: "c1l9", chapter: 1, index: 9, name: "Shadow Pass",
+    recommendedPower: 150,
+    enemyTeam: [
+      { heroId: "drak", level: 7, stars: 1 },
+      { heroId: "morr", level: 6, stars: 1 },
+      { heroId: "ren", level: 7, stars: 2 },
+    ],
+    rewards: { gold: 280, dust: 50, xp: 110, accountXp: 26 },
+    firstClearRewards: { shards: [{ heroId: "drak", amount: 3 }] },
+    obstacles: [o(0, 2), o(3, 2)],
+  },
+  {
+    id: "c1l10", chapter: 1, index: 10, name: "Cursed Keep",
+    recommendedPower: 180,
+    enemyTeam: [
+      { heroId: "morr", level: 8, stars: 2 },
+      { heroId: "drak", level: 8, stars: 1 },
+      { heroId: "bran", level: 8, stars: 1 },
+    ],
+    rewards: { gold: 320, dust: 60, xp: 130, accountXp: 30 },
+    firstClearRewards: { shards: [{ heroId: "morr", amount: 4 }], frontlineCards: [{ cardId: "summon_totem" }] },
+    obstacles: [o(1, 2), o(2, 2)],
+  },
+  {
+    id: "c1l11", chapter: 1, index: 11, name: "The Ember Gate",
+    recommendedPower: 210,
+    enemyTeam: [
+      { heroId: "grom", level: 9, stars: 2 },
+      { heroId: "fenra", level: 9, stars: 1 },
+      { heroId: "ursa", level: 9, stars: 2 },
+    ],
+    rewards: { gold: 360, dust: 70, xp: 150, accountXp: 34 },
+    firstClearRewards: { gems: 30, shards: [{ heroId: "grom", amount: 3 }] },
+    obstacles: [o(0, 2), o(2, 2)],
+  },
+  {
+    id: "c1l12", chapter: 1, index: 12, name: "Boss: The Eclipse",
+    recommendedPower: 250,
+    enemyTeam: [
+      { heroId: "noct", level: 10, stars: 2 },
+      { heroId: "morr", level: 10, stars: 2 },
+      { heroId: "mira", level: 10, stars: 2 },
+    ],
+    rewards: { gold: 500, dust: 100, xp: 200, accountXp: 50, gems: 25 },
+    firstClearRewards: { gems: 100, shards: [{ heroId: "noct", amount: 5 }] },
+    obstacles: [o(0, 2), o(3, 2)],
+  },
+
+  // =============== Chapter 2: Ashes of the Pact ===============
+  {
+    id: "c2l1", chapter: 2, index: 1, name: "Scorched March",
+    recommendedPower: 280,
+    enemyTeam: [
+      { heroId: "kara", level: 11, stars: 2 },
+      { heroId: "ren", level: 11, stars: 2 },
+      { heroId: "lyria", level: 11, stars: 2 },
+    ],
+    rewards: { gold: 400, dust: 80, xp: 180, accountXp: 36 },
+    firstClearRewards: { gems: 25, shards: [{ heroId: "kara", amount: 4 }] },
+    unlockAccountLevel: 6,
+  },
+  {
+    id: "c2l2", chapter: 2, index: 2, name: "Kiln Pass",
+    recommendedPower: 330,
+    enemyTeam: [
+      { heroId: "grom", level: 12, stars: 2 },
+      { heroId: "fenra", level: 12, stars: 2 },
+      { heroId: "ursa", level: 12, stars: 2 },
+    ],
+    rewards: { gold: 440, dust: 90, xp: 200, accountXp: 40 },
+    firstClearRewards: { shards: [{ heroId: "grom", amount: 4 }] },
+    obstacles: [o(1, 2), o(2, 2)],
+  },
+  {
+    id: "c2l3", chapter: 2, index: 3, name: "Ember Vault",
+    recommendedPower: 380,
+    enemyTeam: [
+      { heroId: "morr", level: 13, stars: 2 },
+      { heroId: "drak", level: 13, stars: 2 },
+      { heroId: "noct", level: 12, stars: 2 },
+    ],
+    rewards: { gold: 480, dust: 100, xp: 220, accountXp: 42 },
+    firstClearRewards: { gems: 30, shards: [{ heroId: "drak", amount: 4 }] },
+    obstacles: [o(0, 2), o(3, 2)],
+  },
+  {
+    id: "c2l4", chapter: 2, index: 4, name: "The Sunken Choir",
+    recommendedPower: 440,
+    enemyTeam: [
+      { heroId: "sol", level: 14, stars: 2 },
+      { heroId: "mira", level: 14, stars: 2 },
+      { heroId: "bran", level: 14, stars: 2 },
+    ],
+    rewards: { gold: 520, dust: 110, xp: 240, accountXp: 44 },
+    firstClearRewards: { shards: [{ heroId: "sol", amount: 3 }] },
+    obstacles: [o(1, 2), o(2, 2)],
+  },
+  {
+    id: "c2l5", chapter: 2, index: 5, name: "Ironfang's Hollow",
+    recommendedPower: 510,
+    enemyTeam: [
+      { heroId: "ursa", level: 15, stars: 3 },
+      { heroId: "vex", level: 15, stars: 2 },
+      { heroId: "tovi", level: 15, stars: 2 },
+    ],
+    rewards: { gold: 560, dust: 120, xp: 260, accountXp: 46 },
+    firstClearRewards: { gems: 35 },
+    obstacles: [o(0, 2), o(2, 2)],
+  },
+  {
+    id: "c2l6", chapter: 2, index: 6, name: "Bleak Mire",
+    recommendedPower: 590,
+    enemyTeam: [
+      { heroId: "fenra", level: 16, stars: 3 },
+      { heroId: "grom", level: 16, stars: 2 },
+      { heroId: "morr", level: 16, stars: 2 },
+    ],
+    rewards: { gold: 600, dust: 130, xp: 280, accountXp: 48 },
+    firstClearRewards: { shards: [{ heroId: "fenra", amount: 5 }] },
+    obstacles: [o(1, 2), o(3, 2)],
+  },
+  {
+    id: "c2l7", chapter: 2, index: 7, name: "Starless Tower",
+    recommendedPower: 680,
+    enemyTeam: [
+      { heroId: "noct", level: 17, stars: 3 },
+      { heroId: "lyria", level: 17, stars: 2 },
+      { heroId: "ren", level: 17, stars: 3 },
+    ],
+    rewards: { gold: 660, dust: 140, xp: 300, accountXp: 52 },
+    firstClearRewards: { gems: 40, shards: [{ heroId: "noct", amount: 3 }] },
+    obstacles: [o(0, 2), o(2, 2)],
+  },
+  {
+    id: "c2l8", chapter: 2, index: 8, name: "Boss: Crown of Ashes",
+    recommendedPower: 780,
+    enemyTeam: [
+      { heroId: "noct", level: 18, stars: 3 },
+      { heroId: "drak", level: 18, stars: 3 },
+      { heroId: "sol", level: 18, stars: 3 },
+    ],
+    rewards: { gold: 900, dust: 200, xp: 400, accountXp: 80, gems: 50 },
+    firstClearRewards: { gems: 150, shards: [{ heroId: "sol", amount: 6 }] },
+    obstacles: [o(1, 2), o(3, 2)],
+  },
+];
+
+export const ADVENTURE_BY_ID = Object.fromEntries(ADVENTURE.map((a) => [a.id, a]));

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Duskkeep Fronts Skill Maintenance"
+  short_description: "Audit and maintain Duskkeep Fronts skills and AGENTS guidance."
+  default_prompt: "Audit the current Duskkeep Fronts skills and AGENTS.md, then recommend or apply only necessary skill/process updates."

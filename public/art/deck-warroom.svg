@@ -1,0 +1,95 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="deckSky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2B1A26"/>
+      <stop offset="0.42" stop-color="#18151E"/>
+      <stop offset="1" stop-color="#091018"/>
+    </linearGradient>
+    <linearGradient id="windowGlow" x1="800" y1="54" x2="800" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7D38A"/>
+      <stop offset="1" stop-color="#6A4A32"/>
+    </linearGradient>
+    <linearGradient id="warTable" x1="800" y1="320" x2="800" y2="754" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6E472B"/>
+      <stop offset="0.55" stop-color="#3B261E"/>
+      <stop offset="1" stop-color="#17151B"/>
+    </linearGradient>
+    <linearGradient id="slotA" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#34465A"/>
+      <stop offset="1" stop-color="#18202B"/>
+    </linearGradient>
+    <linearGradient id="slotB" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#214C6A"/>
+      <stop offset="1" stop-color="#151E2A"/>
+    </linearGradient>
+    <linearGradient id="slotC" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#542A4E"/>
+      <stop offset="1" stop-color="#18161E"/>
+    </linearGradient>
+    <linearGradient id="slotD" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#345238"/>
+      <stop offset="1" stop-color="#171D1A"/>
+    </linearGradient>
+    <linearGradient id="stoneWall" x1="800" y1="120" x2="800" y2="820" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2A2026"/>
+      <stop offset="1" stop-color="#12151D"/>
+    </linearGradient>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#deckSky)"/>
+  <ellipse cx="800" cy="96" rx="320" ry="120" fill="#F5C451" fill-opacity="0.12"/>
+  <ellipse cx="800" cy="126" rx="220" ry="68" fill="#F7D38A" fill-opacity="0.18" filter="url(#softGlow)"/>
+
+  <rect x="120" y="94" width="1360" height="630" rx="74" fill="url(#stoneWall)"/>
+  <rect x="158" y="132" width="1284" height="554" rx="60" fill="#1A1A22" fill-opacity="0.78" stroke="rgba(255,255,255,0.06)"/>
+
+  <g opacity="0.95">
+    <path d="M264 186C316 116 444 100 514 160V350H264V186Z" fill="#171722"/>
+    <path d="M1086 160C1152 102 1280 122 1330 194V350H1086V160Z" fill="#171722"/>
+    <path d="M582 120C648 40 960 40 1018 126V350H582V120Z" fill="#191824"/>
+    <rect x="302" y="180" width="174" height="188" rx="84" fill="url(#windowGlow)" fill-opacity="0.82"/>
+    <rect x="616" y="122" width="370" height="242" rx="118" fill="url(#windowGlow)" fill-opacity="0.86"/>
+    <rect x="1122" y="180" width="174" height="188" rx="84" fill="url(#windowGlow)" fill-opacity="0.82"/>
+    <rect x="330" y="206" width="118" height="144" rx="56" fill="#EED9A9" fill-opacity="0.22"/>
+    <rect x="662" y="164" width="278" height="160" rx="80" fill="#EED9A9" fill-opacity="0.18"/>
+    <rect x="1150" y="206" width="118" height="144" rx="56" fill="#EED9A9" fill-opacity="0.22"/>
+  </g>
+
+  <g opacity="0.82">
+    <rect x="206" y="180" width="56" height="430" rx="24" fill="#2A2430"/>
+    <rect x="1338" y="180" width="56" height="430" rx="24" fill="#2A2430"/>
+    <path d="M246 180L234 228H258L246 180Z" fill="#FFC86C"/>
+    <path d="M1366 180L1354 228H1378L1366 180Z" fill="#FFC86C"/>
+    <circle cx="246" cy="178" r="14" fill="#F5C451"/>
+    <circle cx="1366" cy="178" r="14" fill="#F5C451"/>
+    <ellipse cx="246" cy="214" rx="36" ry="58" fill="#FFC86C" fill-opacity="0.2" filter="url(#softGlow)"/>
+    <ellipse cx="1366" cy="214" rx="36" ry="58" fill="#FFC86C" fill-opacity="0.2" filter="url(#softGlow)"/>
+  </g>
+
+  <g opacity="0.94">
+    <path d="M308 702C394 632 594 602 800 602C1006 602 1206 632 1292 702V786H308V702Z" fill="#241D22"/>
+    <rect x="254" y="328" width="1092" height="396" rx="78" fill="#231B1E"/>
+    <rect x="296" y="362" width="1008" height="320" rx="62" fill="url(#warTable)" stroke="rgba(255,255,255,0.06)" stroke-width="3"/>
+    <path d="M324 390C470 352 618 336 800 336C984 336 1138 352 1276 390V648C1132 684 988 702 800 702C616 702 470 684 324 648V390Z" fill="rgba(8,12,18,0.56)"/>
+    <rect x="430" y="416" width="152" height="196" rx="28" fill="url(#slotA)" stroke="rgba(255,255,255,0.14)" stroke-width="3"/>
+    <rect x="604" y="404" width="156" height="210" rx="28" fill="url(#slotB)" stroke="rgba(255,255,255,0.14)" stroke-width="3"/>
+    <rect x="782" y="396" width="156" height="218" rx="30" fill="url(#slotC)" stroke="rgba(255,255,255,0.14)" stroke-width="3"/>
+    <rect x="960" y="408" width="152" height="204" rx="28" fill="url(#slotD)" stroke="rgba(255,255,255,0.14)" stroke-width="3"/>
+    <rect x="346" y="610" width="908" height="82" rx="34" fill="#11161D" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+    <circle cx="386" cy="448" r="12" fill="#F5C451"/>
+    <circle cx="1214" cy="448" r="12" fill="#7AA2FF"/>
+    <circle cx="800" cy="382" r="14" fill="#C084FC"/>
+  </g>
+
+  <g opacity="0.8">
+    <path d="M504 168V302" stroke="#5F4A35" stroke-width="8" stroke-linecap="round"/>
+    <path d="M1096 168V302" stroke="#4D4863" stroke-width="8" stroke-linecap="round"/>
+    <path d="M800 134V296" stroke="#705C43" stroke-width="10" stroke-linecap="round"/>
+    <path d="M504 164L450 132H558L504 164Z" fill="#7A3442"/>
+    <path d="M1096 164L1042 132H1150L1096 164Z" fill="#4C396F"/>
+    <path d="M800 128L736 94H864L800 128Z" fill="#8B6945"/>
+  </g>
+</svg>

@@ -1,0 +1,51 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ch2Sky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4A231C"/>
+      <stop offset="0.48" stop-color="#25161A"/>
+      <stop offset="1" stop-color="#0B1118"/>
+    </linearGradient>
+    <linearGradient id="ch2Mesa" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#7C472E"/>
+      <stop offset="1" stop-color="#23171A"/>
+    </linearGradient>
+    <filter id="ch2Glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#ch2Sky)"/>
+  <circle cx="1266" cy="126" r="82" fill="#FFB36B" fill-opacity="0.28"/>
+  <ellipse cx="1266" cy="126" rx="126" ry="126" fill="#FFB36B" fill-opacity="0.12" filter="url(#ch2Glow)"/>
+
+  <path d="M0 352L194 306L390 346L560 278L770 368L958 300L1180 382L1354 332L1600 390V900H0V352Z" fill="#2B1819"/>
+  <path d="M0 450L162 416L338 468L546 384L724 478L948 412L1180 506L1368 454L1600 506V900H0V450Z" fill="#381E1D"/>
+  <path d="M0 572L214 520L418 584L642 470L856 586L1090 502L1328 596L1600 560V900H0V572Z" fill="#25171A"/>
+
+  <g opacity="0.92">
+    <path d="M290 664C360 614 430 558 520 516C620 468 720 480 818 548C904 608 1014 610 1130 540C1220 486 1310 438 1410 404" stroke="#D98647" stroke-width="34" stroke-linecap="round" stroke-opacity="0.2"/>
+    <path d="M290 664C360 614 430 558 520 516C620 468 720 480 818 548C904 608 1014 610 1130 540C1220 486 1310 438 1410 404" stroke="#FFB36B" stroke-width="14" stroke-linecap="round" stroke-dasharray="30 22"/>
+  </g>
+
+  <g opacity="0.96">
+    <rect x="160" y="544" width="244" height="228" rx="98" fill="url(#ch2Mesa)"/>
+    <rect x="410" y="430" width="232" height="278" rx="102" fill="url(#ch2Mesa)"/>
+    <rect x="710" y="468" width="188" height="232" rx="88" fill="#4A251E"/>
+    <rect x="1022" y="304" width="236" height="338" rx="110" fill="url(#ch2Mesa)"/>
+    <rect x="1114" y="500" width="202" height="180" rx="34" fill="#4B3127"/>
+
+    <path d="M690 344L782 252L846 356L752 404L690 344Z" fill="#6D3525"/>
+    <path d="M928 438L1004 366L1096 416L1176 510L1130 560L1058 498L956 474L928 438Z" fill="#47221F"/>
+    <rect x="1184" y="518" width="56" height="78" rx="14" fill="#2F2022"/>
+    <rect x="1248" y="518" width="56" height="78" rx="14" fill="#2F2022"/>
+  </g>
+
+  <g opacity="0.9">
+    <ellipse cx="1042" cy="520" rx="82" ry="28" fill="#FF8340" fill-opacity="0.16"/>
+    <ellipse cx="768" cy="612" rx="62" ry="20" fill="#FF8340" fill-opacity="0.16"/>
+    <path d="M1040 490C1032 452 1064 436 1086 470" stroke="#FF9C5A" stroke-width="8" stroke-linecap="round"/>
+    <path d="M760 584C754 554 782 542 798 572" stroke="#FF9C5A" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <ellipse cx="788" cy="740" rx="440" ry="106" fill="#0D1218"/>
+</svg>

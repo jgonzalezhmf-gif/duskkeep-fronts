@@ -1,0 +1,49 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="battleSky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22141B"/>
+      <stop offset="0.46" stop-color="#151A26"/>
+      <stop offset="1" stop-color="#081018"/>
+    </linearGradient>
+    <linearGradient id="battleStone" x1="800" y1="170" x2="800" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5A3A30"/>
+      <stop offset="1" stop-color="#1C1A22"/>
+    </linearGradient>
+    <filter id="battleGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#battleSky)"/>
+  <ellipse cx="800" cy="132" rx="320" ry="120" fill="#F5C451" fill-opacity="0.08"/>
+  <ellipse cx="800" cy="168" rx="220" ry="70" fill="#F5C451" fill-opacity="0.1" filter="url(#battleGlow)"/>
+
+  <path d="M0 560L238 520L432 564L624 500L808 566L1006 504L1236 572L1432 532L1600 560V900H0V560Z" fill="#161A24"/>
+  <path d="M0 626L206 606L430 660L624 606L808 672L1028 612L1246 684L1434 640L1600 668V900H0V626Z" fill="#0D131B"/>
+
+  <g opacity="0.94">
+    <rect x="250" y="226" width="180" height="300" rx="44" fill="#3A2424"/>
+    <rect x="1170" y="226" width="180" height="300" rx="44" fill="#3A2424"/>
+    <path d="M304 226L340 166L376 226H304Z" fill="#8F5B33"/>
+    <path d="M1224 226L1260 166L1296 226H1224Z" fill="#8F5B33"/>
+    <circle cx="340" cy="214" r="16" fill="#F5C451"/>
+    <circle cx="1260" cy="214" r="16" fill="#F5C451"/>
+    <ellipse cx="340" cy="220" rx="46" ry="72" fill="#F5C451" fill-opacity="0.14" filter="url(#battleGlow)"/>
+    <ellipse cx="1260" cy="220" rx="46" ry="72" fill="#F5C451" fill-opacity="0.14" filter="url(#battleGlow)"/>
+  </g>
+
+  <g opacity="0.96">
+    <path d="M316 236C410 180 598 154 800 154C1002 154 1190 180 1284 236V412H316V236Z" fill="url(#battleStone)"/>
+    <path d="M366 272C452 224 618 204 800 204C982 204 1148 224 1234 272V392H366V272Z" fill="#221B20"/>
+    <path d="M426 312C506 272 644 254 800 254C956 254 1094 272 1174 312V386H426V312Z" fill="#2C1F24"/>
+    <ellipse cx="800" cy="566" rx="544" ry="222" fill="#2F1E21"/>
+    <ellipse cx="800" cy="586" rx="478" ry="178" fill="#2B1C20"/>
+    <ellipse cx="800" cy="610" rx="364" ry="112" fill="#131822"/>
+    <rect x="420" y="446" width="760" height="200" rx="56" fill="#1E1618" stroke="rgba(231,217,190,0.24)" stroke-width="4"/>
+    <rect x="482" y="484" width="636" height="128" rx="40" fill="rgba(94,58,45,0.72)"/>
+    <rect x="520" y="512" width="126" height="48" rx="24" fill="#4A2527" fill-opacity="0.92"/>
+    <rect x="682" y="512" width="126" height="48" rx="24" fill="#4A2527" fill-opacity="0.92"/>
+    <rect x="844" y="512" width="126" height="48" rx="24" fill="#1F4F3D" fill-opacity="0.94"/>
+    <rect x="1006" y="512" width="72" height="48" rx="24" fill="#1F4F3D" fill-opacity="0.94"/>
+  </g>
+</svg>

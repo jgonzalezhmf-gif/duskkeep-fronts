@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="16" y1="8" x2="104" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#152645"/>
+      <stop offset="0.58" stop-color="#0c1426"/>
+      <stop offset="1" stop-color="#090d18"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="26" y1="14" x2="92" y2="106" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff3b5"/>
+      <stop offset="0.45" stop-color="#f2c555"/>
+      <stop offset="1" stop-color="#a56d19"/>
+    </linearGradient>
+    <linearGradient id="ember" x1="44" y1="28" x2="84" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff0bf"/>
+      <stop offset="0.4" stop-color="#ffb25f"/>
+      <stop offset="1" stop-color="#ff6d52"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <path d="M64 12 102 28v30c0 27-15 46-38 58C41 104 26 85 26 58V28L64 12Z" fill="url(#gold)"/>
+  <path d="M64 20 95 33v24c0 22-12 38-31 49C45 95 33 79 33 57V33l31-13Z" fill="#10192a"/>
+  <path d="M64 36c9 10 14 19 14 28 0 10-6 17-14 17s-14-7-14-17c0-7 3-13 9-21-1 7 2 12 8 15-2-5-1-12 2-22Z" fill="url(#ember)"/>
+  <circle cx="64" cy="92" r="6" fill="#f6d47a" opacity=".9"/>
+</svg>

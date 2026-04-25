@@ -1,0 +1,85 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="marketSky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#322116"/>
+      <stop offset="0.4" stop-color="#241B24"/>
+      <stop offset="1" stop-color="#0B1118"/>
+    </linearGradient>
+    <linearGradient id="marketGround" x1="800" y1="540" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#21171C"/>
+      <stop offset="1" stop-color="#0D131B"/>
+    </linearGradient>
+    <linearGradient id="stallWarm" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#6B412A"/>
+      <stop offset="1" stop-color="#24181A"/>
+    </linearGradient>
+    <linearGradient id="stallGold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#755127"/>
+      <stop offset="1" stop-color="#261A18"/>
+    </linearGradient>
+    <linearGradient id="stallArcane" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#57305A"/>
+      <stop offset="1" stop-color="#221820"/>
+    </linearGradient>
+    <linearGradient id="stallRoyal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#42577C"/>
+      <stop offset="1" stop-color="#171B23"/>
+    </linearGradient>
+    <filter id="marketGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#marketSky)"/>
+  <ellipse cx="800" cy="138" rx="360" ry="140" fill="#F5C451" fill-opacity="0.14"/>
+  <ellipse cx="800" cy="186" rx="260" ry="92" fill="#FFC86C" fill-opacity="0.1" filter="url(#marketGlow)"/>
+
+  <path d="M0 610C180 560 338 564 520 610C700 656 850 664 1034 634C1184 610 1352 560 1600 612V900H0V610Z" fill="#171A22"/>
+  <path d="M0 676C196 628 356 648 544 702C720 754 862 758 1048 724C1238 688 1414 644 1600 680V900H0V676Z" fill="url(#marketGround)"/>
+
+  <g opacity="0.92">
+    <path d="M120 334C190 230 404 230 476 334V390H120V334Z" fill="#7A3629"/>
+    <rect x="150" y="286" width="296" height="346" rx="48" fill="url(#stallWarm)"/>
+    <rect x="182" y="332" width="230" height="128" rx="24" fill="rgba(18,22,30,0.32)"/>
+
+    <path d="M472 304C542 188 780 188 852 304V364H472V304Z" fill="#755127"/>
+    <rect x="516" y="254" width="292" height="386" rx="52" fill="url(#stallGold)"/>
+    <rect x="560" y="314" width="208" height="144" rx="28" fill="rgba(22,26,34,0.28)"/>
+
+    <path d="M850 340C920 236 1138 236 1206 340V394H850V340Z" fill="#5F2A55"/>
+    <rect x="888" y="292" width="280" height="340" rx="50" fill="url(#stallArcane)"/>
+    <rect x="928" y="344" width="204" height="132" rx="26" fill="rgba(20,24,34,0.3)"/>
+
+    <path d="M1178 384C1236 308 1408 308 1466 384V430H1178V384Z" fill="#3C4E76"/>
+    <rect x="1210" y="340" width="226" height="294" rx="44" fill="url(#stallRoyal)"/>
+    <rect x="1242" y="384" width="160" height="124" rx="24" fill="rgba(20,24,34,0.32)"/>
+  </g>
+
+  <g opacity="0.88">
+    <rect x="268" y="500" width="86" height="16" rx="8" fill="#C084FC"/>
+    <rect x="604" y="494" width="112" height="18" rx="9" fill="#F5C451"/>
+    <rect x="970" y="516" width="94" height="16" rx="8" fill="#7AA2FF"/>
+    <rect x="1282" y="522" width="78" height="16" rx="8" fill="#5DD39E"/>
+    <circle cx="250" cy="302" r="12" fill="#FFC966"/>
+    <circle cx="292" cy="284" r="10" fill="#FFC966"/>
+    <circle cx="658" cy="268" r="14" fill="#FFC966"/>
+    <circle cx="1022" cy="306" r="12" fill="#C084FC"/>
+    <circle cx="1308" cy="356" r="12" fill="#7AA2FF"/>
+  </g>
+
+  <g opacity="0.96">
+    <ellipse cx="800" cy="602" rx="190" ry="100" fill="#30211B"/>
+    <ellipse cx="800" cy="604" rx="124" ry="60" fill="#5B3A2B"/>
+    <circle cx="800" cy="548" r="42" fill="#7B5A4B"/>
+    <circle cx="800" cy="494" r="30" fill="#B39A7D"/>
+    <circle cx="800" cy="470" r="14" fill="#D9E6F2"/>
+    <circle cx="800" cy="470" r="28" fill="#F5C451" fill-opacity="0.14" filter="url(#marketGlow)"/>
+  </g>
+
+  <g opacity="0.76">
+    <path d="M142 640L218 560H286L222 640H142Z" fill="#402C22"/>
+    <path d="M318 668L398 584H470L400 668H318Z" fill="#4A2F1F"/>
+    <path d="M1012 668L1098 584H1168L1092 668H1012Z" fill="#33232C"/>
+    <path d="M1260 694L1338 610H1408L1338 694H1260Z" fill="#233042"/>
+  </g>
+</svg>
