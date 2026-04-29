@@ -1,0 +1,291 @@
+{
+  "sfx": [
+    {
+      "id": "ui_click",
+      "output": "public/assets/audio/sfx/ui_click.mp3",
+      "durationSeconds": 0.55,
+      "promptInfluence": 0.68,
+      "prompt": "Short satisfying dark fantasy UI click, carved stone tap with tiny gold sparkle, crisp attack, no melody, no voice, no reverb tail."
+    },
+    {
+      "id": "ui_hover",
+      "output": "public/assets/audio/sfx/ui_hover.mp3",
+      "durationSeconds": 0.5,
+      "promptInfluence": 0.62,
+      "prompt": "Very soft dark fantasy hover sound, faint rune shimmer and leather movement, subtle and warm, no melody, no voice."
+    },
+    {
+      "id": "ui_error",
+      "output": "public/assets/audio/sfx/ui_error.mp3",
+      "durationSeconds": 0.75,
+      "promptInfluence": 0.7,
+      "prompt": "Short failed action cue for a medieval fantasy game, dull iron clack and low warning thud, clear but not harsh, no voice."
+    },
+    {
+      "id": "card_play",
+      "output": "public/assets/audio/sfx/card_play.mp3",
+      "durationSeconds": 0.95,
+      "promptInfluence": 0.72,
+      "prompt": "Satisfying fantasy card play sound, heavy parchment snap, magic rune flare, small impact at the end, tactile and rewarding, no voice."
+    },
+    {
+      "id": "attack",
+      "output": "public/assets/audio/sfx/attack.mp3",
+      "durationSeconds": 0.85,
+      "promptInfluence": 0.74,
+      "prompt": "Dark medieval tactical attack sound, quick weapon lunge, leather movement, forceful slash impact, punchy but not cinematic trailer, no voice."
+    },
+    {
+      "id": "hit",
+      "output": "public/assets/audio/sfx/hit.mp3",
+      "durationSeconds": 0.65,
+      "promptInfluence": 0.74,
+      "prompt": "Short combat hit feedback, armor impact, blunt thud, small grit particles, readable at low volume, no gore, no voice."
+    },
+    {
+      "id": "death",
+      "output": "public/assets/audio/sfx/death.mp3",
+      "durationSeconds": 1.3,
+      "promptInfluence": 0.72,
+      "prompt": "Enemy defeated sound for dark fantasy tactics, armor collapses, fading smoky magic, brief final thud, not graphic, no voice."
+    },
+    {
+      "id": "death_voice",
+      "output": "public/assets/audio/sfx/death_voice.mp3",
+      "durationSeconds": 1.35,
+      "promptInfluence": 0.76,
+      "prompt": "Enemy death cue for a dark medieval fantasy tactics game, short breathy creature death gasp mixed with armor collapse and faint smoky magic, subtle non-verbal voice, not graphic, no words."
+    },
+    {
+      "id": "death_human_male",
+      "output": "public/assets/audio/sfx/death_human_male.mp3",
+      "durationSeconds": 1.25,
+      "promptInfluence": 0.78,
+      "prompt": "Male human hero death cue for a dark medieval fantasy tactics game, short restrained non-verbal male gasp and pained exhale, armor drop and faint magic fade, not graphic, no words."
+    },
+    {
+      "id": "death_human_female",
+      "output": "public/assets/audio/sfx/death_human_female.mp3",
+      "durationSeconds": 1.25,
+      "promptInfluence": 0.78,
+      "prompt": "Female human hero death cue for a dark medieval fantasy tactics game, short restrained non-verbal female gasp and pained exhale, armor drop and faint magic fade, not graphic, no words."
+    },
+    {
+      "id": "heal",
+      "output": "public/assets/audio/sfx/heal.mp3",
+      "durationSeconds": 1.0,
+      "promptInfluence": 0.68,
+      "prompt": "Short healing magic sound, warm green-gold shimmer, soft rising chime, gentle pulse, dark fantasy game, no voice."
+    },
+    {
+      "id": "heal_clean",
+      "output": "public/assets/audio/sfx/heal_clean.mp3",
+      "durationSeconds": 1.0,
+      "promptInfluence": 0.7,
+      "prompt": "Generic healing spell sound for a dark fantasy tactics game, soft warm magic pulse, clean restorative shimmer, gentle rising tone, less musical, no voice."
+    },
+    {
+      "id": "shield",
+      "output": "public/assets/audio/sfx/shield.mp3",
+      "durationSeconds": 0.95,
+      "promptInfluence": 0.7,
+      "prompt": "Shield spell activation, blue-gold ward forms around armor, glassy magical barrier pulse, firm protective snap, no voice."
+    },
+    {
+      "id": "breach",
+      "output": "public/assets/audio/sfx/breach.mp3",
+      "durationSeconds": 1.2,
+      "promptInfluence": 0.76,
+      "prompt": "Core breach warning impact, dark fortress gate cracks, low magical alarm pulse, dramatic but short, no voice, no siren."
+    },
+    {
+      "id": "summon",
+      "output": "public/assets/audio/sfx/summon.mp3",
+      "durationSeconds": 1.05,
+      "promptInfluence": 0.7,
+      "prompt": "Summon token appears in a dark fantasy tactics battle, runic pop, smoky materialization, small creature landing, no voice."
+    },
+    {
+      "id": "leader_power",
+      "output": "public/assets/audio/sfx/leader_power.mp3",
+      "durationSeconds": 1.15,
+      "promptInfluence": 0.74,
+      "prompt": "Leader power activation in a dark medieval tactics game, commanding war horn hit, rune flare, confident magical surge, short and readable, no voice, no melody."
+    },
+    {
+      "id": "core_damage",
+      "output": "public/assets/audio/sfx/core_damage.mp3",
+      "durationSeconds": 1.05,
+      "promptInfluence": 0.76,
+      "prompt": "Enemy core takes damage in a dark fantasy tactical battle, stone heart cracks, low magical pulse, fortress impact, dramatic but concise, no voice."
+    },
+    {
+      "id": "resolve_clash",
+      "output": "public/assets/audio/sfx/resolve_clash.mp3",
+      "durationSeconds": 0.95,
+      "promptInfluence": 0.72,
+      "prompt": "Resolve clash button feedback for a dark medieval tactics game, war drum cue, blades ready, quick tactical whoosh into combat, no voice."
+    },
+    {
+      "id": "turn_start",
+      "output": "public/assets/audio/sfx/turn_start.mp3",
+      "durationSeconds": 0.85,
+      "promptInfluence": 0.68,
+      "prompt": "New player turn starts in a dark fantasy tactics game, subtle command drum, small rune chime, ready but not loud, no voice."
+    },
+    {
+      "id": "card_order",
+      "output": "public/assets/audio/sfx/card_order.mp3",
+      "durationSeconds": 0.9,
+      "promptInfluence": 0.72,
+      "prompt": "Order card played in a dark medieval tactics game, crisp parchment snap, steel command accent, short disciplined impact, no voice."
+    },
+    {
+      "id": "card_tactic",
+      "output": "public/assets/audio/sfx/card_tactic.mp3",
+      "durationSeconds": 0.95,
+      "promptInfluence": 0.72,
+      "prompt": "Tactic card played in a dark fantasy tactics game, sly magical flourish, parchment flick, smoky tactical shimmer, short and satisfying, no voice."
+    },
+    {
+      "id": "card_summon",
+      "output": "public/assets/audio/sfx/card_summon.mp3",
+      "durationSeconds": 1.0,
+      "promptInfluence": 0.72,
+      "prompt": "Summon card played in a dark fantasy tactics game, parchment snap into runic portal, smoky creature materialization, compact and punchy, no voice."
+    },
+    {
+      "id": "poison",
+      "output": "public/assets/audio/sfx/poison.mp3",
+      "durationSeconds": 0.85,
+      "promptInfluence": 0.72,
+      "prompt": "Poison status applied in a dark fantasy tactics game, small venom hiss, vial crackle, toxic magic sizzle, short and clear, no voice."
+    },
+    {
+      "id": "burn",
+      "output": "public/assets/audio/sfx/burn.mp3",
+      "durationSeconds": 0.85,
+      "promptInfluence": 0.72,
+      "prompt": "Burn status applied in a dark fantasy tactics game, quick magical flame burst, ember crackle, hot but not explosive, short, no voice."
+    },
+    {
+      "id": "stun",
+      "output": "public/assets/audio/sfx/stun.mp3",
+      "durationSeconds": 0.8,
+      "promptInfluence": 0.72,
+      "prompt": "Stun status applied in a dark medieval tactics game, dull head-ringing metal hit, short disorienting magic pulse, no voice."
+    },
+    {
+      "id": "guard",
+      "output": "public/assets/audio/sfx/guard.mp3",
+      "durationSeconds": 0.8,
+      "promptInfluence": 0.7,
+      "prompt": "Guard status applied in a dark fantasy tactics game, shield brace, armor lock, firm defensive clank with faint ward glow, no voice."
+    },
+    {
+      "id": "regen",
+      "output": "public/assets/audio/sfx/regen.mp3",
+      "durationSeconds": 0.95,
+      "promptInfluence": 0.68,
+      "prompt": "Regeneration status applied in a dark fantasy tactics game, gentle organic healing pulse, green-gold shimmer, soft restorative breath, no voice."
+    },
+    {
+      "id": "purchase",
+      "output": "public/assets/audio/sfx/purchase.mp3",
+      "durationSeconds": 0.9,
+      "promptInfluence": 0.66,
+      "prompt": "Rewarding fantasy shop purchase sound, bright coins, leather pouch, tiny gem sparkle, premium but short, no voice."
+    },
+    {
+      "id": "claim",
+      "output": "public/assets/audio/sfx/claim.mp3",
+      "durationSeconds": 1.0,
+      "promptInfluence": 0.68,
+      "prompt": "Reward claim sound for dark fantasy game, chest latch opens, gold glints, small triumphant sparkle, no voice."
+    },
+    {
+      "id": "level_up",
+      "output": "public/assets/audio/sfx/level_up.mp3",
+      "durationSeconds": 1.6,
+      "promptInfluence": 0.68,
+      "prompt": "Level up celebration for medieval fantasy game, rising magical chime, warm brass swell, short and satisfying, no voice."
+    },
+    {
+      "id": "unlock",
+      "output": "public/assets/audio/sfx/unlock.mp3",
+      "durationSeconds": 1.15,
+      "promptInfluence": 0.68,
+      "prompt": "Unlock sound, ancient lock opens, rune seal breaks, subtle magical sparkle, confident and clean, no voice."
+    },
+    {
+      "id": "victory",
+      "output": "public/assets/audio/sfx/victory.mp3",
+      "durationSeconds": 2.6,
+      "promptInfluence": 0.62,
+      "prompt": "Short victory stinger for dark medieval fantasy tactics, heroic brass, drum accent, bright magical finish, instrumental, no voice."
+    },
+    {
+      "id": "defeat",
+      "output": "public/assets/audio/sfx/defeat.mp3",
+      "durationSeconds": 2.4,
+      "promptInfluence": 0.62,
+      "prompt": "Short defeat stinger for dark medieval fantasy tactics, low drum, falling strings, smoky unresolved ending, instrumental, no voice."
+    }
+  ],
+  "music": [
+    {
+      "id": "home",
+      "output": "public/assets/audio/music/home.mp3",
+      "musicLengthMs": 180000,
+      "prompt": "Loopable instrumental background music for a dark medieval fantasy game home hub, three minutes long. Calm, quiet and slightly melancholic, darker medieval fantasy mood, low strings, soft frame drums, deep drones, sparse bells, warm fortress at dusk, no angelic bright choir, no high happy lead, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "adventure",
+      "output": "public/assets/audio/music/adventure.mp3",
+      "musicLengthMs": 60000,
+      "prompt": "Loopable instrumental adventure map music for a dark fantasy tactical campaign. Traveling through misty roads, hand drums, plucked strings, low drones, cautious heroic mood, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "battle",
+      "output": "public/assets/audio/music/battle.mp3",
+      "musicLengthMs": 180000,
+      "prompt": "Loopable instrumental main battle theme for a turn-based dark medieval tactics game, three minutes long. Tense tactical drums, low brass, pulsing strings, dark magical undertone, memorable rhythm, sections with stronger percussion, sections led by tense violins, a few short instrumental solo phrases, dramatic but readable, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "shop",
+      "output": "public/assets/audio/music/shop.mp3",
+      "musicLengthMs": 90000,
+      "prompt": "Loopable instrumental dark medieval fantasy shop music, ninety seconds long. Merchant tent at night, plucked strings, soft mallets, faint coin sparkle, premium market mood with a subtle melancholic shadow, not too happy, not comedic, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "battle_boss",
+      "output": "public/assets/audio/music/battle_boss.mp3",
+      "musicLengthMs": 180000,
+      "prompt": "Loopable instrumental boss battle music for a dark medieval tactics game, three minutes long. Heavier drums, low brass, tense string ostinato, ominous choir pads without vocals, ritual percussion breaks, darker and more dangerous than normal battle, no copyrighted style references."
+    },
+    {
+      "id": "battle_epic",
+      "output": "public/assets/audio/music/battle_epic.mp3",
+      "musicLengthMs": 240000,
+      "prompt": "Loopable instrumental epic event battle music for a dark medieval fantasy tactics game, four minutes long. Multiple sections, powerful percussion, aggressive violins, low brass, mystical dark energy, heroic but grim, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "event",
+      "output": "public/assets/audio/music/event.mp3",
+      "musicLengthMs": 45000,
+      "prompt": "Loopable instrumental special event music for a dark fantasy game. Mysterious festival energy, ritual drums, bells, low choir texture, magical but controlled, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "prebattle",
+      "output": "public/assets/audio/music/prebattle.mp3",
+      "musicLengthMs": 60000,
+      "prompt": "Loopable instrumental pre-battle preparation music for a dark medieval fantasy tactics game, one minute long. It must sound active and complete immediately from the first second, no long intro, no slow build-up. Tense war table mood, low drums, muted strings, restrained horn pulses, tactical anticipation, dark but not combat-heavy, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "postbattle",
+      "output": "public/assets/audio/music/postbattle.mp3",
+      "musicLengthMs": 60000,
+      "prompt": "Loopable instrumental post-battle results music for a dark medieval fantasy tactics game, one minute long. It must sound complete and emotionally readable from the first second, no long intro, no slow build-up. Reflective victory or defeat aftermath, low strings, soft drums, warm but shadowed bells, reward screen atmosphere, no vocals, no copyrighted style references."
+    }
+  ]
+}

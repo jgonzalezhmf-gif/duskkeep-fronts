@@ -19,7 +19,11 @@ artifacts
 tmp/ip-risk-terms.txt
 .agents
 .skills
+.claude
+.continue
+.junie
 skills-lock.json
+public/assets/audio/**/_drafts/
 
 # Local source sheets / raw generated boards. Commit only cropped registered assets.
 public/assets/frontline/Icons/

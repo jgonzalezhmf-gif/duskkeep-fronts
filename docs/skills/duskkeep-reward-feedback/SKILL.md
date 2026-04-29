@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-reward-feedback
 description: "Use this skill whenever working on Duskkeep Fronts rewards, resources, victory screens, shop pricing display, fortress payouts, post-battle results, resource icons, or reward feel. It improves visual dopamine and clarity without changing economy values unless the user explicitly asks for economy/gameplay changes."
 ---

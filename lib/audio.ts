@@ -9,6 +9,11 @@ import {
   type AudioStingerName,
   type AudioThemeName,
 } from "@/lib/audio-score";
+import {
+  getAudioMusicAsset,
+  getAudioSfxAsset,
+  type AudioSfxAssetName,
+} from "@/lib/audioAssets";
 
 type ThemeName = AudioThemeName | null;
 type BusName = "music" | "sfx";
@@ -22,6 +27,12 @@ type ThemeChannel = {
   bar: number;
   nextBarAt: number;
   alive: boolean;
+};
+
+type MusicAssetChannel = {
+  theme: AudioThemeName;
+  audio: HTMLAudioElement;
+  timer: number | null;
 };
 
 type ThemeMixProfile = {
@@ -63,6 +74,8 @@ const THEME_MIX: Record<AudioThemeName, ThemeMixProfile> = {
   adventure: { fadeIn: 1.3, fadeOut: 0.95, preRoll: 0.1, dryLevel: 0.96, fxLevel: 0.76 },
   battle: { fadeIn: 0.82, fadeOut: 0.68, preRoll: 0.08, dryLevel: 1, fxLevel: 0.42 },
   event: { fadeIn: 1.1, fadeOut: 0.88, preRoll: 0.08, dryLevel: 0.96, fxLevel: 0.68 },
+  postbattle: { fadeIn: 0.55, fadeOut: 0.58, preRoll: 0.02, dryLevel: 0.92, fxLevel: 0.58 },
+  prebattle: { fadeIn: 0.55, fadeOut: 0.58, preRoll: 0.02, dryLevel: 0.95, fxLevel: 0.52 },
   shop: { fadeIn: 1.05, fadeOut: 0.84, preRoll: 0.08, dryLevel: 0.94, fxLevel: 0.66 },
 };
 
@@ -127,6 +140,8 @@ class AudioManager {
   private visibilityBound = false;
   private theme: ThemeName = null;
   private activeThemeChannel: ThemeChannel | null = null;
+  private activeMusicAssetChannel: MusicAssetChannel | null = null;
+  private sfxAssetBuffers = new Map<AudioSfxAssetName, Promise<AudioBuffer | null>>();
   private themeEntryCursor: Partial<Record<AudioThemeName, number>> = {};
   private musicVolume = 0.78;
   private sfxVolume = 0.92;
@@ -169,6 +184,7 @@ class AudioManager {
         this.muted ? 0 : visible ? 1 : 0.55,
         now + (visible ? 0.24 : 0.12),
       );
+      this.applyMusicAssetVolume(visible ? 0.18 : 0.08);
     });
     this.visibilityBound = true;
   }
@@ -224,7 +240,14 @@ class AudioManager {
   }
 
   setTheme(theme: ThemeName) {
-    if (this.theme === theme && this.activeThemeChannel?.theme === theme) return;
+    if (this.theme === theme) {
+      if (!theme || this.muted || !this.primed) return;
+      if (this.activeMusicAssetChannel?.theme === theme) {
+        this.applyMusicAssetVolume(0.18);
+        return;
+      }
+      if (this.activeThemeChannel?.theme === theme) return;
+    }
     this.theme = theme;
     this.crossfadeTheme(theme);
   }
@@ -352,6 +375,77 @@ class AudioManager {
     graph.sfxGain.gain.setValueAtTime(this.muted ? 0 : this.sfxVolume, now);
     graph.musicDuckGain.gain.cancelScheduledValues(now);
     graph.musicDuckGain.gain.setValueAtTime(1, now);
+    this.applyMusicAssetVolume(0.12);
+  }
+
+  private getMusicAssetVolume(theme: AudioThemeName) {
+    const visible = typeof document === "undefined" || document.visibilityState === "visible";
+    const asset = getAudioMusicAsset(theme);
+    return this.muted ? 0 : this.musicVolume * (asset?.gain ?? 1) * (visible ? 1 : 0.55);
+  }
+
+  private applyMusicAssetVolume(fadeSeconds = 0.12) {
+    const channel = this.activeMusicAssetChannel;
+    if (!channel) return;
+    this.fadeHtmlAudio(channel, this.getMusicAssetVolume(channel.theme), fadeSeconds);
+  }
+
+  private fadeHtmlAudio(channel: MusicAssetChannel, targetVolume: number, seconds: number, onDone?: () => void) {
+    if (typeof window === "undefined") return;
+    if (channel.timer !== null) {
+      window.clearInterval(channel.timer);
+      channel.timer = null;
+    }
+
+    const startVolume = channel.audio.volume;
+    const duration = Math.max(0.02, seconds);
+    const startedAt = performance.now();
+    channel.timer = window.setInterval(() => {
+      const progress = Math.min(1, (performance.now() - startedAt) / (duration * 1000));
+      channel.audio.volume = startVolume + (targetVolume - startVolume) * progress;
+      if (progress >= 1) {
+        if (channel.timer !== null) window.clearInterval(channel.timer);
+        channel.timer = null;
+        onDone?.();
+      }
+    }, 40);
+  }
+
+  private stopMusicAssetChannel(fadeSeconds = 0.5) {
+    const channel = this.activeMusicAssetChannel;
+    if (!channel) return;
+    this.activeMusicAssetChannel = null;
+    this.fadeHtmlAudio(channel, 0, fadeSeconds, () => {
+      channel.audio.pause();
+      channel.audio.src = "";
+      channel.audio.load();
+    });
+  }
+
+  private playMusicAsset(theme: AudioThemeName) {
+    if (typeof window === "undefined" || !this.primed || this.muted) return false;
+    const asset = getAudioMusicAsset(theme);
+    if (!asset) return false;
+    if (this.activeMusicAssetChannel?.theme === theme) {
+      this.applyMusicAssetVolume(0.18);
+      return true;
+    }
+
+    this.stopMusicAssetChannel(0.45);
+    const audio = new Audio(asset.src);
+    audio.loop = asset.loop ?? true;
+    audio.preload = "auto";
+    audio.volume = 0;
+    const channel: MusicAssetChannel = { theme, audio, timer: null };
+    this.activeMusicAssetChannel = channel;
+    audio.play().then(
+      () => this.fadeHtmlAudio(channel, this.getMusicAssetVolume(theme), 0.75),
+      () => {
+        if (this.activeMusicAssetChannel === channel) this.activeMusicAssetChannel = null;
+        this.crossfadeProceduralTheme(theme);
+      },
+    );
+    return true;
   }
 
   private createImpulseBuffer(ctx: AudioContext, seconds: number, decay: number) {
@@ -829,6 +923,7 @@ class AudioManager {
         this.stopThemeChannel(this.activeThemeChannel, 0.35);
         this.activeThemeChannel = null;
       }
+      this.stopMusicAssetChannel(0.35);
       return;
     }
 
@@ -837,9 +932,24 @@ class AudioManager {
         this.stopThemeChannel(this.activeThemeChannel, 0.58);
         this.activeThemeChannel = null;
       }
+      this.stopMusicAssetChannel(0.58);
       return;
     }
 
+    if (getAudioMusicAsset(theme)) {
+      if (this.activeThemeChannel) {
+        this.stopThemeChannel(this.activeThemeChannel, 0.45);
+        this.activeThemeChannel = null;
+      }
+      if (this.playMusicAsset(theme)) return;
+    } else {
+      this.stopMusicAssetChannel(0.45);
+    }
+
+    this.crossfadeProceduralTheme(theme);
+  }
+
+  private crossfadeProceduralTheme(theme: AudioThemeName) {
     if (this.activeThemeChannel?.theme === theme) return;
 
     const next = this.createThemeChannel(theme);
@@ -941,6 +1051,7 @@ class AudioManager {
   }
 
   playStinger(name: AudioStingerName) {
+    if (this.playSfxAsset(name)) return;
     const graph = this.ensureGraph();
     if (!graph || this.muted || !this.ctx) return;
     const score = STINGER_SCORES[name];
@@ -953,16 +1064,71 @@ class AudioManager {
     }
     this.duckTheme(name === "victory" ? 0.48 : 0.54, Math.min(2.8, total + 0.35));
   }
+
+  private loadSfxAsset(name: AudioSfxAssetName) {
+    const existing = this.sfxAssetBuffers.get(name);
+    if (existing) return existing;
+    const asset = getAudioSfxAsset(name);
+    if (!asset) return Promise.resolve(null);
+
+    const pending = fetch(asset.src)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Audio asset failed: ${asset.src}`);
+        return response.arrayBuffer();
+      })
+      .then((buffer) => {
+        const graph = this.ensureGraph();
+        if (!graph) return null;
+        return graph.ctx.decodeAudioData(buffer.slice(0));
+      })
+      .catch(() => null);
+
+    this.sfxAssetBuffers.set(name, pending);
+    return pending;
+  }
+
+  playSfxAsset(name: AudioSfxAssetName, fallback?: () => void) {
+    const graph = this.ensureGraph();
+    const asset = getAudioSfxAsset(name);
+    if (!graph || !asset || this.muted || !this.ctx) return false;
+
+    this.loadSfxAsset(name).then((buffer) => {
+      if (!buffer) {
+        fallback?.();
+        return;
+      }
+      if (this.muted || !this.ctx || !this.sfxGain) return;
+      const source = this.ctx.createBufferSource();
+      const gain = this.ctx.createGain();
+      source.buffer = buffer;
+      gain.gain.value = asset.gain ?? 1;
+      source.connect(gain).connect(this.sfxGain);
+      source.start();
+    });
+    return true;
+  }
 }
 
-const mgr = new AudioManager();
+type DuskkeepAudioGlobal = typeof globalThis & {
+  __duskkeepAudioManager?: AudioManager;
+};
+
+const audioGlobal = globalThis as DuskkeepAudioGlobal;
+const mgr = audioGlobal.__duskkeepAudioManager ?? new AudioManager();
+Object.setPrototypeOf(mgr, AudioManager.prototype);
+audioGlobal.__duskkeepAudioManager = mgr;
 
 if (typeof window !== "undefined") mgr.init();
 
 export const audio = mgr;
 
+function playSfx(name: AudioSfxAssetName, fallback: () => void) {
+  if (!mgr.playSfxAsset(name, fallback)) fallback();
+}
+
 export const sfx = {
   tap: () => {
+    playSfx("ui_click", () => {
     const variant = nextVariant("tap", 3);
     const figures: AudioScoreEvent[][] = [
       [
@@ -979,8 +1145,10 @@ export const sfx = {
       ],
     ];
     mgr.playFigure(figures[variant], { bus: "sfx", tempo: 184 });
+    });
   },
   hover: () => {
+    playSfx("ui_hover", () => {
     const variant = nextVariant("hover", 3);
     const figures: AudioScoreEvent[][] = [
       [
@@ -997,6 +1165,7 @@ export const sfx = {
       ],
     ];
     mgr.playFigure(figures[variant], { bus: "sfx", tempo: 168 });
+    });
   },
   move: () => {
     const variant = nextVariant("move", 2);
@@ -1016,6 +1185,7 @@ export const sfx = {
   },
   attack: () => {
     mgr.vibrate(12);
+    playSfx("attack", () => {
     const variant = nextVariant("attack", 3);
     const figures: AudioScoreEvent[][] = [
       [
@@ -1035,9 +1205,11 @@ export const sfx = {
       ],
     ];
     mgr.playFigure(figures[variant], { bus: "sfx", tempo: 150, duck: 0.16 });
+    });
   },
   hit: () => {
     mgr.vibrate(20);
+    playSfx("hit", () => {
     const variant = nextVariant("hit", 2);
     const figures: AudioScoreEvent[][] = [
       [
@@ -1050,8 +1222,10 @@ export const sfx = {
       ],
     ];
     mgr.playFigure(figures[variant], { bus: "sfx", tempo: 132, duck: 0.12 });
+    });
   },
   heal: () =>
+    playSfx("heal", () =>
     mgr.playFigure(
       [
         { beat: 0, len: 0.36, instrument: "bell", notes: [79], velocity: 0.16, send: 0.48 },
@@ -1060,8 +1234,9 @@ export const sfx = {
         { beat: 0.54, len: 0.44, instrument: "sparkle", notes: [91], velocity: 0.1, send: 0.7 },
       ],
       { bus: "sfx", tempo: 116, duck: 0.1 },
-    ),
+    )),
   shield: () =>
+    playSfx("shield", () =>
     mgr.playFigure(
       [
         { beat: 0, len: 0.16, instrument: "impact", velocity: 0.22, pan: -0.08 },
@@ -1070,8 +1245,9 @@ export const sfx = {
         { beat: 0.12, len: 0.48, instrument: "bell", notes: [79], velocity: 0.1, pan: 0.1, send: 0.38 },
       ],
       { bus: "sfx", tempo: 122, duck: 0.08 },
-    ),
+    )),
   ability: () =>
+    playSfx("card_play", () =>
     mgr.playFigure(
       [
         { beat: 0, len: 0.22, instrument: "sparkle", notes: [76], velocity: 0.14, pan: -0.1, send: 0.7 },
@@ -1080,7 +1256,7 @@ export const sfx = {
         { beat: 0.46, len: 0.38, instrument: "bell", notes: [88], velocity: 0.1, pan: 0.12, send: 0.64 },
       ],
       { bus: "sfx", tempo: 128, duck: 0.12 },
-    ),
+    )),
   victory: () => {
     mgr.vibrate([40, 40, 80]);
     mgr.playStinger("victory");
@@ -1091,6 +1267,7 @@ export const sfx = {
   },
   claim: () => {
     mgr.vibrate(18);
+    playSfx("claim", () => {
     mgr.playFigure(
       [
         { beat: 0, len: 0.18, instrument: "mallet", notes: [83], velocity: 0.16, send: 0.24 },
@@ -1100,9 +1277,11 @@ export const sfx = {
       ],
       { bus: "sfx", tempo: 136, duck: 0.1 },
     );
+    });
   },
   levelUp: () => {
     mgr.vibrate([30, 30, 60]);
+    playSfx("level_up", () => {
     mgr.playFigure(
       [
         { beat: 0, len: 0.2, instrument: "bell", notes: [72], velocity: 0.18, send: 0.42 },
@@ -1112,8 +1291,10 @@ export const sfx = {
       ],
       { bus: "sfx", tempo: 126, duck: 0.16 },
     );
+    });
   },
   error: () =>
+    playSfx("ui_error", () =>
     mgr.playFigure(
       [
         { beat: 0, len: 0.26, instrument: "lead", notes: [62], velocity: 0.12, send: 0.08 },
@@ -1121,9 +1302,10 @@ export const sfx = {
         { beat: 0.34, len: 0.18, instrument: "impact", velocity: 0.18 },
       ],
       { bus: "sfx", tempo: 108, duck: 0.06 },
-    ),
+    )),
   purchase: () => {
     mgr.vibrate(14);
+    playSfx("purchase", () => {
     mgr.playFigure(
       [
         { beat: 0, len: 0.16, instrument: "mallet", notes: [76], velocity: 0.16, send: 0.18 },
@@ -1133,9 +1315,11 @@ export const sfx = {
       ],
       { bus: "sfx", tempo: 142, duck: 0.12 },
     );
+    });
   },
   unlock: () => {
     mgr.vibrate([30, 40, 30]);
+    playSfx("unlock", () => {
     mgr.playFigure(
       [
         { beat: 0, len: 0.22, instrument: "bell", notes: [74], velocity: 0.18, send: 0.42 },
@@ -1145,5 +1329,24 @@ export const sfx = {
       ],
       { bus: "sfx", tempo: 124, duck: 0.18 },
     );
+    });
   },
+  death: () => playSfx("death", () => sfx.hit()),
+  deathMonster: () => playSfx("death_monster", () => sfx.death()),
+  deathHumanMale: () => playSfx("death_human_male", () => sfx.death()),
+  deathHumanFemale: () => playSfx("death_human_female", () => sfx.death()),
+  breach: () => playSfx("breach", () => sfx.hit()),
+  summon: () => playSfx("summon", () => sfx.ability()),
+  leaderPower: () => playSfx("leader_power", () => sfx.ability()),
+  coreDamage: () => playSfx("core_damage", () => sfx.breach()),
+  resolveClash: () => playSfx("resolve_clash", () => sfx.attack()),
+  turnStart: () => playSfx("turn_start", () => sfx.tap()),
+  cardOrder: () => playSfx("card_order", () => sfx.ability()),
+  cardTactic: () => playSfx("card_tactic", () => sfx.ability()),
+  cardSummon: () => playSfx("card_summon", () => sfx.summon()),
+  poison: () => playSfx("poison", () => sfx.hit()),
+  burn: () => playSfx("burn", () => sfx.hit()),
+  stun: () => playSfx("stun", () => sfx.hit()),
+  guard: () => playSfx("guard", () => sfx.shield()),
+  regen: () => playSfx("regen", () => sfx.heal()),
 };

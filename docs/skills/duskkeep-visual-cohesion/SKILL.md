@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-visual-cohesion
 description: "Use this skill whenever changing Duskkeep Fronts game UI, screens, icons, backgrounds, navigation, or shared visual components. It preserves a coherent dark medieval fantasy game style across Home, Adventure, Deck, Heroes, Quests, Events, Arena, Market, Fortress, and non-Combat screens, prioritizing visual information over text and preventing screens from drifting into mismatched legacy UI."
 ---

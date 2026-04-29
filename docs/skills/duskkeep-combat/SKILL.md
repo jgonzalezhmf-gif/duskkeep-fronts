@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-combat
 description: "Use this skill whenever working on Duskkeep Fronts Combat: battle UI, command economy display, lanes/fronts, heroes, enemies, card presentation, Clash/Breach feedback, Adventure/Arena/Event battle integration, post-battle rewards, or enemy/card data. It protects the current rules unless the user explicitly asks for gameplay redesign."
 ---

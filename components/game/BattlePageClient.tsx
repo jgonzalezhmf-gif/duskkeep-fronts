@@ -16,6 +16,7 @@ import {
   getFrontlinePresetForAdventure,
 } from "@/features/frontline/adventure";
 import { ACCOUNT_XP_PER_LEVEL } from "@/lib/constants";
+import { audio } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import {
   frontlineCardKindLabel,
@@ -26,7 +27,7 @@ import {
 } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
-import type { FrontlineBattleState } from "@/features/frontline/types";
+import type { FrontlineBattleState, FrontlineHeroDef } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
 import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
 import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
@@ -140,6 +141,18 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     : selectedPreset.rewardSeed;
   const selectedPresetName = frontlinePresetName(t, selectedPreset);
 
+  useEffect(() => {
+    if (phase === "battle") {
+      audio.setTheme("battle");
+      return;
+    }
+    if (phase === "result") {
+      audio.setTheme("postbattle");
+      return;
+    }
+    audio.setTheme("prebattle");
+  }, [phase]);
+
   const startBattle = useCallback(() => {
     if (!squadReady || !deckReady) return;
     setBattleSeed(nextSeed());
@@ -243,64 +256,88 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
 
   return (
     <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-5 px-3 pb-24 pt-20 md:px-6 md:pb-28 md:pt-24 xl:px-8">
-      <section className="relative isolate overflow-hidden rounded-[38px] border border-[#f5d498]/14 bg-[radial-gradient(circle_at_18%_12%,rgba(245,196,81,0.18),transparent_25%),radial-gradient(circle_at_78%_18%,rgba(106,190,255,0.14),transparent_28%),linear-gradient(135deg,rgba(52,35,22,0.92),rgba(16,20,29,0.96)_42%,rgba(7,9,14,0.99)_100%)] shadow-[0_34px_92px_rgba(0,0,0,0.42)]">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.055),transparent_22%,rgba(0,0,0,0.18)_78%),radial-gradient(ellipse_at_50%_54%,rgba(156,100,51,0.2),transparent_44%)]" />
-        <div className="pointer-events-none absolute inset-x-[8%] top-[27%] h-[22rem] rounded-[50%] bg-[radial-gradient(ellipse_at_50%_50%,rgba(245,196,81,0.11),rgba(105,72,36,0.18)_36%,transparent_72%)] blur-sm" />
+      <section className="relative isolate overflow-hidden rounded-[40px] border border-[#f5d498]/14 bg-[radial-gradient(circle_at_16%_8%,rgba(245,196,81,0.2),transparent_24%),radial-gradient(circle_at_80%_14%,rgba(240,95,114,0.18),transparent_27%),linear-gradient(135deg,rgba(55,34,19,0.94),rgba(14,19,29,0.97)_44%,rgba(5,7,12,0.99)_100%)] shadow-[0_38px_96px_rgba(0,0,0,0.46)]">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.06),transparent_21%,rgba(0,0,0,0.22)_80%),radial-gradient(ellipse_at_50%_54%,rgba(156,100,51,0.24),transparent_44%)]" />
+        <div className="pointer-events-none absolute inset-x-[4%] top-[21%] h-[28rem] rounded-[50%] bg-[radial-gradient(ellipse_at_50%_50%,rgba(245,196,81,0.16),rgba(105,72,36,0.2)_34%,transparent_72%)] blur-sm" />
+        <div className="pointer-events-none absolute left-[10%] top-16 h-36 w-36 rounded-full bg-[#65d2c8]/10 blur-3xl" />
+        <div className="pointer-events-none absolute right-[14%] top-12 h-44 w-44 rounded-full bg-[#f05f72]/12 blur-3xl" />
         <div className="relative z-[1] px-4 py-5 md:px-6 md:py-6">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem]">
-            <div className="min-w-0">
-              <div className="inline-flex rounded-full border border-[#f5c451]/24 bg-[#f5c451]/12 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
-                {adventureLevel ? t("frontline.adventureGate", { chapter: adventureLevel.chapter }) : t("frontline.command")}
-              </div>
-              <h1 className="mt-4 max-w-[58rem] text-[2.1rem] font-black leading-[0.94] text-white md:text-[3.35rem]">
-                {adventureLevel ? adventureLevel.name : t("frontline.chooseFronts")}
-              </h1>
-              <div className="mt-4 grid gap-3 md:grid-cols-4">
-                <Metric label={t("frontline.squad")} value={`${frontlineLoadout.squad.filter(Boolean).length}/3`} ok={squadReady} t={t} />
-                <Metric label={t("frontline.deck")} value={`${frontlineLoadout.deck.filter(Boolean).length}/8`} ok={deckReady} t={t} />
-                <Metric label={t("frontline.allyPower")} value={allyPower} ok={squadReady} t={t} />
-                <Metric label={t("frontline.enemyPower")} value={enemyPower} ok t={t} />
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="relative min-w-0 overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.055),rgba(8,10,16,0.52)_54%,rgba(0,0,0,0.16))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:p-5">
+              <div className="pointer-events-none absolute inset-x-6 bottom-6 h-24 rounded-[50%] bg-[radial-gradient(ellipse_at_50%_50%,rgba(245,196,81,0.16),transparent_70%)]" />
+              <div className="relative z-[1] flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0">
+                  <div className="inline-flex rounded-full border border-[#f5c451]/24 bg-[#f5c451]/12 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
+                    {adventureLevel ? t("frontline.adventureGate", { chapter: adventureLevel.chapter }) : t("frontline.command")}
+                  </div>
+                  <h1 className="mt-4 max-w-[44rem] text-[2.1rem] font-black leading-[0.94] text-white md:text-[3.35rem]">
+                    {adventureLevel ? adventureLevel.name : t("frontline.chooseFronts")}
+                  </h1>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <ReadinessChip label={t("frontline.squad")} value={`${frontlineLoadout.squad.filter(Boolean).length}/3`} ok={squadReady} t={t} />
+                    <ReadinessChip label={t("frontline.deck")} value={`${frontlineLoadout.deck.filter(Boolean).length}/8`} ok={deckReady} t={t} />
+                    <PowerChip label={t("frontline.allyPower")} value={allyPower} tone="ally" />
+                    <PowerChip label={t("frontline.enemyPower")} value={enemyPower} tone="enemy" />
+                  </div>
+                </div>
+                <div className="relative grid min-h-[9.5rem] min-w-[16rem] grid-cols-3 items-end gap-2 rounded-[28px] border border-rose-200/12 bg-[radial-gradient(circle_at_50%_18%,rgba(240,95,114,0.18),transparent_48%),linear-gradient(180deg,rgba(72,24,34,0.3),rgba(6,7,12,0.68))] px-4 pb-3 pt-4">
+                  <div className="absolute left-5 top-3 text-[9px] font-black uppercase tracking-[0.18em] text-rose-100/58">{t("frontline.missionEnemy")}</div>
+                  {enemyHeroes.map((hero, index) => (
+                    <EnemyStagePiece key={`${selectedPreset.id}-stage-${hero?.heroId ?? index}`} hero={hero} index={index} />
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-[#f5d498]/14 bg-[linear-gradient(180deg,rgba(245,196,81,0.1),rgba(16,12,11,0.92))] p-4 shadow-[0_22px_54px_rgba(0,0,0,0.28)]">
-              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">{t("frontline.launchGate")}</div>
-              <div className="mt-2 text-2xl font-black leading-tight text-white">{squadReady && deckReady ? t("frontline.readyToBreach") : t("frontline.loadoutIncomplete")}</div>
-              <div className="mt-2 text-[12px] leading-5 text-white/62">
-                {squadReady && deckReady ? t("frontline.readyCopy") : t("frontline.incompleteCopy")}
+            <div className="relative overflow-hidden rounded-[32px] border border-[#f5d498]/18 bg-[linear-gradient(180deg,rgba(245,196,81,0.13),rgba(16,12,11,0.94))] p-4 shadow-[0_24px_58px_rgba(0,0,0,0.32)]">
+              <div className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#f5c451]/18 blur-2xl" />
+              <div className="relative z-[1]">
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">{t("frontline.launchGate")}</div>
+                <div className="mt-2 text-2xl font-black leading-tight text-white">{squadReady && deckReady ? t("frontline.readyToBreach") : t("frontline.loadoutIncomplete")}</div>
+                <button
+                  className="frontline-motion-cta mt-4 w-full rounded-[22px] border border-emerald-200/28 bg-[linear-gradient(180deg,rgba(64,178,124,0.98),rgba(13,45,31,0.98))] px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-[0_18px_38px_rgba(25,166,105,0.2)] transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
+                  disabled={!squadReady || !deckReady}
+                  onClick={startBattle}
+                >
+                  {t("frontline.startBattle")}
+                </button>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <RewardPreview label={t("resources.gold")} value={rewardPreview.gold ?? 0} icon="gold" tone="gold" />
+                  <RewardPreview label={t("resources.dust")} value={rewardPreview.dust ?? 0} icon="dust" tone="dust" />
+                  <RewardPreview label={t("resources.gems")} value={rewardPreview.gems ?? 0} icon="gems" tone="gems" />
+                  <RewardPreview label="XP" value={rewardPreview.accountXp ?? 0} progressionIcon="level_up" tone="xp" />
+                </div>
+                <Link
+                  href="/deck"
+                  className="mt-3 block rounded-[18px] border border-white/10 bg-white/[0.045] px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white/70 transition hover:bg-white/[0.08]"
+                >
+                  {t("frontline.tuneSquadDeck")}
+                </Link>
               </div>
-              <button
-                className="mt-4 w-full rounded-[22px] border border-emerald-200/28 bg-[linear-gradient(180deg,rgba(64,178,124,0.98),rgba(13,45,31,0.98))] px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-[0_18px_38px_rgba(25,166,105,0.2)] transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
-                disabled={!squadReady || !deckReady}
-                onClick={startBattle}
-              >
-                {t("frontline.startBattle")}
-              </button>
-              <Link
-                href="/deck"
-                className="mt-3 block rounded-[18px] border border-white/10 bg-white/[0.045] px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white/70 transition hover:bg-white/[0.08]"
-              >
-                {t("frontline.tuneSquadDeck")}
-              </Link>
             </div>
           </div>
 
           <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem]">
             <div className="grid gap-4">
-              <Panel title={t("frontline.frontlineMatchup")}>
+              <Panel title={t("frontline.frontlineMatchup")} variant="stage">
                 <div className="grid gap-3 lg:grid-cols-3">
                   {allyHeroes.map((hero, index) => (
-                    <div key={`matchup-${index}`} className="relative rounded-[30px] border border-white/8 bg-[radial-gradient(circle_at_50%_42%,rgba(245,196,81,0.08),transparent_46%),rgba(0,0,0,0.18)] p-3">
-                      <div className="mb-2 flex items-center justify-between gap-2">
+                    <div key={`matchup-${index}`} className="relative overflow-hidden rounded-[32px] border border-white/9 bg-[radial-gradient(ellipse_at_50%_50%,rgba(245,196,81,0.13),transparent_56%),linear-gradient(180deg,rgba(19,24,34,0.68),rgba(7,8,13,0.9))] p-3 shadow-[0_20px_38px_rgba(0,0,0,0.24)]">
+                      <div className="pointer-events-none absolute inset-x-4 top-1/2 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.34),transparent)]" />
+                      <div className="pointer-events-none absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#f5c451]/24 bg-[#120d08]/88 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#f5d498] shadow-[0_10px_20px_rgba(0,0,0,0.36)]">
+                        VS
+                      </div>
+                      <div className="relative z-[1] mb-2 flex items-center justify-between gap-2">
                         <span className="rounded-full border border-cyan-200/14 bg-cyan-200/8 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-100/72">
                           {index === 0 ? t("frontline.left") : index === 1 ? t("frontline.center") : t("frontline.right")}
                         </span>
                         <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/34">{t("frontline.front")}</span>
                       </div>
                       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-2">
-                        <FrontlineHeroStandee hero={hero} side="ally" compact label={t("frontline.yourHero")} className="min-h-[13rem]" />
-                        <FrontlineHeroStandee hero={enemyHeroes[index]} side="enemy" compact label={t("frontline.enemy")} className="min-h-[13rem]" />
+                        <FrontlineHeroStandee hero={hero} side="ally" compact label={t("frontline.yourHero")} className="min-h-[13rem] border-cyan-200/18 bg-[radial-gradient(circle_at_50%_22%,rgba(103,232,249,0.16),transparent_40%),linear-gradient(180deg,rgba(16,46,54,0.66),rgba(6,9,14,0.9))]" />
+                        <FrontlineHeroStandee hero={enemyHeroes[index]} side="enemy" compact label={t("frontline.enemy")} className="min-h-[13rem] border-rose-200/18 bg-[radial-gradient(circle_at_50%_22%,rgba(251,113,133,0.18),transparent_40%),linear-gradient(180deg,rgba(72,24,34,0.66),rgba(8,7,12,0.92))]" />
                       </div>
+                      <LanePowerReadout ally={hero} enemy={enemyHeroes[index]} />
                     </div>
                   ))}
                 </div>
@@ -320,56 +357,67 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
             </div>
 
             <div className="grid gap-4 content-start">
-              <Panel title={adventureLevel ? t("frontline.missionEnemy") : t("frontline.chooseEnemy")}>
-                <div className="grid gap-3">
-                  {(adventureLevel ? [selectedPreset] : FRONTLINE_PRESETS).map((preset) => (
-                    <button
-                      key={preset.id}
-                      className={cn(
-                        "rounded-[24px] border px-4 py-3 text-left transition hover:-translate-y-0.5",
-                        preset.id === selectedPreset.id
-                          ? "border-[#f5c451]/28 bg-[linear-gradient(180deg,rgba(245,196,81,0.14),rgba(20,16,18,0.9))] shadow-[0_14px_32px_rgba(245,196,81,0.08)]"
-                          : "border-white/10 bg-white/[0.035]",
-                      )}
-                      onClick={() => setSelectedEnemyPresetId(preset.id)}
-                      disabled={Boolean(adventureLevel)}
-                    >
-                      <div className="text-base font-black text-white">{frontlinePresetName(t, preset)}</div>
-                      <div className="mt-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#f5d498]/72">
-                        {frontlineLeaderName(t, FRONTLINE_LEADER_BY_ID[preset.leaderId]) || t("frontline.unknownLeader")}
-                      </div>
-                      <div className="mt-3 flex -space-x-3">
-                        {preset.squad.map((combatantId, index) => (
-                          <EnemyMini key={`${preset.id}-${combatantId}-${index}`} combatantId={combatantId} />
-                        ))}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </Panel>
+              {!adventureLevel ? (
+                <Panel title={t("frontline.chooseEnemy")} variant="enemy">
+                  <div className="grid gap-3">
+                    {FRONTLINE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        className={cn(
+                          "rounded-[24px] border px-4 py-3 text-left transition hover:-translate-y-0.5",
+                          preset.id === selectedPreset.id
+                            ? "border-[#f5c451]/28 bg-[linear-gradient(180deg,rgba(245,196,81,0.14),rgba(20,16,18,0.9))] shadow-[0_14px_32px_rgba(245,196,81,0.08)]"
+                            : "border-white/10 bg-white/[0.035]",
+                        )}
+                        onClick={() => setSelectedEnemyPresetId(preset.id)}
+                      >
+                        <div className="text-base font-black text-white">{frontlinePresetName(t, preset)}</div>
+                        <div className="mt-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#f5d498]/72">
+                          {frontlineLeaderName(t, FRONTLINE_LEADER_BY_ID[preset.leaderId]) || t("frontline.unknownLeader")}
+                        </div>
+                        <div className="mt-3 flex -space-x-3">
+                          {preset.squad.map((combatantId, index) => (
+                            <EnemyMini key={`${preset.id}-${combatantId}-${index}`} combatantId={combatantId} />
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </Panel>
+              ) : null}
 
-              <Panel title={t("frontline.enemyTricks")}>
+              <Panel title={t("frontline.enemyTricks")} variant="enemy">
                 <div className="grid grid-cols-2 gap-2">
                   {enemyCards.slice(0, 4).map((card, index) => (
-                    <div key={`enemy-card-${index}-${card.id}`} className="rounded-[18px] border border-rose-200/10 bg-[linear-gradient(180deg,rgba(111,37,45,0.26),rgba(10,8,14,0.92))] px-3 py-3">
-                      <div className="text-[9px] font-black uppercase tracking-[0.15em] text-rose-100/52">{frontlineCardKindLabel(t, card)}</div>
-                      <div className="mt-1 line-clamp-2 text-[12px] font-black leading-4 text-white">{frontlineCardName(t, card)}</div>
+                    <div key={`enemy-card-${index}-${card.id}`} className="relative overflow-hidden rounded-[18px] border border-rose-200/12 bg-[linear-gradient(180deg,rgba(111,37,45,0.3),rgba(10,8,14,0.94))] px-3 py-3 shadow-[0_14px_26px_rgba(0,0,0,0.22)]">
+                      <div className="pointer-events-none absolute -right-5 -top-6 h-14 w-14 rounded-full bg-rose-300/14 blur-xl" />
+                      <div className="relative z-[1] text-[9px] font-black uppercase tracking-[0.15em] text-rose-100/58">{frontlineCardKindLabel(t, card)}</div>
+                      <div className="relative z-[1] mt-1 line-clamp-2 text-[12px] font-black leading-4 text-white">{frontlineCardName(t, card)}</div>
+                      <div className="relative z-[1] mt-2 h-1.5 overflow-hidden rounded-full bg-black/34">
+                        <div className="h-full rounded-full bg-[linear-gradient(90deg,#f05f72,#ffd86f)]" style={{ width: `${Math.min(100, 24 + card.cost * 18)}%` }} />
+                      </div>
                     </div>
                   ))}
                 </div>
               </Panel>
 
-              <Panel title={t("frontline.rewards")}>
-                <div className="grid grid-cols-2 gap-2">
-                  <RewardPreview label={t("resources.gold")} value={rewardPreview.gold ?? 0} icon="gold" tone="gold" />
-                  <RewardPreview label={t("resources.dust")} value={rewardPreview.dust ?? 0} icon="dust" tone="dust" />
-                  <RewardPreview label={t("resources.gems")} value={rewardPreview.gems ?? 0} icon="gems" tone="gems" />
-                  <RewardPreview label="XP" value={rewardPreview.accountXp ?? 0} progressionIcon="level_up" tone="xp" />
-                  {rewardPreview.frontlineCards?.length ? (
-                    <RewardPreview label={t("frontline.cardUnlocks")} value={rewardPreview.frontlineCards.length} progressionIcon="unlock" tone="card" />
-                  ) : null}
-                </div>
-              </Panel>
+              {!adventureLevel || rewardPreview.frontlineCards?.length ? (
+                <Panel title={t("frontline.rewards")}>
+                  <div className="grid grid-cols-2 gap-2">
+                    {!adventureLevel ? (
+                      <>
+                        <RewardPreview label={t("resources.gold")} value={rewardPreview.gold ?? 0} icon="gold" tone="gold" />
+                        <RewardPreview label={t("resources.dust")} value={rewardPreview.dust ?? 0} icon="dust" tone="dust" />
+                        <RewardPreview label={t("resources.gems")} value={rewardPreview.gems ?? 0} icon="gems" tone="gems" />
+                        <RewardPreview label="XP" value={rewardPreview.accountXp ?? 0} progressionIcon="level_up" tone="xp" />
+                      </>
+                    ) : null}
+                    {rewardPreview.frontlineCards?.length ? (
+                      <RewardPreview label={t("frontline.cardUnlocks")} value={rewardPreview.frontlineCards.length} progressionIcon="unlock" tone="card" />
+                    ) : null}
+                  </div>
+                </Panel>
+              ) : null}
 
               {phase === "result" && resultContext ? (
                 <Panel title={resultContext.winner === "ally" ? t("frontline.victory") : resultContext.winner === "draw" ? t("frontline.draw") : t("frontline.defeat")}>
@@ -488,9 +536,91 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   );
 }
 
-function Panel({ title, children }: { title: string; children: ReactNode }) {
+function heroPreviewPower(hero: FrontlineHeroDef | null) {
+  return hero ? hero.maxHp + hero.atk * 3 + hero.def * 2 + hero.speed : 0;
+}
+
+function ReadinessChip({ label, value, ok, t }: { label: string; value: string; ok: boolean; t: (key: string) => string }) {
   return (
-    <section className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(8,10,16,0.9))] p-4 shadow-[0_20px_44px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] shadow-[0_10px_22px_rgba(0,0,0,0.16)]",
+        ok ? "border-emerald-200/20 bg-emerald-300/10 text-emerald-100" : "border-rose-200/20 bg-rose-300/10 text-rose-100",
+      )}
+    >
+      <span className={cn("h-2.5 w-2.5 rounded-full", ok ? "bg-emerald-300 shadow-[0_0_14px_rgba(110,231,183,0.5)]" : "bg-rose-300 shadow-[0_0_14px_rgba(251,113,133,0.5)]")} />
+      {label} {value}
+      <span className="text-white/48">{ok ? t("frontline.ready") : t("frontline.missing")}</span>
+    </span>
+  );
+}
+
+function PowerChip({ label, value, tone }: { label: string; value: number; tone: "ally" | "enemy" }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] shadow-[0_10px_22px_rgba(0,0,0,0.16)]",
+        tone === "ally" ? "border-cyan-200/18 bg-cyan-300/9 text-cyan-100/82" : "border-rose-200/18 bg-rose-300/9 text-rose-100/82",
+      )}
+    >
+      <span className={cn("h-2.5 w-2.5 rounded-full", tone === "ally" ? "bg-cyan-300 shadow-[0_0_14px_rgba(103,232,249,0.44)]" : "bg-rose-300 shadow-[0_0_14px_rgba(251,113,133,0.44)]")} />
+      {label}
+      <strong className="text-white">{value}</strong>
+    </span>
+  );
+}
+
+function EnemyStagePiece({ hero, index }: { hero: FrontlineHeroDef | null; index: number }) {
+  const { t } = useI18n();
+  const visual = hero ? getFrontlineHeroVisualAsset(hero.heroId) : null;
+  const src = visual?.standeeSrc ?? visual?.portraitFallbackSrc ?? null;
+  const name = hero ? frontlineHeroName(t, hero) : "";
+  return (
+    <div className={cn("frontline-motion-standee relative isolate flex flex-col items-center", index === 1 && "-mt-2 scale-110")}>
+      <div className="relative h-24 w-20 overflow-visible">
+        <span className="absolute bottom-0 left-1/2 h-5 w-20 -translate-x-1/2 rounded-full border border-rose-100/16 bg-[linear-gradient(90deg,rgba(62,13,23,0.82),rgba(240,95,114,0.24),rgba(25,8,12,0.74))] shadow-[0_12px_24px_rgba(0,0,0,0.36)]" />
+        {src ? (
+          <img src={src} alt={name} className="relative z-[1] h-full w-full object-contain object-bottom drop-shadow-[0_18px_18px_rgba(0,0,0,0.52)]" loading="lazy" decoding="async" />
+        ) : (
+          <div className="relative z-[1] grid h-full w-full place-items-center rounded-[24px] bg-black/24 text-sm font-black text-white/70">?</div>
+        )}
+      </div>
+      <div className="mt-1 rounded-full border border-rose-100/14 bg-black/34 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-rose-100/72">
+        T{hero?.tier ?? 1}
+      </div>
+    </div>
+  );
+}
+
+function LanePowerReadout({ ally, enemy }: { ally: FrontlineHeroDef | null; enemy: FrontlineHeroDef | null }) {
+  const allyPower = heroPreviewPower(ally);
+  const enemyPower = heroPreviewPower(enemy);
+  const total = Math.max(1, allyPower + enemyPower);
+  const allyWidth = Math.max(10, Math.round((allyPower / total) * 100));
+  const enemyWidth = Math.max(10, 100 - allyWidth);
+  return (
+    <div className="relative z-[1] mt-3 rounded-[16px] border border-white/8 bg-black/20 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 text-[9px] font-black uppercase tracking-[0.14em] text-white/42">
+        <span>{allyPower}</span>
+        <span>{enemyPower}</span>
+      </div>
+      <div className="mt-1 flex h-2 overflow-hidden rounded-full bg-white/8">
+        <div className="bg-[linear-gradient(90deg,#65d2c8,#7aa2ff)]" style={{ width: `${allyWidth}%` }} />
+        <div className="bg-[linear-gradient(90deg,#ffb36d,#f05f72)]" style={{ width: `${enemyWidth}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, children, variant = "neutral" }: { title: string; children: ReactNode; variant?: "neutral" | "stage" | "enemy" }) {
+  const surface =
+    variant === "stage"
+      ? "border-[#f5d498]/14 bg-[radial-gradient(ellipse_at_50%_0%,rgba(245,196,81,0.11),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.052),rgba(8,10,16,0.9))]"
+      : variant === "enemy"
+        ? "border-rose-200/12 bg-[radial-gradient(ellipse_at_50%_0%,rgba(240,95,114,0.11),transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.045),rgba(8,8,14,0.92))]"
+        : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(8,10,16,0.9))]";
+  return (
+    <section className={cn("rounded-[30px] border p-4 shadow-[0_20px_44px_rgba(0,0,0,0.24)]", surface)}>
       <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{title}</div>
       <div className="mt-4">{children}</div>
     </section>

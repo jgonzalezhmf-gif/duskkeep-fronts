@@ -1,6 +1,6 @@
 {
   "name": "duskkeep-fronts",
-  "version": "0.2.4",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -16,7 +16,9 @@
     "test:watch": "vitest",
     "seed:reset": "node scripts/reset.mjs",
     "screenshots": "node scripts/capture-screens.mjs",
-    "screenshots:auto": "node scripts/capture-screens.mjs --start-server"
+    "screenshots:auto": "node scripts/capture-screens.mjs --start-server",
+    "audio:sfx": "node scripts/audio/generate-elevenlabs-sfx.mjs",
+    "audio:music": "node scripts/audio/generate-elevenlabs-music.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.104.0",

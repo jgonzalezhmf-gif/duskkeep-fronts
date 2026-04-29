@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-localization
 description: "Use this skill whenever adding or changing user-facing text, options/settings UI, language selection, translation dictionaries, locale formatting, or multilingual content in Duskkeep Fronts. It enforces translation keys, safe fallbacks, no translated domain IDs, and visual-first game UI across supported languages."
 ---

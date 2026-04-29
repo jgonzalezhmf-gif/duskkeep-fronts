@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-browser-validation
 description: "Use this skill whenever validating Duskkeep Fronts UI changes in browser, especially after visual, navigation, asset, responsive, Home, Combat, Adventure, Shop, Fortress, Deck, Arena or Events work. It defines the agent-browser/browser QA checklist for screenshots, console errors, 404s, hydration warnings, desktop/mobile/resize checks and route-specific evidence."
 ---

@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-skill-maintenance
 description: "Use this skill whenever auditing, creating, updating, validating, or deciding whether Duskkeep Fronts needs new Codex skills or AGENTS.md guidance. It is also used periodically after repeated workflows, recurring bugs, new asset pipelines, new screens, or process friction to keep the agent workflow maintainable without creating unnecessary skills."
 ---

@@ -32,6 +32,7 @@ import type {
 } from "@/features/frontline/types";
 import type { FrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import { getBattleBackdrop, getLeaderPortrait } from "@/lib/art";
+import { audio, sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import type { CombatAssetIconName, GameAssetIconSize } from "@/lib/iconAssets";
 import {
@@ -453,6 +454,73 @@ function eventFloatLabel(event: FrontlineEvent) {
   return event.label;
 }
 
+function playFrontlineCardSfx(cardId: string, tone: VisualFxTone) {
+  if (cardId.startsWith("leader:")) {
+    sfx.leaderPower();
+  } else {
+    const card = FRONTLINE_CARD_BY_ID[cardId];
+    if (card?.kind === "order") sfx.cardOrder();
+    else if (card?.kind === "tactic") sfx.cardTactic();
+    else if (card?.kind === "summon") sfx.cardSummon();
+    else sfx.ability();
+  }
+  if (tone === "heal") window.setTimeout(() => sfx.heal(), 260);
+  if (tone === "shield") window.setTimeout(() => sfx.shield(), 260);
+  if (tone === "breach") window.setTimeout(() => sfx.breach(), 320);
+  if (tone === "summon") window.setTimeout(() => sfx.summon(), 260);
+}
+
+const FEMALE_HERO_IDS = new Set(["kara", "mira", "tovi", "lyria", "fenra"]);
+
+function playDeathVoiceForGhost(ghost: DeathGhostFx | undefined) {
+  if (!ghost) {
+    sfx.death();
+    return;
+  }
+  if (ghost.targetSide !== "ally") {
+    sfx.deathMonster();
+    return;
+  }
+  if (FEMALE_HERO_IDS.has(ghost.actor.heroId)) {
+    sfx.deathHumanFemale();
+    return;
+  }
+  sfx.deathHumanMale();
+}
+
+function playFrontlineResolutionSfx(event: FrontlineEvent, ghosts: DeathGhostFx[]) {
+  if (event.kind === "damage" || event.kind === "stun") {
+    sfx.attack();
+    window.setTimeout(() => sfx.hit(), 420);
+    return;
+  }
+  if (event.kind === "ko") {
+    sfx.hit();
+    const ghost = ghosts.find((entry) => entry.eventId === event.id);
+    window.setTimeout(() => playDeathVoiceForGhost(ghost), 360);
+    return;
+  }
+  if (event.kind === "breach") {
+    sfx.coreDamage();
+    return;
+  }
+  if (event.kind === "heal") {
+    sfx.heal();
+    return;
+  }
+  if (event.kind === "shield") {
+    sfx.shield();
+    return;
+  }
+  if (event.kind === "summon") {
+    sfx.summon();
+    return;
+  }
+  if (event.kind === "power") {
+    sfx.leaderPower();
+  }
+}
+
 function eventFloatClass(event: FrontlineEvent) {
   if (event.kind === "breach") return "top-[48%] bg-[#f5c451] text-[#221509] shadow-[0_0_28px_rgba(245,196,81,0.44)]";
   if (event.kind === "summon") return "top-[70%] bg-emerald-200 text-[#06140b] shadow-[0_0_24px_rgba(75,224,141,0.36)]";
@@ -550,10 +618,14 @@ export default function FrontlineBattle({
   const finishDoneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finishDelayRef = useRef(1800);
   const fxIdRef = useRef(0);
+  const playedFxEventIdRef = useRef<string | null>(null);
+  const finishStingerPlayedRef = useRef(false);
   const backdrop = useMemo(() => getBattleBackdrop(seed), [seed]);
 
   useEffect(() => {
     finishedRef.current = false;
+    playedFxEventIdRef.current = null;
+    finishStingerPlayedRef.current = false;
     finishDelayRef.current = 1800;
     setFocusedLane(null);
     setResolutionFx(null);
@@ -583,6 +655,13 @@ export default function FrontlineBattle({
     };
   }, []);
 
+  function showResolutionFx(events: FrontlineEvent[]) {
+    const meaningfulEvents = events.filter(isResolutionEvent).slice(0, 12);
+    if (!meaningfulEvents.length) return;
+    fxIdRef.current += 1;
+    setResolutionFx({ id: fxIdRef.current, events: meaningfulEvents, activeIndex: 0 });
+  }
+
   useEffect(() => {
     if (!resolutionFx) return;
     const activeEvent = resolutionFx.events[resolutionFx.activeIndex];
@@ -605,15 +684,30 @@ export default function FrontlineBattle({
 
   useEffect(() => {
     if (state.turn !== "enemy" || state.winner) return;
+    const previous = state;
     const timeout = setTimeout(() => {
-      setState((current) => runEnemyTurn(current));
+      const next = runEnemyTurn(previous);
+      const newEvents = collectNewEvents(previous, next);
+      setDeathGhosts(collectDeathGhosts(previous, newEvents));
+      finishDelayRef.current = next.winner ? resolutionSequenceDuration(newEvents) : 1800;
+      setState(next);
+      showResolutionFx(newEvents);
+      if (!next.winner && next.turn === "ally") {
+        window.setTimeout(() => sfx.turnStart(), Math.max(380, resolutionSequenceDuration(newEvents) - 420));
+      }
     }, 700);
     return () => clearTimeout(timeout);
-  }, [state.turn, state.winner]);
+  }, [state]);
 
   useEffect(() => {
     if (!state.winner || finishedRef.current) return;
     finishedRef.current = true;
+    audio.setTheme("postbattle");
+    if (!finishStingerPlayedRef.current) {
+      finishStingerPlayedRef.current = true;
+      if (state.winner === "ally") window.setTimeout(() => sfx.victory(), 160);
+      else if (state.winner === "enemy") window.setTimeout(() => sfx.defeat(), 160);
+    }
     const winner = state.winner;
     const finalState = state;
     const delay = finishDelayRef.current;
@@ -650,17 +744,18 @@ export default function FrontlineBattle({
     : state.selectedLeaderPower
       ? visualTargetSideForLeader(allyLeader.power.effect.type)
       : null;
+  const actionsLocked = Boolean(resolutionFx || finishFx) || state.turn !== "ally" || !!state.winner;
+
+  useEffect(() => {
+    if (!activeResolutionEvent) return;
+    if (playedFxEventIdRef.current === activeResolutionEvent.id) return;
+    playedFxEventIdRef.current = activeResolutionEvent.id;
+    playFrontlineResolutionSfx(activeResolutionEvent, deathGhosts);
+  }, [activeResolutionEvent, deathGhosts]);
 
   function resetSelection(next: FrontlineBattleState, nextFocusedLane?: FrontlineLane | null) {
     setState({ ...next, selectedCardId: null, selectedLeaderPower: false });
     setFocusedLane(nextFocusedLane ?? null);
-  }
-
-  function showResolutionFx(events: FrontlineEvent[]) {
-    const meaningfulEvents = events.filter(isResolutionEvent).slice(0, 12);
-    if (!meaningfulEvents.length) return;
-    fxIdRef.current += 1;
-    setResolutionFx({ id: fxIdRef.current, events: meaningfulEvents, activeIndex: 0 });
   }
 
   function showCardPlayFx(
@@ -673,10 +768,12 @@ export default function FrontlineBattle({
     if (cardFxTimerRef.current) clearTimeout(cardFxTimerRef.current);
     fxIdRef.current += 1;
     setCardPlayFx({ id: fxIdRef.current, cardId, lane, targetSide, tone, events: events.slice(0, 4) });
+    playFrontlineCardSfx(cardId, tone);
     cardFxTimerRef.current = setTimeout(() => setCardPlayFx(null), 1900);
   }
 
   function playInstantCard(cardId: string) {
+    if (actionsLocked) return;
     const next = playCard(state, "ally", cardId);
     const card = getFrontlineCard(cardId, state.allyCardProfiles);
     const newEvents = collectNewEvents(state, next);
@@ -686,7 +783,7 @@ export default function FrontlineBattle({
   }
 
   function handleCardClick(cardId: string) {
-    if (state.turn !== "ally" || state.winner) return;
+    if (actionsLocked) return;
     const card = getFrontlineCard(cardId, state.allyCardProfiles);
     if (card.target === "none") {
       playInstantCard(cardId);
@@ -700,7 +797,7 @@ export default function FrontlineBattle({
   }
 
   function handleLeaderPowerClick() {
-    if (state.turn !== "ally" || state.winner) return;
+    if (actionsLocked) return;
     const leader = FRONTLINE_LEADER_BY_ID[state.allyDeck.leaderId];
     if (leader.power.effect.type === "rally") {
       const lane = validLeaderPowerTargets(state, "ally")[0];
@@ -721,7 +818,7 @@ export default function FrontlineBattle({
   }
 
   function handleLaneClick(lane: FrontlineLane) {
-    if (state.turn !== "ally" || state.winner) {
+    if (actionsLocked) {
       setFocusedLane(lane);
       return;
     }
@@ -750,7 +847,8 @@ export default function FrontlineBattle({
   }
 
   function handleResolveClick() {
-    if (state.turn !== "ally" || state.winner) return;
+    if (actionsLocked) return;
+    sfx.resolveClash();
     setCardPlayFx(null);
     const next = resolveTurn(state);
     const newEvents = collectNewEvents(state, next);
@@ -1058,8 +1156,7 @@ export default function FrontlineBattle({
                     : "bg-white/[0.055] text-white/72 hover:bg-white/[0.09]",
                 )}
                 disabled={
-                  state.turn !== "ally" ||
-                  !!state.winner ||
+                  actionsLocked ||
                   state.allyDeck.usedLeaderPower ||
                   state.allyDeck.powerCooldown > 0 ||
                   state.allyDeck.command < allyLeader.power.cost
@@ -1078,9 +1175,11 @@ export default function FrontlineBattle({
                 <button
                   className="rounded-full bg-white/[0.055] px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/72 transition hover:bg-white/[0.09]"
                   onClick={() => {
+                    if (actionsLocked) return;
                     setFocusedLane(null);
                     setState((current) => ({ ...current, selectedCardId: null, selectedLeaderPower: false }));
                   }}
+                  disabled={actionsLocked}
                 >
                   {t("frontline.clear")}
                 </button>
@@ -1088,7 +1187,7 @@ export default function FrontlineBattle({
               <button
                 data-resolve-clash
                 className="frontline-resolve-cta-fx rounded-full bg-[linear-gradient(180deg,rgba(74,166,111,0.98),rgba(14,59,38,0.98))] px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_10px_26px_rgba(49,170,107,0.22)] transition hover:-translate-y-0.5 disabled:opacity-40 disabled:[animation:none]"
-                disabled={state.turn !== "ally" || !!state.winner}
+                disabled={actionsLocked}
                 onClick={handleResolveClick}
               >
                 <span className="inline-flex items-center gap-1.5">
@@ -1343,7 +1442,7 @@ export default function FrontlineBattle({
             {state.allyDeck.hand.map((cardId) => {
               const card = state.allyCardProfiles?.[cardId] ?? FRONTLINE_CARD_BY_ID[cardId];
               const selected = state.selectedCardId === card.id;
-              const playable = card.cost <= state.allyDeck.command && state.turn === "ally" && !state.winner;
+              const playable = card.cost <= state.allyDeck.command && !actionsLocked;
               const validTargets = validCardTargets(state, "ally", card.id);
               const recommendedLane =
                 validTargets.length > 0
@@ -1423,6 +1522,7 @@ function FrontlineHandCard({
       type="button"
       data-hand-card={card.id}
       title={cardDescription}
+      disabled={!playable}
       className={cn(
         "group relative h-[12.75rem] w-[11rem] shrink-0 overflow-hidden rounded-[24px] p-3 text-left shadow-[0_18px_38px_rgba(0,0,0,0.3)] transition duration-300 xl:h-[13.25rem] xl:w-auto",
         cardSurfaceClass(cardTone(card), selected, playable),

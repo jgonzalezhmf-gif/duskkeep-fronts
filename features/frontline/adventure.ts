@@ -12,6 +12,10 @@ const ADVENTURE_PRESET_TIERS = {
 } as const;
 
 export function getFrontlinePresetIdForAdventure(level: AdventureLevel) {
+  if (level.frontlinePresetId && FRONTLINE_PRESET_BY_ID[level.frontlinePresetId]) {
+    return level.frontlinePresetId;
+  }
+
   if (level.chapter >= 2) {
     return level.index <= 2 ? ADVENTURE_PRESET_TIERS.mid : ADVENTURE_PRESET_TIERS.late;
   }

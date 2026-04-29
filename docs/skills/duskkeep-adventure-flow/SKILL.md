@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-adventure-flow
 description: "Use this skill whenever working on Duskkeep Fronts Adventure, pre-combat, campaign map, nodes, roads, enemy previews, rewards, or Adventure-to-Frontline integration. It keeps Adventure as the main early-game path and ensures the map, pre-combat and battle entry are visual, clear, connected and not legacy."
 ---

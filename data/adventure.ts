@@ -1,4 +1,4 @@
-import type { AdventureLevel } from "@/lib/types";
+﻿import type { AdventureLevel } from "@/lib/types";
 
 // Grid is 4 wide x 5 tall. Obstacles live in the mid rows (y=2) so they matter
 // without blocking placements. Each cell reference is (x 0-3, y 0-4).
@@ -9,6 +9,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l1", chapter: 1, index: 1, name: "The Crossroads",
     recommendedPower: 30,
+    frontlinePresetId: "bonewood_scouts",
     enemyTeam: [
       { heroId: "ren", level: 1, stars: 1 },
       { heroId: "kara", level: 1, stars: 1 },
@@ -19,6 +20,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l2", chapter: 1, index: 2, name: "Broken Mill",
     recommendedPower: 40,
+    frontlinePresetId: "bonewood_raiders",
     enemyTeam: [
       { heroId: "ren", level: 2, stars: 1 },
       { heroId: "kara", level: 2, stars: 1 },
@@ -30,6 +32,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l3", chapter: 1, index: 3, name: "Thistle Road",
     recommendedPower: 50,
+    frontlinePresetId: "bonewood_raiders",
     enemyTeam: [
       { heroId: "bran", level: 2, stars: 1 },
       { heroId: "kara", level: 3, stars: 1 },
@@ -42,6 +45,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l4", chapter: 1, index: 4, name: "Hollow Chapel",
     recommendedPower: 65,
+    frontlinePresetId: "bonewood_raiders",
     enemyTeam: [
       { heroId: "mira", level: 3, stars: 1 },
       { heroId: "kara", level: 3, stars: 1 },
@@ -54,6 +58,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l5", chapter: 1, index: 5, name: "Wolf's Gorge",
     recommendedPower: 80,
+    frontlinePresetId: "rotwood_pack",
     enemyTeam: [
       { heroId: "ursa", level: 4, stars: 1 },
       { heroId: "vex", level: 3, stars: 1 },
@@ -66,6 +71,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l6", chapter: 1, index: 6, name: "Ashmarket",
     recommendedPower: 95,
+    frontlinePresetId: "rotwood_pack",
     enemyTeam: [
       { heroId: "lyria", level: 4, stars: 1 },
       { heroId: "kara", level: 5, stars: 1 },
@@ -78,6 +84,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l7", chapter: 1, index: 7, name: "The Breach",
     recommendedPower: 110,
+    frontlinePresetId: "plague_pack",
     enemyTeam: [
       { heroId: "ursa", level: 5, stars: 2 },
       { heroId: "vex", level: 5, stars: 1 },
@@ -91,6 +98,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l8", chapter: 1, index: 8, name: "Salt Flats",
     recommendedPower: 130,
+    frontlinePresetId: "plague_pack",
     enemyTeam: [
       { heroId: "fenra", level: 6, stars: 1 },
       { heroId: "vex", level: 6, stars: 1 },
@@ -102,6 +110,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l9", chapter: 1, index: 9, name: "Shadow Pass",
     recommendedPower: 150,
+    frontlinePresetId: "bloodcourt_ambush",
     enemyTeam: [
       { heroId: "drak", level: 7, stars: 1 },
       { heroId: "morr", level: 6, stars: 1 },
@@ -114,6 +123,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l10", chapter: 1, index: 10, name: "Cursed Keep",
     recommendedPower: 180,
+    frontlinePresetId: "bloodcourt_ambush",
     enemyTeam: [
       { heroId: "morr", level: 8, stars: 2 },
       { heroId: "drak", level: 8, stars: 1 },
@@ -126,6 +136,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l11", chapter: 1, index: 11, name: "The Ember Gate",
     recommendedPower: 210,
+    frontlinePresetId: "ember_vanguard",
     enemyTeam: [
       { heroId: "grom", level: 9, stars: 2 },
       { heroId: "fenra", level: 9, stars: 1 },
@@ -138,6 +149,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l12", chapter: 1, index: 12, name: "Boss: The Eclipse",
     recommendedPower: 250,
+    frontlinePresetId: "eclipse_court",
     enemyTeam: [
       { heroId: "noct", level: 10, stars: 2 },
       { heroId: "morr", level: 10, stars: 2 },
@@ -152,6 +164,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l1", chapter: 2, index: 1, name: "Scorched March",
     recommendedPower: 280,
+    frontlinePresetId: "ashen_warband",
     enemyTeam: [
       { heroId: "kara", level: 11, stars: 2 },
       { heroId: "ren", level: 11, stars: 2 },
@@ -164,6 +177,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l2", chapter: 2, index: 2, name: "Kiln Pass",
     recommendedPower: 330,
+    frontlinePresetId: "ashen_warband",
     enemyTeam: [
       { heroId: "grom", level: 12, stars: 2 },
       { heroId: "fenra", level: 12, stars: 2 },
@@ -176,6 +190,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l3", chapter: 2, index: 3, name: "Ember Vault",
     recommendedPower: 380,
+    frontlinePresetId: "ember_court",
     enemyTeam: [
       { heroId: "morr", level: 13, stars: 2 },
       { heroId: "drak", level: 13, stars: 2 },
@@ -188,6 +203,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l4", chapter: 2, index: 4, name: "The Sunken Choir",
     recommendedPower: 440,
+    frontlinePresetId: "ember_court",
     enemyTeam: [
       { heroId: "sol", level: 14, stars: 2 },
       { heroId: "mira", level: 14, stars: 2 },
@@ -200,6 +216,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l5", chapter: 2, index: 5, name: "Ironfang's Hollow",
     recommendedPower: 510,
+    frontlinePresetId: "ogre_siege_line",
     enemyTeam: [
       { heroId: "ursa", level: 15, stars: 3 },
       { heroId: "vex", level: 15, stars: 2 },
@@ -212,6 +229,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l6", chapter: 2, index: 6, name: "Bleak Mire",
     recommendedPower: 590,
+    frontlinePresetId: "ogre_siege_line",
     enemyTeam: [
       { heroId: "fenra", level: 16, stars: 3 },
       { heroId: "grom", level: 16, stars: 2 },
@@ -224,6 +242,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l7", chapter: 2, index: 7, name: "Starless Tower",
     recommendedPower: 680,
+    frontlinePresetId: "void_eclipse_guard",
     enemyTeam: [
       { heroId: "noct", level: 17, stars: 3 },
       { heroId: "lyria", level: 17, stars: 2 },
@@ -236,6 +255,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c2l8", chapter: 2, index: 8, name: "Boss: Crown of Ashes",
     recommendedPower: 780,
+    frontlinePresetId: "crown_of_ashes",
     enemyTeam: [
       { heroId: "noct", level: 18, stars: 3 },
       { heroId: "drak", level: 18, stars: 3 },

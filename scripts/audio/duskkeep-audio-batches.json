@@ -1,0 +1,51 @@
+{
+  "vertical-slice": {
+    "description": "First audible alpha pass for Home, Adventure, Combat and Shop.",
+    "sfx": [
+      "ui_click",
+      "ui_hover",
+      "ui_error",
+      "card_play",
+      "attack",
+      "hit",
+      "death",
+      "heal",
+      "shield",
+      "breach",
+      "purchase",
+      "claim",
+      "victory",
+      "defeat"
+    ],
+    "music": ["home", "adventure", "battle", "shop"]
+  },
+  "progression": {
+    "description": "Reward, unlock, collection and meta-progression polish.",
+    "sfx": ["level_up", "unlock", "summon"],
+    "music": ["event"]
+  },
+  "combat-detail": {
+    "description": "Extra combat state language for later keyword/status work.",
+    "sfx": ["summon", "breach", "heal", "shield", "attack", "hit", "death"],
+    "music": ["battle"]
+  },
+  "combat-missing-v1": {
+    "description": "Single-candidate pass for missing Frontline Command SFX and fast transition music.",
+    "sfx": [
+      "summon",
+      "leader_power",
+      "core_damage",
+      "resolve_clash",
+      "turn_start",
+      "card_order",
+      "card_tactic",
+      "card_summon",
+      "poison",
+      "burn",
+      "stun",
+      "guard",
+      "regen"
+    ],
+    "music": ["prebattle", "postbattle"]
+  }
+}

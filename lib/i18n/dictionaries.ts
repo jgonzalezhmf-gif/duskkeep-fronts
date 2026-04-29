@@ -6,7 +6,7 @@ export type TranslationTree = { [key: string]: TranslationValue };
 export const dictionaries = {
   en: {
     app: {
-      title: "Fortress Tactics",
+      title: "Duskkeep Fronts",
       alpha: "Alpha Build",
     },
     nav: {
@@ -1102,7 +1102,7 @@ export const dictionaries = {
   },
   es: {
     app: {
-      title: "Fortress Tactics",
+      title: "Duskkeep Fronts",
       alpha: "Versión alfa",
     },
     nav: {
@@ -2197,42 +2197,42 @@ export const dictionaries = {
     },
   },
   "zh-CN": {
-    app: { title: "Fortress Tactics", alpha: "Alpha 版本" },
+    app: { title: "Duskkeep Fronts", alpha: "Alpha 版本" },
     nav: { home: "主页", base: "基地", adventure: "冒险", pve: "PvE", deck: "卡组", cards: "卡牌", fortress: "要塞", core: "核心", arena: "竞技场", pvp: "PvP", market: "市场", shop: "商店" },
     options: { button: "选项", title: "选项", subtitle: "调整语言、音频和舒适度。", language: "语言", languageHint: "界面文字会立即更新。完整内容迁移将逐步完成。", audio: "音频", music: "音乐", effects: "音效", muted: "静音", live: "开启", comfort: "舒适度", reducedMotion: "减少动画", visualEffects: "视觉效果", textScale: "文字大小", normal: "普通", large: "大", current: "当前", close: "关闭" },
     audio: { mixer: "音频混合", mixerSubtitle: "音乐和音效", unmute: "取消静音", audioMixer: "音频混合器", soundOff: "声音关闭", openMixer: "打开音频混合器" },
     common: { return: "返回", home: "主页" },
   },
   ja: {
-    app: { title: "Fortress Tactics", alpha: "アルファ版" },
+    app: { title: "Duskkeep Fronts", alpha: "アルファ版" },
     nav: { home: "ホーム", base: "拠点", adventure: "冒険", pve: "PvE", deck: "デッキ", cards: "カード", fortress: "要塞", core: "コア", arena: "アリーナ", pvp: "PvP", market: "市場", shop: "ショップ" },
     options: { button: "設定", title: "設定", subtitle: "言語、音量、快適性を調整します。", language: "言語", languageHint: "UIテキストはすぐに更新されます。全コンテンツの移行は段階的に行います。", audio: "オーディオ", music: "音楽", effects: "効果音", muted: "ミュート", live: "オン", comfort: "快適性", reducedMotion: "モーション軽減", visualEffects: "視覚効果", textScale: "文字サイズ", normal: "標準", large: "大", current: "現在", close: "閉じる" },
     audio: { mixer: "音量ミックス", mixerSubtitle: "音楽と効果音", unmute: "ミュート解除", audioMixer: "オーディオミキサー", soundOff: "サウンドオフ", openMixer: "ミキサーを開く" },
     common: { return: "戻る", home: "ホーム" },
   },
   ko: {
-    app: { title: "Fortress Tactics", alpha: "알파 빌드" },
+    app: { title: "Duskkeep Fronts", alpha: "알파 빌드" },
     nav: { home: "홈", base: "기지", adventure: "모험", pve: "PvE", deck: "덱", cards: "카드", fortress: "요새", core: "코어", arena: "아레나", pvp: "PvP", market: "시장", shop: "상점" },
     options: { button: "옵션", title: "옵션", subtitle: "언어, 오디오, 편의 설정을 조정합니다.", language: "언어", languageHint: "UI 텍스트는 즉시 업데이트됩니다. 전체 콘텐츠 이전은 단계적으로 진행됩니다.", audio: "오디오", music: "음악", effects: "효과음", muted: "음소거", live: "활성", comfort: "편의", reducedMotion: "움직임 줄이기", visualEffects: "시각 효과", textScale: "글자 크기", normal: "보통", large: "크게", current: "현재", close: "닫기" },
     audio: { mixer: "오디오 믹스", mixerSubtitle: "음악 및 효과음", unmute: "음소거 해제", audioMixer: "오디오 믹서", soundOff: "소리 꺼짐", openMixer: "오디오 믹서 열기" },
     common: { return: "돌아가기", home: "홈" },
   },
   "pt-BR": {
-    app: { title: "Fortress Tactics", alpha: "Versão alfa" },
+    app: { title: "Duskkeep Fronts", alpha: "Versão alfa" },
     nav: { home: "Início", base: "Base", adventure: "Aventura", pve: "PvE", deck: "Deck", cards: "Cartas", fortress: "Fortaleza", core: "Núcleo", arena: "Arena", pvp: "PvP", market: "Mercado", shop: "Loja" },
     options: { button: "Opções", title: "Opções", subtitle: "Ajuste idioma, áudio e conforto.", language: "Idioma", languageHint: "O texto da interface muda imediatamente. A migração completa será gradual.", audio: "Áudio", music: "Música", effects: "Efeitos", muted: "Silenciado", live: "Ativo", comfort: "Conforto", reducedMotion: "Reduzir movimento", visualEffects: "Efeitos visuais", textScale: "Tamanho do texto", normal: "Normal", large: "Grande", current: "Atual", close: "Fechar" },
     audio: { mixer: "Mix de áudio", mixerSubtitle: "Música e efeitos", unmute: "Ativar som", audioMixer: "Mixer de áudio", soundOff: "Som desligado", openMixer: "Abrir mixer de áudio" },
     common: { return: "Voltar", home: "Início" },
   },
   fr: {
-    app: { title: "Fortress Tactics", alpha: "Version alpha" },
+    app: { title: "Duskkeep Fronts", alpha: "Version alpha" },
     nav: { home: "Accueil", base: "Base", adventure: "Aventure", pve: "PvE", deck: "Deck", cards: "Cartes", fortress: "Forteresse", core: "Noyau", arena: "Arène", pvp: "PvP", market: "Marché", shop: "Boutique" },
     options: { button: "Options", title: "Options", subtitle: "Réglez la langue, l'audio et le confort.", language: "Langue", languageHint: "Le texte de l'interface se met à jour immédiatement. La migration complète sera progressive.", audio: "Audio", music: "Musique", effects: "Effets", muted: "Muet", live: "Actif", comfort: "Confort", reducedMotion: "Réduire les animations", visualEffects: "Effets visuels", textScale: "Taille du texte", normal: "Normal", large: "Grand", current: "Actuel", close: "Fermer" },
     audio: { mixer: "Mix audio", mixerSubtitle: "Musique et effets", unmute: "Réactiver le son", audioMixer: "Mixeur audio", soundOff: "Son coupé", openMixer: "Ouvrir le mixeur audio" },
     common: { return: "Retour", home: "Accueil" },
   },
   de: {
-    app: { title: "Fortress Tactics", alpha: "Alpha-Build" },
+    app: { title: "Duskkeep Fronts", alpha: "Alpha-Build" },
     nav: { home: "Start", base: "Basis", adventure: "Abenteuer", pve: "PvE", deck: "Deck", cards: "Karten", fortress: "Festung", core: "Kern", arena: "Arena", pvp: "PvP", market: "Markt", shop: "Shop" },
     options: { button: "Optionen", title: "Optionen", subtitle: "Sprache, Audio und Komfort anpassen.", language: "Sprache", languageHint: "UI-Text wird sofort aktualisiert. Die vollständige Inhaltsmigration erfolgt schrittweise.", audio: "Audio", music: "Musik", effects: "Effekte", muted: "Stumm", live: "Aktiv", comfort: "Komfort", reducedMotion: "Bewegung reduzieren", visualEffects: "Visuelle Effekte", textScale: "Textgröße", normal: "Normal", large: "Groß", current: "Aktuell", close: "Schließen" },
     audio: { mixer: "Audio-Mix", mixerSubtitle: "Musik und Effekte", unmute: "Ton aktivieren", audioMixer: "Audio-Mixer", soundOff: "Ton aus", openMixer: "Audio-Mixer öffnen" },

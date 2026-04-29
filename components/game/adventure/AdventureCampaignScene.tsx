@@ -1296,7 +1296,8 @@ function buildRewardChips(level: AdventureLevel, firstClearAvailable: boolean, t
 function getNodeRole(node: AdventureNodeState, index: number, totalNodes: number) {
   if (node.pausedHere) return "resume";
   if (/boss/i.test(node.lvl.name) || index === totalNodes) return "boss";
-  if ((node.lvl.obstacles?.length ?? 0) >= 2 || node.lvl.enemyTeam.some((enemy) => enemy.stars >= 2)) return "elite";
+  const squad = getFrontlineAdventureSquad(node.lvl);
+  if ((node.lvl.obstacles?.length ?? 0) >= 2 || squad.some((enemy) => enemy.tier >= 3)) return "elite";
   return "battle";
 }
 

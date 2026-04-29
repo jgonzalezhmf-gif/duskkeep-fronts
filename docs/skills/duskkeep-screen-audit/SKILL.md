@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-screen-audit
 description: "Use this skill whenever auditing, planning, or updating a Duskkeep Fronts screen. It produces a practical screen status review covering whether the screen is recoverable or needs redesign, how outdated it is versus Home and Combat, what shared components/assets it should reuse, and what action plan should be followed before implementation."
 ---

@@ -37,25 +37,24 @@ Estado actual:
 - El mapa `/adventure` es visualmente una de las pantallas secundarias más trabajadas.
 - La ruta `/adventure/[levelId]` ya fue sustituida para abrir Duskkeep Fronts en vez del combate viejo.
 - El mapa ahora muestra squads Frontline derivados mediante `features/frontline/adventure.ts`.
-- `data/adventure.ts` sigue usando `enemyTeam` legacy con héroes antiguos.
+- `data/adventure.ts` ya declara `frontlinePresetId` explicito por nodo; `enemyTeam` queda como compatibilidad legacy mientras existan tipos/pantallas antiguas.
 
 Recuperable o rediseño:
 - Recuperable.
 - Necesita migración de datos, no rediseño visual completo.
 
 Tareas:
-- Sustituir `enemyTeam` legacy por `frontlinePresetId`, `enemySquadId` o `enemyTierBand`.
-- Crear presets concretos para cada fase: tutorial, early, mid, late, boss.
+- Reducir dependencia visual restante de `enemyTeam` legacy donde aparezca.
+- Expandir presets concretos si crece la campaña: tutorial, early, mid, late, boss.
 - Añadir bosses Frontline con reglas simples.
 - Mejorar el precombate de Adventure para mostrar mejor cartas, enemigos y recompensa.
 - Añadir estado de ruta: first clear, replay payout, boss locked, tier recomendado.
 
 Plan:
-1. Migrar datos de campaña a `frontlinePresetId`.
-2. Crear 8-12 presets enemigos escalonados.
-3. Añadir boss presets especiales.
-4. Rehacer panel lateral del mapa para mostrar squad enemigo real con standees.
-5. Validar first clear y rewards end-to-end.
+1. Rehacer panel lateral/precombate para mostrar squad enemigo real con standees y menos copy.
+2. Validar first clear y rewards end-to-end.
+3. Añadir boss presentation especial.
+4. Crear mas presets enemigos si se amplian capitulos.
 
 Punto importante:
 - Adventure debe ser el modo principal de entrada a Frontline durante las primeras horas.
@@ -349,6 +348,6 @@ Plan:
 
 - Mantener varios motores activos aumenta bugs y coste mental.
 - Migrar Arena/Events sin preservar rewards puede romper progreso.
-- Cambiar `data/adventure.ts` sin helper intermedio puede romper mapa y first clear.
+- Cambiar presets de `data/adventure.ts` sin helper intermedio puede romper mapa, precombat o first clear.
 - Héroes con tiers futuros necesitan diseño de datos antes de añadir muchas imágenes.
 - Shop debe esperar a tener economía de cartas/tiers más clara.

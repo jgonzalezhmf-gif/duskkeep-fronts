@@ -215,7 +215,8 @@ Combat:
 Adventure:
 - Integrada con Frontline.
 - Mapa visual recuperable.
-- Pendiente: camino mas natural, fases con iconos mas fuertes, precombat mas visual, datos de campana menos legacy.
+- Los nodos ya declaran `frontlinePresetId` explicito y el mapa usa unidades Frontline reales para leer amenaza.
+- Pendiente: camino mas natural, fases con iconos mas fuertes y precombat mas visual.
 
 Precombat:
 - Ya conecta con Frontline.

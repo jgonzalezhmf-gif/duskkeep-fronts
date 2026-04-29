@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/ui/AppShell";
 
 export const metadata: Metadata = {
-  title: "Fortress Tactics (Branch)",
-  description: "Turn-based tactical squad game. Collect heroes, forge your fortress.",
+  title: "Duskkeep Fronts",
+  description: "Dark medieval fantasy tactics game. Command fronts, collect heroes and hold the keep.",
 };
 
 export const viewport: Viewport = {

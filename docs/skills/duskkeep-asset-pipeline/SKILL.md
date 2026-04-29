@@ -1,4 +1,4 @@
-﻿---
+---
 name: duskkeep-asset-pipeline
 description: "Use this skill whenever adding, replacing, cropping, registering, or debugging Duskkeep Fronts visual assets: resource icons, navigation icons, hero standees, enemy images, card art, effects, backgrounds, landmarks, or future tier art. It enforces manifests, safe fallbacks, no 404s, reusable naming, and a future-proof asset replacement workflow."
 ---

@@ -80,6 +80,8 @@ export type AdventureLevel = {
   chapter: number;
   index: number;
   name: string;
+  /** Explicit Duskkeep Fronts enemy preset used by Adventure/pre-combat/Combat. */
+  frontlinePresetId?: string;
   enemyTeam: EnemyTemplate[];
   rewards: Rewards;
   firstClearRewards?: Rewards;
