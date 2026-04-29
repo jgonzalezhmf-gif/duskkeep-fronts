@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
 import { cn } from "@/lib/cn";
-import { useI18n } from "@/lib/i18n/useI18n";
+import { translate, useI18n } from "@/lib/i18n/useI18n";
 import type { Rewards } from "@/lib/types";
 
 type FlightKind = "gold" | "dust" | "gems" | "tickets" | "xp" | "shards" | "cards";
@@ -86,13 +86,35 @@ export function RewardFlightOverlay({
   origin?: "center" | "lower" | "upper";
   className?: string;
 }) {
-  const { t } = useI18n();
-  const entries = useMemo(() => (rewards ? buildFlightEntries(rewards, t) : []), [rewards, t]);
+  const { locale } = useI18n();
+  const gold = rewards?.gold ?? 0;
+  const dust = rewards?.dust ?? 0;
+  const gems = rewards?.gems ?? 0;
+  const arenaTickets = rewards?.arenaTickets ?? 0;
+  const xp = rewards?.accountXp ?? rewards?.xp ?? 0;
+  const shards = rewards?.shards?.reduce((sum, shard) => sum + shard.amount, 0) ?? 0;
+  const cardUnlocks = rewards?.frontlineCards?.length ?? 0;
+  const entries = useMemo(
+    () =>
+      buildFlightEntries(
+        {
+          gold,
+          dust,
+          gems,
+          arenaTickets,
+          accountXp: xp,
+          shards: shards ? [{ heroId: "any", amount: shards }] : undefined,
+          frontlineCards: cardUnlocks ? Array.from({ length: cardUnlocks }, (_, index) => ({ cardId: `card-${index}` })) : undefined,
+        },
+        (key) => translate(locale, key),
+      ),
+    [arenaTickets, cardUnlocks, dust, gems, gold, locale, shards, xp],
+  );
   const [items, setItems] = useState<FlightItem[]>([]);
 
   useEffect(() => {
     if (!active || !entries.length || typeof window === "undefined") {
-      setItems([]);
+      setItems((current) => (current.length ? [] : current));
       return;
     }
 
