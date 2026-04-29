@@ -6,6 +6,8 @@ import { FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisua
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
+import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
+import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import {
   SceneButton,
   ScreenBadge,
@@ -216,8 +218,10 @@ export default function EventsPage() {
     return (
       <ScreenScaffold scene="events" dock={false} homeNav={false} hud={false}>
         <EventsTopChrome resources={resources} t={t} />
+        <RewardFlightOverlay rewards={result.rewards} active={hasRewardEntries(result.rewards)} nonce={`${result.operation.id}-${result.rounds}`} origin="center" />
         <div className="absolute inset-0 grid place-items-center px-4 py-24">
           <ScreenPanel className="w-full max-w-[42rem] p-5 text-center md:p-7" accent={won}>
+            <RewardBurstOverlay rewards={result.rewards} active={hasRewardEntries(result.rewards)} compact />
             <div className="mx-auto w-fit">
               <GameIcon kind={won ? "rewards" : "battle"} tone={won ? result.operation.tone : "ember"} size="lg" />
             </div>

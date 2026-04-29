@@ -8,6 +8,7 @@ import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
+import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import { isResourceIconKind, ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
 import { ShopIcon, type ShopIconName } from "@/components/game/shared/ShopIcon";
 import GameAssetIcon from "@/components/ui/GameAssetIcon";
@@ -248,6 +249,7 @@ export default function ShopPage() {
   const featured = visibleOffers[0] ?? null;
   const spotlight = visibleOffers.slice(1, 4);
   const reserve = visibleOffers.slice(4);
+  const purchaseFlightRewards = purchaseFx ? SHOP_OFFERS.find((offer) => offer.id === purchaseFx.offerId)?.contents ?? null : null;
   const totalRemaining = visibleOffers
     .map((offer) => getVisibleRemaining(offer))
     .filter((value): value is number => value !== null)
@@ -267,6 +269,7 @@ export default function ShopPage() {
   return (
     <ScreenScaffold scene="shop" dock={false} hud={false} homeNav={false}>
       <MarketTopChrome resources={displayResources} />
+      <RewardFlightOverlay rewards={purchaseFlightRewards} active={Boolean(purchaseFx && purchaseFlightRewards)} nonce={purchaseFx?.nonce} origin="center" />
       <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-col gap-5 px-3 pb-24 pt-44 sm:pt-36 md:px-6 md:pb-28 md:pt-28 xl:px-8">
         <section className="relative overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.88),rgba(39,24,24,0.93)_34%,rgba(11,12,18,0.98)_72%)] shadow-[0_34px_92px_rgba(0,0,0,0.36)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_16%,rgba(255,226,172,0.26),transparent_20%),radial-gradient(circle_at_83%_18%,rgba(130,193,255,0.16),transparent_17%),radial-gradient(circle_at_56%_82%,rgba(255,144,94,0.14),transparent_21%)]" />

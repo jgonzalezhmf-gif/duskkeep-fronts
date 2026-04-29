@@ -8,6 +8,7 @@ import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
+import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import { ScreenBadge, ScreenScaffold } from "@/components/game/screens/ScreenChrome";
 import { FRONTLINE_HEROES } from "@/features/frontline/data";
 import {
@@ -113,6 +114,7 @@ export default function FortressPage() {
   return (
     <ScreenScaffold scene="fortress" dock={false} hud={false} homeNav={false}>
       <FortressTopChrome resources={resources} />
+      <RewardFlightOverlay rewards={fortress.lastReport?.rewards} active={reportPulse} nonce={fortress.raidsResolved} origin="center" />
 
       <main className="mx-auto grid w-full max-w-[1500px] gap-4 px-3 pb-24 pt-44 sm:pt-36 md:px-6 md:pt-28 xl:grid-cols-[minmax(0,1fr)_25rem] xl:px-8">
         <section className="relative isolate min-h-[68rem] overflow-hidden rounded-[38px] border border-white/10 bg-[radial-gradient(circle_at_50%_16%,rgba(255,219,143,0.11),transparent_32%),linear-gradient(180deg,rgba(14,18,28,0.42),rgba(6,8,14,0.9))] shadow-[0_30px_90px_rgba(0,0,0,0.38)] backdrop-blur-sm md:min-h-[48rem]">

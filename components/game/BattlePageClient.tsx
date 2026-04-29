@@ -33,6 +33,7 @@ import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/front
 import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
 import { ProgressionIcon, type ProgressionIconName } from "@/components/game/shared/ProgressionIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
+import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import { ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
 import {
   createFrontlineHeroProfileMap,
@@ -432,6 +433,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                     )}
                   >
                     <RewardBurstOverlay rewards={resultContext.rewards} />
+                    <RewardFlightOverlay rewards={resultContext.rewards} active nonce={`${resultContext.winner}-${resultContext.rounds}`} origin="lower" />
                     <div className="flex items-start gap-3">
                       <ProgressionIcon name={resultContext.winner === "ally" ? "reward_chest" : "claim"} size="xl" />
                       <div className="min-w-0">

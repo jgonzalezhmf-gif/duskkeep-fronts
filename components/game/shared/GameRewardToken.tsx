@@ -176,12 +176,15 @@ export function GameResourceChip({
     classes.shell,
     className,
   );
+  const resourceTarget = icon === "gem" ? "gems" : icon;
   return href ? (
-    <Link href={href} className={shellClassName}>
+    <Link href={href} className={shellClassName} data-resource-kind={resourceTarget}>
       {content}
     </Link>
   ) : (
-    <div className={shellClassName}>{content}</div>
+    <div className={shellClassName} data-resource-kind={resourceTarget}>
+      {content}
+    </div>
   );
 }
 

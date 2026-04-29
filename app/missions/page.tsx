@@ -8,6 +8,7 @@ import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { ProgressionIcon, type ProgressionIconName } from "@/components/game/shared/ProgressionIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
+import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import type { GlyphKind } from "@/components/ui/GameGlyph";
 import { DAILY_MISSIONS, WEEKLY_MISSIONS } from "@/data/missions";
 import { cn } from "@/lib/cn";
@@ -116,6 +117,7 @@ export default function MissionsPage() {
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_18%_12%,rgba(93,211,158,0.08),transparent_24%),radial-gradient(circle_at_82%_13%,rgba(245,196,81,0.08),transparent_22%),linear-gradient(180deg,rgba(5,8,12,0.04),rgba(5,8,12,0.32)_58%,rgba(5,8,12,0.74))]" />
       <GameBackNav />
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />
+      <RewardFlightOverlay rewards={claimFx?.rewards} active={Boolean(claimFx)} nonce={claimFx?.nonce} origin="center" />
       <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-5">
         <section className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(135deg,rgba(18,38,30,0.86),rgba(12,16,24,0.96)_48%,rgba(7,9,14,0.99)_100%)] p-4 shadow-[0_30px_86px_rgba(0,0,0,0.42)] md:rounded-[38px] md:p-6">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(93,211,158,0.16),transparent_24%),radial-gradient(circle_at_82%_10%,rgba(245,196,81,0.14),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_42%)]" />
