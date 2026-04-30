@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { isResourceIconKind, ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
 import type { GlyphKind } from "@/components/ui/GameGlyph";
@@ -83,6 +83,68 @@ const resourceText: Record<ResourceBarIcon, string> = {
   tickets: "text-[#ffd5a8]",
 };
 
+function easeOutQuart(value: number) {
+  return 1 - Math.pow(1 - value, 4);
+}
+
+function useAnimatedResourceValue(value: ReactNode) {
+  const numericValue = typeof value === "number" && Number.isFinite(value) ? value : null;
+  const [displayValue, setDisplayValue] = useState(numericValue);
+  const [delta, setDelta] = useState(0);
+  const previousRef = useRef<number | null>(numericValue);
+  const frameRef = useRef<number | null>(null);
+  const clearRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (numericValue === null) {
+      previousRef.current = null;
+      setDisplayValue(null);
+      setDelta(0);
+      return;
+    }
+
+    const previous = previousRef.current;
+    if (previous === null) {
+      previousRef.current = numericValue;
+      setDisplayValue(numericValue);
+      return;
+    }
+    if (previous === numericValue) return;
+
+    const diff = numericValue - previous;
+    const startedAt = performance.now();
+    const duration = Math.min(1180, Math.max(520, Math.abs(diff) * 10));
+    setDelta(diff);
+    if (clearRef.current) window.clearTimeout(clearRef.current);
+    if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const eased = easeOutQuart(progress);
+      setDisplayValue(Math.round(previous + diff * eased));
+      if (progress < 1) {
+        frameRef.current = window.requestAnimationFrame(tick);
+      } else {
+        previousRef.current = numericValue;
+        setDisplayValue(numericValue);
+        clearRef.current = window.setTimeout(() => setDelta(0), 520);
+      }
+    };
+
+    frameRef.current = window.requestAnimationFrame(tick);
+    return () => {
+      if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
+      if (clearRef.current) window.clearTimeout(clearRef.current);
+    };
+  }, [numericValue]);
+
+  return {
+    displayValue: numericValue === null ? value : displayValue ?? numericValue,
+    delta,
+  };
+}
+
 export function GameRewardToken({
   icon,
   label,
@@ -150,9 +212,13 @@ export function GameResourceChip({
   href?: string;
 }) {
   const classes = resourceSizeClasses[size];
+  const { displayValue, delta } = useAnimatedResourceValue(value);
+  const changeState = delta > 0 ? "gain" : delta < 0 ? "spend" : "idle";
   const content = (
     <>
       <span className={cn("pointer-events-none absolute -inset-5 rounded-[34px] bg-[radial-gradient(circle_at_28%_50%,var(--tw-gradient-stops))] opacity-80 blur-xl transition duration-300 group-hover/resource:opacity-100", resourceAura[icon])} />
+      <span className="frontline-resource-impact pointer-events-none absolute -inset-3 rounded-[32px] opacity-0" />
+      <span className="frontline-resource-shine pointer-events-none absolute inset-0 rounded-[inherit] opacity-0" />
       <span className="pointer-events-none absolute -left-3 top-1/2 h-[4.2rem] w-[4.2rem] -translate-y-1/2 rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(255,245,199,0.88)_18deg,transparent_34deg,transparent_82deg,rgba(255,255,255,0.72)_103deg,transparent_124deg,transparent_180deg,rgba(255,245,199,0.76)_204deg,transparent_226deg,transparent_286deg,rgba(255,255,255,0.68)_306deg,transparent_330deg)] opacity-0 blur-[0.5px] transition duration-200 group-hover/resource:opacity-100 group-hover/resource:animate-[resourceRaysSpin_1.25s_linear_infinite] sm:h-[4.8rem] sm:w-[4.8rem]" />
       <span className="pointer-events-none absolute -left-5 top-1/2 h-[5.4rem] w-[5.4rem] -translate-y-1/2 rounded-full border border-white/0 opacity-0 transition group-hover/resource:opacity-100 group-hover/resource:animate-[resourceSparkOrbit_1.8s_linear_infinite] sm:h-[6.2rem] sm:w-[6.2rem]">
         <span className="absolute left-1/2 top-0 h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.95)]" />
@@ -167,22 +233,37 @@ export function GameResourceChip({
       </span>
       <span className="relative z-[1] min-w-0 leading-none">
         <span className={cn("block font-black uppercase tracking-[0.2em] text-white/56", classes.label)}>{label}</span>
-        <span className={cn("mt-0 block font-black tracking-[0.02em] sm:mt-1", resourceText[icon], classes.value)}>{value}</span>
+        <span className={cn("mt-0 block font-black tracking-[0.02em] tabular-nums sm:mt-1", resourceText[icon], classes.value)}>{displayValue}</span>
       </span>
+      {delta !== 0 ? (
+        <span
+          className={cn(
+            "frontline-resource-delta-label pointer-events-none absolute right-2 top-0 z-[2] rounded-full border px-2 py-1 text-[10px] font-black tabular-nums shadow-[0_10px_26px_rgba(0,0,0,0.34)]",
+            delta > 0
+              ? "border-[#ffe9a8]/42 bg-[#f5c451] text-[#1f1205]"
+              : "border-rose-200/30 bg-rose-500 text-white",
+          )}
+        >
+          {delta > 0 ? "+" : ""}
+          {delta}
+        </span>
+      ) : null}
     </>
   );
   const shellClassName = cn(
     "frontline-motion-action frontline-resource-delta group/resource relative isolate inline-flex items-center overflow-visible border border-white/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(10,11,18,0.7)_54%,rgba(6,7,12,0.92))] shadow-[0_18px_40px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition duration-300 hover:border-white/24",
+    changeState === "gain" && "frontline-resource-gain",
+    changeState === "spend" && "frontline-resource-spend",
     classes.shell,
     className,
   );
   const resourceTarget = icon === "gem" ? "gems" : icon;
   return href ? (
-    <Link href={href} className={shellClassName} data-resource-kind={resourceTarget}>
+    <Link href={href} className={shellClassName} data-resource-kind={resourceTarget} data-resource-change={changeState}>
       {content}
     </Link>
   ) : (
-    <div className={shellClassName} data-resource-kind={resourceTarget}>
+    <div className={shellClassName} data-resource-kind={resourceTarget} data-resource-change={changeState}>
       {content}
     </div>
   );
@@ -203,11 +284,11 @@ export function GameResourceBar({
 
   return (
     <div className={cn("flex min-w-0 flex-wrap items-start justify-end gap-2 md:gap-2.5", className)}>
-      <GameResourceChip key={`gold-${resources.gold}`} icon="gold" tone="gold" label={t("resources.gold")} value={resources.gold} size={size} href="/shop" />
-      <GameResourceChip key={`dust-${resources.dust}`} icon="dust" tone="violet" label={t("resources.dust")} value={resources.dust} size={size} href="/shop" />
-      <GameResourceChip key={`gems-${resources.gems}`} icon="gems" tone="sky" label={t("resources.gems")} value={resources.gems} size={size} href="/shop" />
+      <GameResourceChip icon="gold" tone="gold" label={t("resources.gold")} value={resources.gold} size={size} href="/shop" />
+      <GameResourceChip icon="dust" tone="violet" label={t("resources.dust")} value={resources.dust} size={size} href="/shop" />
+      <GameResourceChip icon="gems" tone="sky" label={t("resources.gems")} value={resources.gems} size={size} href="/shop" />
       {typeof arenaTickets === "number" ? (
-        <GameResourceChip key={`tickets-${arenaTickets}`} icon="tickets" tone="gold" label={t("resources.tickets")} value={arenaTickets} size={size} className="hidden sm:inline-flex" href="/shop" />
+        <GameResourceChip icon="tickets" tone="gold" label={t("resources.tickets")} value={arenaTickets} size={size} className="hidden sm:inline-flex" href="/shop" />
       ) : null}
     </div>
   );

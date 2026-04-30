@@ -125,6 +125,31 @@ button { touch-action: manipulation; }
   100% { transform: translate3d(0, 0, 0) scale(1); filter: brightness(1) saturate(1); }
 }
 
+@keyframes frontlineResourceGainImpact {
+  0% { opacity: 0; transform: scale(0.72); box-shadow: 0 0 0 rgba(245,196,81,0); }
+  24% { opacity: 0.95; transform: scale(1.08); box-shadow: 0 0 34px rgba(245,196,81,0.5), 0 0 70px rgba(255,239,184,0.22); }
+  100% { opacity: 0; transform: scale(1.42); box-shadow: 0 0 0 rgba(245,196,81,0); }
+}
+
+@keyframes frontlineResourceSpendImpact {
+  0% { opacity: 0; transform: scale(0.76); }
+  28% { opacity: 0.75; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.24); }
+}
+
+@keyframes frontlineResourceNumberPop {
+  0% { opacity: 0; transform: translate3d(0, 7px, 0) scale(0.74); filter: blur(1px); }
+  24% { opacity: 1; transform: translate3d(0, -5px, 0) scale(1.12); filter: blur(0); }
+  72% { opacity: 1; transform: translate3d(0, -10px, 0) scale(1); }
+  100% { opacity: 0; transform: translate3d(0, -24px, 0) scale(0.9); }
+}
+
+@keyframes frontlineResourceShineSweep {
+  0% { opacity: 0; transform: translateX(-130%) skewX(-18deg); }
+  18% { opacity: 0.95; }
+  100% { opacity: 0; transform: translateX(220%) skewX(-18deg); }
+}
+
 @keyframes frontlineMotionStandeeIdle {
   0%, 100% { transform: translate3d(0, 0, 0); filter: brightness(1); }
   50% { transform: translate3d(0, -2px, 0); filter: brightness(1.035); }
@@ -191,6 +216,25 @@ button { touch-action: manipulation; }
     transform: translate(-50%, -50%) scale(0.36) rotate(8deg);
     filter: blur(0.5px) brightness(1.05);
   }
+}
+
+@keyframes frontlineRewardFlightTail {
+  0% { opacity: 0; transform: translateX(-20px) scaleX(0.2); }
+  18% { opacity: 0.88; transform: translateX(-38px) scaleX(1); }
+  74% { opacity: 0.7; transform: translateX(-54px) scaleX(1.1); }
+  100% { opacity: 0; transform: translateX(-72px) scaleX(0.4); }
+}
+
+@keyframes frontlineRewardFlightFlare {
+  0%, 100% { opacity: 0; transform: scale(0.45) rotate(0deg); }
+  24% { opacity: 0.92; transform: scale(1.18) rotate(32deg); }
+  66% { opacity: 0.62; transform: scale(0.86) rotate(114deg); }
+}
+
+@keyframes frontlineRewardFlightSpark {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.4); }
+  24% { opacity: 1; transform: translate3d(var(--spark-x), var(--spark-y), 0) scale(1.1); }
+  100% { opacity: 0; transform: translate3d(calc(var(--spark-x) * 1.9), calc(var(--spark-y) * 1.9), 0) scale(0.35); }
 }
 
 @keyframes frontlineRewardSuccessRing {
@@ -484,6 +528,35 @@ button { touch-action: manipulation; }
   animation: frontlineResourceDeltaPop 560ms var(--frontline-ease-expo) both;
 }
 
+.frontline-resource-gain {
+  border-color: rgba(255,232,170,0.34);
+  box-shadow:
+    0 22px 50px rgba(0,0,0,0.34),
+    0 0 28px rgba(245,196,81,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.18);
+}
+
+.frontline-resource-gain .frontline-resource-impact {
+  background:
+    radial-gradient(circle at 34% 50%, rgba(255,245,199,0.44), transparent 34%),
+    radial-gradient(circle at 58% 50%, rgba(245,196,81,0.22), transparent 54%);
+  animation: frontlineResourceGainImpact 980ms var(--frontline-ease-expo) both;
+}
+
+.frontline-resource-spend .frontline-resource-impact {
+  background: radial-gradient(circle at 40% 50%, rgba(255,105,132,0.26), transparent 48%);
+  animation: frontlineResourceSpendImpact 620ms var(--frontline-ease-expo) both;
+}
+
+.frontline-resource-gain .frontline-resource-shine {
+  background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.34) 48%, transparent 64%);
+  animation: frontlineResourceShineSweep 820ms var(--frontline-ease-expo) both;
+}
+
+.frontline-resource-delta-label {
+  animation: frontlineResourceNumberPop 1.05s var(--frontline-ease-expo) both;
+}
+
 .frontline-reward-success {
   position: relative;
 }
@@ -510,9 +583,49 @@ button { touch-action: manipulation; }
   left: var(--flight-from-x);
   top: var(--flight-from-y);
   transform: translate(-50%, -50%) scale(0.7);
-  animation: frontlineRewardFlight 1.28s var(--frontline-ease-expo) both;
+  animation: frontlineRewardFlight 1.44s var(--frontline-ease-expo) both;
   will-change: left, top, transform, opacity, filter;
 }
+
+.frontline-reward-flight-tail {
+  position: absolute;
+  right: 68%;
+  top: 50%;
+  height: 0.45rem;
+  width: 5.2rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255,245,199,0.72), rgba(255,255,255,0.86));
+  filter: blur(2px);
+  transform-origin: right center;
+  animation: frontlineRewardFlightTail 1.18s var(--frontline-ease-expo) both;
+}
+
+.frontline-reward-flight-flare {
+  position: absolute;
+  inset: -0.52rem;
+  border-radius: 999px;
+  background:
+    conic-gradient(from 0deg, transparent, rgba(255,255,255,0.82), transparent 22%, rgba(245,196,81,0.76), transparent 48%, rgba(255,255,255,0.72), transparent 72%),
+    radial-gradient(circle, rgba(255,244,210,0.34), transparent 62%);
+  filter: blur(0.4px);
+  animation: frontlineRewardFlightFlare 1.06s var(--frontline-ease-expo) both;
+}
+
+.frontline-reward-flight-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 0.38rem;
+  width: 0.38rem;
+  border-radius: 999px;
+  background: #fff7d4;
+  box-shadow: 0 0 12px rgba(255,247,212,0.95), 0 0 22px rgba(245,196,81,0.48);
+  animation: frontlineRewardFlightSpark 1.08s var(--frontline-ease-expo) both;
+}
+
+.frontline-reward-flight-spark.spark-a { --spark-x: -24px; --spark-y: -20px; animation-delay: 120ms; }
+.frontline-reward-flight-spark.spark-b { --spark-x: 18px; --spark-y: -24px; animation-delay: 220ms; }
+.frontline-reward-flight-spark.spark-c { --spark-x: -12px; --spark-y: 24px; animation-delay: 300ms; }
 
 .frontline-motion-icon {
   transform: translateZ(0);
@@ -565,9 +678,15 @@ html[data-motion="reduced"] .frontline-feedback-upgrade:active::before,
 html[data-motion="reduced"] .frontline-motion-tab:hover::after,
 html[data-motion="reduced"] .frontline-motion-reward,
 html[data-motion="reduced"] .frontline-resource-delta,
+html[data-motion="reduced"] .frontline-resource-impact,
+html[data-motion="reduced"] .frontline-resource-shine,
+html[data-motion="reduced"] .frontline-resource-delta-label,
 html[data-motion="reduced"] .frontline-reward-success::before,
 html[data-motion="reduced"] .frontline-reward-burst,
 html[data-motion="reduced"] .frontline-reward-flight,
+html[data-motion="reduced"] .frontline-reward-flight-tail,
+html[data-motion="reduced"] .frontline-reward-flight-flare,
+html[data-motion="reduced"] .frontline-reward-flight-spark,
 html[data-motion="reduced"] .frontline-motion-icon::after,
 html[data-motion="reduced"] .frontline-motion-standee img {
   animation: none !important;

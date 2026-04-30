@@ -147,7 +147,7 @@ export function RewardFlightOverlay({
         <span
           key={item.id}
           className={cn(
-            "frontline-reward-flight fixed inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-black shadow-[0_14px_34px_rgba(0,0,0,0.36),0_0_22px_rgba(245,196,81,0.18)]",
+            "frontline-reward-flight fixed inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-black shadow-[0_14px_34px_rgba(0,0,0,0.36),0_0_24px_rgba(245,196,81,0.24)]",
             FLIGHT_STYLE[item.kind],
           )}
           style={
@@ -160,9 +160,16 @@ export function RewardFlightOverlay({
             } as CSSProperties
           }
         >
-          <FlightIcon kind={item.kind} />
-          <span>+{item.value}</span>
-          <span className="hidden text-[8px] uppercase tracking-[0.16em] opacity-70 sm:inline">{item.label}</span>
+          <span className="frontline-reward-flight-tail" />
+          <span className="frontline-reward-flight-flare" />
+          <span className="frontline-reward-flight-spark spark-a" />
+          <span className="frontline-reward-flight-spark spark-b" />
+          <span className="frontline-reward-flight-spark spark-c" />
+          <span className="frontline-reward-flight-core relative z-[1] inline-flex items-center gap-1.5">
+            <FlightIcon kind={item.kind} />
+            <span>+{item.value}</span>
+            <span className="hidden text-[8px] uppercase tracking-[0.16em] opacity-70 sm:inline">{item.label}</span>
+          </span>
         </span>
       ))}
     </div>
