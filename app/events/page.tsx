@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
-import { FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
+import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
+import { ModeIcon, type ModeIconName } from "@/components/game/shared/ModeIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import {
@@ -25,11 +26,11 @@ import {
   FRONTLINE_UNIT_BY_ID,
 } from "@/features/frontline/data";
 import { cn } from "@/lib/cn";
-import { frontlineLeaderName, frontlinePresetName } from "@/lib/i18n/frontlineText";
+import { frontlineHeroName, frontlineHeroRole, frontlineLeaderName, frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { translate, useI18n } from "@/lib/i18n/useI18n";
 import { hasRewardEntries } from "@/lib/rewardVisibility";
 import { useGameStore } from "@/lib/store";
-import type { FrontlineBattleState } from "@/features/frontline/types";
+import type { FrontlineBattleState, FrontlineHeroDef, FrontlinePreset } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
 
 type EventPhase = "list" | "battle" | "post";
@@ -45,7 +46,7 @@ type FrontlineEventOperation = {
   firstClearRewards?: Rewards;
   unlockLevel: number;
   tone: GameIconTone;
-  icon: "events" | "gold" | "dust" | "shield";
+  icon: ModeIconName;
   signature: string;
   mutator: string;
   threat: "common" | "rare" | "epic";
@@ -69,11 +70,11 @@ const EVENT_PRESETS: Record<string, string> = {
 const EVENT_TONES: Record<string, { tone: GameIconTone; icon: FrontlineEventOperation["icon"] }> = {
   gold_rush: {
     tone: "gold",
-    icon: "gold",
+    icon: "daily_event",
   },
   arcane_surge: {
     tone: "violet",
-    icon: "dust",
+    icon: "challenge",
   },
 };
 
@@ -95,7 +96,7 @@ function eventOperations(t: TranslateFn): FrontlineEventOperation[] {
   const normal = EVENTS.map((event, index) => {
     const meta = EVENT_TONES[event.id] ?? {
       tone: "sky" as GameIconTone,
-      icon: "events" as const,
+      icon: "daily_event" as const,
     };
     return {
       id: event.id,
@@ -123,7 +124,7 @@ function eventOperations(t: TranslateFn): FrontlineEventOperation[] {
     firstClearRewards: event.firstClearRewards,
     unlockLevel: event.unlockAccountLevel,
     tone: "ember" as GameIconTone,
-    icon: "shield" as const,
+    icon: "fortress_raid" as const,
     signature: t("eventsScreen.operation.wavePressure", { count: event.waves.length }),
     mutator: t("eventsScreen.operation.highThreatPreset"),
     threat: "epic" as const,
@@ -223,7 +224,7 @@ export default function EventsPage() {
           <ScreenPanel className="w-full max-w-[42rem] p-5 text-center md:p-7" accent={won}>
             <RewardBurstOverlay rewards={result.rewards} active={hasRewardEntries(result.rewards)} compact />
             <div className="mx-auto w-fit">
-              <GameIcon kind={won ? "rewards" : "battle"} tone={won ? result.operation.tone : "ember"} size="lg" />
+              {won ? <ModeIcon name={result.operation.icon} size="xl" /> : <GameIcon kind="battle" tone="ember" size="lg" />}
             </div>
             <div className="mt-4 text-[10px] font-black uppercase tracking-[0.24em] text-[#f5d498]">{t("eventsScreen.result.eyebrow")}</div>
             <div className="mt-3 text-4xl font-black text-white">
@@ -264,30 +265,28 @@ export default function EventsPage() {
     );
   }
 
-  const featured = operations[0];
-  const sideOperations = operations.slice(1);
   const clearedToday = operations.filter((operation) => doneToday(operation.id)).length;
 
   return (
     <ScreenScaffold scene="events" dock={false} homeNav={false} hud={false}>
       <EventsTopChrome resources={resources} t={t} />
-      <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-24">
-        <div className="mx-auto flex max-w-[88rem] flex-col gap-4 pb-6">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
-            <ScreenPanel className="overflow-hidden p-4 md:p-5">
+      <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-[5.5rem]">
+        <div className="mx-auto flex max-w-[88rem] flex-col gap-3 pb-5">
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_21rem]">
+            <ScreenPanel className="overflow-hidden p-3 md:p-4">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_12%,rgba(217,165,255,0.18),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(245,196,81,0.14),transparent_24%)]" />
               <div className="relative z-[1]">
                 <div className="inline-flex rounded-full border border-violet-200/20 bg-violet-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-violet-100">
                   {t("eventsScreen.hero.badge")}
                 </div>
-                <h1 className="mt-4 max-w-[56rem] text-[1.9rem] font-black leading-[0.92] tracking-[-0.045em] text-white md:text-[2.75rem]">
-                  {t("eventsScreen.hero.title")}
+                <h1 className="mt-2 max-w-[52rem] text-[1.65rem] font-black leading-[0.94] tracking-[-0.04em] text-white md:text-[2.35rem]">
+                  {t("nav.events")}
                 </h1>
-                <p className="mt-3 max-w-[45rem] text-[13px] leading-6 text-white/64 md:text-[14px]">
+                <p className="mt-2 hidden max-w-[45rem] text-[12px] leading-5 text-white/58 lg:block">
                   {t("eventsScreen.hero.copy")}
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-                  <EventMetric icon="events" label={t("eventsScreen.metrics.live")} value={operations.length} tone="violet" active />
+                <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+                  <EventMetric icon="events" modeIcon="daily_event" label={t("eventsScreen.metrics.live")} value={operations.length} tone="violet" active />
                   <EventMetric icon="rewards" label={t("eventsScreen.metrics.cleared")} value={`${clearedToday}/${operations.length}`} tone="emerald" />
                   <EventMetric icon="power" label={t("eventsScreen.metrics.level")} value={level} tone="gold" />
                   <EventMetric icon="deck" label={t("eventsScreen.metrics.deck")} value={loadoutReady ? t("eventsScreen.metrics.ready") : t("eventsScreen.metrics.fix")} tone={loadoutReady ? "sky" : "ember"} />
@@ -295,61 +294,47 @@ export default function EventsPage() {
               </div>
             </ScreenPanel>
 
-            <ScreenPanel className="p-4">
+            <ScreenPanel className="p-3">
               <SectionTitle
                 eyebrow={t("eventsScreen.entry.eyebrow")}
                 title={t("eventsScreen.entry.title")}
                 aside={<ScreenBadge tone={loadoutReady ? "gold" : "ember"}>{loadoutReady ? t("eventsScreen.entry.ready") : t("eventsScreen.entry.deckNeeded")}</ScreenBadge>}
               />
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid gap-2">
                 {frontlineLoadout.squad.map((heroId, index) => {
                   const hero = heroId ? FRONTLINE_UNIT_BY_ID[heroId] : null;
                   return (
-                    <FrontlineHeroStandee
+                    <EventSquadChip
                       key={`${heroId ?? "empty"}-${index}`}
                       hero={hero}
-                      compact
-                      side="ally"
                       label={index === 0 ? t("eventsScreen.entry.left") : index === 1 ? t("eventsScreen.entry.center") : t("eventsScreen.entry.right")}
-                      className="min-h-[10.5rem] rounded-[22px] p-2"
+                      emptyLabel={t("eventsScreen.entry.deckNeeded")}
+                      t={t}
                     />
                   );
                 })}
               </div>
               {!loadoutReady ? (
-                <a href="/deck" className="mt-4 block rounded-[20px] border border-[#f5c451]/22 bg-[#f5c451]/12 px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.16em] text-[#f5d498]">
+                <a href="/deck" className="mt-3 block rounded-[18px] border border-[#f5c451]/22 bg-[#f5c451]/12 px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-[0.16em] text-[#f5d498]">
                   {t("eventsScreen.entry.fixDeck")}
                 </a>
               ) : null}
             </ScreenPanel>
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
-            {featured ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {operations.map((operation, index) => (
               <EventOperationCard
-                operation={featured}
-                featured
-                unlocked={level >= featured.unlockLevel}
-                done={doneToday(featured.id)}
-                disabled={!loadoutReady || level < featured.unlockLevel}
-                onStart={() => startOperation(featured)}
+                key={operation.id}
+                operation={operation}
+                featured={index === 0}
+                unlocked={level >= operation.unlockLevel}
+                done={doneToday(operation.id)}
+                disabled={!loadoutReady || level < operation.unlockLevel}
+                onStart={() => startOperation(operation)}
                 t={t}
               />
-            ) : null}
-
-            <div className="grid gap-4">
-              {sideOperations.map((operation) => (
-                <EventOperationCard
-                  key={operation.id}
-                  operation={operation}
-                  unlocked={level >= operation.unlockLevel}
-                  done={doneToday(operation.id)}
-                  disabled={!loadoutReady || level < operation.unlockLevel}
-                  onStart={() => startOperation(operation)}
-                  t={t}
-                />
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -360,7 +345,7 @@ export default function EventsPage() {
 function EventsTopChrome({ resources, t }: { resources: { gold: number; dust: number; gems: number }; t: TranslateFn }) {
   return (
     <>
-      <GameBackNav label={t("common.home")} eyebrow={t("nav.events")} icon="fortress" tone="gold" placement="top-left" />
+      <GameBackNav label={t("common.home")} eyebrow={t("nav.events")} icon="events" tone="violet" placement="top-left" />
       <div className="pointer-events-auto fixed right-3 top-3 z-40 flex items-center gap-1.5 md:right-5 md:top-4 md:gap-2">
         <GameResourceBar resources={resources} size="sm" className="max-w-[calc(100vw-9rem)] md:max-w-none" />
       </div>
@@ -396,69 +381,64 @@ function EventOperationCard({
   return (
     <article
       className={cn(
-        "relative overflow-hidden rounded-[32px] border p-4 shadow-[0_24px_58px_rgba(0,0,0,0.3)]",
+        "relative overflow-hidden rounded-[26px] border p-3 shadow-[0_20px_44px_rgba(0,0,0,0.26)]",
         featured
-          ? "border-violet-200/24 bg-[radial-gradient(circle_at_48%_0%,rgba(211,167,255,0.2),transparent_34%),linear-gradient(180deg,rgba(40,27,62,0.7),rgba(8,10,16,0.96))]"
-          : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(8,10,16,0.94))]",
+          ? "border-violet-200/24 bg-[radial-gradient(circle_at_48%_0%,rgba(211,167,255,0.18),transparent_34%),linear-gradient(180deg,rgba(40,27,62,0.64),rgba(8,10,16,0.9))]"
+          : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.052),rgba(8,10,16,0.88))]",
       )}
     >
-      <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-white/8 blur-2xl" />
       <div className="relative z-[1]">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/44">{operation.eyebrow}</div>
-            <div className={cn("mt-1 font-black leading-none text-white", featured ? "text-4xl" : "text-2xl")}>{operation.name}</div>
+            <div className={cn("mt-1 font-black leading-none text-white", featured ? "text-3xl" : "text-2xl")}>{operation.name}</div>
             <div className="mt-2 text-[12px] font-black uppercase tracking-[0.13em] text-[#f5d498]">{operation.signature}</div>
           </div>
-          <GameIcon kind={operation.icon} tone={operation.tone} size={featured ? "lg" : "md"} />
+          <ModeIcon name={operation.icon} size={featured ? "lg" : "md"} />
         </div>
 
-        <p className="mt-3 max-w-[42rem] text-[13px] leading-6 text-white/64">{operation.description}</p>
+        {unlocked ? <p className="mt-2 max-w-[42rem] text-[12px] leading-5 text-white/58">{operation.description}</p> : null}
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           <ScreenBadge tone={done ? "emerald" : unlocked ? "gold" : "neutral"}>{done ? t("eventsScreen.card.clearedToday") : unlocked ? t("eventsScreen.card.live") : t("eventsScreen.card.locked")}</ScreenBadge>
           <ScreenBadge tone={operation.threat === "epic" ? "ember" : operation.threat === "rare" ? "sky" : "neutral"}>{t(`eventsScreen.card.${operation.threat}`)}</ScreenBadge>
           <ScreenBadge tone="sky">{operation.mutator}</ScreenBadge>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {preset?.squad.map((unitId, index) => {
-            const unit = FRONTLINE_UNIT_BY_ID[unitId] ?? null;
-            return (
-              <FrontlineHeroStandee
-                key={`${operation.id}-${unitId}-${index}`}
-                hero={unit}
-                compact
-                side="enemy"
-                label={index === 0 ? t("eventsScreen.entry.left") : index === 1 ? t("eventsScreen.entry.center") : t("eventsScreen.entry.right")}
-                className={cn("min-h-[12rem] rounded-[22px] p-2", featured && "md:min-h-[13rem]")}
-              />
-            );
-          })}
-        </div>
+        {unlocked ? <EnemyLineup operationId={operation.id} preset={preset} t={t} /> : null}
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <SmallStat label={t("eventsScreen.card.preset")} value={frontlinePresetName(t, preset)} />
-          <SmallStat label={t("eventsScreen.card.leader")} value={frontlineLeaderName(t, leader)} />
-          <SmallStat
-            label={t("eventsScreen.card.reward")}
-            value={
-              done ? (
-                <ScreenBadge tone="emerald">{t("eventsScreen.result.dailyPayoutClaimed")}</ScreenBadge>
-              ) : (
-                <RewardChips rewards={operation.rewards} compact t={t} />
-              )
-            }
-          />
-        </div>
+        {unlocked ? (
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <SmallStat label={t("eventsScreen.card.preset")} value={frontlinePresetName(t, preset)} />
+            <SmallStat label={t("eventsScreen.card.leader")} value={frontlineLeaderName(t, leader)} />
+            <SmallStat
+              label={t("eventsScreen.card.reward")}
+              value={
+                done ? (
+                  <ScreenBadge tone="emerald">{t("eventsScreen.result.dailyPayoutClaimed")}</ScreenBadge>
+                ) : (
+                  <RewardChips rewards={operation.rewards} compact t={t} />
+                )
+              }
+            />
+          </div>
+        ) : (
+          <div className="mt-3 rounded-[16px] border border-white/10 bg-black/18 px-3 py-2">
+            <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{t("eventsScreen.card.reward")}</div>
+            <div className="mt-2">
+              <RewardChips rewards={operation.rewards} compact t={t} />
+            </div>
+          </div>
+        )}
 
         {operation.firstClearRewards && !done ? (
-          <div className="mt-3 rounded-[18px] border border-[#f5c451]/16 bg-[#f5c451]/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.13em] text-[#f5d498]">
+          <div className="mt-2.5 rounded-[16px] border border-[#f5c451]/16 bg-[#f5c451]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-[#f5d498]">
             {t("eventsScreen.card.firstClearBonus")}
           </div>
         ) : null}
 
-        <SceneButton onClick={onStart} disabled={disabled} className="mt-5 w-full">
+        <SceneButton onClick={onStart} disabled={disabled} className="mt-3 w-full">
           {buttonLabel}
         </SceneButton>
       </div>
@@ -468,31 +448,100 @@ function EventOperationCard({
 
 function EventMetric({
   icon,
+  modeIcon,
   label,
   value,
   tone,
   active,
 }: {
   icon: "events" | "rewards" | "power" | "deck";
+  modeIcon?: ModeIconName;
   label: string;
   value: string | number;
   tone: GameIconTone;
   active?: boolean;
 }) {
   return (
-    <div className={cn("flex items-center gap-2 rounded-[20px] border px-3 py-2.5", active ? "border-violet-200/22 bg-violet-300/10" : "border-white/10 bg-white/[0.045]")}>
-      <GameIcon kind={icon} tone={tone} size="md" />
+    <div className={cn("flex items-center gap-2 rounded-[16px] border px-2.5 py-2", active ? "border-violet-200/22 bg-violet-300/10" : "border-white/10 bg-white/[0.045]")}>
+      {modeIcon ? <ModeIcon name={modeIcon} size="md" /> : <GameIcon kind={icon} tone={tone} size="sm" />}
       <div>
         <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
-        <div className="mt-0.5 text-base font-black text-white">{value}</div>
+        <div className="mt-0.5 text-sm font-black text-white">{value}</div>
       </div>
+    </div>
+  );
+}
+
+function EventSquadChip({
+  hero,
+  label,
+  emptyLabel,
+  t,
+}: {
+  hero: FrontlineHeroDef | null;
+  label: string;
+  emptyLabel: string;
+  t: TranslateFn;
+}) {
+  return (
+    <div className={cn("flex items-center gap-2 rounded-[16px] border px-2 py-2", hero ? "border-violet-200/14 bg-violet-300/8" : "border-dashed border-white/10 bg-white/[0.025]")}>
+      <UnitThumb hero={hero} />
+      <div className="min-w-0">
+        <div className="text-[9px] font-black uppercase tracking-[0.14em] text-violet-100/58">{label}</div>
+        <div className="mt-0.5 truncate text-[12px] font-black text-white">{hero ? frontlineHeroName(t, hero) : emptyLabel}</div>
+        {hero ? <div className="mt-0.5 truncate text-[10px] uppercase tracking-[0.1em] text-white/42">{frontlineHeroRole(t, hero)}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+function EnemyLineup({ operationId, preset, t }: { operationId: string; preset: FrontlinePreset | undefined; t: TranslateFn }) {
+  if (!preset) return null;
+  return (
+    <div className="mt-3 grid gap-2">
+      {preset.squad.map((unitId, index) => {
+        const unit = FRONTLINE_UNIT_BY_ID[unitId] ?? null;
+        return (
+          <div key={`${operationId}-${unitId}-${index}`} className="flex items-center gap-2 rounded-[16px] border border-white/10 bg-black/18 px-2 py-2">
+            <UnitThumb hero={unit} enemy />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[12px] font-black text-white">{frontlineHeroName(t, unit)}</div>
+              <div className="mt-0.5 flex gap-2 text-[9px] font-black uppercase tracking-[0.08em] text-white/46">
+                <span>{index === 0 ? t("eventsScreen.entry.left") : index === 1 ? t("eventsScreen.entry.center") : t("eventsScreen.entry.right")}</span>
+                {unit ? <span>{frontlineHeroRole(t, unit)}</span> : null}
+              </div>
+            </div>
+            {unit ? <div className="text-[9px] font-black uppercase tracking-[0.08em] text-rose-100/58">ATK {unit.atk}</div> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function UnitThumb({ hero, enemy }: { hero: FrontlineHeroDef | null; enemy?: boolean }) {
+  const visual = hero ? getFrontlineHeroVisualAsset(hero.heroId) : null;
+  return (
+    <div className={cn("grid h-12 w-11 shrink-0 place-items-end overflow-hidden rounded-[13px] border bg-black/24", enemy ? "border-rose-200/14" : "border-white/10")}>
+      {visual?.standeeSrc ? (
+        <img
+          src={visual.standeeSrc}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain object-bottom drop-shadow-[0_9px_12px_rgba(0,0,0,0.44)]"
+        />
+      ) : (
+        <GameIcon kind={enemy ? "battle" : "heroes"} tone={enemy ? "ember" : "violet"} size="sm" />
+      )}
     </div>
   );
 }
 
 function SmallStat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="min-w-0 rounded-[18px] border border-white/10 bg-black/18 px-3 py-2">
+    <div className="min-w-0 rounded-[16px] border border-white/10 bg-black/18 px-3 py-2">
       <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
       <div className="mt-1 truncate text-sm font-black text-white">{value}</div>
     </div>

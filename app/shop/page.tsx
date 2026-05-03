@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
@@ -96,14 +95,6 @@ function tx(t: TranslateFn, key: string, fallback: string, params?: Record<strin
 
 function categoryLabel(category: ShopCategory, t: TranslateFn) {
   return tx(t, `shop.categories.${category}.label`, category);
-}
-
-function categoryHint(category: ShopCategory, t: TranslateFn) {
-  return tx(t, `shop.categories.${category}.hint`, "");
-}
-
-function categoryShort(category: ShopCategory, t: TranslateFn) {
-  return tx(t, `shop.categoryShort.${category}`, categoryLabel(category, t));
 }
 
 function offerName(offer: ExtendedShopOffer, t: TranslateFn) {
@@ -270,29 +261,26 @@ export default function ShopPage() {
     <ScreenScaffold scene="shop" dock={false} hud={false} homeNav={false}>
       <MarketTopChrome resources={displayResources} />
       <RewardFlightOverlay rewards={purchaseFlightRewards} active={Boolean(purchaseFx && purchaseFlightRewards)} nonce={purchaseFx?.nonce} origin="center" />
-      <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-col gap-5 px-3 pb-24 pt-44 sm:pt-36 md:px-6 md:pb-28 md:pt-28 xl:px-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.88),rgba(39,24,24,0.93)_34%,rgba(11,12,18,0.98)_72%)] shadow-[0_34px_92px_rgba(0,0,0,0.36)]">
+      <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-3 pb-20 pt-40 sm:pt-32 md:px-6 md:pb-24 md:pt-24 xl:px-8">
+        <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.74),rgba(39,24,24,0.86)_34%,rgba(11,12,18,0.94)_72%)] shadow-[0_30px_80px_rgba(0,0,0,0.34)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_16%,rgba(255,226,172,0.26),transparent_20%),radial-gradient(circle_at_83%_18%,rgba(130,193,255,0.16),transparent_17%),radial-gradient(circle_at_56%_82%,rgba(255,144,94,0.14),transparent_21%)]" />
           <div className="pointer-events-none absolute left-[-4%] top-[12%] h-56 w-56 rounded-full bg-[#f5c451]/14 blur-[88px]" />
           <div className="pointer-events-none absolute right-[-2%] top-[10%] h-52 w-52 rounded-full bg-sky-300/10 blur-[84px]" />
 
-          <div className="relative z-[1] px-4 py-4 md:px-6 md:py-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="relative z-[1] px-4 py-4 md:px-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <ScreenBadge tone="gold">{t("shop.grandBazaar")}</ScreenBadge>
                   <ScreenBadge tone="sky">{t("shop.wing", { category: categoryLabel(category, t) })}</ScreenBadge>
                   <ScreenBadge tone="neutral">{stockState}</ScreenBadge>
                 </div>
-                <div className="mt-4 max-w-[50rem] text-[2.2rem] font-black leading-[0.92] text-white md:text-[3.65rem]">
-                  {t("shop.heroTitle")}
+                <div className="mt-3 max-w-[36rem] text-[2rem] font-black leading-[0.92] text-white md:text-[3rem]">
+                  {t("shop.grandBazaar")}
                 </div>
-                <p className="mt-3 max-w-[44rem] text-[13px] leading-7 text-white/72 md:text-[14px]">
-                  {categoryHint(category, t)}
-                </p>
               </div>
 
-              <div className="grid min-w-[16rem] gap-2 sm:grid-cols-2">
+              <div className="grid min-w-[14rem] gap-2 sm:grid-cols-2">
                 <StoreSummaryPill label={t("shop.facts.reset")} value={resetLabel} icon="rewards" shopIcon="refresh" />
                 <StoreSummaryPill label={t("shop.facts.level")} value={t("shop.levelValue", { level: displayLevel })} icon="fortress" progressionIcon="level_up" />
                 <StoreSummaryPill label={t("shop.facts.gold")} value={`${displayResources.gold}`} icon="gold" resourceIcon="gold" />
@@ -300,7 +288,7 @@ export default function ShopPage() {
               </div>
             </div>
 
-            <div className="mt-5 grid gap-2 md:grid-cols-3 xl:grid-cols-5">
+            <div className="mt-4 grid gap-2 md:grid-cols-3 xl:grid-cols-5">
               {SHOP_CATEGORIES.map((item) => {
                 const itemUnlocked = isShopSectionUnlocked(item.id, displayLevel);
                 const active = category === item.id;
@@ -312,7 +300,7 @@ export default function ShopPage() {
                       sfx.tap();
                     }}
                     className={cn(
-                      "frontline-motion-tab group relative overflow-hidden rounded-[24px] border px-3 py-3 text-left transition",
+                      "frontline-motion-tab group relative overflow-hidden rounded-[20px] border px-3 py-2.5 text-left transition",
                       active
                         ? "border-[#ffe6a8]/34 bg-[linear-gradient(180deg,rgba(255,248,217,0.18),rgba(84,52,22,0.36),rgba(10,11,18,0.92))] shadow-[0_20px_42px_rgba(245,196,81,0.2)]"
                         : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(10,11,18,0.88))] hover:border-[#f5c451]/24 hover:bg-[#f5c451]/8",
@@ -322,16 +310,15 @@ export default function ShopPage() {
                     <span className={cn("pointer-events-none absolute inset-x-6 top-0 h-10 rounded-full bg-gradient-to-b opacity-0 blur-lg transition group-hover:opacity-100", CATEGORY_TONES[item.id])} />
                     <span className="pointer-events-none absolute inset-x-4 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.26),transparent)]" />
                     <div className="relative z-[1] flex items-center gap-3">
-                      <ShopIcon name={CATEGORY_SHOP_ICONS[item.id]} size="lg" className="h-14 w-14 shrink-0" />
+                      <ShopIcon name={CATEGORY_SHOP_ICONS[item.id]} size="md" className="h-11 w-11 shrink-0" />
                       <div className="min-w-0">
                         <div className="text-[9px] uppercase tracking-[0.18em] text-white/42">
                           {itemUnlocked ? t("shop.openDistrict") : t("shop.levelValue", { level: SHOP_CATEGORY_UNLOCK_LEVEL[item.id] ?? 1 })}
                         </div>
                         <div className="mt-1 text-sm font-black text-white">{categoryLabel(item.id, t)}</div>
-                        <div className="mt-1 text-[11px] leading-5 text-white/56">{categoryShort(item.id, t)}</div>
                       </div>
                     </div>
-                    <div className="relative z-[1] mt-3 inline-flex rounded-full border border-white/10 bg-black/24 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white/58">
+                    <div className="relative z-[1] mt-2 inline-flex rounded-full border border-white/10 bg-black/24 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white/58">
                       {active ? t("shop.states.selected") : itemUnlocked ? t("shop.states.open") : t("shop.states.locked")}
                     </div>
                   </button>
@@ -347,7 +334,7 @@ export default function ShopPage() {
               />
             ) : featured ? (
               <>
-                <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.42fr)_20rem]">
+                <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_17rem]">
                   <FeaturedOfferStage
                     offer={featured}
                     category={category}
@@ -360,7 +347,6 @@ export default function ShopPage() {
                     onBuy={() => buyWithFeedback(featured)}
                   />
                   <MerchantConsole
-                    level={displayLevel}
                     resetLabel={resetLabel}
                     gold={displayResources.gold}
                     gems={displayResources.gems}
@@ -396,14 +382,14 @@ export default function ShopPage() {
         </section>
 
         {unlocked && featured ? (
-          <section className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(10,11,18,0.94))] px-4 py-5 shadow-[0_26px_72px_rgba(0,0,0,0.28)] md:px-6 md:py-6">
+          <section className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(10,11,18,0.88))] px-4 py-4 shadow-[0_22px_58px_rgba(0,0,0,0.24)] md:px-5">
             <SectionTitle
               eyebrow={t("shop.reserve.eyebrow")}
               title={t("shop.reserve.title")}
               aside={<ScreenBadge tone="sky">{t("shop.reserve.items", { count: reserve.length })}</ScreenBadge>}
             />
-            <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {reserve.length ? (
                   reserve.map((offer) => (
                     <ReserveOfferCard
@@ -419,13 +405,11 @@ export default function ShopPage() {
                     />
                   ))
                 ) : (
-                  <div className="rounded-[28px] border border-white/10 bg-white/[0.04] px-4 py-10 text-center text-sm text-white/56 md:col-span-2 xl:col-span-3">
+                  <div className="rounded-[24px] border border-white/10 bg-white/[0.04] px-4 py-5 text-center text-sm text-white/56 md:col-span-2 xl:col-span-4">
                     {t("shop.reserve.empty")}
                   </div>
                 )}
               </div>
-
-              <StoreMerchRail category={category} t={t} />
             </div>
           </section>
         ) : null}
@@ -567,10 +551,10 @@ function FeaturedOfferStage({
   const valueTag = offerValueTag(offer, t);
 
   return (
-    <div className={cn("relative overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(12,12,18,0.94))] p-5 shadow-[0_26px_58px_rgba(0,0,0,0.26)] md:p-6", feedbackActive && "frontline-reward-success")}>
+    <div className={cn("relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(12,12,18,0.88))] p-4 shadow-[0_22px_52px_rgba(0,0,0,0.24)] md:p-5", feedbackActive && "frontline-reward-success")}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(255,228,175,0.24),transparent_22%),radial-gradient(circle_at_82%_74%,rgba(130,193,255,0.12),transparent_18%)]" />
       <ShopOfferRewardBurst key={`featured-burst-${feedbackNonce}`} offer={offer} active={feedbackActive} t={t} />
-      <div className="relative z-[1] grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="relative z-[1] grid gap-4 xl:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="min-w-0">
           <div className="flex flex-wrap gap-2">
             <ShopBadge icon={shopIconForValueTag(offer.valueTag)}>{valueTag ?? t("shop.states.merchantSpotlight")}</ShopBadge>
@@ -578,18 +562,18 @@ function FeaturedOfferStage({
             <ShopBadge icon={stateIcon} tone="neutral">{stateLabel}</ShopBadge>
           </div>
 
-          <div className="mt-4 flex items-start gap-4">
-            <ShopIcon name={offerShopIcon(offer)} size="xl" className="hidden h-20 w-20 shrink-0 md:inline-grid" />
+          <div className="mt-3 flex items-start gap-4">
+            <ShopIcon name={offerShopIcon(offer)} size="lg" className="hidden h-16 w-16 shrink-0 md:inline-grid" />
             <div className="min-w-0">
-              <div className="text-[2rem] font-black leading-[0.92] text-white md:text-[3.05rem]">{offerName(offer, t)}</div>
-              <p className="mt-3 max-w-[40rem] text-[13px] leading-7 text-white/70 md:text-[14px]">{offerDescription(offer, t)}</p>
+              <div className="text-[1.8rem] font-black leading-[0.92] text-white md:text-[2.55rem]">{offerName(offer, t)}</div>
+              <p className="mt-2 max-w-[36rem] text-[12px] leading-5 text-white/64 md:text-[13px]">{offerDescription(offer, t)}</p>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)]">
+          <div className="mt-4 grid gap-3 lg:grid-cols-[14rem_minmax(0,1fr)]">
             <BundleShowcase icon={offerIcon} offer={offer} t={t} />
             <div className="grid gap-4">
-              <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(10,11,17,0.92))] p-4">
+              <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.065),rgba(10,11,17,0.84))] p-3">
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[#f5d498]">
                   <ProgressionIcon name="reward_chest" size="sm" />
                   {t("shop.facts.whatYouGet")}
@@ -601,7 +585,7 @@ function FeaturedOfferStage({
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-2 md:grid-cols-3">
                 <StoreMiniFact shopIcon={productLineShopIcon(offer)} icon="offers" label={t("shop.facts.bundleType")} value={productLineLabel(offer, t)} />
                 <StoreMiniFact resourceIcon={offer.cost.gems ? "gems" : offer.cost.gold ? "gold" : undefined} shopIcon={!offer.cost.gems && !offer.cost.gold ? "free_claim" : undefined} icon={offer.cost.gems ? "gem" : "gold"} label={t("shop.facts.checkout")} value={offerCost(offer, t)} />
                 <StoreMiniFact shopIcon={stateIcon} icon="rewards" label={t("shop.facts.availability")} value={stateLabel} />
@@ -610,16 +594,13 @@ function FeaturedOfferStage({
           </div>
         </div>
 
-        <div className="flex flex-col justify-between rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(9,11,17,0.96))] p-4">
+        <div className="flex flex-col justify-between rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(9,11,17,0.9))] p-3">
           <div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-[#f5d498]">{t("shop.facts.checkoutRail")}</div>
-            <div className="mt-1 text-2xl font-black text-white">{t("shop.facts.primaryOffer")}</div>
-            <div className="mt-4 rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(8,10,16,0.92))] p-4">
+            <div className="mt-1 text-xl font-black text-white">{t("shop.facts.primaryOffer")}</div>
+            <div className="mt-3 rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(8,10,16,0.86))] p-3">
               <div className="text-[10px] uppercase tracking-[0.18em] text-white/44">{t("shop.facts.price")}</div>
-              <div className="mt-2 text-4xl font-black text-[#ffe4a8]">{offerCost(offer, t)}</div>
-              <div className="mt-2 text-[12px] leading-6 text-white/60">
-                {t("shop.facts.priceHint")}
-              </div>
+              <div className="mt-1 text-3xl font-black text-[#ffe4a8]">{offerCost(offer, t)}</div>
             </div>
 
             <SceneButton onClick={onBuy} disabled={disabled} icon={disabled ? undefined : offer.cost.gems ? "gem" : offer.cost.gold ? "gold" : "offers"} tone={offer.cost.gems ? "sky" : "gold"} className={cn("mt-4 w-full", !disabled && "frontline-feedback-purchase")}>
@@ -645,7 +626,6 @@ function FeaturedOfferStage({
 }
 
 function MerchantConsole({
-  level,
   resetLabel,
   gold,
   gems,
@@ -654,7 +634,6 @@ function MerchantConsole({
   stockState,
   t,
 }: {
-  level: number;
   resetLabel: string;
   gold: number;
   gems: number;
@@ -664,29 +643,19 @@ function MerchantConsole({
   t: TranslateFn;
 }) {
   return (
-    <div className="grid gap-4">
-      <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(9,11,17,0.96))] p-4">
-        <SectionTitle eyebrow={t("shop.facts.merchantDesk")} title={t("shop.facts.readyFunds")} />
-        <div className="mt-4 grid gap-2">
-          <StoreStatusLine resourceIcon="gold" icon="gold" label={t("shop.facts.gold")} value={`${gold}`} />
-          <StoreStatusLine resourceIcon="dust" icon="dust" label={t("shop.facts.dust")} value={`${dust}`} />
-          <StoreStatusLine resourceIcon="gems" icon="gem" label={t("shop.facts.gems")} value={`${gems}`} />
+    <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(9,11,17,0.9))] p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{t("shop.facts.marketPulse")}</div>
+          <div className="mt-1 text-lg font-black text-white">{stockState}</div>
         </div>
+        <ShopIcon name={CATEGORY_SHOP_ICONS[category]} size="lg" className="h-14 w-14" />
       </div>
-
-      <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(10,11,17,0.94))] p-4">
-        <SectionTitle eyebrow={t("shop.facts.marketPulse")} title={t("shop.facts.refreshRhythm")} />
-        <div className="mt-4 grid gap-2">
-          <StoreStatusLine shopIcon="refresh" icon="rewards" label={t("shop.facts.reset")} value={resetLabel} />
-          <StoreStatusLine progressionIcon="level_up" icon="fortress" label={t("shop.facts.account")} value={t("shop.levelValue", { level })} />
-        </div>
-        <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.05] px-4 py-4">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-white/44">{t("shop.facts.visibleStock")}</div>
-          <div className="mt-1 text-2xl font-black text-[#ffe2a2]">{stockState}</div>
-          <div className="mt-2 text-[12px] leading-6 text-white/58">
-            {category === "daily" ? t("shop.stockCopy.daily") : t("shop.stockCopy.default")}
-          </div>
-        </div>
+      <div className="mt-3 grid gap-2">
+        <StoreStatusLine shopIcon="refresh" icon="rewards" label={t("shop.facts.reset")} value={resetLabel} compact />
+        <StoreStatusLine resourceIcon="gold" icon="gold" label={t("shop.facts.gold")} value={`${gold}`} compact />
+        <StoreStatusLine resourceIcon="dust" icon="dust" label={t("shop.facts.dust")} value={`${dust}`} compact />
+        <StoreStatusLine resourceIcon="gems" icon="gem" label={t("shop.facts.gems")} value={`${gems}`} compact />
       </div>
     </div>
   );
@@ -717,7 +686,7 @@ function SpotlightOfferCard({
   const valueTag = offerValueTag(offer, t);
 
   return (
-    <div className={cn("group relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(10,11,17,0.94))] p-4 shadow-[0_18px_42px_rgba(0,0,0,0.22)]", feedbackActive && "frontline-reward-success")}>
+    <div className={cn("group relative overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(10,11,17,0.86))] p-3 shadow-[0_16px_36px_rgba(0,0,0,0.2)]", feedbackActive && "frontline-reward-success")}>
       <div className={cn("pointer-events-none absolute right-[-10%] top-[-12%] h-32 w-32 rounded-full bg-gradient-to-br opacity-18 blur-[54px]", CATEGORY_TONES[offer.category])} />
       <ShopOfferRewardBurst key={`spotlight-burst-${feedbackNonce}`} offer={offer} active={feedbackActive} t={t} compact />
       <div className="relative z-[1] flex items-start justify-between gap-3">
@@ -726,19 +695,19 @@ function SpotlightOfferCard({
             {valueTag ? <ShopBadge icon={shopIconForValueTag(offer.valueTag)}>{valueTag}</ShopBadge> : null}
             {offer.hot ? <ShopBadge icon="hot_deal" tone="ember">{t("shop.states.hot")}</ShopBadge> : null}
           </div>
-          <div className="mt-3 text-xl font-black leading-tight text-white">{offerName(offer, t)}</div>
-          <div className="mt-2 text-[12px] leading-6 text-white/62">{offerDescription(offer, t)}</div>
+          <div className="mt-2 text-lg font-black leading-tight text-white">{offerName(offer, t)}</div>
+          <div className="mt-1 line-clamp-2 text-[12px] leading-5 text-white/60">{offerDescription(offer, t)}</div>
         </div>
-        <ShopIcon name={offerShopIcon(offer)} size="lg" className="h-14 w-14 shrink-0" />
+        <ShopIcon name={offerShopIcon(offer)} size="md" className="h-12 w-12 shrink-0" />
       </div>
 
-      <div className="relative z-[1] mt-4 flex flex-wrap gap-2">
+      <div className="relative z-[1] mt-3 flex flex-wrap gap-2">
         {buildRewardTokens(offer, t).map((token) => (
           <RewardToken key={`${token.label}-${token.hint}`} {...token} compact />
         ))}
       </div>
 
-      <div className="relative z-[1] mt-5 flex items-center justify-between gap-3">
+      <div className="relative z-[1] mt-4 flex items-center justify-between gap-3">
         <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/56">
           <ShopIcon name={stateIcon} size="sm" className="h-6 w-6" />
           <span>{label}</span>
@@ -776,27 +745,27 @@ function ReserveOfferCard({
   const valueTag = offerValueTag(offer, t);
 
   return (
-    <div className={cn("relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(9,11,17,0.94))] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.18)]", feedbackActive && "frontline-reward-success")}>
+    <div className={cn("relative overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(9,11,17,0.84))] p-3 shadow-[0_16px_34px_rgba(0,0,0,0.16)]", feedbackActive && "frontline-reward-success")}>
       <ShopOfferRewardBurst key={`reserve-burst-${feedbackNonce}`} offer={offer} active={feedbackActive} t={t} compact />
       <div className="flex items-start gap-3">
-        <ShopIcon name={offerShopIcon(offer)} size="lg" className="h-14 w-14 shrink-0" />
+        <ShopIcon name={offerShopIcon(offer)} size="md" className="h-12 w-12 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap gap-2">
             {valueTag ? <ShopBadge icon={shopIconForValueTag(offer.valueTag)}>{valueTag}</ShopBadge> : null}
             {offer.hot ? <ShopBadge icon="hot_deal" tone="ember">{t("shop.states.hot")}</ShopBadge> : null}
           </div>
-          <div className="mt-2 text-lg font-black text-white">{offerName(offer, t)}</div>
-          <div className="mt-1 text-[12px] leading-6 text-white/60">{offerDescription(offer, t)}</div>
+          <div className="mt-2 text-base font-black text-white">{offerName(offer, t)}</div>
+          <div className="mt-1 line-clamp-2 text-[12px] leading-5 text-white/58">{offerDescription(offer, t)}</div>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         {buildRewardTokens(offer, t).map((token) => (
           <RewardToken key={`${token.label}-${token.hint}`} {...token} compact />
         ))}
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3">
+      <div className="mt-4 flex items-center justify-between gap-3">
         <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/56">
           <ShopIcon name={stateIcon} size="sm" className="h-6 w-6" />
           <span>{label}</span>
@@ -804,42 +773,6 @@ function ReserveOfferCard({
         <SceneButton onClick={onBuy} disabled={disabled} icon={offer.cost.gems ? "gem" : offer.cost.gold ? "gold" : "offers"} tone={offer.cost.gems ? "sky" : "gold"} className={cn("px-4 py-2.5 text-[10px]", !disabled && "frontline-feedback-purchase")}>
           {disabled ? (offer.oneTime ? t("shop.states.owned") : t("shop.states.soldOut")) : offerCost(offer, t)}
         </SceneButton>
-      </div>
-    </div>
-  );
-}
-
-function StoreMerchRail({ category, t }: { category: ShopCategory; t: TranslateFn }) {
-  return (
-    <div className="grid gap-4">
-      <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(10,11,17,0.95))] p-4">
-        <SectionTitle eyebrow={t("shop.facts.connectedStock")} title={t("shop.facts.whereMatters")} />
-        <div className="mt-4 grid gap-3">
-          <MerchBullet
-            icon="deck"
-            title={t("shop.merch.deckTitle")}
-            body={t("shop.merch.deckBody")}
-          />
-          <MerchBullet
-            icon="fortress"
-            title={t("shop.merch.fortressTitle")}
-            body={t("shop.merch.fortressBody")}
-          />
-          <MerchBullet
-            icon="heroes"
-            title={t("shop.merch.heroesTitle")}
-            body={category === "shards" ? t("shop.merch.heroesShardBody") : t("shop.merch.heroesBody")}
-          />
-        </div>
-      </div>
-
-      <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(9,11,17,0.95))] p-4">
-        <SectionTitle eyebrow={t("shop.facts.quickRoutes")} title={t("shop.facts.spendContext")} />
-        <div className="mt-4 grid gap-2">
-          <MarketRoute href="/deck" icon="deck" label={t("shop.actions.openDeck")} value={t("shop.merch.deckRoute")} />
-          <MarketRoute href="/fortress" icon="fortress" label={t("shop.actions.openFortress")} value={t("shop.merch.fortressRoute")} />
-          <MarketRoute href="/roster" icon="heroes" label={t("shop.actions.openHeroes")} value={t("shop.merch.heroesRoute")} />
-        </div>
       </div>
     </div>
   );
@@ -915,18 +848,18 @@ function BundleShowcase({
     .slice(0, 2);
 
   return (
-    <div className="relative min-h-[16rem] overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(10,11,17,0.94))] p-4">
+    <div className="relative min-h-[12rem] overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(10,11,17,0.86))] p-3">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[radial-gradient(circle_at_50%_0%,rgba(255,231,184,0.24),transparent_62%)]" />
       <div className="text-[10px] uppercase tracking-[0.2em] text-[#f5d498]">{t("shop.facts.bundleDisplay")}</div>
       <div className="mt-1 text-lg font-black text-white">{offerValueTag(offer, t) ?? t("shop.facts.vaultDrop")}</div>
 
       {previewCards.length || previewHeroes.length ? (
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           {previewCards.map((card) => (
-            <FrontlineCardView key={card.id} card={card} compact status="preview" className="min-h-[10.5rem]" />
+            <FrontlineCardView key={card.id} card={card} compact status="preview" className="min-h-[9rem]" />
           ))}
           {previewHeroes.map((hero) => (
-            <FrontlineHeroStandee key={hero.heroId} hero={hero} compact label="preview" className="min-h-[10.5rem]" />
+            <FrontlineHeroStandee key={hero.heroId} hero={hero} compact label="preview" className="min-h-[9rem]" />
           ))}
         </div>
       ) : (
@@ -1037,6 +970,7 @@ function StoreStatusLine({
   shopIcon,
   resourceIcon,
   progressionIcon,
+  compact,
 }: {
   icon: GlyphKind;
   label: string;
@@ -1044,68 +978,22 @@ function StoreStatusLine({
   shopIcon?: ShopIconName;
   resourceIcon?: ResourceIconKind;
   progressionIcon?: "claim" | "unlock" | "reward_chest" | "level_up";
+  compact?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/[0.05] px-3 py-3">
+    <div className={cn("flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/[0.05] px-3", compact ? "py-2" : "py-3")}>
       {shopIcon ? (
-        <ShopIcon name={shopIcon} size="md" className="h-10 w-10 shrink-0" />
+        <ShopIcon name={shopIcon} size="md" className={cn("shrink-0", compact ? "h-8 w-8" : "h-10 w-10")} />
       ) : resourceIcon ? (
-        <ResourceIcon kind={resourceIcon} size="medium" className="h-10 w-10 shrink-0" />
+        <ResourceIcon kind={resourceIcon} size="medium" className={cn("shrink-0", compact ? "h-8 w-8" : "h-10 w-10")} />
       ) : progressionIcon ? (
-        <ProgressionIcon name={progressionIcon} size="md" className="h-10 w-10 shrink-0" />
+        <ProgressionIcon name={progressionIcon} size="md" className={cn("shrink-0", compact ? "h-8 w-8" : "h-10 w-10")} />
       ) : (
-        <StoreGlyph icon={icon} tone="from-[#fff3c7] via-[#f5c451] to-[#c77716]" className="h-10 w-10 shrink-0" />
+        <StoreGlyph icon={icon} tone="from-[#fff3c7] via-[#f5c451] to-[#c77716]" className={cn("shrink-0", compact ? "h-8 w-8" : "h-10 w-10")} />
       )}
       <div className="min-w-0">
         <div className="text-[9px] uppercase tracking-[0.16em] text-white/44">{label}</div>
         <div className="mt-1 truncate text-sm font-black text-white">{value}</div>
-      </div>
-    </div>
-  );
-}
-
-function MarketRoute({
-  href,
-  icon,
-  label,
-  value,
-}: {
-  href: string;
-  icon: GlyphKind;
-  label: string;
-  value: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/[0.05] px-3 py-3 transition hover:-translate-y-0.5 hover:border-[#f5c451]/24 hover:bg-[#f5c451]/10"
-    >
-      <StoreGlyph icon={icon} tone="from-[#fff3c7] via-[#f5c451] to-[#c77716]" className="h-10 w-10 shrink-0" />
-      <div className="min-w-0">
-        <div className="text-[9px] uppercase tracking-[0.16em] text-white/44">{label}</div>
-        <div className="mt-1 truncate text-sm font-black text-white">{value}</div>
-      </div>
-    </Link>
-  );
-}
-
-function MerchBullet({
-  icon,
-  title,
-  body,
-}: {
-  icon: GlyphKind;
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="rounded-[24px] border border-white/10 bg-white/[0.05] p-4">
-      <div className="flex items-start gap-3">
-        <StoreGlyph icon={icon} tone="from-[#fff3c7] via-[#f5c451] to-[#c77716]" className="h-10 w-10 shrink-0" />
-        <div>
-          <div className="text-sm font-black text-white">{title}</div>
-          <div className="mt-1 text-[12px] leading-6 text-white/58">{body}</div>
-        </div>
       </div>
     </div>
   );

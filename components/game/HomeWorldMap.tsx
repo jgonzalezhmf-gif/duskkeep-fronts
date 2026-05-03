@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { HomeEffectsQaPanel, type HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
 import HomeIcon, { type HomeIconKind } from "@/components/game/home/HomeIcon";
 import HomeScene from "@/components/game/home/HomeScene";
+import { HOME_CTA_LAYOUT, HOME_DESIGN_HEIGHT, HOME_DESIGN_WIDTH } from "@/components/game/home/homeComposition";
+import { HOME_LANDMARK_EFFECT_DEFS, getHomeWorldEffects, groupHomeLandmarkEffects, type HomeEffectAnchorId, type HomeLandmarkEffectConfig } from "@/components/game/home/homeEffectLayout";
 import { type HomeTone, type HomeZoneId } from "@/components/game/home/types";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
+import { ModeIcon, type ModeIconName } from "@/components/game/shared/ModeIcon";
 import GameOptionsButton from "@/components/game/options/GameOptionsButton";
 import MuteButton from "@/components/ui/MuteButton";
 import { getLeader } from "@/data/leaders";
@@ -13,20 +17,114 @@ import { teamPower } from "@/features/tactical/engine";
 import { sfx } from "@/lib/audio";
 import { getLeaderPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
+import { HOME_EFFECT_IDS, getHomeEffectAsset, type HomeEffectId } from "@/lib/homeEffectAssets";
+import { type HomeLandmarkId } from "@/lib/homeLandmarkAssets";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
-
-const HOME_WORLD_WIDTH = 1600;
-const HOME_WORLD_HEIGHT = 900;
-const HOME_WORLD_RATIO = HOME_WORLD_WIDTH / HOME_WORLD_HEIGHT;
 
 type HomeWorldFrame = {
   left: number;
   top: number;
   width: number;
   height: number;
-  hotspotScale: number;
+  scale: number;
+  cropX: number;
+  cropY: number;
 };
+
+const HOME_EFFECTS_QA_STORAGE_KEY = "duskkeep:homeEffectsQa";
+const HOME_EFFECT_ANCHORS = new Set<HomeEffectAnchorId>(["world", "fortress", "adventure", "arena", "market", "events", "deck"]);
+const HOME_EFFECT_TYPES = new Set<HomeEffectId>(HOME_EFFECT_IDS);
+
+function isValidHomeEffectDraft(value: unknown): value is HomeLandmarkEffectConfig {
+  if (!value || typeof value !== "object") return false;
+  const effect = value as Partial<HomeLandmarkEffectConfig>;
+
+  return (
+    typeof effect.id === "string" &&
+    typeof effect.landmark === "string" &&
+    typeof effect.effect === "string" &&
+    typeof effect.xPercent === "number" &&
+    typeof effect.yPercent === "number" &&
+    typeof effect.widthPercent === "number" &&
+    typeof effect.heightPercent === "number" &&
+    typeof effect.opacity === "number" &&
+    typeof effect.frameCount === "number" &&
+    typeof effect.durationMs === "number" &&
+    typeof effect.enabled === "boolean"
+  );
+}
+
+function mergeHomeEffectQaEdits(value: unknown): HomeLandmarkEffectConfig[] {
+  if (!Array.isArray(value)) {
+    return HOME_LANDMARK_EFFECT_DEFS;
+  }
+
+  const editsById = new Map<string, Partial<HomeLandmarkEffectConfig>>();
+  value.forEach((item) => {
+    if (item && typeof item === "object" && "id" in item && typeof item.id === "string") {
+      editsById.set(item.id, item as Partial<HomeLandmarkEffectConfig>);
+    }
+  });
+
+  const merged = HOME_LANDMARK_EFFECT_DEFS.map((base) => {
+    const edit = editsById.get(base.id);
+    if (!edit) return base;
+
+    return {
+      ...base,
+      landmark: HOME_EFFECT_ANCHORS.has(edit.landmark as HomeEffectAnchorId) ? (edit.landmark as HomeEffectAnchorId) : base.landmark,
+      effect: HOME_EFFECT_TYPES.has(edit.effect as HomeEffectId) ? (edit.effect as HomeEffectId) : base.effect,
+      xPercent: typeof edit.xPercent === "number" ? edit.xPercent : base.xPercent,
+      yPercent: typeof edit.yPercent === "number" ? edit.yPercent : base.yPercent,
+      widthPercent: typeof edit.widthPercent === "number" ? edit.widthPercent : base.widthPercent,
+      heightPercent: typeof edit.heightPercent === "number" ? edit.heightPercent : base.heightPercent,
+      opacity: typeof edit.opacity === "number" ? edit.opacity : base.opacity,
+      frameCount: typeof edit.frameCount === "number" ? edit.frameCount : base.frameCount,
+      durationMs: typeof edit.durationMs === "number" ? edit.durationMs : base.durationMs,
+      enabled: typeof edit.enabled === "boolean" ? edit.enabled : base.enabled,
+      rotationDeg: typeof edit.rotationDeg === "number" ? edit.rotationDeg : base.rotationDeg,
+      yawDeg: typeof edit.yawDeg === "number" ? edit.yawDeg : base.yawDeg,
+      originXPercent: typeof edit.originXPercent === "number" ? edit.originXPercent : base.originXPercent,
+      originYPercent: typeof edit.originYPercent === "number" ? edit.originYPercent : base.originYPercent,
+      flipX: typeof edit.flipX === "boolean" ? edit.flipX : base.flipX,
+      flipY: typeof edit.flipY === "boolean" ? edit.flipY : base.flipY,
+      backgroundY: typeof edit.backgroundY === "string" ? edit.backgroundY : base.backgroundY,
+      mobileDisabled: typeof edit.mobileDisabled === "boolean" ? edit.mobileDisabled : base.mobileDisabled,
+    };
+  });
+
+  value.forEach((item) => {
+    if (!isValidHomeEffectDraft(item)) return;
+    if (HOME_LANDMARK_EFFECT_DEFS.some((base) => base.id === item.id)) return;
+    merged.push({
+      ...item,
+      rotationDeg: typeof item.rotationDeg === "number" ? item.rotationDeg : undefined,
+      yawDeg: typeof item.yawDeg === "number" ? item.yawDeg : undefined,
+      originXPercent: typeof item.originXPercent === "number" ? item.originXPercent : undefined,
+      originYPercent: typeof item.originYPercent === "number" ? item.originYPercent : undefined,
+      flipX: typeof item.flipX === "boolean" ? item.flipX : undefined,
+      flipY: typeof item.flipY === "boolean" ? item.flipY : undefined,
+      backgroundY: typeof item.backgroundY === "string" ? item.backgroundY : undefined,
+      mobileDisabled: typeof item.mobileDisabled === "boolean" ? item.mobileDisabled : undefined,
+    });
+  });
+
+  return merged;
+}
+
+function createDuplicateEffectId(baseId: string, effects: HomeLandmarkEffectConfig[]) {
+  const ids = new Set(effects.map((effect) => effect.id));
+  let index = 1;
+  let candidate = `${baseId}-copy`;
+
+  while (ids.has(candidate)) {
+    index += 1;
+    candidate = `${baseId}-copy-${index}`;
+  }
+
+  return candidate;
+}
 
 export type HomeHotspot = {
   zoneId: HomeZoneId;
@@ -34,6 +132,8 @@ export type HomeHotspot = {
   label: string;
   sublabel: string;
   icon: HomeIconKind;
+  modeIcon?: ModeIconName;
+  landmarkId?: HomeLandmarkId;
   tone: HomeTone;
   anchorX: string;
   anchorY: string;
@@ -55,7 +155,7 @@ export type HomeHotspot = {
 const SIDE_ACTIONS = [
   { href: "/shop", labelKey: "nav.offers", sublabelKey: "home.hotDrops", icon: "offers" as const, tone: "rose" as const },
   { href: "/missions", labelKey: "nav.rewards", sublabelKey: "home.claim", icon: "rewards" as const, tone: "gold" as const },
-  { href: "/events", labelKey: "nav.events", sublabelKey: "home.liveNow", icon: "events" as const, tone: "violet" as const },
+  { href: "/events", labelKey: "nav.events", sublabelKey: "home.liveNow", icon: "events" as const, modeIcon: "daily_event" as const, tone: "violet" as const },
 ];
 
 const DOCK_ACTIONS = [
@@ -142,10 +242,12 @@ export default function HomeWorldMap({
   hotspots,
   tutorialOpen,
   qaClean = false,
+  qaEffects = false,
 }: {
   hotspots: HomeHotspot[];
   tutorialOpen: boolean;
   qaClean?: boolean;
+  qaEffects?: boolean;
 }) {
   const { t } = useI18n();
   const sceneRef = useRef<HTMLElement | null>(null);
@@ -161,6 +263,9 @@ export default function HomeWorldMap({
   const [activeZone, setActiveZone] = useState<HomeZoneId | null>(null);
   const [hideOverlays, setHideOverlays] = useState(false);
   const [worldFrame, setWorldFrame] = useState<HomeWorldFrame | null>(null);
+  const [qaEffectDefs, setQaEffectDefs] = useState<HomeLandmarkEffectConfig[]>(HOME_LANDMARK_EFFECT_DEFS);
+  const [qaEffectsStorageReady, setQaEffectsStorageReady] = useState(false);
+  const [selectedQaEffectId, setSelectedQaEffectId] = useState<string | null>(HOME_LANDMARK_EFFECT_DEFS[0]?.id ?? null);
 
   const progress = useMemo(() => Math.min(100, Math.max(12, account.xp % 100 || 12)), [account.xp]);
   const rosterPower = useMemo(() => {
@@ -183,6 +288,31 @@ export default function HomeWorldMap({
   }, []);
 
   useEffect(() => {
+    if (!qaEffects || typeof window === "undefined") {
+      setQaEffectsStorageReady(false);
+      return;
+    }
+
+    const raw = window.localStorage.getItem(HOME_EFFECTS_QA_STORAGE_KEY);
+    if (raw) {
+      try {
+        setQaEffectDefs(mergeHomeEffectQaEdits(JSON.parse(raw)));
+      } catch {
+        setQaEffectDefs(HOME_LANDMARK_EFFECT_DEFS);
+      }
+    } else {
+      setQaEffectDefs(HOME_LANDMARK_EFFECT_DEFS);
+    }
+    setSelectedQaEffectId((current) => current ?? HOME_LANDMARK_EFFECT_DEFS[0]?.id ?? null);
+    setQaEffectsStorageReady(true);
+  }, [qaEffects]);
+
+  useEffect(() => {
+    if (!qaEffects || !qaEffectsStorageReady || typeof window === "undefined") return;
+    window.localStorage.setItem(HOME_EFFECTS_QA_STORAGE_KEY, JSON.stringify(qaEffectDefs));
+  }, [qaEffectDefs, qaEffects, qaEffectsStorageReady]);
+
+  useEffect(() => {
     if (!sceneRef.current || typeof window === "undefined") return;
 
     const node = sceneRef.current;
@@ -191,34 +321,31 @@ export default function HomeWorldMap({
     const measure = () => {
       const rect = node.getBoundingClientRect();
       const compact = rect.width < 768;
-      const overscan = compact ? 1.12 : 1.07;
-      let width = Math.max(360, rect.width * overscan);
-      let height = width / HOME_WORLD_RATIO;
-
-      if (height < rect.height * overscan) {
-        height = rect.height * overscan;
-        width = height * HOME_WORLD_RATIO;
-      }
-
-      const left = (rect.width - width) / 2;
-      const top = (rect.height - height) / 2 - rect.height * (compact ? 0.065 : 0.045);
-      const hotspotScale = compact
-        ? Math.max(0.92, Math.min(1.06, width / 430))
-        : Math.max(0.86, Math.min(1.04, width / 1360));
+      const scale = compact
+        ? Math.max(rect.width / HOME_DESIGN_WIDTH, rect.height / HOME_DESIGN_HEIGHT)
+        : Math.min(rect.width / HOME_DESIGN_WIDTH, rect.height / HOME_DESIGN_HEIGHT);
+      const scaledWidth = HOME_DESIGN_WIDTH * scale;
+      const scaledHeight = HOME_DESIGN_HEIGHT * scale;
+      const left = (rect.width - scaledWidth) / 2;
+      const top = (rect.height - scaledHeight) / 2;
+      const cropX = Math.max(0, (scaledWidth - rect.width) / 2);
+      const cropY = Math.max(0, (scaledHeight - rect.height) / 2);
 
       setWorldFrame((current) => {
         if (
           current &&
           Math.abs(current.left - left) < 0.5 &&
           Math.abs(current.top - top) < 0.5 &&
-          Math.abs(current.width - width) < 0.5 &&
-          Math.abs(current.height - height) < 0.5 &&
-          Math.abs(current.hotspotScale - hotspotScale) < 0.01
+          Math.abs(current.width - scaledWidth) < 0.5 &&
+          Math.abs(current.height - scaledHeight) < 0.5 &&
+          Math.abs(current.scale - scale) < 0.001
         ) {
           return current;
         }
 
-        return { left, top, width, height, hotspotScale };
+        const next = { left, top, width: scaledWidth, height: scaledHeight, scale, cropX, cropY };
+        (window as typeof window & { __HOME_STAGE_DEBUG__?: typeof next }).__HOME_STAGE_DEBUG__ = next;
+        return next;
       });
     };
 
@@ -240,6 +367,130 @@ export default function HomeWorldMap({
   }, []);
 
   const cleanMode = qaClean || hideOverlays;
+  const groupedQaEffects = useMemo(() => groupHomeLandmarkEffects(qaEffectDefs), [qaEffectDefs]);
+  const worldQaEffects = useMemo(() => getHomeWorldEffects(qaEffectDefs), [qaEffectDefs]);
+  const updateQaEffect = useCallback<HomeEffectsQaEditorState["onChange"]>((id, patch) => {
+    setQaEffectDefs((current) =>
+      current.map((effect) => {
+        if (effect.id !== id) return effect;
+        const asset = patch.effect ? getHomeEffectAsset(patch.effect) : null;
+        return {
+          ...effect,
+          ...patch,
+          ...(asset ? { frameCount: asset.frameCount } : {}),
+        };
+      }),
+    );
+  }, []);
+  const saveQaEffects = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(HOME_EFFECTS_QA_STORAGE_KEY, JSON.stringify(qaEffectDefs));
+  }, [qaEffectDefs]);
+  const saveQaEffectsToCode = useCallback(async () => {
+    const response = await fetch("/api/dev/home-effects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ effects: qaEffectDefs }),
+    });
+    const result = (await response.json()) as { ok?: boolean; message?: string };
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message ?? "Could not save effects to code");
+    }
+    return result.message ?? "Saved to code";
+  }, [qaEffectDefs]);
+  const createQaEffect = useCallback((effect: HomeEffectId) => {
+    setQaEffectDefs((current) => {
+      const asset = getHomeEffectAsset(effect);
+      const id = createDuplicateEffectId(`qa-${effect}`, current);
+      const nextEffect: HomeLandmarkEffectConfig = {
+        id,
+        landmark: "world",
+        effect,
+        xPercent: 50,
+        yPercent: 50,
+        widthPercent: effect.includes("banner") ? 2.6 : 2,
+        heightPercent: effect.includes("banner") ? 5.2 : 4,
+        opacity: 1,
+        frameCount: asset?.frameCount ?? 1,
+        durationMs: effect.includes("flag") || effect.includes("banner") ? 1100 : 760,
+        enabled: true,
+        backgroundY: "52%",
+      };
+
+      setSelectedQaEffectId(id);
+      return [...current, nextEffect];
+    });
+  }, []);
+  const duplicateQaEffect = useCallback((id: string) => {
+    setQaEffectDefs((current) => {
+      const sourceIndex = current.findIndex((effect) => effect.id === id);
+      const source = current[sourceIndex];
+      if (!source) return current;
+
+      const duplicate = {
+        ...source,
+        id: createDuplicateEffectId(source.id, current),
+        xPercent: Math.min(100, Math.round((source.xPercent + 2) * 10) / 10),
+        yPercent: Math.min(100, Math.round((source.yPercent + 2) * 10) / 10),
+      };
+      const next = [...current];
+      next.splice(sourceIndex + 1, 0, duplicate);
+      setSelectedQaEffectId(duplicate.id);
+      return next;
+    });
+  }, []);
+  const duplicateQaEffectToWorld = useCallback((id: string) => {
+    setQaEffectDefs((current) => {
+      const sourceIndex = current.findIndex((effect) => effect.id === id);
+      const source = current[sourceIndex];
+      if (!source) return current;
+
+      const duplicate = {
+        ...source,
+        id: createDuplicateEffectId(`${source.id}-world`, current),
+        landmark: "world" as const,
+        xPercent: 50,
+        yPercent: 50,
+        widthPercent: Math.max(1, Math.min(18, source.widthPercent)),
+        heightPercent: Math.max(1, Math.min(18, source.heightPercent)),
+      };
+      const next = [...current];
+      next.splice(sourceIndex + 1, 0, duplicate);
+      setSelectedQaEffectId(duplicate.id);
+      return next;
+    });
+  }, []);
+  const removeQaEffect = useCallback((id: string) => {
+    setQaEffectDefs((current) => {
+      if (current.length <= 1) return current;
+      const next = current.filter((effect) => effect.id !== id);
+      if (selectedQaEffectId === id) {
+        setSelectedQaEffectId(next[0]?.id ?? null);
+      }
+      return next;
+    });
+  }, [selectedQaEffectId]);
+  const replaceQaEffects = useCallback((value: string) => {
+    const parsed = JSON.parse(value) as unknown;
+    const merged = mergeHomeEffectQaEdits(parsed);
+    setQaEffectDefs(merged);
+    setSelectedQaEffectId(merged[0]?.id ?? null);
+  }, []);
+  const resetQaEffects = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(HOME_EFFECTS_QA_STORAGE_KEY);
+    }
+    setQaEffectDefs(HOME_LANDMARK_EFFECT_DEFS);
+    setSelectedQaEffectId(HOME_LANDMARK_EFFECT_DEFS[0]?.id ?? null);
+  }, []);
+  const qaEditor = useMemo<HomeEffectsQaEditorState | undefined>(() => {
+    if (!qaEffects) return undefined;
+    return {
+      selectedId: selectedQaEffectId,
+      onSelect: setSelectedQaEffectId,
+      onChange: updateQaEffect,
+    };
+  }, [qaEffects, selectedQaEffectId, updateQaEffect]);
 
   const timers = {
     reward: now === null ? "--:--:--" : formatCountdown(msUntilMidnight(now)),
@@ -316,6 +567,7 @@ export default function HomeWorldMap({
       `}</style>
 
       <div
+        data-home-world-stage
         data-home-stage-ready={worldFrame ? "1" : "0"}
         className={cn(
           "absolute z-10",
@@ -326,19 +578,30 @@ export default function HomeWorldMap({
             ? ({
                 left: `${worldFrame.left}px`,
                 top: `${worldFrame.top}px`,
-                width: `${worldFrame.width}px`,
-                height: `${worldFrame.height}px`,
-                ["--home-hotspot-scale" as string]: `${worldFrame.hotspotScale}`,
+                width: `${HOME_DESIGN_WIDTH}px`,
+                height: `${HOME_DESIGN_HEIGHT}px`,
+                transform: `scale(${worldFrame.scale})`,
+                transformOrigin: "top left",
+                ["--home-stage-scale" as string]: `${worldFrame.scale}`,
+                ["--home-stage-crop-x" as string]: `${worldFrame.cropX}px`,
+                ["--home-stage-crop-y" as string]: `${worldFrame.cropY}px`,
               } as CSSProperties)
             : undefined
         }
       >
         <div className="relative h-full w-full overflow-visible">
-          <HomeScene activeZone={activeZone} parallax={parallax} />
+          <HomeScene
+            activeZone={activeZone}
+            parallax={parallax}
+            effectsByLandmark={qaEffects ? groupedQaEffects : undefined}
+            worldEffects={qaEffects ? worldQaEffects : undefined}
+            qaEditor={qaEditor}
+          />
           {hotspots.map((spot) => (
             <WorldHotspot
               key={`${spot.zoneId}-${spot.href}`}
               spot={spot}
+              qaDisabled={qaEffects}
               onActivate={(zone) => setActiveZone(zone)}
               onDeactivate={() => setActiveZone((current) => (current === spot.zoneId ? null : current))}
             />
@@ -388,15 +651,24 @@ export default function HomeWorldMap({
         </div>
       ) : null}
 
-      <div className="pointer-events-auto absolute inset-x-3 bottom-[8rem] z-30 grid grid-cols-[1fr_auto_1fr] items-end md:bottom-[5rem] md:inset-x-5">
+      <div
+        className="pointer-events-auto absolute inset-x-3 bottom-[var(--home-cta-bottom-mobile)] z-30 grid grid-cols-[1fr_auto_1fr] items-end md:bottom-[var(--home-cta-bottom-desktop)] md:inset-x-5"
+        style={{
+          ["--home-cta-bottom-mobile" as string]: HOME_CTA_LAYOUT.mobileBottom,
+          ["--home-cta-bottom-desktop" as string]: HOME_CTA_LAYOUT.desktopBottom,
+        }}
+      >
         <div className="justify-self-start">
           <CornerAction href="/missions" label={t("nav.quests")} sublabel={timers.reward} tone="gold" icon="quests" compact={cleanMode} />
         </div>
-        <div className="justify-self-center">
+        <div
+          className="origin-bottom justify-self-center scale-[var(--home-cta-mobile-scale)] md:scale-100"
+          style={{ ["--home-cta-mobile-scale" as string]: HOME_CTA_LAYOUT.mobileScale }}
+        >
           <FightCrystal href="/adventure" />
         </div>
         <div className="justify-self-end">
-          <CornerAction href="/events" label={t("nav.pass")} sublabel={timers.event} tone="violet" icon="pass" compact={cleanMode} />
+          <CornerAction href="/events" label={t("nav.pass")} sublabel={timers.event} tone="violet" icon="pass" modeIcon="daily_event" compact={cleanMode} />
         </div>
       </div>
 
@@ -414,6 +686,23 @@ export default function HomeWorldMap({
           <MiniActionCharm key={action.href} {...action} label={t(action.labelKey)} delay={`${index * 0.12}s`} />
         ))}
       </div>
+
+      {qaEffects ? (
+        <HomeEffectsQaPanel
+          effects={qaEffectDefs}
+          selectedId={selectedQaEffectId}
+          onSelect={setSelectedQaEffectId}
+          onChange={updateQaEffect}
+          onSave={saveQaEffects}
+          onSaveToCode={saveQaEffectsToCode}
+          onCreate={createQaEffect}
+          onDuplicate={duplicateQaEffect}
+          onDuplicateToWorld={duplicateQaEffectToWorld}
+          onRemove={removeQaEffect}
+          onImport={replaceQaEffects}
+          onReset={resetQaEffects}
+        />
+      ) : null}
     </section>
   );
 }
@@ -567,11 +856,28 @@ function TimedCharm({
   );
 }
 
+function HomeVisualIcon({
+  icon,
+  modeIcon,
+  className,
+}: {
+  icon: HomeIconKind;
+  modeIcon?: ModeIconName;
+  className?: string;
+}) {
+  if (modeIcon) {
+    return <ModeIcon name={modeIcon} size="xl" className={className} imgClassName="h-full w-full object-contain" />;
+  }
+
+  return <HomeIcon kind={icon} className={className} />;
+}
+
 function SideCharm({
   href,
   label,
   sublabel,
   icon,
+  modeIcon,
   tone,
   delay,
 }: {
@@ -579,6 +885,7 @@ function SideCharm({
   label: string;
   sublabel: string;
   icon: HomeIconKind;
+  modeIcon?: ModeIconName;
   tone: HomeTone;
   delay: string;
 }) {
@@ -595,7 +902,7 @@ function SideCharm({
         <span className="absolute bottom-0.5 h-3 w-8 rounded-full bg-black/30 blur-md" />
         <span className={cn("absolute bottom-[0.25rem] h-[2.8rem] w-[2.8rem] rounded-full bg-gradient-to-br opacity-70 blur-xl", palette.wash)} />
         <span className="relative z-[1] h-[2.75rem] w-[2.75rem] transition group-hover:-translate-y-0.5 group-hover:scale-[1.08]">
-          <HomeIcon kind={icon} />
+          <HomeVisualIcon icon={icon} modeIcon={modeIcon} />
         </span>
       </span>
       <span
@@ -617,12 +924,14 @@ function MiniActionCharm({
   href,
   label,
   icon,
+  modeIcon,
   tone,
   delay,
 }: {
   href: string;
   label: string;
   icon: HomeIconKind;
+  modeIcon?: ModeIconName;
   tone: HomeTone;
   delay: string;
 }) {
@@ -639,7 +948,7 @@ function MiniActionCharm({
       <span className="absolute bottom-0.5 h-2.5 w-8 rounded-full bg-black/28 blur-md" />
       <span className={cn("absolute bottom-[0.3rem] h-[2.7rem] w-[2.7rem] rounded-full bg-gradient-to-br opacity-72 blur-xl", palette.wash)} />
       <span className="relative h-[2.65rem] w-[2.65rem]">
-        <HomeIcon kind={icon} />
+        <HomeVisualIcon icon={icon} modeIcon={modeIcon} />
       </span>
     </Link>
   );
@@ -694,6 +1003,7 @@ function CornerAction({
   sublabel,
   tone,
   icon,
+  modeIcon,
   compact = false,
 }: {
   href: string;
@@ -701,6 +1011,7 @@ function CornerAction({
   sublabel: string;
   tone: HomeTone;
   icon: HomeIconKind;
+  modeIcon?: ModeIconName;
   compact?: boolean;
 }) {
   const palette = TONE_STYLES[tone];
@@ -719,7 +1030,7 @@ function CornerAction({
         <span className="absolute bottom-1 h-3 w-9 rounded-full bg-black/28 blur-md" />
         <span className={cn("absolute bottom-[0.25rem] h-[2.95rem] w-[2.95rem] rounded-full bg-gradient-to-br opacity-74 blur-xl", palette.wash)} />
         <span className="relative h-[2.85rem] w-[2.85rem]">
-          <HomeIcon kind={icon} />
+          <HomeVisualIcon icon={icon} modeIcon={modeIcon} />
         </span>
       </span>
       <div>
@@ -750,7 +1061,7 @@ function FightCrystal({ href }: { href: string }) {
         <span className="absolute inset-[-12%] rounded-full bg-[radial-gradient(circle_at_50%_30%,rgba(255,216,122,0.64),rgba(255,126,103,0.2)_58%,transparent_78%)] blur-2xl" />
         <span className="absolute bottom-1 h-4 w-11 rounded-full bg-black/34 blur-md" />
         <span className="relative z-10 h-[3.55rem] w-[3.55rem] transition group-hover:scale-[1.08] md:h-[4.2rem] md:w-[4.2rem]">
-          <HomeIcon kind="battle" />
+          <ModeIcon name="campaign" size="xl" className="h-full w-full" />
         </span>
       </span>
       <div className="relative z-[1]">
@@ -764,10 +1075,12 @@ function FightCrystal({ href }: { href: string }) {
 
 function WorldHotspot({
   spot,
+  qaDisabled = false,
   onActivate,
   onDeactivate,
 }: {
   spot: HomeHotspot;
+  qaDisabled?: boolean;
   onActivate: (zone: HomeZoneId) => void;
   onDeactivate: () => void;
 }) {
@@ -789,36 +1102,41 @@ function WorldHotspot({
   } as CSSProperties;
 
   return (
-    <WorldHotspotAnchor spot={spot} onActivate={onActivate} onDeactivate={onDeactivate} style={style} />
+    <WorldHotspotAnchor spot={spot} qaDisabled={qaDisabled} onActivate={onActivate} onDeactivate={onDeactivate} style={style} />
   );
 }
 
 function WorldHotspotAnchor({
   spot,
+  qaDisabled,
   style,
   onActivate,
   onDeactivate,
 }: {
   spot: HomeHotspot;
+  qaDisabled: boolean;
   style: CSSProperties;
   onActivate: (zone: HomeZoneId) => void;
   onDeactivate: () => void;
 }) {
   const palette = TONE_STYLES[spot.tone];
+  const landmarkDriven = Boolean(spot.landmarkId);
 
   return (
     <Link
       href={spot.href}
       aria-label={spot.label}
       data-home-zone={spot.zoneId}
+      data-home-hotspot={spot.zoneId}
       className={cn(
-        "group pointer-events-auto absolute z-20 isolate will-change-transform",
+        "group absolute z-20 isolate will-change-transform",
+        qaDisabled ? "pointer-events-none" : "pointer-events-auto",
         "left-[var(--spot-left-mobile)] top-[var(--spot-top-mobile)] h-[var(--spot-height-mobile)] w-[var(--spot-width-mobile)]",
         "md:left-[var(--spot-left)] md:top-[var(--spot-top)] md:h-[var(--spot-height)] md:w-[var(--spot-width)]",
       )}
       style={{
         ...style,
-        transform: "translate(-50%, -50%) scale(var(--home-hotspot-scale, 1))",
+        transform: "translate(-50%, -50%)",
         transformOrigin: "center center",
       }}
       onMouseEnter={() => {
@@ -839,25 +1157,18 @@ function WorldHotspotAnchor({
       />
       <span className="absolute inset-[10%] rounded-[42px] bg-[radial-gradient(circle_at_50%_62%,rgba(255,255,255,0.14),transparent_58%)] opacity-0 blur-xl transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
 
-      <span
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[52%]"
-        style={{ animation: "homeMarkerFloat 4.6s ease-in-out infinite" }}
-      >
-        <span className={cn("absolute left-1/2 top-[calc(100%+0.1rem)] h-8 w-14 -translate-x-1/2 rounded-full blur-xl opacity-76", palette.wash)} />
-        <span className="absolute left-1/2 top-[calc(100%+0.55rem)] h-3.5 w-10 -translate-x-1/2 rounded-full bg-black/36 blur-md" />
-        <span
-          className="absolute left-1/2 top-[calc(100%-0.1rem)] w-[2px] -translate-x-1/2 rounded-full bg-gradient-to-b from-white/30 via-white/10 to-transparent"
-          style={{ height: "1.3rem", animation: "homeBeaconRay 3.8s ease-in-out infinite" }}
-        />
-        <span className={cn("absolute left-1/2 top-[calc(100%-1.08rem)] h-[3.45rem] w-[3.45rem] -translate-x-1/2 rounded-full bg-gradient-to-br opacity-78 blur-2xl md:h-[4.05rem] md:w-[4.05rem]", palette.wash)} style={{ animation: "homeBeaconPulse 3.2s ease-in-out infinite" }} />
-        <span className="absolute left-1/2 top-[calc(100%-3.15rem)] h-[3.45rem] w-[3.45rem] -translate-x-1/2 md:top-[calc(100%-3.62rem)] md:h-[4rem] md:w-[4rem]">
-          <HomeIcon kind={spot.icon} />
+      {!landmarkDriven ? (
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[52%]">
+          <span className={cn("absolute left-1/2 top-[calc(100%+0.1rem)] h-8 w-14 -translate-x-1/2 rounded-full opacity-[0.76] blur-xl", palette.wash)} />
+          <span className="absolute left-1/2 top-[calc(100%+0.55rem)] h-3.5 w-10 -translate-x-1/2 rounded-full bg-black/36 blur-md" />
+          <span className="absolute left-1/2 top-[calc(100%-3.15rem)] h-[3.45rem] w-[3.45rem] -translate-x-1/2 md:top-[calc(100%-3.62rem)] md:h-[4rem] md:w-[4rem]">
+            <HomeVisualIcon icon={spot.icon} modeIcon={spot.modeIcon} />
+          </span>
         </span>
-        <span className="absolute left-1/2 top-[calc(100%-3.65rem)] h-[0.42rem] w-[0.42rem] -translate-x-1/2 rotate-45 rounded-[1px] border border-white/70 bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.45)] md:top-[calc(100%-4.25rem)]" style={{ animation: "homeBeaconOrbit 5.8s linear infinite" }} />
-        <span className="absolute left-1/2 top-[calc(100%-1.1rem)] h-[0.36rem] w-[0.36rem] -translate-x-1/2 rotate-45 rounded-[1px] border border-white/60 bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.35)]" style={{ animation: "homeBeaconOrbit 7.2s linear infinite reverse" }} />
-      </span>
+      ) : null}
 
       <span
+        data-home-hotspot-label={spot.zoneId}
         className={cn(
           "absolute -translate-x-1/2 -translate-y-1/2",
           "left-[calc(50%+var(--spot-label-dx-mobile))] top-[calc(50%+var(--spot-label-dy-mobile))] w-[var(--spot-plaque-width-mobile)]",
@@ -866,11 +1177,10 @@ function WorldHotspotAnchor({
       >
         <span
           className={cn(
-            "relative flex items-center justify-center gap-1.5 rounded-[14px] border px-2.5 py-1.5 text-center shadow-[0_14px_22px_rgba(0,0,0,0.24)] backdrop-blur-xl transition duration-200 group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5 md:rounded-[16px] md:px-3 md:py-1.5",
-            "bg-[linear-gradient(180deg,rgba(10,14,21,0.74),rgba(7,10,16,0.96))]",
+            "relative flex items-center justify-center gap-1.5 rounded-[14px] border text-center shadow-[0_14px_22px_rgba(0,0,0,0.24)] backdrop-blur-xl transition duration-200 group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5 md:rounded-[16px]",
+            landmarkDriven ? "px-2 py-1.5 md:px-2.5 md:py-1.5 bg-[linear-gradient(180deg,rgba(10,14,21,0.66),rgba(7,10,16,0.9))]" : "px-2.5 py-1.5 md:px-3 md:py-1.5 bg-[linear-gradient(180deg,rgba(10,14,21,0.74),rgba(7,10,16,0.96))]",
             palette.ring,
           )}
-          style={{ animation: "homePlaqueGlow 4.8s ease-in-out infinite" }}
         >
           <span className="absolute inset-x-[18%] top-0 h-[38%] rounded-full bg-white/10 opacity-60 blur-sm" />
           <span className={cn("absolute left-1.5 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-gradient-to-b md:h-7", palette.wash)} />

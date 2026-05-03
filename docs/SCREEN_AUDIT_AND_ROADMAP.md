@@ -351,3 +351,4 @@ Plan:
 - Cambiar presets de `data/adventure.ts` sin helper intermedio puede romper mapa, precombat o first clear.
 - Héroes con tiers futuros necesitan diseño de datos antes de añadir muchas imágenes.
 - Shop debe esperar a tener economía de cartas/tiers más clara.
+- Antes de monetización es obligatorio crear un `GameFixedStage` global con resolución lógica fija para evitar descuadres visuales por viewport/zoom y un backend autoritativo para economía, compras, claims, inventario y recompensas. El canvas ayuda a UX, pero no protege contra manipulación del cliente.

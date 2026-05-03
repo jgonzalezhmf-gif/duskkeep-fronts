@@ -1,10 +1,11 @@
 "use client";
 
 import HomeWorldMap, { type HomeHotspot } from "@/components/game/HomeWorldMap";
+import { HOME_LANDMARK_LAYOUT, toPx } from "@/components/game/home/homeComposition";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 
-export default function HomePageClient({ qaClean = false }: { qaClean?: boolean }) {
+export default function HomePageClient({ qaClean = false, qaEffects = false }: { qaClean?: boolean; qaEffects?: boolean }) {
   const { t } = useI18n();
   const store = useGameStore();
   const nextLevel = nextUnlockedLevel(store);
@@ -16,19 +17,9 @@ export default function HomePageClient({ qaClean = false }: { qaClean?: boolean 
       label: t("home.hotspots.fortress.label"),
       sublabel: t("home.hotspots.fortress.sublabel"),
       icon: "fortress",
+      landmarkId: "fortress",
       tone: "gold",
-      anchorX: "50%",
-      anchorY: "41.5%",
-      mobileAnchorX: "50%",
-      mobileAnchorY: "42%",
-      width: "25rem",
-      height: "19rem",
-      mobileWidth: "9.4rem",
-      mobileHeight: "6.6rem",
-      plaqueWidth: "10rem",
-      mobilePlaqueWidth: "6.4rem",
-      labelDy: "3.9rem",
-      mobileLabelDy: "2.1rem",
+      ...getHomeHotspotLayout("fortress"),
     },
     {
       zoneId: "arena",
@@ -36,21 +27,10 @@ export default function HomePageClient({ qaClean = false }: { qaClean?: boolean 
       label: t("home.hotspots.arena.label"),
       sublabel: t("home.hotspots.arena.sublabel"),
       icon: "arena",
+      modeIcon: "arena_draft",
+      landmarkId: "arena",
       tone: "sky",
-      anchorX: "18%",
-      anchorY: "48.8%",
-      mobileAnchorX: "17.5%",
-      mobileAnchorY: "50.2%",
-      width: "17rem",
-      height: "13rem",
-      mobileWidth: "6.8rem",
-      mobileHeight: "5.6rem",
-      plaqueWidth: "7.8rem",
-      mobilePlaqueWidth: "6rem",
-      labelDx: "1.2rem",
-      labelDy: "3.2rem",
-      mobileLabelDx: "0.7rem",
-      mobileLabelDy: "1.9rem",
+      ...getHomeHotspotLayout("arena"),
     },
     {
       zoneId: "events",
@@ -58,19 +38,10 @@ export default function HomePageClient({ qaClean = false }: { qaClean?: boolean 
       label: t("home.hotspots.events.label"),
       sublabel: t("home.hotspots.events.sublabel"),
       icon: "events",
+      modeIcon: "daily_event",
+      landmarkId: "events",
       tone: "violet",
-      anchorX: "27%",
-      anchorY: "67.4%",
-      mobileAnchorX: "26%",
-      mobileAnchorY: "65.3%",
-      width: "15rem",
-      height: "11rem",
-      mobileWidth: "6.8rem",
-      mobileHeight: "5.2rem",
-      plaqueWidth: "8.3rem",
-      mobilePlaqueWidth: "6.2rem",
-      labelDy: "2.9rem",
-      mobileLabelDy: "1.8rem",
+      ...getHomeHotspotLayout("events"),
     },
     {
       zoneId: "deck",
@@ -78,20 +49,9 @@ export default function HomePageClient({ qaClean = false }: { qaClean?: boolean 
       label: t("home.hotspots.deck.label"),
       sublabel: t("home.hotspots.deck.sublabel"),
       icon: "deck",
+      landmarkId: "deck",
       tone: "gold",
-      anchorX: "40.5%",
-      anchorY: "76.2%",
-      mobileAnchorX: "41%",
-      mobileAnchorY: "75%",
-      width: "15rem",
-      height: "10rem",
-      mobileWidth: "6.8rem",
-      mobileHeight: "4.8rem",
-      plaqueWidth: "8rem",
-      mobilePlaqueWidth: "6rem",
-      labelDx: "0.5rem",
-      labelDy: "2.55rem",
-      mobileLabelDy: "1.7rem",
+      ...getHomeHotspotLayout("deck"),
     },
     {
       zoneId: "market",
@@ -99,21 +59,9 @@ export default function HomePageClient({ qaClean = false }: { qaClean?: boolean 
       label: t("home.hotspots.market.label"),
       sublabel: t("home.hotspots.market.sublabel"),
       icon: "market",
+      landmarkId: "market",
       tone: "emerald",
-      anchorX: "66.8%",
-      anchorY: "76.2%",
-      mobileAnchorX: "67%",
-      mobileAnchorY: "75%",
-      width: "17rem",
-      height: "10rem",
-      mobileWidth: "6.9rem",
-      mobileHeight: "4.8rem",
-      plaqueWidth: "8.3rem",
-      mobilePlaqueWidth: "6.2rem",
-      labelDx: "-0.4rem",
-      labelDy: "2.55rem",
-      mobileLabelDx: "-0.1rem",
-      mobileLabelDy: "1.7rem",
+      ...getHomeHotspotLayout("market"),
     },
     {
       zoneId: "adventure",
@@ -121,23 +69,34 @@ export default function HomePageClient({ qaClean = false }: { qaClean?: boolean 
       label: t("home.hotspots.adventure.label"),
       sublabel: t("home.hotspots.adventure.sublabel"),
       icon: "adventure",
+      modeIcon: "campaign",
+      landmarkId: "adventure",
       tone: "rose",
-      anchorX: "81%",
-      anchorY: "47.2%",
-      mobileAnchorX: "81.8%",
-      mobileAnchorY: "48.8%",
-      width: "18rem",
-      height: "14rem",
-      mobileWidth: "7.4rem",
-      mobileHeight: "5.8rem",
-      plaqueWidth: "9.2rem",
-      mobilePlaqueWidth: "7rem",
-      labelDx: "-0.2rem",
-      labelDy: "3.2rem",
-      mobileLabelDy: "2rem",
+      ...getHomeHotspotLayout("adventure"),
       badge: nextLevel ? `${nextLevel.chapter}-${nextLevel.index}` : "OK",
     },
   ];
 
-  return <HomeWorldMap hotspots={hotspots} tutorialOpen={!store.onboarding.completed} qaClean={qaClean} />;
+  return <HomeWorldMap hotspots={hotspots} tutorialOpen={!store.onboarding.completed} qaClean={qaClean} qaEffects={qaEffects} />;
+}
+
+function getHomeHotspotLayout(id: keyof typeof HOME_LANDMARK_LAYOUT) {
+  const layout = HOME_LANDMARK_LAYOUT[id];
+
+  return {
+    anchorX: toPx(layout.x + layout.hotspotDx),
+    anchorY: toPx(layout.y + layout.hotspotDy),
+    mobileAnchorX: toPx(layout.x + layout.hotspotDx),
+    mobileAnchorY: toPx(layout.y + layout.hotspotDy),
+    width: toPx(layout.hotspotWidth),
+    height: toPx(layout.hotspotHeight),
+    mobileWidth: toPx(layout.hotspotWidth),
+    mobileHeight: toPx(layout.hotspotHeight),
+    plaqueWidth: toPx(layout.plaqueWidth),
+    mobilePlaqueWidth: toPx(layout.plaqueWidth),
+    labelDx: toPx(layout.labelDx),
+    labelDy: toPx(layout.labelDy),
+    mobileLabelDx: toPx(layout.labelDx),
+    mobileLabelDy: toPx(layout.labelDy),
+  };
 }

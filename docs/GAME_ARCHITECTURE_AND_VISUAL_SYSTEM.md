@@ -398,6 +398,8 @@ Antes de tocar una pantalla:
 
 ## Decisiones Abiertas
 
+- `GameFixedStage` global obligatorio antes de monetización: definir una resolución lógica fija para el juego completo y migrar progresivamente Home, Adventure, Combat y pantallas posicionables para que fondo, nodos, props, hotspots y VFX escalen como una unidad controlada.
+- Backend autoritativo obligatorio antes de monetización: Supabase/backend debe validar moneda premium, compras, claims, inventario, recompensas y progreso sensible. No confiar en canvas, DOM, localStorage ni requests del cliente como fuente de verdad.
 - Si `Team` se mantiene como Squad Review, se renombra o se fusiona finalmente con `Deck`.
 - Si `TowerDefenseRun` se mantiene como modo futuro o se absorbe en Fortress raids.
 - Como evolucionar Arena desde rival selection simple hacia ladder por rangos o draft ligero.

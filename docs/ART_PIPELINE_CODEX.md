@@ -107,6 +107,24 @@ Prepare silhouette-first designs:
 
 Enemies should be readable even at small portrait size.
 
+### For Mode/Event Icons
+
+Mode and event icons live in `public/assets/icons/modes/` and must be registered in `lib/iconAssets.ts` under the `modes` manifest before any component can load them. Use `components/game/shared/ModeIcon.tsx` for UI integration so missing or unregistered assets fall back to the existing glyph system without browser 404s.
+
+Official keys:
+
+- `campaign` -> campaign/adventure map and campaign entry points.
+- `ladder` -> ranked or ladder progression.
+- `arena_draft` -> Arena entry and draft-like arena cards.
+- `daily_event` -> rotating daily events.
+- `boss_event` -> boss or special event cards.
+- `fortress_raid` -> fortress raid mode surfaces.
+- `challenge` -> challenge modifiers or special tasks.
+- `dungeon_run` -> dungeon/route-based future modes.
+- `boss_rush` -> boss-rush future mode.
+
+Do not register source sheets such as `Modes.png`; register only final cropped PNGs that should be requested by the browser.
+
 ## Codex Workflow
 
 When working on art-heavy tasks in this repo:

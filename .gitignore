@@ -41,3 +41,13 @@ public/assets/frontline/heroes/BranTiers.png
 public/assets/frontline/heroes/Enemigos.png
 public/assets/frontline/heroes/Enemy1Bow.png
 public/assets/frontline/heroes/PersonajesH*.png
+
+# Local screenshots and generated source sheets. Commit only cropped registered assets.
+ImagenHomeNavegador.png
+public/assets/adventures/nodes/nodos*.png
+public/assets/adventures/props/props.png
+public/assets/icons/modes/Modes.png
+public/assets/home/landmarks/Castle.png
+public/assets/home/landmarks/Portal.png
+public/assets/home/landmarks/marketOLD.png
+public/assets/home/landmarks/market_clean.png

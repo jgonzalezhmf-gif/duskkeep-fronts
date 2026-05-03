@@ -6,6 +6,7 @@ import { FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisua
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
+import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import {
@@ -175,7 +176,7 @@ export default function ArenaPage() {
           <ScreenPanel className="w-full max-w-[42rem] p-5 text-center md:p-7" accent={won}>
             <RewardBurstOverlay rewards={result.rewards} compact />
             <div className="mx-auto w-fit">
-              <GameIcon kind={won ? "rewards" : "battle"} tone={won ? "gold" : "ember"} size="lg" />
+              {won ? <ModeIcon name="ladder" size="xl" /> : <GameIcon kind="battle" tone="ember" size="lg" />}
             </div>
             <div className="mt-4 text-[10px] font-black uppercase tracking-[0.24em] text-[#f5d498]">{t("arenaScreen.result.eyebrow")}</div>
             <div className="mt-3 text-4xl font-black text-white">{won ? t("arenaScreen.result.victory") : result.winner === "draw" ? t("arenaScreen.result.draw") : t("arenaScreen.result.defeat")}</div>
@@ -225,7 +226,7 @@ export default function ArenaPage() {
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
                   <ArenaMetric icon="tickets" label={t("arenaScreen.metrics.tickets")} value={tickets} tone="gold" active={tickets > 0} />
-                  <ArenaMetric icon="rewards" label={t("arenaScreen.metrics.wins")} value={wins} tone="emerald" />
+                  <ArenaMetric icon="rewards" modeIcon="ladder" label={t("arenaScreen.metrics.wins")} value={wins} tone="emerald" />
                   <ArenaMetric icon="shield" label={t("arenaScreen.metrics.losses")} value={losses} tone="ember" />
                   <ArenaMetric icon="power" label={t("arenaScreen.metrics.rate")} value={`${winRate}%`} tone="sky" />
                 </div>
@@ -275,7 +276,7 @@ export default function ArenaPage() {
 function ArenaTopChrome({ resources, t }: { resources: { gold: number; dust: number; gems: number; arenaTickets: number }; t: TranslateFn }) {
   return (
     <>
-      <GameBackNav label={t("common.home")} eyebrow={t("nav.arena")} icon="fortress" tone="gold" placement="top-left" />
+      <GameBackNav label={t("common.home")} eyebrow={t("nav.arena")} icon="arena" tone="gold" placement="top-left" />
       <div className="pointer-events-auto fixed right-3 top-3 z-40 flex items-center gap-1.5 md:right-5 md:top-4 md:gap-2">
         <GameResourceBar resources={resources} arenaTickets={resources.arenaTickets} size="sm" className="max-w-[calc(100vw-9rem)] md:max-w-none" />
       </div>
@@ -316,7 +317,7 @@ function ArenaRivalCard({
             <div className="mt-1 text-2xl font-black text-white">{rival.ownerName}</div>
             <div className="mt-1 text-[12px] font-black uppercase tracking-[0.13em] text-[#f5d498]">{rivalText(t, rival, "style")}</div>
           </div>
-          <GameIcon kind="arena" tone={rival.tone} size="md" />
+          <ModeIcon name="arena_draft" size="lg" />
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
@@ -354,12 +355,14 @@ function ArenaRivalCard({
 
 function ArenaMetric({
   icon,
+  modeIcon,
   label,
   value,
   tone,
   active,
 }: {
   icon: "tickets" | "rewards" | "shield" | "power";
+  modeIcon?: "ladder" | "arena_draft";
   label: string;
   value: string | number;
   tone: GameIconTone;
@@ -367,7 +370,7 @@ function ArenaMetric({
 }) {
   return (
     <div className={cn("flex items-center gap-2 rounded-[20px] border px-3 py-2.5", active ? "border-[#f5c451]/24 bg-[#f5c451]/10" : "border-white/10 bg-white/[0.045]")}>
-      <GameIcon kind={icon} tone={tone} size="md" />
+      {modeIcon ? <ModeIcon name={modeIcon} size="lg" /> : <GameIcon kind={icon} tone={tone} size="md" />}
       <div>
         <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
         <div className="mt-0.5 text-base font-black text-white">{value}</div>

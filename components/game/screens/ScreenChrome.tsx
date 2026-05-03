@@ -6,10 +6,12 @@ import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameAssetIcon from "@/components/ui/GameAssetIcon";
 import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
+import ScreenBackground from "@/components/ui/ScreenBackground";
 import FantasyMedallion, { type FantasyTone } from "@/components/ui/fantasy/FantasyMedallion";
 import { cn } from "@/lib/cn";
 import { resolveGlyphAssetIcon } from "@/lib/iconAssets";
 import SceneBackdrop, { type ScreenScene } from "./SceneBackdrop";
+import type { ScreenBackgroundId } from "@/lib/screenBackgroundAssets";
 
 export function ScreenScaffold({
   scene,
@@ -27,9 +29,18 @@ export function ScreenScaffold({
   hud?: boolean;
 }) {
   const showHomeNav = homeNav ?? !dock;
+  const backgroundScreen = screenBackgroundForScene(scene);
   return (
     <section className={cn("relative min-h-dvh overflow-hidden bg-[#071019]", className)}>
-      <SceneBackdrop scene={scene} />
+      {backgroundScreen ? (
+        <ScreenBackground
+          screen={backgroundScreen}
+          overlayIntensity={screenBackgroundOverlay(scene)}
+          fallback={<SceneBackdrop scene={scene} />}
+        />
+      ) : (
+        <SceneBackdrop scene={scene} />
+      )}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-40 bg-[linear-gradient(180deg,rgba(7,11,18,0.9),rgba(7,11,18,0.18),transparent)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-44 bg-[linear-gradient(0deg,rgba(5,8,14,0.96),rgba(5,8,14,0.42),transparent)]" />
       <div className="pointer-events-none absolute left-[-8%] top-[14%] z-[1] h-72 w-72 rounded-full bg-sky-300/10 blur-[90px]" />
@@ -39,6 +50,22 @@ export function ScreenScaffold({
       <div className="frontline-motion-reveal relative z-10 min-h-dvh">{children}</div>
     </section>
   );
+}
+
+function screenBackgroundForScene(scene: ScreenScene): ScreenBackgroundId | null {
+  if (scene === "shop") return "market";
+  if (scene === "deck") return "deck";
+  if (scene === "fortress") return "fortress";
+  if (scene === "events") return "events";
+  if (scene === "arena") return "arena";
+  if (scene === "adventureMoon" || scene === "adventureAsh") return "adventure";
+  return null;
+}
+
+function screenBackgroundOverlay(scene: ScreenScene): "soft" | "medium" | "strong" {
+  if (scene === "adventureMoon" || scene === "adventureAsh") return "strong";
+  if (scene === "deck" || scene === "fortress") return "medium";
+  return "soft";
 }
 
 export function ScreenPanel({

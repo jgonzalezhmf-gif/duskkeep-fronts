@@ -3,6 +3,7 @@
 import { useMemo, type ReactNode } from "react";
 import ArtPortrait from "@/components/ui/ArtPortrait";
 import SceneBackdrop from "@/components/game/screens/SceneBackdrop";
+import ScreenBackground from "@/components/ui/ScreenBackground";
 import { CardTypeIcon, type CardTypeIconName } from "@/components/game/shared/CardTypeIcon";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
@@ -10,6 +11,7 @@ import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { ResourceIcon } from "@/components/game/shared/ResourceIcon";
 import GameGlyph from "@/components/ui/GameGlyph";
 import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
+import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   FRONTLINE_CARD_BY_ID,
   FRONTLINE_CARD_POOL,
@@ -27,9 +29,10 @@ import {
 } from "@/features/frontline/cardProgression";
 import { getFrontlineCardUnlockSource } from "@/features/frontline/cardUnlockSources";
 import { getFrontlineHeroProfileById } from "@/features/frontline/heroProfile";
+import type { FrontlineCardDef } from "@/features/frontline/types";
 import { getLeaderPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
-import { frontlineLeaderName, frontlineLeaderPowerName, frontlineLeaderTitle } from "@/lib/i18n/frontlineText";
+import { frontlineCardEffectSummary, frontlineCardKindLabel, frontlineCardName, frontlineLeaderName, frontlineLeaderPowerName, frontlineLeaderTitle } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 
@@ -100,27 +103,24 @@ export default function DeckPage() {
 
   return (
     <div className="relative isolate min-h-dvh overflow-hidden bg-[#071019]">
-      <SceneBackdrop scene="deck" />
+      <ScreenBackground screen="deck" overlayIntensity="medium" fallback={<SceneBackdrop scene="deck" />} />
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_50%_14%,rgba(245,196,81,0.09),transparent_24%),linear-gradient(180deg,rgba(5,7,12,0.08),rgba(5,7,12,0.34)_62%,rgba(5,7,12,0.7))]" />
       <GameBackNav />
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />
-      <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-5 px-3 pb-24 pt-56 sm:pt-40 md:px-6 md:pb-28 md:pt-28 xl:px-8">
-      <section className="overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(45,34,29,0.88),rgba(15,18,28,0.94)_36%,rgba(8,10,16,0.98)_76%)] shadow-[0_28px_80px_rgba(0,0,0,0.34)]">
-        <div className="relative z-[1] px-4 py-5 md:px-6 md:py-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-3 px-3 pb-16 pt-28 sm:pt-28 md:px-6 md:pb-20 md:pt-[5.5rem] xl:px-8">
+      <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(45,34,29,0.68),rgba(15,18,28,0.82)_36%,rgba(8,10,16,0.9)_76%)] shadow-[0_22px_56px_rgba(0,0,0,0.3)]">
+        <div className="relative z-[1] px-3 py-3 md:px-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="max-w-[46rem]">
               <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
                 {t("deckScreen.frontlineLoadout")}
               </div>
-              <div className="mt-4 text-[2rem] font-black leading-[0.94] text-white md:text-[3.25rem]">
-                {t("deckScreen.heroTitle")}
+              <div className="mt-2 text-[1.7rem] font-black leading-[0.94] text-white md:text-[2.55rem]">
+                {t("deckScreen.frontlineLoadout")}
               </div>
-              <p className="mt-3 max-w-[40rem] text-[13px] leading-7 text-white/68 md:text-[14px]">
-                {t("deckScreen.heroCopy")}
-              </p>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-1.5 sm:grid-cols-4">
               <Metric label={t("deckScreen.metrics.leader")} value={leaderName} ok t={t} />
               <Metric label={t("deckScreen.metrics.squad")} value={`${squadHeroes.filter(Boolean).length}/3`} ok={squadReady} t={t} />
               <Metric label={t("deckScreen.metrics.deck")} value={`${selectedDeck.length}/8`} ok={deckReady} t={t} />
@@ -128,24 +128,23 @@ export default function DeckPage() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 xl:grid-cols-[15rem_minmax(0,1fr)_20rem]">
+          <div className="mt-3 grid items-start gap-3 xl:grid-cols-[12rem_minmax(0,1fr)_17rem]">
             <Panel title={t("deckScreen.panels.leaderDoctrine")}>
-              <div className="rounded-[24px] border border-[#f5c451]/20 bg-[linear-gradient(180deg,rgba(245,196,81,0.1),rgba(20,16,18,0.92))] p-4">
+              <div className="rounded-[20px] border border-[#f5c451]/20 bg-[linear-gradient(180deg,rgba(245,196,81,0.1),rgba(20,16,18,0.82))] p-2.5">
                 <ArtPortrait
                   src={getLeaderPortrait(leader.id)}
                   alt={leaderName}
-                  className="aspect-[4/4.8] w-full rounded-[22px] border border-white/10 bg-black/20"
+                  className="aspect-[4/4.6] w-full rounded-[20px] border border-white/10 bg-black/20"
                   fallback={<GameGlyph kind="battle" shell="none" className="h-8 w-8" />}
                 />
-                <div className="mt-4 text-xl font-black text-white">{leaderName}</div>
+                <div className="mt-2 text-base font-black text-white">{leaderName}</div>
                 <div className="mt-1 text-[12px] text-white/58">{leaderTitle}</div>
-                <div className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/70">
+                <div className="mt-2 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[9px] font-black uppercase tracking-[0.13em] text-white/70">
                   {leaderPowerName}
                 </div>
-                <div className="mt-4 text-[12px] leading-6 text-white/62">{plan.doctrine}</div>
               </div>
 
-              <div className="mt-4 grid gap-2">
+              <div className="mt-2 grid gap-1.5">
                 {FRONTLINE_LEADERS.map((option) => {
                   const active = option.id === leader.id;
                   return (
@@ -153,14 +152,13 @@ export default function DeckPage() {
                       key={option.id}
                       onClick={() => setLeader(option.id)}
                       className={cn(
-                        "frontline-motion-tab rounded-[18px] border px-3 py-3 text-left transition",
+                        "frontline-motion-tab rounded-[14px] border px-3 py-1.5 text-left transition",
                         active
                           ? "border-[#f5c451]/24 bg-[#f5c451]/10"
                           : "border-white/10 bg-white/[0.03]",
                       )}
                     >
                       <div className="text-sm font-black text-white">{frontlineLeaderName(t, option)}</div>
-                      <div className="mt-1 text-[11px] text-white/56">{frontlineLeaderPowerName(t, option)}</div>
                     </button>
                   );
                 })}
@@ -174,77 +172,34 @@ export default function DeckPage() {
                     key={`slot-${index}`}
                     hero={hero}
                     selected={Boolean(hero)}
+                    compact
                     label={index === 0 ? t("deckScreen.lanes.leftPressure") : index === 1 ? t("deckScreen.lanes.centerAnchor") : t("deckScreen.lanes.rightPressure")}
                     emptyLabel={index === 0 ? t("deckScreen.lanes.pickLeft") : index === 1 ? t("deckScreen.lanes.pickCenter") : t("deckScreen.lanes.pickRight")}
+                    className="min-h-[10.25rem] p-2"
                   />
                 ))}
               </div>
 
-              <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.03] p-4">
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{t("deckScreen.buildPlan.eyebrow")}</div>
-                <div className="mt-2 text-[14px] font-black text-white">{t("deckScreen.buildPlan.title")}</div>
-                <div className="mt-2 text-[13px] leading-6 text-white/62">{plan.plan}</div>
-                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              <div className="mt-3 rounded-[18px] border border-white/10 bg-white/[0.035] p-2.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="mr-auto text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{t("deckScreen.buildPlan.eyebrow")}</div>
                   <BuildPill icon="order" label={t("deckScreen.cardTypes.orders")} value={plan.counts.orders} />
                   <BuildPill icon="tactic" label={t("deckScreen.cardTypes.tactics")} value={plan.counts.tactics} />
                   <BuildPill icon="summon" label={t("deckScreen.cardTypes.summons")} value={plan.counts.summons} />
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {FRONTLINE_HEROES.map((hero) => {
-                  const selectedIndex = loadout.squad.findIndex((entry) => entry === hero.heroId);
-                  const progressedHero = getFrontlineHeroProfileById(hero.heroId, playerHeroById.get(hero.heroId)) ?? hero;
-                  return (
-                    <div
-                      key={hero.heroId}
-                      className={cn(
-                        "rounded-[22px] border p-3",
-                        selectedIndex !== -1
-                          ? "border-[#f5c451]/22 bg-[#f5c451]/10"
-                          : "border-white/10 bg-white/[0.03]",
-                      )}
-                    >
-                      <FrontlineHeroStandee
-                        hero={progressedHero}
-                        selected={selectedIndex !== -1}
-                        compact
-                        label={selectedIndex === -1 ? t("deckScreen.tiers.tier", { tier: hero.tier }) : selectedIndex === 0 ? t("deckScreen.lanes.leftFront") : selectedIndex === 1 ? t("deckScreen.lanes.centerFront") : t("deckScreen.lanes.rightFront")}
-                      />
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {[0, 1, 2].map((slotIdx) => (
-                          <button
-                            key={`${hero.heroId}-${slotIdx}`}
-                            onClick={() => setSquadSlot(slotIdx, hero.heroId)}
-                            className={cn(
-                              "frontline-motion-tab rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] transition",
-                              selectedIndex === slotIdx
-                                ? "border-[#f5c451]/24 bg-[#f5c451]/12 text-[#f5d498]"
-                                : "border-white/10 bg-white/[0.04] text-white/62",
-                            )}
-                          >
-                            {slotIdx === 0 ? t("deckScreen.lanes.left") : slotIdx === 1 ? t("deckScreen.lanes.center") : t("deckScreen.lanes.right")}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             </Panel>
 
             <Panel title={t("deckScreen.panels.selectedPackage")}>
-              <div className="max-h-[42rem] space-y-2 overflow-y-auto pr-1 no-scrollbar">
+              <div className="grid gap-1.5">
                 {selectedDeck.length ? (
                   selectedDeck.map((cardId) => {
                     const card = cardProfiles[cardId] ?? FRONTLINE_CARD_BY_ID[cardId];
-                    return (
-                      <FrontlineCardView key={`selected-${card.id}`} card={card} selected compact status={t("deckScreen.package.inPackage")} />
-                    );
+                    return <SelectedPackageRow key={`selected-${card.id}`} card={card} t={t} />;
                   })
                 ) : (
-                  <div className="rounded-[18px] border border-dashed border-white/10 bg-white/[0.03] px-4 py-5 text-[13px] leading-6 text-white/54">
+                  <div className="rounded-[18px] border border-dashed border-white/10 bg-white/[0.03] px-4 py-4 text-[13px] leading-6 text-white/54">
                     {t("deckScreen.package.empty")}
                   </div>
                 )}
@@ -254,7 +209,7 @@ export default function DeckPage() {
         </div>
       </section>
 
-      <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(8,10,16,0.95))] p-4 shadow-[0_24px_58px_rgba(0,0,0,0.28)] md:p-5">
+      <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(8,10,16,0.92))] p-3 shadow-[0_22px_48px_rgba(0,0,0,0.26)] md:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("deckScreen.pool.eyebrow")}</div>
@@ -265,7 +220,7 @@ export default function DeckPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 gap-2.5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {orderedCardPool.map((cardId) => {
             const card = cardProfiles[cardId] ?? FRONTLINE_CARD_BY_ID[cardId];
             const unlocked = isFrontlineCardUnlocked(frontlineCardUnlocks, card.id);
@@ -282,7 +237,7 @@ export default function DeckPage() {
                 key={card.id}
                 className={cn(
                   "rounded-[26px] border border-white/10 bg-black/18 p-2",
-                  !unlocked && "border-white/6 bg-black/28 opacity-62 grayscale-[0.35]",
+                  !unlocked && "border-white/8 bg-black/22 opacity-82 grayscale-[0.08]",
                   unlocked && !active && selectedDeck.length >= 8 && "opacity-70",
                 )}
               >
@@ -313,6 +268,24 @@ export default function DeckPage() {
             );
           })}
         </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+          {FRONTLINE_HEROES.map((hero) => {
+            const selectedIndex = loadout.squad.findIndex((entry) => entry === hero.heroId);
+            const progressedHero = getFrontlineHeroProfileById(hero.heroId, playerHeroById.get(hero.heroId)) ?? hero;
+            return (
+              <HeroRosterButton
+                key={hero.heroId}
+                hero={progressedHero}
+                selectedIndex={selectedIndex}
+                tierLabel={t("deckScreen.tiers.tier", { tier: hero.tier })}
+                laneLabel={selectedIndex === 0 ? t("deckScreen.lanes.leftFront") : selectedIndex === 1 ? t("deckScreen.lanes.centerFront") : selectedIndex === 2 ? t("deckScreen.lanes.rightFront") : null}
+                onPick={(slotIdx) => setSquadSlot(slotIdx, hero.heroId)}
+                t={t}
+              />
+            );
+          })}
+        </div>
       </section>
       </div>
     </div>
@@ -321,19 +294,19 @@ export default function DeckPage() {
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(8,10,16,0.96))] p-4 shadow-[0_20px_44px_rgba(0,0,0,0.24)]">
+    <section className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.052),rgba(8,10,16,0.9))] p-3 shadow-[0_18px_38px_rgba(0,0,0,0.22)]">
       <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{title}</div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-3">{children}</div>
     </section>
   );
 }
 
 function Metric({ label, value, ok, t }: { label: string; value: string | number; ok: boolean; t: TranslateFn }) {
   return (
-    <div className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(9,11,17,0.94))] px-4 py-3">
-      <div className="text-[10px] uppercase tracking-[0.16em] text-white/44">{label}</div>
+    <div className="rounded-[16px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.065),rgba(9,11,17,0.88))] px-3 py-2">
+      <div className="text-[9px] uppercase tracking-[0.15em] text-white/44">{label}</div>
       <div className="mt-1 text-sm font-black text-white">{value}</div>
-      <div className={cn("mt-1 text-[10px] uppercase tracking-[0.14em]", ok ? "text-emerald-300/70" : "text-rose-300/70")}>
+      <div className={cn("mt-0.5 text-[9px] uppercase tracking-[0.13em]", ok ? "text-emerald-300/70" : "text-rose-300/70")}>
         {ok ? t("deckScreen.metrics.ready") : t("deckScreen.metrics.missing")}
       </div>
     </div>
@@ -342,12 +315,101 @@ function Metric({ label, value, ok, t }: { label: string; value: string | number
 
 function BuildPill({ icon, label, value }: { icon: CardTypeIconName; label: string; value: number }) {
   return (
-    <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-3 py-2 text-center">
-      <div className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-white/56">
-        <CardTypeIcon type={icon} size="sm" className="h-6 w-6" />
+    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1.5">
+      <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.12em] text-white/56">
+        <CardTypeIcon type={icon} size="xs" className="h-5 w-5" />
         <span>{label}</span>
       </div>
-      <div className="mt-1 text-lg font-black text-white">{value}</div>
+      <div className="text-sm font-black text-white">{value}</div>
+    </div>
+  );
+}
+
+function SelectedPackageRow({ card, t }: { card: FrontlineCardDef; t: TranslateFn }) {
+  return (
+    <div className="group flex items-center gap-2 rounded-[16px] border border-[#f5c451]/14 bg-[#f5c451]/8 px-2.5 py-2">
+      <CardTypeIcon type={card.kind as CardTypeIconName} size="sm" className="h-6 w-6 shrink-0" />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[12px] font-black text-white">{frontlineCardName(t, card)}</div>
+        <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[9px] font-black uppercase tracking-[0.1em] text-white/46">
+          <span>{frontlineCardKindLabel(t, card)}</span>
+          <span className="truncate text-[#f5d498]/76">{frontlineCardEffectSummary(t, card)}</span>
+        </div>
+      </div>
+      <div className="rounded-full border border-white/10 bg-black/24 px-2 py-1 text-[10px] font-black text-white">{card.cost}</div>
+    </div>
+  );
+}
+
+function HeroRosterButton({
+  hero,
+  selectedIndex,
+  tierLabel,
+  laneLabel,
+  onPick,
+  t,
+}: {
+  hero: FrontlineHeroDef;
+  selectedIndex: number;
+  tierLabel: string;
+  laneLabel: string | null;
+  onPick: (slotIdx: number) => void;
+  t: TranslateFn;
+}) {
+  const visual = getFrontlineHeroVisualAsset(hero.heroId);
+  const active = selectedIndex !== -1;
+
+  return (
+    <div
+      className={cn(
+        "rounded-[18px] border bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(8,10,16,0.84))] p-2",
+        active ? "border-[#f5c451]/26 bg-[#f5c451]/10" : "border-white/10",
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <div className="grid h-16 w-14 shrink-0 place-items-end overflow-hidden rounded-[16px] border border-white/10 bg-black/22">
+          {visual.standeeSrc ? (
+            <img
+              src={visual.standeeSrc}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-contain object-bottom drop-shadow-[0_10px_14px_rgba(0,0,0,0.44)]"
+            />
+          ) : (
+            <GameGlyph kind="heroes" shell="none" className="h-8 w-8 text-white/60" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-black text-white">{hero.name}</div>
+          <div className="mt-0.5 truncate text-[10px] font-black uppercase tracking-[0.12em] text-white/44">{hero.role}</div>
+          <div className="mt-1 flex justify-between gap-1 text-[9px] font-black uppercase tracking-[0.08em] text-white/58">
+            <span>HP {hero.maxHp}</span>
+            <span>ATK {hero.atk}</span>
+            <span>DEF {hero.def}</span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-2 text-[9px] font-black uppercase tracking-[0.14em] text-[#f5d498]">
+        {laneLabel ?? tierLabel}
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-1.5">
+        {[0, 1, 2].map((slotIdx) => (
+          <button
+            key={`${hero.heroId}-${slotIdx}`}
+            onClick={() => onPick(slotIdx)}
+            className={cn(
+              "frontline-motion-tab rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.1em] transition",
+              selectedIndex === slotIdx
+                ? "border-[#f5c451]/28 bg-[#f5c451]/14 text-[#f5d498]"
+                : "border-white/10 bg-white/[0.04] text-white/58",
+            )}
+          >
+            {slotIdx === 0 ? t("deckScreen.lanes.left") : slotIdx === 1 ? t("deckScreen.lanes.center") : t("deckScreen.lanes.right")}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

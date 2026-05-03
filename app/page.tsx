@@ -14,7 +14,9 @@ export default async function HomePage({
   const resolved = searchParams ? await searchParams : {};
   const qa = firstValue(resolved.qa);
   const clean = firstValue(resolved.clean);
+  const effectsEditor = firstValue(resolved.effectsEditor);
   const qaClean = qa === "1" || qa === "true" || qa === "clean" || clean === "1";
+  const qaEffects = qa === "effects" || effectsEditor === "1" || effectsEditor === "true";
 
-  return <HomePageClient qaClean={qaClean} />;
+  return <HomePageClient qaClean={qaClean} qaEffects={qaEffects} />;
 }

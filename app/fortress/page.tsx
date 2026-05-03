@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
+import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
 import { FortressIcon, type FortressIconName } from "@/components/game/shared/FortressIcon";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
+import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
@@ -23,7 +24,10 @@ import {
   getFrontlineHeroProfileById,
   type FrontlineHeroProfileMap,
 } from "@/features/frontline/heroProfile";
+import type { FrontlineHeroDef } from "@/features/frontline/types";
 import { cn } from "@/lib/cn";
+import { getHomeLandmarkAsset } from "@/lib/homeLandmarkAssets";
+import { frontlineHeroName, frontlineHeroRole } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineFortressBuildingId, FrontlineFortressOutcome, Rewards } from "@/lib/types";
@@ -76,11 +80,12 @@ export default function FortressPage() {
   const upgrade = useGameStore((state) => state.upgradeFrontlineFortress);
   const setGarrisonSlot = useGameStore((state) => state.setFrontlineGarrisonSlot);
   const resolveRaid = useGameStore((state) => state.resolveFrontlineFortressRaid);
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState<number | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<FrontlineFortressBuildingId>("keep");
   const [reportPulse, setReportPulse] = useState(false);
 
   useEffect(() => {
+    setNow(Date.now());
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(interval);
   }, []);
@@ -91,12 +96,12 @@ export default function FortressPage() {
     return () => window.clearTimeout(timeout);
   }, [reportPulse]);
 
-  const currentTime = useMemo(() => new Date(now), [now]);
+  const currentTime = useMemo(() => new Date(now ?? 0), [now]);
   const heroProfiles = useMemo(() => createFrontlineHeroProfileMap(playerHeroes), [playerHeroes]);
-  const raidReady = frontlineFortressRaidReady(fortress, currentTime);
+  const raidReady = now === null ? false : frontlineFortressRaidReady(fortress, currentTime);
   const defenseRating = frontlineFortressDefenseRating(fortress, heroProfiles);
   const forecast = frontlineFortressProjectedOutcome(fortress, account.level, currentTime, heroProfiles);
-  const nextAttackLabel = raidReady ? t("fortressScreen.raid.ready") : formatRaidCountdown(fortress.nextAttackAt, now, t);
+  const nextAttackLabel = now === null ? "--" : raidReady ? t("fortressScreen.raid.ready") : formatRaidCountdown(fortress.nextAttackAt, now, t);
   const integrityState = integrityMeta(fortress.integrity, t);
   const forecastState = outcomeMeta(forecast.outcome, t);
   const selectedBuildingData = FRONTLINE_FORTRESS_BUILDINGS.find((entry) => entry.id === selectedBuilding)!;
@@ -116,11 +121,11 @@ export default function FortressPage() {
       <FortressTopChrome resources={resources} />
       <RewardFlightOverlay rewards={fortress.lastReport?.rewards} active={reportPulse} nonce={fortress.raidsResolved} origin="center" />
 
-      <main className="mx-auto grid w-full max-w-[1500px] gap-4 px-3 pb-24 pt-44 sm:pt-36 md:px-6 md:pt-28 xl:grid-cols-[minmax(0,1fr)_25rem] xl:px-8">
-        <section className="relative isolate min-h-[68rem] overflow-hidden rounded-[38px] border border-white/10 bg-[radial-gradient(circle_at_50%_16%,rgba(255,219,143,0.11),transparent_32%),linear-gradient(180deg,rgba(14,18,28,0.42),rgba(6,8,14,0.9))] shadow-[0_30px_90px_rgba(0,0,0,0.38)] backdrop-blur-sm md:min-h-[48rem]">
+      <main className="mx-auto grid w-full max-w-[1500px] gap-3 px-3 pb-16 pt-36 sm:pt-[7.5rem] md:px-6 md:pt-[5.75rem] xl:grid-cols-[minmax(0,1fr)_21rem] xl:px-8">
+        <section className="relative isolate min-h-[45rem] overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_16%,rgba(255,219,143,0.08),transparent_30%),linear-gradient(180deg,rgba(14,18,28,0.26),rgba(6,8,14,0.76))] shadow-[0_24px_62px_rgba(0,0,0,0.32)] backdrop-blur-sm md:min-h-[34rem]">
           <SceneLight />
 
-          <div className="relative z-[2] grid gap-4 p-4 md:p-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="relative z-[2] grid gap-3 p-3 md:p-4 lg:grid-cols-[minmax(0,1fr)_17rem]">
             <FortressHero
               raidReady={raidReady}
               forecast={forecast.outcome}
@@ -151,7 +156,7 @@ export default function FortressPage() {
             t={t}
           />
 
-          <div className="relative z-[2] mt-0 grid gap-4 p-4 md:mt-[26rem] md:p-5 lg:grid-cols-[minmax(0,1fr)_22rem] xl:mt-[24rem]">
+          <div className="relative z-[2] mt-0 grid gap-3 p-3 md:mt-[15.25rem] md:p-4 lg:grid-cols-[minmax(0,1fr)_18rem] xl:mt-[15rem]">
             <BuildingInspector
               building={selectedBuildingData}
               level={fortress.buildings[selectedBuilding]}
@@ -224,14 +229,14 @@ function FortressHero({
         <ScreenBadge tone={raidReady ? "ember" : "gold"}>{raidReady ? t("fortressScreen.watch.raidAtGate") : t("fortressScreen.watch.castleWatch")}</ScreenBadge>
         <ScreenBadge tone={state.badgeTone}>{state.label}</ScreenBadge>
       </div>
-      <h1 className="mt-4 max-w-[42rem] text-[2.35rem] font-black leading-[0.9] text-white drop-shadow-[0_12px_28px_rgba(0,0,0,0.42)] md:text-[4.2rem]">
+      <h1 className="mt-2 max-w-[34rem] text-[1.75rem] font-black leading-[0.92] text-white drop-shadow-[0_12px_28px_rgba(0,0,0,0.42)] md:text-[2.65rem]">
         {t("fortressScreen.watch.title")}
       </h1>
-      <p className="mt-4 max-w-[38rem] text-[13px] leading-6 text-white/64 md:text-[14px]">
+      <p className="mt-2 hidden max-w-[34rem] text-[12px] leading-5 text-white/54 xl:block">
         {t("fortressScreen.watch.copy")}
       </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <HeroMetric icon="integrity" label={t("fortressScreen.metrics.integrity")} value={`${integrity}%`} />
         <HeroMetric icon="defense_rating" label={t("fortressScreen.metrics.defense")} value={defenseRating} />
         <HeroMetric icon="garrison" label={t("fortressScreen.metrics.guards")} value={`${garrisonFilled}/3`} />
@@ -258,25 +263,25 @@ function RaidActionPanel({
 }) {
   const max = Math.max(forecast.attackPower, forecast.defensePower, 1);
   return (
-    <div className={cn("relative overflow-hidden rounded-[30px] border p-4 shadow-[0_22px_54px_rgba(0,0,0,0.28)]", forecastState.panel)}>
+    <div className={cn("relative overflow-hidden rounded-[22px] border p-2.5 shadow-[0_16px_36px_rgba(0,0,0,0.22)]", forecastState.panel)}>
       <span className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-white/14 blur-2xl" />
       <div className="relative z-[1] flex items-start justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/44">{t("fortressScreen.raid.watch")}</div>
-          <div className="mt-1 text-2xl font-black text-white">{raidReady ? t("fortressScreen.raid.resolveNow") : nextAttackLabel}</div>
+          <div className="mt-1 text-lg font-black text-white">{raidReady ? t("fortressScreen.raid.resolveNow") : nextAttackLabel}</div>
         </div>
-        <FortressIcon name="raid" size="lg" />
+        <ModeIcon name="fortress_raid" size="lg" />
       </div>
 
-      <div className="relative z-[1] mt-4 space-y-3">
+      <div className="relative z-[1] mt-2.5 space-y-2">
         <PressureBar label={t("fortressScreen.metrics.raid")} value={forecast.attackPower} max={max} tone="enemy" />
         <PressureBar label={t("fortressScreen.metrics.walls")} value={forecast.defensePower} max={max} tone="ally" />
       </div>
 
-      <RewardRow rewards={forecast.rewards} className="relative z-[1] mt-4" t={t} />
+      <RewardRow rewards={forecast.rewards} className="relative z-[1] mt-2.5" t={t} />
 
       <button
-        className="frontline-motion-action frontline-feedback-claim relative z-[1] mt-4 w-full overflow-hidden rounded-[22px] border border-[#f8d57b]/28 bg-[linear-gradient(180deg,#fff0bc_0%,#f5c451_46%,#b96d1f_100%)] px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#221102] shadow-[0_20px_42px_rgba(245,196,81,0.25)] transition disabled:opacity-40 disabled:hover:translate-y-0"
+        className="frontline-motion-action frontline-feedback-claim relative z-[1] mt-2.5 w-full overflow-hidden rounded-[18px] border border-[#f8d57b]/28 bg-[linear-gradient(180deg,#fff0bc_0%,#f5c451_46%,#b96d1f_100%)] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#221102] shadow-[0_16px_30px_rgba(245,196,81,0.2)] transition disabled:opacity-40 disabled:hover:translate-y-0"
         disabled={!raidReady}
         onClick={onResolve}
       >
@@ -304,10 +309,9 @@ function CastleStage({
   t: TranslateFn;
 }) {
   return (
-    <div className="relative z-[1] mt-4 h-[27rem] md:absolute md:inset-x-0 md:top-[17rem] md:mt-0 md:h-[32rem]">
-      <div className="absolute left-1/2 top-[42%] h-[24rem] w-[78%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(circle_at_50%_44%,rgba(110,159,217,0.2),rgba(31,53,86,0.28)_40%,rgba(4,7,12,0.78)_78%,transparent_100%)]" />
-      <div className="absolute bottom-[12%] left-[8%] right-[8%] h-[18%] rounded-[50%] border border-sky-200/10 bg-[radial-gradient(circle_at_50%_45%,rgba(71,162,218,0.34),rgba(22,58,99,0.28)_42%,rgba(2,7,12,0.82)_100%)] animate-[waterShimmer_10s_ease-in-out_infinite] md:bottom-[10%] md:left-[12%] md:right-[12%]" />
-      <div className="absolute bottom-[24%] left-[14%] right-[14%] h-[13%] rounded-[46%] border border-white/10 bg-[linear-gradient(180deg,rgba(112,133,186,0.38),rgba(25,36,61,0.92))]" />
+    <div className="relative z-[1] mt-3 h-[18rem] md:absolute md:inset-x-0 md:top-[11rem] md:mt-0 md:h-[22rem]">
+      <div className="absolute left-1/2 top-[50%] h-[13rem] w-[54%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(circle_at_50%_44%,rgba(110,159,217,0.11),rgba(31,53,86,0.13)_42%,rgba(4,7,12,0.3)_78%,transparent_100%)]" />
+      <div className="absolute bottom-[13%] left-[22%] right-[22%] h-[12%] rounded-[50%] border border-sky-200/8 bg-[radial-gradient(circle_at_50%_45%,rgba(71,162,218,0.18),rgba(22,58,99,0.16)_42%,rgba(2,7,12,0.38)_100%)] animate-[waterShimmer_12s_ease-in-out_infinite]" />
 
       <FortressSilhouette integrity={integrity} raidReady={raidReady} reportPulse={reportPulse} />
 
@@ -319,18 +323,18 @@ function CastleStage({
           <button
             key={buildingId}
             className={cn(
-              "frontline-motion-tab group absolute isolate grid place-items-center rounded-[34px] border transition duration-300",
+              "frontline-motion-tab group absolute isolate grid place-items-center rounded-[28px] border border-transparent bg-transparent transition duration-300",
               meta.position,
               selected
-                ? "border-[#f5c451]/40 bg-[#f5c451]/10 shadow-[0_0_44px_rgba(245,196,81,0.2)]"
-                : "border-white/10 bg-black/8 hover:border-white/20 hover:bg-white/[0.04]",
+                ? "shadow-[0_0_24px_rgba(245,196,81,0.1)]"
+                : "hover:bg-white/[0.015]",
             )}
             onClick={() => setSelectedBuilding(buildingId)}
           >
-            <span className={cn("pointer-events-none absolute inset-0 rounded-[34px] bg-[radial-gradient(circle_at_50%_34%,var(--tw-gradient-stops))] blur-xl", meta.glow)} />
+            <span className={cn("pointer-events-none absolute inset-6 rounded-[26px] bg-[radial-gradient(circle_at_50%_34%,var(--tw-gradient-stops))] blur-lg opacity-40", selected && meta.glow)} />
             <span className="relative z-[1] flex flex-col items-center">
-              <FortressIcon name={meta.icon} size="xl" className={cn(selected && "animate-[iconBreath_2.8s_ease-in-out_infinite]")} />
-              <span className="mt-2 rounded-full border border-white/12 bg-black/46 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white">
+              <FortressIcon name={meta.icon} size="md" className={cn("transition", selected ? "opacity-90 animate-[iconBreath_2.8s_ease-in-out_infinite]" : "opacity-0 group-hover:opacity-70")} />
+              <span className={cn("mt-1 rounded-full border border-white/12 bg-black/56 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white shadow-[0_8px_16px_rgba(0,0,0,0.24)] transition", !selected && "opacity-0 group-hover:opacity-100")}>
                 {label} {t("fortressScreen.buildings.level", { level: levels[buildingId] })}
               </span>
             </span>
@@ -350,32 +354,49 @@ function FortressSilhouette({
   raidReady: boolean;
   reportPulse: boolean;
 }) {
+  const fortressAsset = getHomeLandmarkAsset("fortress");
+
   return (
-    <div className={cn("absolute left-1/2 top-[10%] h-[23rem] w-[38rem] max-w-[88%] -translate-x-1/2 transition", reportPulse && "animate-[fortressHit_0.7s_ease-in-out_1]")}>
-      <div className="absolute inset-x-[8%] bottom-[23%] h-[20%] rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(92,116,177,0.82),rgba(27,38,65,0.98))] shadow-[0_24px_56px_rgba(0,0,0,0.36)]" />
-      <div className="absolute bottom-[39%] left-[19%] h-[31%] w-[16%] rounded-t-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(98,125,191,0.88),rgba(29,42,72,0.98))]" />
-      <div className="absolute bottom-[34%] left-[42%] h-[47%] w-[17%] rounded-t-[40px] border border-white/10 bg-[linear-gradient(180deg,rgba(122,151,217,0.92),rgba(31,45,78,0.98))]" />
-      <div className="absolute bottom-[39%] right-[19%] h-[31%] w-[16%] rounded-t-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(98,125,191,0.88),rgba(29,42,72,0.98))]" />
-      <div className="absolute bottom-[28%] left-[45%] h-[24%] w-[10%] rounded-t-[20px] border border-amber-100/10 bg-[linear-gradient(180deg,rgba(76,48,28,0.92),rgba(22,15,13,0.98))]" />
+    <div className={cn("absolute left-1/2 top-[3%] h-[16rem] w-[28rem] max-w-[80%] -translate-x-1/2 transition", reportPulse && "animate-[fortressHit_0.7s_ease-in-out_1]")}>
+      <div className="absolute bottom-[12%] left-[19%] right-[19%] h-[13%] rounded-[50%] bg-black/28 blur-lg" />
+      {fortressAsset ? (
+        <img
+          src={fortressAsset.src}
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          decoding="async"
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-contain object-bottom drop-shadow-[0_24px_26px_rgba(0,0,0,0.44)]"
+        />
+      ) : (
+        <>
+          <div className="absolute inset-x-[8%] bottom-[23%] h-[20%] rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(92,116,177,0.82),rgba(27,38,65,0.98))] shadow-[0_24px_56px_rgba(0,0,0,0.36)]" />
+          <div className="absolute bottom-[39%] left-[19%] h-[31%] w-[16%] rounded-t-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(98,125,191,0.88),rgba(29,42,72,0.98))]" />
+          <div className="absolute bottom-[34%] left-[42%] h-[47%] w-[17%] rounded-t-[40px] border border-white/10 bg-[linear-gradient(180deg,rgba(122,151,217,0.92),rgba(31,45,78,0.98))]" />
+          <div className="absolute bottom-[39%] right-[19%] h-[31%] w-[16%] rounded-t-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(98,125,191,0.88),rgba(29,42,72,0.98))]" />
+          <div className="absolute bottom-[28%] left-[45%] h-[24%] w-[10%] rounded-t-[20px] border border-amber-100/10 bg-[linear-gradient(180deg,rgba(76,48,28,0.92),rgba(22,15,13,0.98))]" />
+        </>
+      )}
 
       {[24, 50, 76].map((left, index) => (
         <span
           key={left}
-          className="absolute h-8 w-4 -translate-x-1/2 rounded-full bg-amber-100/34 blur-sm animate-[iconBreath_4.6s_ease-in-out_infinite]"
-          style={{ left: `${left}%`, top: `${32 + (index === 1 ? -7 : 2)}%`, animationDelay: `${index * 0.5}s` }}
+          className="absolute h-6 w-2.5 -translate-x-1/2 rounded-full bg-amber-100/28 blur-sm animate-[iconBreath_4.6s_ease-in-out_infinite]"
+          style={{ left: `${left}%`, top: `${36 + (index === 1 ? -5 : 2)}%`, animationDelay: `${index * 0.5}s` }}
         />
       ))}
 
       <div
         className={cn(
-          "absolute left-1/2 top-[3%] h-[20rem] w-[20rem] -translate-x-1/2 rounded-full border blur-[1px] transition",
+          "absolute left-1/2 top-[8%] h-[12.5rem] w-[12.5rem] -translate-x-1/2 rounded-full border blur-[1px] transition",
           raidReady
             ? "border-rose-300/18 bg-[radial-gradient(circle,rgba(244,63,94,0.16),transparent_66%)]"
             : "border-cyan-200/10 bg-[radial-gradient(circle,rgba(125,211,252,0.12),transparent_68%)]",
         )}
       />
 
-      <div className="absolute bottom-[13%] left-[22%] right-[22%] h-3 overflow-hidden rounded-full bg-black/42">
+      <div className="absolute bottom-[6%] left-[25%] right-[25%] h-2.5 overflow-hidden rounded-full bg-black/42">
         <div
           className={cn(
             "h-full rounded-full transition-[width] duration-500",
@@ -412,26 +433,26 @@ function BuildingInspector({
   const meta = BUILDING_META[building.id];
   const label = buildingLabel(building.id, t);
   return (
-    <section className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,20,31,0.74),rgba(6,8,14,0.92))] p-4 shadow-[0_22px_54px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-      <span className={cn("pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-[radial-gradient(circle,var(--tw-gradient-stops))] blur-2xl", meta.glow)} />
+    <section className="relative overflow-hidden rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,20,31,0.62),rgba(6,8,14,0.82))] p-3 shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+      <span className={cn("pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[radial-gradient(circle,var(--tw-gradient-stops))] blur-2xl opacity-70", meta.glow)} />
       <div className="relative z-[1] flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <FortressIcon name={meta.icon} size="xl" />
           <div>
             <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{buildingShort(building.id, t)}</div>
-            <div className="mt-1 text-2xl font-black text-white">{label} {t("fortressScreen.buildings.level", { level })}</div>
+            <div className="mt-1 text-xl font-black text-white">{label} {t("fortressScreen.buildings.level", { level })}</div>
           </div>
         </div>
         <ScreenBadge tone={affordable ? "emerald" : "gold"}>{affordable ? t("fortressScreen.upgrade.ready") : t("fortressScreen.upgrade.gathering")}</ScreenBadge>
       </div>
-      <p className="relative z-[1] mt-3 max-w-[46rem] text-[13px] leading-6 text-white/62">{buildingPerk(building.id, t)}</p>
-      <div className="relative z-[1] mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+      <p className="relative z-[1] mt-1.5 max-w-[46rem] text-[12px] leading-5 text-white/52">{buildingPerk(building.id, t)}</p>
+      <div className="relative z-[1] mt-2.5 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
         <div className="grid grid-cols-2 gap-2">
           <CostTile label={t("fortressScreen.resources.gold")} icon="gold" current={resources.gold} required={cost.gold} tone="gold" />
           <CostTile label={t("fortressScreen.resources.dust")} icon="dust" current={resources.dust} required={cost.dust ?? 0} tone="violet" />
         </div>
         <button
-          className="frontline-motion-action frontline-feedback-upgrade rounded-[22px] border border-[#f8d57b]/28 bg-[linear-gradient(180deg,#fff0bc_0%,#f5c451_46%,#b96d1f_100%)] px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-[#221102] shadow-[0_18px_38px_rgba(245,196,81,0.24)] transition disabled:opacity-40 disabled:hover:translate-y-0"
+          className="frontline-motion-action frontline-feedback-upgrade rounded-[20px] border border-[#f8d57b]/28 bg-[linear-gradient(180deg,#fff0bc_0%,#f5c451_46%,#b96d1f_100%)] px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-[#221102] shadow-[0_16px_32px_rgba(245,196,81,0.22)] transition disabled:opacity-40 disabled:hover:translate-y-0"
           disabled={!affordable}
           onClick={onUpgrade}
         >
@@ -463,7 +484,7 @@ function FortressStatus({
   const lastState = lastReport ? outcomeMeta(lastReport.outcome, t) : null;
   return (
     <section className="grid gap-3">
-      <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,20,31,0.72),rgba(6,8,14,0.92))] p-4 backdrop-blur-xl">
+      <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,20,31,0.66),rgba(6,8,14,0.86))] p-3 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <FortressIcon name="integrity" size="md" />
@@ -479,7 +500,7 @@ function FortressStatus({
         </div>
       </div>
 
-      <div className={cn("relative overflow-hidden rounded-[28px] border p-4 backdrop-blur-xl transition", lastState ? lastState.panel : "border-white/10 bg-[linear-gradient(180deg,rgba(15,20,31,0.64),rgba(6,8,14,0.9))]", reportPulse && "frontline-reward-success animate-[rewardPop_0.85s_ease-out_1] ring-2 ring-[#f5c451]/24")}>
+      <div className={cn("relative overflow-hidden rounded-[24px] border p-3 backdrop-blur-xl transition", lastState ? lastState.panel : "border-white/10 bg-[linear-gradient(180deg,rgba(15,20,31,0.58),rgba(6,8,14,0.84))]", reportPulse && "frontline-reward-success animate-[rewardPop_0.85s_ease-out_1] ring-2 ring-[#f5c451]/24")}>
         <RewardBurstOverlay rewards={lastReport?.rewards} active={reportPulse} compact />
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
@@ -507,7 +528,7 @@ function FortressStatus({
         )}
       </div>
 
-      <div className="rounded-[28px] border border-white/10 bg-black/20 p-4 backdrop-blur-xl">
+      <div className="rounded-[24px] border border-white/10 bg-black/18 p-3 backdrop-blur-xl">
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/44">
           <FortressIcon name="watchtower" size="sm" />
           <span>{t("fortressScreen.status.currentForecast")}</span>
@@ -532,39 +553,33 @@ function GarrisonPanel({
   t: TranslateFn;
 }) {
   return (
-    <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(11,17,28,0.7),rgba(5,7,12,0.94))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+    <section className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(11,17,28,0.58),rgba(5,7,12,0.84))] p-3 shadow-[0_18px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{t("fortressScreen.garrison.eyebrow")}</div>
-          <div className="mt-1 text-2xl font-black text-white">{t("fortressScreen.garrison.title")}</div>
+          <div className="mt-1 text-lg font-black text-white">{t("fortressScreen.garrison.title")}</div>
         </div>
         <FortressIcon name="garrison" size="lg" />
       </div>
 
-      <div className="mt-4 grid gap-3">
-        {garrison.map((heroId, index) => (
-          <div key={`garrison-slot-${index}`} className="relative">
-            <FrontlineHeroStandee
-              hero={heroId ? heroProfiles[heroId] ?? getFrontlineHeroProfileById(heroId) : null}
-              compact
-              side="ally"
+      <div className="mt-3 grid gap-2">
+        {garrison.map((heroId, index) => {
+          const hero = heroId ? heroProfiles[heroId] ?? getFrontlineHeroProfileById(heroId) : null;
+          return (
+            <GarrisonSlotCard
+              key={`garrison-slot-${index}`}
+              hero={hero}
               label={index === 0 ? t("fortressScreen.garrison.leftWall") : index === 1 ? t("fortressScreen.garrison.mainGate") : t("fortressScreen.garrison.rightWall")}
               emptyLabel={t("fortressScreen.garrison.emptyGuard")}
-              className="min-h-[12.5rem]"
+              clearLabel={t("fortressScreen.garrison.clear")}
+              onClear={heroId ? () => setGarrisonSlot(index, null) : undefined}
+              t={t}
             />
-            {heroId ? (
-              <button
-                className="frontline-motion-action absolute right-3 top-3 rounded-full border border-white/12 bg-black/42 px-3 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white/62 backdrop-blur-md transition hover:text-white"
-                onClick={() => setGarrisonSlot(index, null)}
-              >
-                {t("fortressScreen.garrison.clear")}
-              </button>
-            ) : null}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="mt-4 rounded-[24px] border border-white/10 bg-white/[0.035] p-3">
+      <div className="mt-3 rounded-[18px] border border-white/10 bg-white/[0.035] p-2.5">
         <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.16em] text-white/46">
           <span className="inline-flex items-center gap-2">
             <FortressIcon name="defense_rating" size="sm" />
@@ -572,12 +587,9 @@ function GarrisonPanel({
           </span>
           <span>{defenseRating}</span>
         </div>
-        <div className="mt-2 text-[12px] leading-5 text-white/54">
-          {t("fortressScreen.garrison.copy")}
-        </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-1.5">
         {FRONTLINE_HEROES.map((hero) => {
           const selectedIndex = garrison.findIndex((entry) => entry === hero.heroId);
           const progressedHero = heroProfiles[hero.heroId] ?? hero;
@@ -585,7 +597,7 @@ function GarrisonPanel({
             <button
               key={hero.heroId}
               className={cn(
-                "frontline-motion-tab rounded-[22px] border p-3 text-left transition",
+                "frontline-motion-tab rounded-[16px] border p-2 text-left transition",
                 selectedIndex >= 0
                   ? "border-[#f5c451]/24 bg-[#f5c451]/10 shadow-[0_12px_28px_rgba(245,196,81,0.1)]"
                   : "border-white/10 bg-white/[0.035] hover:border-white/18",
@@ -623,22 +635,78 @@ function RaidHistoryPanel({
 }) {
   const outcome = lastReport ? outcomeMeta(lastReport.outcome, t) : null;
   return (
-    <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,15,22,0.62),rgba(5,7,12,0.92))] p-4 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-3">
+    <details className="group rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,15,22,0.5),rgba(5,7,12,0.78))] p-3 backdrop-blur-xl">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{t("fortressScreen.loop.eyebrow")}</div>
-          <div className="mt-1 text-xl font-black text-white">{outcome?.label ?? t("fortressScreen.loop.awaiting")}</div>
+          <div className="mt-1 text-base font-black text-white">{outcome?.label ?? t("fortressScreen.loop.awaiting")}</div>
         </div>
-        <FortressIcon name="keep" size="lg" />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
+        <span className="inline-flex items-center gap-2">
+          <FortressIcon name="keep" size="md" />
+          <span className="text-[10px] font-black uppercase tracking-[0.14em] text-white/42 group-open:hidden">{raidsResolved} / {integrity}%</span>
+        </span>
+      </summary>
+      <div className="mt-3 grid grid-cols-2 gap-2">
         <MiniFact label={t("fortressScreen.metrics.resolved")} value={raidsResolved} />
         <MiniFact label={t("fortressScreen.metrics.integrity")} value={`${integrity}%`} />
       </div>
-      <div className="mt-4 rounded-[24px] border border-white/10 bg-black/18 p-3 text-[12px] leading-5 text-white/54">
-        {t("fortressScreen.loop.copy")}
+    </details>
+  );
+}
+
+function GarrisonSlotCard({
+  hero,
+  label,
+  emptyLabel,
+  clearLabel,
+  onClear,
+  t,
+}: {
+  hero: FrontlineHeroDef | null;
+  label: string;
+  emptyLabel: string;
+  clearLabel: string;
+  onClear?: () => void;
+  t: TranslateFn;
+}) {
+  const visual = hero ? getFrontlineHeroVisualAsset(hero.heroId) : null;
+  return (
+    <div className={cn("flex items-center gap-2 rounded-[18px] border p-2", hero ? "border-[#f5c451]/18 bg-[#f5c451]/8" : "border-dashed border-white/10 bg-white/[0.025]")}>
+      <div className="grid h-16 w-14 shrink-0 place-items-end overflow-hidden rounded-[14px] border border-white/10 bg-black/22">
+        {visual?.standeeSrc ? (
+          <img
+            src={visual.standeeSrc}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-contain object-bottom drop-shadow-[0_10px_14px_rgba(0,0,0,0.44)]"
+          />
+        ) : (
+          <FortressIcon name="garrison" size="md" />
+        )}
       </div>
-    </section>
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[#f5d498]/82">{label}</div>
+        <div className="mt-0.5 truncate text-sm font-black text-white">{hero ? frontlineHeroName(t, hero) : emptyLabel}</div>
+        {hero ? (
+          <div className="mt-1 flex gap-2 text-[9px] font-black uppercase tracking-[0.08em] text-white/52">
+            <span>{frontlineHeroRole(t, hero)}</span>
+            <span>HP {hero.maxHp}</span>
+            <span>ATK {hero.atk}</span>
+            <span>DEF {hero.def}</span>
+          </div>
+        ) : null}
+      </div>
+      {onClear ? (
+        <button
+          className="frontline-motion-action rounded-full border border-white/12 bg-black/30 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white/58 transition hover:text-white"
+          onClick={onClear}
+        >
+          {clearLabel}
+        </button>
+      ) : null}
+    </div>
   );
 }
 

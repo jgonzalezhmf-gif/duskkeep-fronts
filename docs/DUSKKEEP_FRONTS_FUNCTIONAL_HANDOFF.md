@@ -159,6 +159,7 @@ Ya existe un sistema de iconos PNG con fallback seguro para:
 - fortress
 - progression
 - shop
+- modes
 
 Objetivo visual:
 - Iconos grandes, con silueta clara.
@@ -319,6 +320,8 @@ Prioridad inmediata sugerida:
 8. Localization migration continua.
 
 Backlog tecnico:
+- Obligatorio antes de monetizacion: crear un `GameFixedStage` global para renderizar el juego dentro de una resolucion logica fija y migrar Home, Adventure, Combat y pantallas clave a ese shell.
+- Obligatorio antes de monetizacion: mover economia sensible, moneda premium, compras, claims, inventario y recompensas a backend autoritativo. El cliente/canvas nunca debe ser fuente de verdad porque F12, memoria, localStorage y requests siempre son manipulables.
 - Extraer datos hardcoded de Arena/Events si crecen.
 - Decidir destino de tactical/grid legacy.
 - Preparar Supabase sin romper offline-first.

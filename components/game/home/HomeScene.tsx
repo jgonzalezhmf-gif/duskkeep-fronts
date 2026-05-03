@@ -1,6 +1,17 @@
 "use client";
 
+import type { CSSProperties } from "react";
+
+import { HomeEffectSprite } from "@/components/game/home/HomeEffectSprite";
+import { HomeEffectSpriteStyles } from "@/components/game/home/HomeEffectSprite";
+import { HomeEffectQaHandles, type HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
+import { HomeLandmarkAsset } from "@/components/game/home/HomeLandmarkAsset";
+import { HomeSkyAtmosphere } from "@/components/game/home/HomeSkyAtmosphere";
+import { HOME_LANDMARK_LAYOUT, HOME_WORLD_BACKGROUND, type HomeLandmarkLayout } from "@/components/game/home/homeComposition";
+import { HOME_WORLD_EFFECTS, type HomeLandmarkEffectConfig } from "@/components/game/home/homeEffectLayout";
 import { HomeZoneId } from "@/components/game/home/types";
+import { type HomeLandmarkId } from "@/lib/homeLandmarkAssets";
+import { getHomeBackgroundAsset } from "@/lib/homeLandmarkAssets";
 
 const ZONE_COLORS: Record<HomeZoneId, string> = {
   fortress: "#ffd57a",
@@ -32,16 +43,24 @@ const ZONE_AURA_OFFSETS = [
 export default function HomeScene({
   activeZone,
   parallax,
+  effectsByLandmark,
+  worldEffects,
+  qaEditor,
 }: {
   activeZone: HomeZoneId | null;
   parallax: { x: number; y: number };
+  effectsByLandmark?: Partial<Record<HomeLandmarkId, HomeLandmarkEffectConfig[]>>;
+  worldEffects?: HomeLandmarkEffectConfig[];
+  qaEditor?: HomeEffectsQaEditorState;
 }) {
-  const farX = parallax.x * -18;
-  const farY = parallax.y * -10;
+  void parallax;
+  const farX = 0;
+  const farY = 0;
   const midX = parallax.x * -28;
   const midY = parallax.y * -16;
-  const nearX = parallax.x * -44;
-  const nearY = parallax.y * -24;
+  const nearX = 0;
+  const nearY = 0;
+  const backgroundAsset = getHomeBackgroundAsset();
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -53,25 +72,6 @@ export default function HomeScene({
         @keyframes homeCloudDriftReverse {
           0% { transform: translateX(5%); }
           100% { transform: translateX(-5%); }
-        }
-        @keyframes homeFogDrift {
-          0% { transform: translateX(-2%) scale(1); opacity: 0.18; }
-          50% { opacity: 0.4; }
-          100% { transform: translateX(2%) scale(1.06); opacity: 0.18; }
-        }
-        @keyframes homeWaterPan {
-          0% { transform: translateX(-10%) translateY(0); opacity: 0.22; }
-          50% { opacity: 0.5; }
-          100% { transform: translateX(10%) translateY(2%); opacity: 0.22; }
-        }
-        @keyframes homeSparkle {
-          0%, 100% { opacity: 0.18; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-        @keyframes homeBirdDrift {
-          0% { transform: translate3d(0, 0, 0); opacity: 0.28; }
-          50% { opacity: 0.72; }
-          100% { transform: translate3d(50px, -12px, 0); opacity: 0.28; }
         }
         @keyframes homeBannerWave {
           0%, 100% { transform: rotate(-1deg) skewY(0deg); }
@@ -94,12 +94,6 @@ export default function HomeScene({
           0%, 100% { transform: skewX(0deg) translateY(0); }
           50% { transform: skewX(7deg) translateY(1px); }
         }
-        @keyframes homeLeafDrift {
-          0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
-          15% { opacity: 0.72; }
-          60% { transform: translate3d(28px, -18px, 0) rotate(110deg); opacity: 0.92; }
-          100% { transform: translate3d(54px, 16px, 0) rotate(200deg); opacity: 0; }
-        }
         @keyframes homeSmokeLift {
           0% { transform: translateY(0) scale(0.9); opacity: 0.18; }
           40% { opacity: 0.34; }
@@ -113,29 +107,9 @@ export default function HomeScene({
           0%, 100% { transform: translateY(0px) rotate(-1deg); }
           50% { transform: translateY(-3px) rotate(1deg); }
         }
-        @keyframes homeRunePulse {
-          0%, 100% { opacity: 0.22; transform: scale(0.9); }
-          50% { opacity: 0.78; transform: scale(1.08); }
-        }
         @keyframes homeZoneSweep {
           0%, 100% { opacity: 0.16; transform: scaleX(0.94); }
           50% { opacity: 0.44; transform: scaleX(1.04); }
-        }
-        @keyframes homeAirshipDrift {
-          0% { transform: translate3d(-4vw, 0, 0); }
-          100% { transform: translate3d(6vw, -1.5vh, 0); }
-        }
-        @keyframes homeRaySweep {
-          0%, 100% { opacity: 0.1; transform: translateX(-1.5%) rotate(-10deg); }
-          50% { opacity: 0.28; transform: translateX(1.5%) rotate(-8deg); }
-        }
-        @keyframes homeHarborPulse {
-          0%, 100% { opacity: 0.18; transform: scaleX(0.92); }
-          50% { opacity: 0.48; transform: scaleX(1.06); }
-        }
-        @keyframes homeBeaconTwinkle {
-          0%, 100% { opacity: 0.22; filter: drop-shadow(0 0 4px rgba(255,229,155,0.25)); }
-          50% { opacity: 0.9; filter: drop-shadow(0 0 12px rgba(255,229,155,0.52)); }
         }
         .home-flag,
         .home-lantern,
@@ -150,7 +124,7 @@ export default function HomeScene({
           transform-origin: center;
         }
         .home-flag { animation: homeBannerWave 3.8s ease-in-out infinite; transform-origin: top center; }
-        .home-lantern { animation: homeFogDrift 5.2s ease-in-out infinite; }
+        .home-lantern { animation: homePulseWindow 5.2s ease-in-out infinite; }
         .home-window { animation: homePulseWindow 4s ease-in-out infinite; }
         .home-torch { animation: homeTorchFlicker 2.6s ease-in-out infinite; }
         .home-rune { animation: homeRuneOrbit 4.4s ease-in-out infinite; }
@@ -159,13 +133,82 @@ export default function HomeScene({
         .home-smoke { animation: homeSmokeLift 5.4s ease-out infinite; }
         .home-windmill { animation: homeWindmillSpin 10s linear infinite; transform-origin: center; }
         .home-boat { animation: homeBoatBob 4.6s ease-in-out infinite; transform-origin: center; }
+        .home-landmark-piece {
+          transform: translate(-50%, -100%);
+          filter: saturate(0.9) contrast(1.03) brightness(0.9);
+          transition: filter 220ms ease, transform 220ms ease, opacity 220ms ease;
+          contain: layout paint;
+        }
+        .home-landmark-piece[data-active="1"] {
+          transform: translate(-50%, -101%) scale(1.018);
+          filter: saturate(0.98) contrast(1.04) brightness(0.98);
+        }
+        .home-landmark-piece[data-home-landmark="fortress"] {
+          filter: saturate(0.88) contrast(1.04) brightness(0.9);
+        }
+        .home-landmark-piece[data-home-landmark="adventure"] {
+          filter: saturate(0.94) contrast(1.04) brightness(0.92);
+        }
+        .home-landmark-piece[data-home-landmark="events"] {
+          filter: saturate(0.96) contrast(1.04) brightness(0.92);
+        }
+        .home-landmark-image {
+          image-rendering: auto;
+          user-select: none;
+        }
+        .home-landmark-life {
+          pointer-events: none;
+          overflow: visible;
+          contain: paint;
+        }
+        @media (max-width: 700px), (prefers-reduced-motion: reduce) {
+          .home-flag,
+          .home-lantern,
+          .home-window,
+          .home-torch,
+          .home-rune,
+          .home-awning,
+          .home-sail,
+          .home-smoke,
+          .home-windmill,
+          .home-boat {
+            animation: none !important;
+          }
+        }
       `}</style>
+      <HomeEffectSpriteStyles />
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_14%,rgba(255,234,176,0.42),transparent_16%),radial-gradient(circle_at_22%_18%,rgba(255,255,255,0.18),transparent_18%),radial-gradient(circle_at_80%_18%,rgba(126,214,255,0.14),transparent_18%),linear-gradient(180deg,#8ed2ff_0%,#6ea2e7_16%,#35588b_38%,#162846_62%,#0a1220_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_46%_26%,rgba(255,244,208,0.16),transparent_18%),linear-gradient(180deg,rgba(255,255,255,0.08),transparent_32%,rgba(9,14,23,0.08)_68%,rgba(6,8,14,0.3)_100%)]" />
-      <div className="absolute left-[20%] top-[-8%] h-[72%] w-[18%] origin-top rotate-[-12deg] bg-[linear-gradient(180deg,rgba(255,246,207,0.28),transparent_72%)] blur-2xl" style={{ animation: "homeRaySweep 12s ease-in-out infinite" }} />
-      <div className="absolute left-[43%] top-[-10%] h-[78%] w-[15%] origin-top rotate-[3deg] bg-[linear-gradient(180deg,rgba(255,236,178,0.2),transparent_74%)] blur-2xl" style={{ animation: "homeRaySweep 15s ease-in-out infinite reverse" }} />
-      <div className="absolute right-[13%] top-[-6%] h-[64%] w-[16%] origin-top rotate-[12deg] bg-[linear-gradient(180deg,rgba(161,232,255,0.18),transparent_74%)] blur-2xl" style={{ animation: "homeRaySweep 14s ease-in-out infinite" }} />
+      {backgroundAsset ? (
+        <>
+          <img
+            data-home-world-background
+            src={backgroundAsset.src}
+            alt=""
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            draggable={false}
+            className="absolute left-0 top-0 h-full w-full object-fill"
+            style={{
+              left: HOME_WORLD_BACKGROUND.x,
+              top: HOME_WORLD_BACKGROUND.y,
+              width: HOME_WORLD_BACKGROUND.width,
+              height: HOME_WORLD_BACKGROUND.height,
+            }}
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,transparent_0%,rgba(5,8,15,0.08)_58%,rgba(3,5,10,0.28)_100%)]" />
+        </>
+      ) : null}
+
+      <HomeSkyAtmosphere />
+
+      {backgroundAsset ? null : (
+      <>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(104,136,178,0.22),transparent_18%),radial-gradient(circle_at_22%_20%,rgba(86,115,152,0.13),transparent_17%),radial-gradient(circle_at_82%_18%,rgba(54,112,137,0.12),transparent_19%),linear-gradient(180deg,#26395e_0%,#1c2c4a_20%,#16243b_42%,#0d1727_68%,#070b13_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_47%_30%,rgba(255,201,119,0.08),transparent_20%),linear-gradient(180deg,rgba(8,13,24,0.16),transparent_34%,rgba(4,8,15,0.24)_72%,rgba(3,5,10,0.48)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(5,8,14,0.12)_56%,rgba(3,5,10,0.54)_100%)]" />
+      <div className="absolute left-[31%] top-[-8%] h-[64%] w-[18%] origin-top rotate-[-6deg] bg-[linear-gradient(180deg,rgba(255,203,128,0.08),transparent_74%)] blur-xl" />
+      <div className="absolute right-[17%] top-[-7%] h-[56%] w-[14%] origin-top rotate-[12deg] bg-[linear-gradient(180deg,rgba(100,190,220,0.06),transparent_76%)] blur-xl" />
 
       <div
         className="absolute left-[9%] top-[11%] h-24 w-56 rounded-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,250,226,0.42),rgba(255,250,226,0.08)_58%,transparent_72%)] blur-3xl"
@@ -176,58 +219,43 @@ export default function HomeScene({
         style={{ transform: `translate3d(${farX * -0.25}px, ${farY * 0.18}px, 0)` }}
       />
 
-      <Cloud className="left-[-8%] top-[6%] h-32 w-[34rem] opacity-60" drift="homeCloudDrift 40s linear infinite" x={farX} y={farY} />
-      <Cloud className="right-[-10%] top-[14%] h-36 w-[36rem] opacity-48" drift="homeCloudDriftReverse 46s linear infinite" x={farX * -0.55} y={farY * 0.5} />
-      <Cloud className="left-[4%] top-[48%] h-28 w-[28rem] opacity-26" drift="homeCloudDrift 44s linear infinite" x={midX * 0.45} y={midY * 0.18} />
-      <Cloud className="right-[9%] top-[58%] h-24 w-[24rem] opacity-24" drift="homeCloudDriftReverse 36s linear infinite" x={midX * -0.4} y={midY * 0.25} />
-      <Cloud className="left-[22%] top-[34%] h-24 w-[22rem] opacity-16" drift="homeCloudDrift 38s linear infinite" x={midX * 0.3} y={midY * 0.08} />
+      <Cloud className="left-[-8%] top-[7%] h-28 w-[34rem] opacity-28" drift="homeCloudDrift 58s linear infinite" x={farX} y={farY} />
+      <Cloud className="right-[-10%] top-[16%] h-32 w-[36rem] opacity-22" drift="homeCloudDriftReverse 64s linear infinite" x={farX * -0.55} y={farY * 0.5} />
 
-      <div className="absolute inset-x-[-12%] bottom-[18%] h-[18%] rounded-[50%] bg-white/8 blur-[70px]" style={{ animation: "homeFogDrift 18s ease-in-out infinite" }} />
-      <div className="absolute inset-x-[-12%] bottom-[2%] h-[24%] rounded-[50%] bg-sky-200/10 blur-[88px]" style={{ animation: "homeFogDrift 24s ease-in-out infinite reverse" }} />
-
-      <div className="absolute left-[56%] top-[12%] h-10 w-24 opacity-50" style={{ animation: "homeAirshipDrift 22s ease-in-out infinite" }}>
-        <span className="absolute left-1/2 top-1/2 h-4 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,rgba(255,224,174,0.28),rgba(255,252,231,0.62),rgba(255,224,174,0.28))] blur-[1px]" />
-        <span className="absolute left-1/2 top-[56%] h-5 w-9 -translate-x-1/2 rounded-[999px] bg-[linear-gradient(180deg,#6f4f7d,#2e2140)]" />
-        <span className="absolute left-[24%] top-[63%] h-2 w-2 rounded-full bg-[#d2b2ff]" />
-        <span className="absolute right-[24%] top-[63%] h-2 w-2 rounded-full bg-[#ffd57a]" />
-      </div>
-      <div className="absolute left-[18%] top-[16%] h-8 w-20 opacity-34" style={{ animation: "homeAirshipDrift 28s ease-in-out infinite reverse" }}>
-        <span className="absolute left-1/2 top-1/2 h-3.5 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,rgba(255,224,174,0.18),rgba(255,252,231,0.42),rgba(255,224,174,0.18))] blur-[1px]" />
-        <span className="absolute left-1/2 top-[58%] h-4 w-7 -translate-x-1/2 rounded-[999px] bg-[linear-gradient(180deg,#5b7a8c,#24323d)]" />
-      </div>
+      <div className="absolute inset-x-[-10%] bottom-[18%] h-[13%] rounded-[50%] bg-slate-300/6 blur-[38px]" />
+      <div className="absolute inset-x-[-10%] bottom-[1%] h-[18%] rounded-[50%] bg-cyan-200/7 blur-[46px]" />
 
       <div className="absolute inset-x-[12%] bottom-[7%] h-[18%] overflow-hidden rounded-[50%] opacity-80">
         <div
-          className="absolute inset-[-12%] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.03)_0,rgba(255,255,255,0.16)_8%,rgba(111,202,255,0.08)_16%,rgba(255,255,255,0.02)_24%)] blur-xl"
-          style={{ animation: "homeWaterPan 10s ease-in-out infinite" }}
+          className="absolute inset-[-12%] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.015)_0,rgba(155,210,235,0.08)_8%,rgba(64,125,158,0.05)_16%,rgba(255,255,255,0.01)_24%)] blur-lg"
         />
       </div>
-      <div className="absolute bottom-[12%] left-[18%] h-8 w-[22%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,231,174,0.22),transparent)] blur-xl" style={{ animation: "homeHarborPulse 8s ease-in-out infinite" }} />
-      <div className="absolute bottom-[11%] right-[19%] h-8 w-[24%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(126,214,255,0.18),transparent)] blur-xl" style={{ animation: "homeHarborPulse 9s ease-in-out infinite reverse" }} />
+      <div className="absolute bottom-[12%] left-[18%] h-6 w-[22%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,197,90,0.11),transparent)] blur-lg" />
+      <div className="absolute bottom-[11%] right-[19%] h-6 w-[24%] rounded-full bg-[linear-gradient(90deg,transparent,rgba(84,174,205,0.1),transparent)] blur-lg" />
 
       <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 h-full w-full">
         <defs>
           <linearGradient id="homeGroundBack" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#5c6980" />
-            <stop offset="52%" stopColor="#31445d" />
-            <stop offset="100%" stopColor="#162437" />
+            <stop offset="0%" stopColor="#2b3d55" />
+            <stop offset="52%" stopColor="#1f3047" />
+            <stop offset="100%" stopColor="#101b2b" />
           </linearGradient>
           <linearGradient id="homeGroundFront" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#6c765c" />
-            <stop offset="36%" stopColor="#445043" />
-            <stop offset="100%" stopColor="#162535" />
+            <stop offset="0%" stopColor="#485141" />
+            <stop offset="36%" stopColor="#2c382f" />
+            <stop offset="100%" stopColor="#101a27" />
           </linearGradient>
           <linearGradient id="homeWaterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#4ea7e3" />
-            <stop offset="100%" stopColor="#14345b" />
+            <stop offset="0%" stopColor="#234f74" />
+            <stop offset="100%" stopColor="#0d233f" />
           </linearGradient>
           <linearGradient id="homeRoadGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#d7b37d" />
-            <stop offset="100%" stopColor="#946f49" />
+            <stop offset="0%" stopColor="#8d6f4e" />
+            <stop offset="100%" stopColor="#5e4633" />
           </linearGradient>
           <linearGradient id="homeCliffGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#4f5867" />
-            <stop offset="100%" stopColor="#212a35" />
+            <stop offset="0%" stopColor="#303a48" />
+            <stop offset="100%" stopColor="#161f2a" />
           </linearGradient>
           <radialGradient id="homeZoneSoft" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.72)" />
@@ -238,14 +266,14 @@ export default function HomeScene({
         <g transform={`translate(${farX} ${farY})`}>
           <path
             d="M-30 454 112 368 240 392 372 332 512 370 666 298 850 358 1020 308 1166 364 1316 322 1480 382 1640 346v246H-30Z"
-            fill="#3a5a80"
+            fill="#223753"
           />
           <path
             d="M-30 520 140 430 278 462 420 394 596 448 790 374 966 436 1140 390 1330 452 1640 406v258H-30Z"
             fill="url(#homeGroundBack)"
           />
-          <path d="M116 414h38l22 22h-82ZM992 366h46l28 28h-102ZM1316 344h34l18 18h-70Z" fill="#506780" opacity=".44" />
-          <path d="M104 414h64M986 366h82M1312 344h54" stroke="#89a5c3" strokeWidth="6" strokeLinecap="round" opacity=".36" />
+          <path d="M116 414h38l22 22h-82ZM992 366h46l28 28h-102ZM1316 344h34l18 18h-70Z" fill="#35495f" opacity=".38" />
+          <path d="M104 414h64M986 366h82M1312 344h54" stroke="#5d7894" strokeWidth="6" strokeLinecap="round" opacity=".26" />
         </g>
 
         <g transform={`translate(${midX} ${midY})`}>
@@ -263,15 +291,15 @@ export default function HomeScene({
             stroke="url(#homeRoadGradient)"
             strokeWidth="22"
             strokeLinecap="round"
-            opacity=".84"
+            opacity=".66"
           />
           <path
             d="M292 534c108 66 188 92 256 98 88 8 166-12 274-58 102-44 201-60 288-56 92 4 186 34 306 108"
             fill="none"
-            stroke="#fce8bf"
+            stroke="#c8aa7a"
             strokeWidth="5"
             strokeLinecap="round"
-            opacity=".46"
+            opacity=".24"
           />
           <path
             d="M712 562c-40 68-80 118-116 146-38 30-82 52-144 72"
@@ -279,7 +307,7 @@ export default function HomeScene({
             stroke="url(#homeRoadGradient)"
             strokeWidth="18"
             strokeLinecap="round"
-            opacity=".78"
+            opacity=".62"
           />
           <path
             d="M882 544c74 30 130 74 180 126"
@@ -287,7 +315,7 @@ export default function HomeScene({
             stroke="url(#homeRoadGradient)"
             strokeWidth="18"
             strokeLinecap="round"
-            opacity=".78"
+            opacity=".62"
           />
           <path
             d="M942 736c-80 32-150 44-218 42-92-2-172-26-258-72-74-40-142-56-214-54-104 3-185 36-270 92v162h1610V724c-116 46-220 62-330 50-116-12-236-50-410-56-148-4-267 18-390 64Z"
@@ -296,10 +324,10 @@ export default function HomeScene({
           <path
             d="M950 734c-100 38-186 52-262 48-102-4-194-34-294-84-66-34-128-48-198-46-102 3-182 34-270 88"
             fill="none"
-            stroke="#b7e9ff"
+            stroke="#78a9c5"
             strokeWidth="5"
             strokeLinecap="round"
-            opacity=".28"
+            opacity=".16"
           />
           <path
             d="M760 520c22 48 56 90 98 122 34 26 70 44 108 60"
@@ -348,48 +376,13 @@ export default function HomeScene({
           <FountainProp x="908" y="648" scale="0.7" />
         </g>
 
-        <g transform={`translate(${nearX} ${nearY})`}>
-          <FortressZone active={activeZone === "fortress"} />
-          <ArenaZone active={activeZone === "arena"} />
-          <EventsZone active={activeZone === "events"} />
-          <DeckZone active={activeZone === "deck"} />
-          <MarketZone active={activeZone === "market"} />
-          <AdventureZone active={activeZone === "adventure"} />
-        </g>
+        <AssetLandmarkGrounds activeZone={activeZone} nearX={nearX} nearY={nearY} />
       </svg>
 
-      <div className="absolute inset-0">
-        <Spark x="15%" y="18%" size="0.34rem" delay="0s" />
-        <Spark x="22%" y="56%" size="0.4rem" delay=".5s" />
-        <Spark x="36%" y="24%" size="0.3rem" delay="1.2s" />
-        <Spark x="49%" y="38%" size="0.42rem" delay=".7s" />
-        <Spark x="64%" y="63%" size="0.36rem" delay="1.4s" />
-        <Spark x="76%" y="35%" size="0.36rem" delay=".2s" />
-        <Spark x="88%" y="52%" size="0.46rem" delay="1.1s" />
-        <Spark x="58%" y="50%" size="0.28rem" delay=".9s" />
-        <Spark x="31%" y="61%" size="0.34rem" delay="1.8s" />
-        <Spark x="18%" y="72%" size="0.28rem" delay="2.2s" />
-        <Spark x="44%" y="67%" size="0.32rem" delay="2.7s" />
-        <Spark x="72%" y="58%" size="0.3rem" delay="2.4s" />
-        <Spark x="84%" y="69%" size="0.32rem" delay="3s" />
-        <Firefly left="27%" top="72%" delay="0s" />
-        <Firefly left="31%" top="69%" delay="1.2s" />
-        <Firefly left="69%" top="75%" delay=".6s" />
-        <Firefly left="61%" top="69%" delay="1.6s" />
-        <Firefly left="79%" top="67%" delay=".9s" />
-        <Bird left="41%" top="13%" delay="0s" />
-        <Bird left="46%" top="15%" delay=".8s" />
-        <Bird left="52%" top="12%" delay="1.6s" />
-        <Bird left="57%" top="18%" delay=".4s" />
-        <Leaf left="73%" top="69%" delay="0s" />
-        <Leaf left="78%" top="63%" delay="1.4s" />
-        <Leaf left="12%" top="74%" delay=".8s" />
-        <Leaf left="64%" top="74%" delay="2.1s" />
-        <BeaconGlint left="24%" top="52%" delay=".2s" />
-        <BeaconGlint left="48%" top="47%" delay="1.4s" />
-        <BeaconGlint left="67%" top="54%" delay=".9s" />
-        <BeaconGlint left="81%" top="43%" delay="1.9s" />
-      </div>
+      </>
+      )}
+      <HomeWorldEffectLayer effects={worldEffects ?? HOME_WORLD_EFFECTS} qaEditor={qaEditor} />
+      <HomeLandmarkLayer activeZone={activeZone} nearX={nearX} nearY={nearY} effectsByLandmark={effectsByLandmark} qaEditor={qaEditor} />
     </div>
   );
 }
@@ -408,56 +401,10 @@ function Cloud({
   return (
     <div className={`absolute transition-transform duration-700 ${className}`} style={{ transform: `translate3d(${x}px, ${y}px, 0)` }}>
       <div
-        className="h-full w-full rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.42),rgba(255,255,255,0.14)_48%,rgba(255,255,255,0)_78%)] blur-3xl"
+        className="h-full w-full rounded-[999px] bg-[radial-gradient(ellipse_at_center,rgba(158,176,198,0.22),rgba(83,101,124,0.1)_48%,rgba(21,30,43,0)_78%)] blur-3xl"
         style={{ animation: drift }}
       />
     </div>
-  );
-}
-
-function Spark({ x, y, size, delay }: { x: string; y: string; size: string; delay: string }) {
-  return (
-    <span
-      className="absolute rounded-full bg-[#fff5cc] blur-[1px]"
-      style={{ left: x, top: y, width: size, height: size, animation: `homeSparkle 3.4s ease-in-out ${delay} infinite` }}
-    />
-  );
-}
-
-function Firefly({ left, top, delay }: { left: string; top: string; delay: string }) {
-  return (
-    <span
-      className="absolute h-3 w-3 rounded-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,243,178,0.92),rgba(255,243,178,0.18)_62%,transparent_76%)] blur-[0.4px]"
-      style={{ left, top, animation: `homeRunePulse 5s ease-in-out ${delay} infinite` }}
-    />
-  );
-}
-
-function Bird({ left, top, delay }: { left: string; top: string; delay: string }) {
-  return (
-    <span className="absolute h-3 w-5 opacity-60" style={{ left, top, animation: `homeBirdDrift 9s ease-in-out ${delay} infinite` }}>
-      <span className="absolute left-0 top-1 h-[2px] w-3 rotate-[-20deg] rounded-full bg-white/80" />
-      <span className="absolute right-0 top-1 h-[2px] w-3 rotate-[20deg] rounded-full bg-white/80" />
-    </span>
-  );
-}
-
-function Leaf({ left, top, delay }: { left: string; top: string; delay: string }) {
-  return (
-    <span
-      className="absolute h-3.5 w-2.5 rounded-[80%_20%_80%_20%] bg-[linear-gradient(180deg,rgba(255,220,150,0.82),rgba(255,145,104,0.56))] blur-[0.4px]"
-      style={{ left, top, animation: `homeLeafDrift 7.6s ease-in-out ${delay} infinite` }}
-    />
-  );
-}
-
-function BeaconGlint({ left, top, delay }: { left: string; top: string; delay: string }) {
-  return (
-    <span className="absolute h-7 w-7 rounded-full" style={{ left, top, animation: `homeBeaconTwinkle 4.8s ease-in-out ${delay} infinite` }}>
-      <span className="absolute left-1/2 top-1/2 h-[2px] w-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ffe59b]/70" />
-      <span className="absolute left-1/2 top-1/2 h-7 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ffe59b]/64" />
-      <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fff3c7]" />
-    </span>
   );
 }
 
@@ -518,6 +465,175 @@ function ZoneAura({
       }) : null}
     </g>
   );
+}
+
+function AssetLandmarkGrounds({
+  activeZone,
+  nearX,
+  nearY,
+}: {
+  activeZone: HomeZoneId | null;
+  nearX: number;
+  nearY: number;
+}) {
+  return (
+    <g transform={`translate(${nearX} ${nearY})`}>
+      <LandmarkPad zone="arena" cx={292} cy={548} rx={144} ry={54} active={activeZone === "arena"} />
+      <LandmarkPad zone="events" cx={424} cy={690} rx={112} ry={42} active={activeZone === "events"} />
+      <LandmarkPad zone="deck" cx={656} cy={732} rx={120} ry={38} active={activeZone === "deck"} />
+      <LandmarkPad zone="market" cx={1006} cy={728} rx={128} ry={42} active={activeZone === "market"} />
+      <LandmarkPad zone="adventure" cx={1256} cy={548} rx={132} ry={50} active={activeZone === "adventure"} />
+      <LandmarkPad zone="fortress" cx={802} cy={534} rx={188} ry={66} active={activeZone === "fortress"} />
+    </g>
+  );
+}
+
+function LandmarkPad({
+  zone,
+  cx,
+  cy,
+  rx,
+  ry,
+  active,
+}: {
+  zone: HomeZoneId;
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  active: boolean;
+}) {
+  const color = ZONE_COLORS[zone];
+
+  return (
+    <g>
+      <ellipse cx={cx} cy={cy + ry * 0.24} rx={rx * 0.7} ry={ry * 0.3} fill="#050b12" opacity={0.2} />
+      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={color} opacity={active ? 0.09 : 0.04} />
+      <ellipse cx={cx} cy={cy + ry * 0.18} rx={rx * 0.86} ry={ry * 0.48} fill="#101c2b" opacity={0.28} />
+      <ellipse cx={cx} cy={cy - ry * 0.04} rx={rx * 0.7} ry={ry * 0.32} fill="#708188" opacity={active ? 0.055 : 0.02} />
+      <ellipse cx={cx} cy={cy} rx={rx * 0.94} ry={ry * 0.82} fill="none" stroke={color} strokeWidth={active ? 3.2 : 1.8} opacity={active ? 0.34 : 0.12} />
+    </g>
+  );
+}
+
+function HomeLandmarkLayer({
+  activeZone,
+  nearX,
+  nearY,
+  effectsByLandmark,
+  qaEditor,
+}: {
+  activeZone: HomeZoneId | null;
+  nearX: number;
+  nearY: number;
+  effectsByLandmark?: Partial<Record<HomeLandmarkId, HomeLandmarkEffectConfig[]>>;
+  qaEditor?: HomeEffectsQaEditorState;
+}) {
+  return (
+    <div
+      className="absolute inset-0 z-[2]"
+      style={{ transform: `translate3d(${nearX}px, ${nearY}px, 0)` }}
+    >
+      {(["arena", "events", "deck", "market", "adventure", "fortress"] as const).map((id) => (
+        <HomeLandmarkAsset
+          key={id}
+          id={id}
+          label={HOME_LANDMARK_LABELS[id]}
+          active={activeZone === id}
+          className=""
+          style={getHomeLandmarkStyle(id, HOME_LANDMARK_LAYOUT[id], activeZone === id)}
+          effects={effectsByLandmark?.[id]}
+          qaEditor={qaEditor}
+        />
+      ))}
+    </div>
+  );
+}
+
+function HomeWorldEffectLayer({
+  effects,
+  qaEditor,
+}: {
+  effects: HomeLandmarkEffectConfig[];
+  qaEditor?: HomeEffectsQaEditorState;
+}) {
+  if (!effects.length && !qaEditor) {
+    return null;
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-[3] block"
+      data-home-effect-anchor="world"
+      data-home-qa-landmark="world"
+    >
+      {effects.map((placement) => (
+        <HomeEffectSprite
+          key={placement.id}
+          dataId={placement.id}
+          effect={placement.effect}
+          durationMs={placement.durationMs}
+          width={`${placement.widthPercent}%`}
+          height={`${placement.heightPercent}%`}
+          opacity={placement.opacity ?? 1}
+          backgroundY={placement.backgroundY}
+          rotationDeg={placement.rotationDeg}
+          yawDeg={placement.yawDeg}
+          originXPercent={placement.originXPercent}
+          originYPercent={placement.originYPercent}
+          anchorXPercent={placement.anchorXPercent}
+          anchorYPercent={placement.anchorYPercent}
+          flipX={placement.flipX}
+          flipY={placement.flipY}
+          mobileDisabled={placement.mobileDisabled ?? true}
+          style={{
+            left: `${placement.xPercent}%`,
+            top: `${placement.yPercent}%`,
+          }}
+        />
+      ))}
+      {qaEditor ? <HomeEffectQaHandles landmark="world" effects={effects} editor={qaEditor} /> : null}
+    </span>
+  );
+}
+
+const HOME_LANDMARK_LABELS: Record<HomeLandmarkId, string> = {
+  fortress: "Fortress",
+  adventure: "Adventure",
+  arena: "Arena",
+  events: "Events",
+  deck: "Deck",
+  market: "Market",
+};
+
+function getHomeLandmarkStyle(id: HomeLandmarkId, layout: HomeLandmarkLayout, active: boolean): CSSProperties {
+  return {
+    left: `${layout.x}px`,
+    top: `${layout.y}px`,
+    width: `${layout.width}px`,
+    height: `${layout.height}px`,
+    zIndex: layout.zIndex,
+    transform: active ? "translate(-50%, -101%) scale(1.018)" : "translate(-50%, -100%)",
+    transformOrigin: "50% 100%",
+    filter: getHomeLandmarkFilter(id, active),
+    opacity: 1,
+    transition: "filter 220ms ease, transform 220ms ease, opacity 220ms ease",
+    contain: "layout paint",
+    ["--home-landmark-x" as string]: layout.x,
+    ["--home-landmark-y" as string]: layout.y,
+    ["--home-landmark-id" as string]: id,
+  };
+}
+
+function getHomeLandmarkFilter(id: HomeLandmarkId, active: boolean) {
+  if (active) return "saturate(0.98) contrast(1.04) brightness(0.98)";
+  if (id === "fortress") return "saturate(0.88) contrast(1.04) brightness(0.9)";
+  if (id === "adventure") return "saturate(0.94) contrast(1.04) brightness(0.92)";
+  if (id === "events") return "saturate(0.96) contrast(1.04) brightness(0.92)";
+  if (id === "deck") return "saturate(1.08) contrast(1.2) brightness(1.12) drop-shadow(0 8px 8px rgba(0,0,0,0.42))";
+  if (id === "market") return "saturate(1.08) contrast(1.18) brightness(1.1) drop-shadow(0 8px 8px rgba(0,0,0,0.4))";
+  return "saturate(0.9) contrast(1.03) brightness(0.9)";
 }
 
 function FortressZone({ active }: { active: boolean }) {

@@ -1,6 +1,6 @@
 import type { GlyphKind } from "@/components/ui/GameGlyph";
 
-export type GameAssetIconCategory = "resources" | "nav" | "combat" | "cards" | "fortress" | "progression" | "status" | "shop";
+export type GameAssetIconCategory = "resources" | "nav" | "combat" | "cards" | "fortress" | "progression" | "status" | "shop" | "modes";
 export type GameAssetIconSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export type ResourceAssetIconName = "gold" | "gems" | "gem" | "dust" | "shards" | "tickets" | "command";
@@ -76,6 +76,16 @@ export type ShopAssetIconName =
   | "free_claim"
   | "featured"
   | "discount";
+export type ModeAssetIconName =
+  | "campaign"
+  | "ladder"
+  | "arena_draft"
+  | "daily_event"
+  | "boss_event"
+  | "fortress_raid"
+  | "challenge"
+  | "dungeon_run"
+  | "boss_rush";
 
 export type GameAssetIconName =
   | ResourceAssetIconName
@@ -85,7 +95,8 @@ export type GameAssetIconName =
   | FortressAssetIconName
   | ProgressionAssetIconName
   | StatusAssetIconName
-  | ShopAssetIconName;
+  | ShopAssetIconName
+  | ModeAssetIconName;
 
 const RESOURCE_ROOT = "/assets/icons/resources";
 const NAV_ROOT = "/assets/icons/nav";
@@ -94,6 +105,7 @@ const CARD_ROOT = "/assets/icons/cards";
 const FORTRESS_ROOT = "/assets/icons/fortress";
 const PROGRESSION_ROOT = "/assets/icons/progression";
 const STATUS_ROOT = "/assets/icons/status";
+const MODE_ROOT = "/assets/icons/modes";
 
 // Explicit manifest. Only assets registered here are requested by the browser.
 export const GAME_ICON_ASSET_MANIFEST = {
@@ -191,6 +203,17 @@ export const GAME_ICON_ASSET_MANIFEST = {
     featured: "/assets/icons/shop/featured.png",
     discount: "/assets/icons/shop/discount.png",
   },
+  modes: {
+    campaign: `${MODE_ROOT}/campaign.png`,
+    ladder: `${MODE_ROOT}/ladder.png`,
+    arena_draft: `${MODE_ROOT}/arena_draft.png`,
+    daily_event: `${MODE_ROOT}/daily_event.png`,
+    boss_event: `${MODE_ROOT}/boss_event.png`,
+    fortress_raid: `${MODE_ROOT}/fortress_raid.png`,
+    challenge: `${MODE_ROOT}/challenge.png`,
+    dungeon_run: `${MODE_ROOT}/dungeon_run.png`,
+    boss_rush: `${MODE_ROOT}/boss_rush.png`,
+  },
 } as const satisfies Record<GameAssetIconCategory, Partial<Record<GameAssetIconName, string>>>;
 
 export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind> = {
@@ -271,6 +294,15 @@ export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind
   free_claim: "rewards",
   featured: "offers",
   discount: "gold",
+  campaign: "adventure",
+  ladder: "arena",
+  arena_draft: "arena",
+  daily_event: "events",
+  boss_event: "battle",
+  fortress_raid: "fortress",
+  challenge: "skill",
+  dungeon_run: "adventure",
+  boss_rush: "battle",
 };
 
 export function getGameAssetIconSrc(category: GameAssetIconCategory, name: GameAssetIconName) {
@@ -378,6 +410,20 @@ export function isShopAssetIconName(name: string): name is ShopAssetIconName {
     name === "free_claim" ||
     name === "featured" ||
     name === "discount"
+  );
+}
+
+export function isModeAssetIconName(name: string): name is ModeAssetIconName {
+  return (
+    name === "campaign" ||
+    name === "ladder" ||
+    name === "arena_draft" ||
+    name === "daily_event" ||
+    name === "boss_event" ||
+    name === "fortress_raid" ||
+    name === "challenge" ||
+    name === "dungeon_run" ||
+    name === "boss_rush"
   );
 }
 
