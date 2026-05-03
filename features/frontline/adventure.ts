@@ -1,7 +1,11 @@
 import type { AdventureLevel } from "@/lib/types";
 import { ADVENTURE_BY_ID } from "@/data/adventure";
-import { mergeRewards } from "@/features/battle/rewards";
-import { isAdventureFirstClearRewardAvailable, type AdventureFirstClearProgress } from "@/lib/rewardVisibility";
+import {
+  getAdventureNodeRewardPreview,
+  getAdventureVictoryRewards,
+  type AdventureProgressEntry,
+} from "@/features/adventure/nodeResolution";
+import type { AdventureFirstClearProgress } from "@/lib/rewardVisibility";
 import { FRONTLINE_PRESET_BY_ID, FRONTLINE_PRESETS, FRONTLINE_UNIT_BY_ID } from "./data";
 import type { FrontlinePreset } from "./types";
 
@@ -42,12 +46,9 @@ export function getFrontlineAdventureRewardPreview(
   level: AdventureLevel,
   progress: AdventureFirstClearProgress | undefined,
 ) {
-  return mergeRewards(
-    level.rewards,
-    isAdventureFirstClearRewardAvailable(progress) ? level.firstClearRewards : undefined,
-  );
+  return getAdventureNodeRewardPreview(level, progress as AdventureProgressEntry | undefined);
 }
 
 export function getFrontlineAdventureVictoryRewards(level: AdventureLevel, firstClear: boolean) {
-  return mergeRewards(level.rewards, firstClear ? level.firstClearRewards : undefined);
+  return getAdventureVictoryRewards(level, firstClear);
 }

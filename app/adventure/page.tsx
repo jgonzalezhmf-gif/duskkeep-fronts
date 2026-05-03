@@ -6,12 +6,20 @@ import { ADVENTURE } from "@/data/adventure";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 import {
+  getAdventureNodeDefinition,
+  getAdventureNodeType,
+  isAdventureClaimed,
+  isAdventureCombatNode,
+  type AdventureProgressEntry,
+} from "@/features/adventure/nodeResolution";
+import {
   AdventureCampaignMap,
   AdventureMissionPanel,
   type AdventureCampaignMeta,
-  type AdventureNodeLayout,
   type AdventureNodeState,
 } from "@/components/game/adventure/AdventureCampaignScene";
+import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/components/game/adventure/adventureMapLayout";
+import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { ScreenBadge, ScreenScaffold } from "@/components/game/screens/ScreenChrome";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -62,33 +70,6 @@ const CHAPTER_META: Record<number, AdventureCampaignMeta> = {
   },
 };
 
-const CHAPTER_LAYOUTS: Record<number, AdventureNodeLayout[]> = {
-  1: [
-    { x: "12%", y: "82%", mobileX: "13%", mobileY: "78%" },
-    { x: "22%", y: "75%", mobileX: "22%", mobileY: "69%" },
-    { x: "33%", y: "77%", mobileX: "33%", mobileY: "72%" },
-    { x: "43%", y: "67%", mobileX: "45%", mobileY: "62%" },
-    { x: "55%", y: "70%", mobileX: "60%", mobileY: "65%" },
-    { x: "67%", y: "61%", mobileX: "74%", mobileY: "56%" },
-    { x: "75%", y: "50%", mobileX: "79%", mobileY: "47%" },
-    { x: "63%", y: "44%", mobileX: "64%", mobileY: "40%" },
-    { x: "51%", y: "50%", mobileX: "50%", mobileY: "45%" },
-    { x: "39%", y: "40%", mobileX: "36%", mobileY: "35%" },
-    { x: "49%", y: "28%", mobileX: "50%", mobileY: "24%" },
-    { x: "67%", y: "21%", mobileX: "73%", mobileY: "20%" },
-  ],
-  2: [
-    { x: "14%", y: "81%", mobileX: "15%", mobileY: "75%" },
-    { x: "27%", y: "71%", mobileX: "27%", mobileY: "66%" },
-    { x: "40%", y: "75%", mobileX: "39%", mobileY: "69%" },
-    { x: "53%", y: "63%", mobileX: "55%", mobileY: "57%" },
-    { x: "67%", y: "54%", mobileX: "70%", mobileY: "48%" },
-    { x: "59%", y: "42%", mobileX: "59%", mobileY: "39%" },
-    { x: "46%", y: "31%", mobileX: "45%", mobileY: "28%" },
-    { x: "76%", y: "20%", mobileX: "79%", mobileY: "20%" },
-  ],
-};
-
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 const CHAPTER_TRANSLATION_KEYS: Record<number, "one" | "two" | "three"> = {
   1: "one",
@@ -126,6 +107,7 @@ export default function AdventureMapPage() {
   const { t } = useI18n();
   const progress = useGameStore((state) => state.adventureProgress);
   const accountLevel = useGameStore((state) => state.account.level);
+  const claimAdventureNode = useGameStore((state) => state.claimAdventureNode);
   const router = useRouter();
 
   const chapters = useMemo(() => {
@@ -140,6 +122,8 @@ export default function AdventureMapPage() {
     for (const chapter of Array.from(byChapter.keys()).sort((a, b) => a - b)) {
       const nodes = byChapter.get(chapter)!.map((lvl) => {
         const levelProgress = progress[lvl.id];
+        const nodeType = getAdventureNodeType(lvl);
+        const claimed = isAdventureClaimed(nodeType, levelProgress as AdventureProgressEntry | undefined);
         const cleared = levelProgress?.cleared ?? false;
         const accountLocked = (lvl.unlockAccountLevel ?? 0) > accountLevel;
         const progressLocked = !previousLevelCleared && !cleared;
@@ -149,6 +133,7 @@ export default function AdventureMapPage() {
         return {
           lvl,
           cleared,
+          claimed,
           locked,
           current,
           pausedHere: false,
@@ -165,6 +150,15 @@ export default function AdventureMapPage() {
   const [activeChapter, setActiveChapter] = useState(defaultChapter);
   const active = chapters.find((chapter) => chapter.chapter === activeChapter) ?? chapters[0];
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [chaptersOpen, setChaptersOpen] = useState(false);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [qaMapEditor, setQaMapEditor] = useState(false);
+  const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, ReturnType<typeof claimAdventureNode>>>({});
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQaMapEditor(params.get("qa") === "adventure-map" || params.get("qa") === "map-editor");
+  }, []);
 
   useEffect(() => {
     if (!active) return;
@@ -176,7 +170,7 @@ export default function AdventureMapPage() {
   if (!active) return null;
 
   const meta = getLocalizedChapterMeta(active.chapter, t);
-  const layouts = CHAPTER_LAYOUTS[active.chapter] ?? CHAPTER_LAYOUTS[1];
+  const mapLayout = ADVENTURE_MAP_CHAPTER_LAYOUTS[active.chapter] ?? ADVENTURE_MAP_CHAPTER_LAYOUTS[1];
   const selected =
     active.nodes.find((node) => node.lvl.id === selectedId) ??
     active.nodes.find((node) => node.pausedHere || node.current) ??
@@ -184,87 +178,124 @@ export default function AdventureMapPage() {
 
   if (!selected) return null;
 
+  const selectedDefinition = getAdventureNodeDefinition(selected.lvl);
+  const selectedProgress = progress[selected.lvl.id] as AdventureProgressEntry | undefined;
+  const claimedRewards = claimedRewardsByNode[selected.lvl.id] ?? null;
+
+  function resolveSelectedNode() {
+    if (selected.locked || selectedDefinition.type === "locked") return;
+    if (isAdventureClaimed(selectedDefinition.type, selectedProgress)) return;
+    if (!isAdventureCombatNode(selectedDefinition.type)) {
+      const rewards = claimAdventureNode(selected.lvl.id);
+      if (rewards) {
+        setClaimedRewardsByNode((current) => ({ ...current, [selected.lvl.id]: rewards }));
+      }
+      return;
+    }
+    router.push(`/adventure/${selected.lvl.id}`);
+  }
+
   return (
     <ScreenScaffold scene={meta.scene} dock={false}>
-      <div className="relative z-20 mx-auto flex w-full max-w-[1580px] flex-col gap-4 px-3 pb-16 pt-52 sm:pt-[9.5rem] md:px-6 md:pb-20 md:pt-[6.5rem] xl:px-8">
-        <section className="relative overflow-hidden rounded-[38px] border border-[#f5d498]/14 bg-[linear-gradient(180deg,rgba(54,38,23,0.16),rgba(9,13,20,0.58)_38%,rgba(7,9,14,0.86))] shadow-[0_36px_96px_rgba(0,0,0,0.34)] backdrop-blur-xl">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(245,196,81,0.16),transparent_20%),radial-gradient(circle_at_82%_16%,rgba(147,214,255,0.14),transparent_20%),linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0)_18%,rgba(0,0,0,0.12)_100%)]" />
-          <div className="relative z-30 border-b border-[#f5d498]/10 px-3 py-3 md:px-5 md:py-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.24em] text-[#f5d498]">{t("adventure.campaignFronts")}</div>
-                <div className="mt-1 text-lg font-black text-white md:text-[1.32rem]">{t("adventure.warpathAtlas")}</div>
-                <div className="mt-1 max-w-[42rem] text-[11px] leading-5 text-white/58 md:text-[12px]">
-                  {t("adventure.atlasHint")}
-                </div>
-              </div>
+      <div className="relative box-border h-dvh overflow-hidden px-3 pb-4 pt-36 sm:pt-32 md:px-6 md:pt-24 xl:px-8">
+        <AdventureCampaignMap
+          meta={meta}
+          nodes={active.nodes}
+          mapLayout={mapLayout}
+          chapter={active.chapter}
+          selectedId={selected.lvl.id}
+          onSelect={setSelectedId}
+          fullScreen
+        />
+        <div className="pointer-events-none absolute inset-0 z-[11] bg-[radial-gradient(circle_at_50%_42%,transparent_0%,rgba(4,7,13,0.06)_50%,rgba(4,7,13,0.62)_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-[11] h-44 bg-[linear-gradient(180deg,rgba(4,7,13,0.84),rgba(4,7,13,0.22),transparent)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[11] h-44 bg-[linear-gradient(0deg,rgba(4,7,13,0.86),rgba(4,7,13,0.24),transparent)]" />
+
+        <div className="pointer-events-none fixed inset-x-3 bottom-4 top-36 z-30 mx-auto max-w-[1680px] sm:top-32 md:inset-x-6 md:top-24 xl:inset-x-8">
+          <div className="pointer-events-auto absolute left-0 top-0 w-[min(28rem,calc(100vw-1.5rem))]">
+            <div className="rounded-[18px] border border-[#f5d498]/12 bg-[linear-gradient(180deg,rgba(10,13,20,0.34),rgba(7,9,14,0.58))] px-2.5 py-2 shadow-[0_12px_28px_rgba(0,0,0,0.2)] backdrop-blur-xl">
               <div className="flex items-center gap-2">
-                <ScreenBadge tone="sky">{chapters.length} {t("adventure.chapters")}</ScreenBadge>
-                <ScreenBadge tone="neutral">{selected.lvl.index}/{active.nodes.length} {t("adventure.nodes")}</ScreenBadge>
+                <ModeIcon name="campaign" size="xs" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[8px] uppercase tracking-[0.18em]" style={{ color: meta.accent }}>{meta.subtitle}</div>
+                  <div className="truncate text-[12px] font-black leading-tight text-white">{meta.name}</div>
+                </div>
+                <ScreenBadge tone="neutral" className="px-2 py-0.5 text-[8px]">
+                  {selected.lvl.index}/{active.nodes.length}
+                </ScreenBadge>
+                <button
+                  type="button"
+                  onClick={() => setChaptersOpen((value) => !value)}
+                  className="rounded-full border border-[#f5d498]/18 bg-black/26 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-[#f5d498] transition hover:bg-[#f5c451]/12"
+                >
+                  {t("adventure.chapters")}
+                </button>
               </div>
             </div>
 
-            <div className="mt-3 grid gap-2 md:grid-cols-3">
-              {chapters.map((chapter) => {
-                const chapterMeta = getLocalizedChapterMeta(chapter.chapter, t);
-                const selectedTab = chapter.chapter === active.chapter;
-                const fullyLocked = chapter.nodes.every((node) => node.locked && !node.cleared);
-                const cleared = chapter.nodes.filter((node) => node.cleared).length;
-                return (
-                  <button
-                    key={chapter.chapter}
-                    onClick={() => setActiveChapter(chapter.chapter)}
-                    className={cn(
-                      "frontline-motion-tab relative overflow-hidden rounded-[22px] border px-3 py-3 text-left transition",
-                      selectedTab
-                        ? "border-white/14 bg-[linear-gradient(180deg,rgba(44,28,15,0.68),rgba(9,11,17,0.96))] shadow-[0_18px_38px_rgba(245,196,81,0.12)]"
-                        : "border-white/8 bg-[linear-gradient(180deg,rgba(14,18,28,0.34),rgba(8,10,16,0.9))]",
-                      fullyLocked && !selectedTab && "opacity-60",
-                    )}
-                  >
-                    <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px]" style={{ background: `linear-gradient(90deg,transparent,${chapterMeta.accent},transparent)` }} />
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-[10px] uppercase tracking-[0.2em]" style={{ color: chapterMeta.accent }}>
-                          {chapterMeta.subtitle}
+            {chaptersOpen ? (
+              <div className="mt-2 grid gap-1.5 rounded-[18px] border border-white/10 bg-black/72 p-2 shadow-[0_18px_40px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+                {chapters.map((chapter) => {
+                  const chapterMeta = getLocalizedChapterMeta(chapter.chapter, t);
+                  const selectedTab = chapter.chapter === active.chapter;
+                  const fullyLocked = chapter.nodes.every((node) => node.locked && !node.cleared);
+                  const cleared = chapter.nodes.filter((node) => node.cleared).length;
+                  return (
+                    <button
+                      key={chapter.chapter}
+                      type="button"
+                      onClick={() => {
+                        setActiveChapter(chapter.chapter);
+                        setChaptersOpen(false);
+                      }}
+                      className={cn(
+                        "frontline-motion-tab relative overflow-hidden rounded-[13px] border px-2.5 py-1.5 text-left transition",
+                        selectedTab
+                          ? "border-[#f5d498]/28 bg-[linear-gradient(180deg,rgba(44,28,15,0.72),rgba(9,11,17,0.9))]"
+                          : "border-white/8 bg-[linear-gradient(180deg,rgba(14,18,28,0.44),rgba(8,10,16,0.76))]",
+                        fullyLocked && !selectedTab && "opacity-60",
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <ModeIcon name={chapter.chapter === 3 ? "dungeon_run" : "campaign"} size="xs" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[8px] uppercase tracking-[0.16em]" style={{ color: chapterMeta.accent }}>
+                            {chapterMeta.subtitle}
+                          </div>
+                          <div className="truncate text-[11px] font-black text-white">{chapterMeta.name}</div>
                         </div>
-                        <div className="mt-1 truncate text-sm font-black text-white">{chapterMeta.name}</div>
-                        <div className="mt-1 text-[11px] leading-5 text-white/56">{chapterMeta.terrainLabel}</div>
+                        <ScreenBadge tone={fullyLocked ? "neutral" : selectedTab ? "gold" : "sky"} className="px-2 py-0.5 text-[8px]">
+                          {fullyLocked ? t("adventure.locked") : `${cleared}/${chapter.nodes.length}`}
+                        </ScreenBadge>
                       </div>
-                      <ScreenBadge tone={fullyLocked ? "neutral" : selectedTab ? "gold" : "sky"}>
-                        {fullyLocked ? t("adventure.locked") : `${cleared}/${chapter.nodes.length}`}
-                      </ScreenBadge>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
 
-          <div className="relative grid items-start gap-4 px-3 pb-3 pt-3 md:px-5 md:pb-5 md:pt-4 xl:grid-cols-[minmax(0,1fr)_23rem]">
-            <div className="relative">
-              <div className="h-[33rem] sm:h-[37rem] lg:h-[42rem] xl:h-[46rem]">
-                <AdventureCampaignMap
-                  meta={meta}
-                  nodes={active.nodes}
-                  layouts={layouts}
-                  selectedId={selected.lvl.id}
-                  onSelect={setSelectedId}
-                  embedded
-                  showOverlayHeader={false}
-                />
-              </div>
-            </div>
-            <div className="relative xl:sticky xl:top-24 xl:pt-1">
+          {!qaMapEditor ? (
+            <div
+              className={cn(
+                "pointer-events-auto absolute inset-x-0 mx-auto w-[min(62rem,calc(100vw-1.5rem))]",
+                detailsExpanded ? "top-[calc(100dvh-31rem)]" : "top-[calc(100dvh-19rem)]",
+              )}
+            >
               <AdventureMissionPanel
                 meta={meta}
                 node={selected}
                 totalNodes={active.nodes.length}
-                onOpenBattle={() => !selected.locked && router.push(`/adventure/${selected.lvl.id}`)}
+                nodeDefinition={selectedDefinition}
+                progress={selectedProgress}
+                claimedRewards={claimedRewards}
+                expanded={detailsExpanded}
+                onToggleExpanded={() => setDetailsExpanded((value) => !value)}
+                onOpenBattle={resolveSelectedNode}
               />
             </div>
-          </div>
-        </section>
+          ) : null}
+        </div>
       </div>
     </ScreenScaffold>
   );

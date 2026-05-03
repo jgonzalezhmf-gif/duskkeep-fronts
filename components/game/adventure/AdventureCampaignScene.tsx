@@ -1,13 +1,47 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import type { AdventureLevel } from "@/lib/types";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type PointerEvent as ReactPointerEvent } from "react";
+import type { AdventureLevel, Rewards } from "@/lib/types";
 import { cn } from "@/lib/cn";
-import ArtPortrait from "@/components/ui/ArtPortrait";
+import { getScreenBackgroundAsset } from "@/lib/screenBackgroundAssets";
+import {
+  ADVENTURE_PROP_ASSET_IDS,
+  getAdventureNodeAsset,
+  getAdventurePropAsset,
+  type AdventureNodeAssetId,
+  type AdventurePropAssetId,
+} from "@/lib/adventureMapAssets";
+import {
+  ADVENTURE_MAP_DESIGN,
+  ADVENTURE_MAP_NODE_STATUSES,
+  ADVENTURE_MAP_NODE_TYPES,
+  ADVENTURE_MAP_PROP_TYPES,
+  type AdventureMapChapterLayout,
+  type AdventureMapNodeStatus,
+  type AdventureMapNodeType,
+  type AdventureMapPartyMarkerLayout,
+  type AdventureMapPropLayout,
+  type AdventureMapPropType,
+  type AdventureMapRouteLayout,
+  type AdventureMapRouteState,
+  type AdventureNodeLayout,
+} from "./adventureMapLayout";
 import { FRONTLINE_CARD_BY_ID } from "@/features/frontline/data";
 import { getFrontlineAdventureSquad } from "@/features/frontline/adventure";
+import {
+  getAdventureNodeDefinition,
+  getAdventureNodeRewardPreview,
+  isAdventureClaimed,
+  isAdventureCombatNode,
+  type AdventureNodeDefinition,
+  type AdventureProgressEntry,
+} from "@/features/adventure/nodeResolution";
 import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
+import { AdventureSkyAtmosphere } from "@/components/game/adventure/AdventureSkyAtmosphere";
+import { HomeEffectSprite, HomeEffectSpriteStyles } from "@/components/game/home/HomeEffectSprite";
+import GameIcon from "@/components/game/shared/GameIcon";
 import { GameRewardToken } from "@/components/game/shared/GameRewardToken";
+import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { frontlineCardName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import {
@@ -16,22 +50,29 @@ import {
   ScreenBadge,
   ScreenPanel,
 } from "@/components/game/screens/ScreenChrome";
+import { HOME_EFFECT_IDS, type HomeEffectId } from "@/lib/homeEffectAssets";
 import type { ScreenScene } from "@/components/game/screens/SceneBackdrop";
+
+const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
+const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;
+const HOME_EFFECT_PROP_IDS = new Set<string>(HOME_EFFECT_IDS);
+const ADVENTURE_PROP_ASSET_ID_SET = new Set<string>(ADVENTURE_PROP_ASSET_IDS);
+
+export type {
+  AdventureMapChapterLayout,
+  AdventureMapNodeStatus,
+  AdventureMapNodeType,
+  AdventureNodeLayout,
+};
 
 export type AdventureNodeState = {
   lvl: AdventureLevel;
   cleared: boolean;
   locked: boolean;
   current: boolean;
+  claimed?: boolean;
   pausedHere: boolean;
   firstClearAvailable: boolean;
-};
-
-export type AdventureNodeLayout = {
-  x: string;
-  y: string;
-  mobileX: string;
-  mobileY: string;
 };
 
 export type AdventureLandmark = {
@@ -57,76 +98,1433 @@ export type AdventureCampaignMeta = {
 
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
+type AdventureVisualNode = {
+  id: string;
+  node: AdventureNodeState;
+  x: number;
+  y: number;
+  size?: number;
+  zIndex?: number;
+  type: AdventureMapNodeType;
+  status: AdventureMapNodeStatus;
+  connectsTo: string[];
+};
+
+type AdventureVisualRoute = {
+  id: string;
+  from: AdventureVisualNode;
+  to: AdventureVisualNode;
+  state?: AdventureMapRouteState;
+  control1?: { x: number; y: number };
+  control2?: { x: number; y: number };
+};
+
+type EditorSelection =
+  | { kind: "node"; id: string }
+  | { kind: "prop"; id: string }
+  | { kind: "party"; id: "party" }
+  | { kind: "routeControl"; id: string; handle: "control1" | "control2" };
+
 export function AdventureCampaignMap({
   meta,
   nodes,
-  layouts,
+  mapLayout,
+  chapter,
   selectedId,
   onSelect,
   embedded = false,
-  showOverlayHeader = true,
+  fullScreen = false,
 }: {
   meta: AdventureCampaignMeta;
   nodes: AdventureNodeState[];
-  layouts: AdventureNodeLayout[];
+  mapLayout: AdventureMapChapterLayout;
+  chapter: number;
   selectedId: string;
   onSelect: (id: string) => void;
   embedded?: boolean;
+  fullScreen?: boolean;
   showOverlayHeader?: boolean;
 }) {
-  const desktopPath = buildSmoothPath(layouts, "desktop");
-  const mobilePath = buildSmoothPath(layouts, "mobile");
-  const progress = nodes.length ? Math.round((nodes.filter((node) => node.cleared).length / nodes.length) * 100) : 0;
-  const cleared = nodes.filter((node) => node.cleared).length;
+  const { t } = useI18n();
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [qaEnabled, setQaEnabled] = useState(false);
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  const [editorLayout, setEditorLayout] = useState(mapLayout);
+  const [selectedEditor, setSelectedEditor] = useState<EditorSelection | null>(null);
+  const [dragging, setDragging] = useState<EditorSelection | null>(null);
+  const [showRouteHandles, setShowRouteHandles] = useState(false);
+  const [copyStatus, setCopyStatus] = useState("");
+  const background = getScreenBackgroundAsset("adventure");
+  const editorKey = useMemo(() => `adventure-map-editor:${nodes.map((node) => node.lvl.id).join("|")}`, [nodes]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQaEnabled(params.get("qa") === "adventure-map" || params.get("qa") === "map-editor");
+  }, []);
+
+  useEffect(() => {
+    if (!qaEnabled) {
+      setEditorLayout(mapLayout);
+      return;
+    }
+    const saved = window.localStorage.getItem(editorKey);
+    if (saved) {
+      try {
+        setEditorLayout(JSON.parse(saved) as AdventureMapChapterLayout);
+        return;
+      } catch {
+        window.localStorage.removeItem(editorKey);
+      }
+    }
+    setEditorLayout(mapLayout);
+  }, [editorKey, mapLayout, qaEnabled]);
+
+  useEffect(() => {
+    if (!qaEnabled) return;
+    window.localStorage.setItem(editorKey, JSON.stringify(editorLayout));
+  }, [editorKey, editorLayout, qaEnabled]);
+
+  const activeLayout = qaEnabled ? editorLayout : mapLayout;
+
+  const visualNodes = useMemo(
+    () => {
+      const realIds = new Set(nodes.map((node) => node.lvl.id));
+      const baseNodes = nodes.map((node, index): AdventureVisualNode => {
+        const id = node.lvl.id;
+        const layout =
+          activeLayout.nodes.find((entry) => entry.id === id) ??
+          activeLayout.nodes[index] ??
+          activeLayout.nodes[activeLayout.nodes.length - 1] ??
+          { x: 280 + index * 130, y: 820 - index * 42 };
+        const type = layout.type ?? deriveNodeType(node, index, nodes.length);
+        const status = qaEnabled && layout.status ? layout.status : deriveNodeStatus(node);
+        return {
+          id,
+          node,
+          x: layout.x,
+          y: layout.y,
+          size: layout.size,
+          zIndex: layout.zIndex,
+          type: qaEnabled ? type : status === "locked" ? "locked" : type,
+          status,
+          connectsTo: layout.connectsTo ?? (nodes[index + 1] ? [nodes[index + 1].lvl.id] : []),
+        };
+      });
+
+      if (!qaEnabled) return baseNodes;
+
+      const editorOnlyNodes = activeLayout.nodes
+        .filter((entry) => entry.id && !realIds.has(entry.id))
+        .map((layout, index): AdventureVisualNode => {
+          const id = layout.id ?? `qa-node-${index + 1}`;
+          return {
+            id,
+            node: {
+              lvl: {
+                id,
+                chapter: 0,
+                index: baseNodes.length + index + 1,
+                name: id,
+                enemyTeam: [],
+                rewards: {},
+                recommendedPower: 0,
+              },
+              cleared: false,
+              locked: false,
+              current: false,
+              pausedHere: false,
+              firstClearAvailable: false,
+            },
+            x: layout.x,
+            y: layout.y,
+            size: layout.size,
+            zIndex: layout.zIndex,
+            type: layout.type ?? "battle",
+            status: layout.status ?? "available",
+            connectsTo: layout.connectsTo ?? [],
+          };
+        });
+
+      return [...baseNodes, ...editorOnlyNodes];
+    },
+    [activeLayout.nodes, nodes, qaEnabled],
+  );
+
+  const selectedNode = visualNodes.find((node) => node.id === selectedId) ?? visualNodes[0];
+  const partyNode =
+    visualNodes.find((node) => node.node.pausedHere || node.status === "current") ??
+    [...visualNodes].reverse().find((node) => node.status === "cleared") ??
+    selectedNode;
+  const routes = buildRoutes(visualNodes, activeLayout.routes);
+
+  function pointFromEvent(event: PointerEvent<HTMLDivElement>) {
+    if (!stageRef.current) return null;
+    const rect = stageRef.current.getBoundingClientRect();
+    const x = Math.round(((event.clientX - rect.left) / rect.width) * DESIGN_WIDTH);
+    const y = Math.round(((event.clientY - rect.top) / rect.height) * DESIGN_HEIGHT);
+    return {
+      x: Math.max(0, Math.min(DESIGN_WIDTH, x)),
+      y: Math.max(0, Math.min(DESIGN_HEIGHT, y)),
+    };
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!qaEnabled) return;
+    const point = pointFromEvent(event);
+    if (!point) return;
+    setCursor(point);
+    if (dragging) updateEditorPosition(dragging, point);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (!qaEnabled || !selectedEditor) return;
+    const step = event.shiftKey ? 10 : 2;
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const dx = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
+      const dy = event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0;
+      nudgeEditorSelection(selectedEditor, dx, dy);
+    }
+    if (event.key === "+" || event.key === "=" || event.key === "-") {
+      event.preventDefault();
+      resizeEditorSelection(selectedEditor, event.key === "-" ? -step : step);
+    }
+  }
+
+  function updateNode(id: string, patch: Partial<AdventureNodeLayout>) {
+    setEditorLayout((current) => ({
+      ...current,
+      nodes: current.nodes.map((node, index) => ((node.id ?? nodes[index]?.lvl.id) === id ? { ...node, id, ...patch } : node)),
+    }));
+  }
+
+  function updateProp(id: string, patch: Partial<AdventureMapPropLayout>) {
+    setEditorLayout((current) => ({
+      ...current,
+      props: (current.props ?? []).map((prop) => (prop.id === id ? { ...prop, ...patch } : prop)),
+    }));
+  }
+
+  function updateParty(patch: Partial<AdventureMapPartyMarkerLayout>) {
+    setEditorLayout((current) => ({
+      ...current,
+      partyMarker: { ...(current.partyMarker ?? { size: 56, zIndex: 28, style: "banner" }), ...patch },
+    }));
+  }
+
+  function updateRoute(id: string, patch: Partial<AdventureMapRouteLayout>) {
+    setEditorLayout((current) => {
+      const routesToEdit = getEditableRoutes(current, visualNodes);
+      return {
+        ...current,
+        routes: routesToEdit.map((route) => (route.id === id ? { ...route, ...patch } : route)),
+      };
+    });
+  }
+
+  function updateEditorPosition(selection: EditorSelection, point: { x: number; y: number }) {
+    if (selection.kind === "node") updateNode(selection.id, point);
+    if (selection.kind === "prop") updateProp(selection.id, point);
+    if (selection.kind === "party") updateParty(point);
+    if (selection.kind === "routeControl") updateRoute(selection.id, { [selection.handle]: point });
+  }
+
+  function nudgeEditorSelection(selection: EditorSelection, dx: number, dy: number) {
+    if (selection.kind === "node") {
+      const node = editorLayout.nodes.find((entry, index) => (entry.id ?? nodes[index]?.lvl.id) === selection.id);
+      if (node) updateNode(selection.id, { x: clamp(node.x + dx, 0, DESIGN_WIDTH), y: clamp(node.y + dy, 0, DESIGN_HEIGHT) });
+    }
+    if (selection.kind === "prop") {
+      const prop = editorLayout.props?.find((entry) => entry.id === selection.id);
+      if (prop) updateProp(selection.id, { x: clamp(prop.x + dx, 0, DESIGN_WIDTH), y: clamp(prop.y + dy, 0, DESIGN_HEIGHT) });
+    }
+    if (selection.kind === "party") {
+      const party = editorLayout.partyMarker;
+      updateParty({ x: clamp((party?.x ?? partyNode?.x ?? 0) + dx, 0, DESIGN_WIDTH), y: clamp((party?.y ?? partyNode?.y ?? 0) + dy, 0, DESIGN_HEIGHT) });
+    }
+    if (selection.kind === "routeControl") {
+      const route = getEditableRoutes(editorLayout, visualNodes).find((entry) => entry.id === selection.id);
+      const point = route?.[selection.handle];
+      if (point) updateRoute(selection.id, { [selection.handle]: { x: clamp(point.x + dx, 0, DESIGN_WIDTH), y: clamp(point.y + dy, 0, DESIGN_HEIGHT) } });
+    }
+  }
+
+  function resizeEditorSelection(selection: EditorSelection, delta: number) {
+    if (selection.kind === "node") {
+      const node = editorLayout.nodes.find((entry, index) => (entry.id ?? nodes[index]?.lvl.id) === selection.id);
+      updateNode(selection.id, { size: clamp((node?.size ?? 48) + delta, 24, 120) });
+    }
+    if (selection.kind === "prop") {
+      const prop = editorLayout.props?.find((entry) => entry.id === selection.id);
+      if (prop) {
+        const width = getPropWidth(prop);
+        const height = getPropHeight(prop);
+        updateProp(selection.id, {
+          width: clamp(width + delta, 8, 320),
+          height: clamp(height + delta, 8, 320),
+          size: undefined,
+        });
+      }
+    }
+    if (selection.kind === "party") updateParty({ size: clamp((editorLayout.partyMarker?.size ?? 56) + delta, 24, 140) });
+  }
+
+  function addProp(type: AdventureMapPropType) {
+    const id = `${type}-${Date.now().toString(36)}`;
+    const dimensions = getDefaultPropDimensions(type);
+    const next: AdventureMapPropLayout = {
+      id,
+      type,
+      x: cursor?.x ?? Math.round(DESIGN_WIDTH * 0.42),
+      y: cursor?.y ?? Math.round(DESIGN_HEIGHT * 0.5),
+      width: dimensions.width,
+      height: dimensions.height,
+      zIndex: 35,
+      opacity: 1,
+      enabled: true,
+      ...(getDefaultPropEffect(type) ? { effect: getDefaultPropEffect(type) } : {}),
+    };
+    setEditorLayout((current) => ({ ...current, props: [...(current.props ?? []), next] }));
+    setSelectedEditor({ kind: "prop", id });
+    setCopyStatus(`${id} created`);
+  }
+
+  function addNode() {
+    const id = `qa-node-${Date.now().toString(36)}`;
+    const next: AdventureNodeLayout = {
+      id,
+      x: cursor?.x ?? DESIGN_WIDTH / 2,
+      y: cursor?.y ?? DESIGN_HEIGHT / 2,
+      type: "battle",
+      status: "available",
+      size: 48,
+      zIndex: 20,
+      connectsTo: [],
+    };
+    setEditorLayout((current) => ({ ...current, nodes: [...current.nodes, next] }));
+    setSelectedEditor({ kind: "node", id });
+  }
+
+  function duplicateSelection(selection: EditorSelection | null) {
+    if (!selection) return;
+    const suffix = Date.now().toString(36);
+    if (selection.kind === "node") {
+      const source = editorLayout.nodes.find((entry, index) => (entry.id ?? nodes[index]?.lvl.id) === selection.id);
+      if (!source) return;
+      const id = `${selection.id}-copy-${suffix}`;
+      setEditorLayout((current) => ({
+        ...current,
+        nodes: [
+          ...current.nodes,
+          {
+            ...source,
+            id,
+            x: clamp(source.x + 42, 0, DESIGN_WIDTH),
+            y: clamp(source.y + 42, 0, DESIGN_HEIGHT),
+            connectsTo: [],
+          },
+        ],
+      }));
+      setSelectedEditor({ kind: "node", id });
+      return;
+    }
+    if (selection.kind === "prop") {
+      const source = editorLayout.props?.find((entry) => entry.id === selection.id);
+      if (!source) return;
+      const id = `${selection.id}-copy-${suffix}`;
+      setEditorLayout((current) => ({
+        ...current,
+        props: [
+          ...(current.props ?? []),
+          {
+            ...source,
+            id,
+            x: clamp(source.x + 36, 0, DESIGN_WIDTH),
+            y: clamp(source.y + 36, 0, DESIGN_HEIGHT),
+          },
+        ],
+      }));
+      setSelectedEditor({ kind: "prop", id });
+    }
+  }
+
+  function removeSelection(selection: EditorSelection | null) {
+    if (!selection) return;
+    if (selection.kind === "node") {
+      setEditorLayout((current) => ({
+        ...current,
+        nodes: current.nodes.filter((entry, index) => (entry.id ?? nodes[index]?.lvl.id) !== selection.id),
+        routes: getEditableRoutes(current, visualNodes).filter((route) => route.from !== selection.id && route.to !== selection.id),
+        partyMarker:
+          current.partyMarker?.anchorNodeId === selection.id
+            ? { ...current.partyMarker, anchorNodeId: undefined }
+            : current.partyMarker,
+      }));
+      setSelectedEditor(null);
+      return;
+    }
+    if (selection.kind === "prop") {
+      setEditorLayout((current) => ({ ...current, props: (current.props ?? []).filter((prop) => prop.id !== selection.id) }));
+      setSelectedEditor(null);
+      return;
+    }
+    if (selection.kind === "routeControl") {
+      setEditorLayout((current) => ({
+        ...current,
+        routes: getEditableRoutes(current, visualNodes).filter((route) => route.id !== selection.id),
+      }));
+      setSelectedEditor(null);
+    }
+  }
+
+  function addRouteFromSelection(selection: EditorSelection | null) {
+    const from = selection?.kind === "node" ? selection.id : visualNodes[0]?.id;
+    const to = visualNodes.find((node) => node.id !== from)?.id;
+    if (!from || !to) return;
+    const fromNode = visualNodes.find((node) => node.id === from);
+    const toNode = visualNodes.find((node) => node.id === to);
+    if (!fromNode || !toNode) return;
+    const id = `${from}-${to}-${Date.now().toString(36)}`;
+    const route: AdventureMapRouteLayout = {
+      id,
+      from,
+      to,
+      state: "available",
+      control1: { x: Math.round(fromNode.x + (toNode.x - fromNode.x) * 0.34), y: Math.round(fromNode.y - 60) },
+      control2: { x: Math.round(fromNode.x + (toNode.x - fromNode.x) * 0.66), y: Math.round(toNode.y + 60) },
+    };
+    setEditorLayout((current) => ({ ...current, routes: [...getEditableRoutes(current, visualNodes), route] }));
+    setSelectedEditor({ kind: "routeControl", id, handle: "control1" });
+    setShowRouteHandles(true);
+  }
+
+  function resetEditorLayout() {
+    window.localStorage.removeItem(editorKey);
+    setEditorLayout(mapLayout);
+    setSelectedEditor(null);
+    setCopyStatus("local edits reset");
+  }
+
+  function saveEditorDraft() {
+    window.localStorage.setItem(editorKey, JSON.stringify(editorLayout));
+    setCopyStatus("draft saved locally");
+  }
+
+  async function saveEditorToCode() {
+    const response = await fetch("/api/dev/adventure-map-layout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chapter, layout: editorLayout }),
+    });
+    const payload = (await response.json()) as { ok?: boolean; message?: string };
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.message ?? "Could not save Adventure map layout");
+    }
+    setCopyStatus(payload.message ?? "layout saved to code");
+    return payload.message ?? "layout saved to code";
+  }
 
   return (
     <div
       className={cn(
-        "relative h-full overflow-hidden",
-        embedded
-          ? "rounded-[30px] bg-[radial-gradient(circle_at_24%_18%,rgba(251,214,143,0.18),transparent_25%),radial-gradient(circle_at_78%_16%,rgba(141,200,255,0.16),transparent_23%),linear-gradient(180deg,rgba(57,45,28,0.18),rgba(26,28,22,0.2)_30%,rgba(9,13,16,0.72)_100%)]"
-          : "rounded-[42px] border border-[#f7d089]/12 bg-[radial-gradient(circle_at_24%_18%,rgba(251,214,143,0.18),transparent_25%),radial-gradient(circle_at_78%_16%,rgba(141,200,255,0.16),transparent_23%),linear-gradient(180deg,rgba(57,45,28,0.2),rgba(26,28,22,0.24)_30%,rgba(9,13,16,0.82)_100%)] shadow-[0_36px_96px_rgba(0,0,0,0.44)]",
+        fullScreen
+          ? "absolute inset-0 overflow-hidden bg-[#070b12]"
+          : "relative aspect-video w-full overflow-hidden rounded-[30px] border border-[#f5d498]/12 bg-[#070b12] shadow-[0_28px_72px_rgba(0,0,0,0.36)]",
+        embedded && "rounded-[28px]",
+        qaEnabled && "z-[70]",
       )}
+      data-adventure-world-map
+      data-design-width={DESIGN_WIDTH}
+      data-design-height={DESIGN_HEIGHT}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_72%,rgba(255,207,120,0.13),transparent_22%),radial-gradient(circle_at_78%_18%,rgba(169,214,255,0.2),transparent_20%),radial-gradient(circle_at_52%_64%,rgba(143,104,58,0.22),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0)_22%,rgba(0,0,0,0.22)_100%)]" />
+      <HomeEffectSpriteStyles />
       <div
-        className={cn(
-          "pointer-events-none absolute bg-[linear-gradient(120deg,rgba(255,238,178,0.045),rgba(255,255,255,0)_28%,rgba(28,18,9,0.16)_72%,rgba(4,7,11,0.36))]",
-          embedded ? "inset-[0.45rem] rounded-[26px] md:inset-[0.65rem] md:rounded-[32px]" : "inset-[1.1rem] rounded-[36px]",
+        ref={stageRef}
+        className={cn("absolute", fullScreen ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" : "inset-0")}
+        style={
+          fullScreen
+            ? {
+                width: "min(100vw, 177.7778dvh)",
+                height: "min(100dvh, 56.25vw)",
+              }
+            : undefined
+        }
+        onPointerMove={handlePointerMove}
+        onPointerUp={() => setDragging(null)}
+        onKeyDown={handleKeyDown}
+        tabIndex={qaEnabled ? 0 : undefined}
+      >
+        {background ? (
+          <img
+            src={background.src}
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+            decoding="async"
+            draggable={false}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: background.position ?? "50% 50%" }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_25%,rgba(78,103,141,0.36),transparent_38%),linear-gradient(180deg,#182033,#060910)]" />
         )}
-      />
-      <div className={cn("pointer-events-none absolute inset-x-[5%] z-[1] h-[11rem] rounded-[50%] bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.06),rgba(255,255,255,0)_70%)] blur-3xl", embedded ? "top-[10%] md:top-[13%]" : "top-[13%] md:top-[15%]")} />
-      <div className={cn("pointer-events-none absolute inset-x-[7%] z-[1] rounded-[50%] bg-[radial-gradient(ellipse_at_50%_50%,rgba(150,95,48,0.12),rgba(255,255,255,0.018)_42%,rgba(8,10,16,0)_72%)] blur-sm", embedded ? "top-[18%] h-[46%]" : "top-[18%] h-[46%]")} />
-      <div className="pointer-events-none absolute inset-x-[3%] bottom-[10%] z-[1] h-[18rem] rounded-[50%] bg-[radial-gradient(circle_at_50%_56%,rgba(13,17,27,0),rgba(13,17,27,0.08)_32%,rgba(6,8,13,0.82)_78%,rgba(6,8,13,0.96)_100%)]" />
-      <AdventureTerrain meta={meta} />
-      {showOverlayHeader ? <CampaignHeader meta={meta} progress={progress} nodes={nodes} /> : null}
-      {showOverlayHeader ? <CampaignIntel meta={meta} cleared={cleared} total={nodes.length} /> : null}
 
-      <CampaignTrail d={mobilePath} accent={meta.accent} className="md:hidden" />
-      <CampaignTrail d={desktopPath} accent={meta.accent} className="hidden md:block" />
-      <PathRunes layouts={layouts} accent={meta.accent} />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_52%_42%,transparent_0%,rgba(5,8,14,0.04)_50%,rgba(5,8,14,0.5)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.08),rgba(4,7,13,0.02)_34%,rgba(4,7,13,0.34)_100%)]" />
+        <AdventureSkyAtmosphere />
 
-      {meta.landmarks.map((landmark) => (
-        <LandmarkAnchor key={landmark.label} landmark={landmark} accent={meta.accent} />
-      ))}
+        <svg className="pointer-events-none absolute inset-0 z-[2] h-full w-full" viewBox={`0 0 ${DESIGN_WIDTH} ${DESIGN_HEIGHT}`} preserveAspectRatio="none">
+          <defs>
+            <filter id="adventureRouteGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {routes.map((route) => (
+            <AdventureMapRoute key={route.id} route={route} accent={meta.accent} />
+          ))}
+        </svg>
 
-      {nodes.map((node, index) => {
-        const layout = layouts[index] ?? layouts[layouts.length - 1];
-        return (
-          <AdventureNodeAnchor
-            key={node.lvl.id}
-            node={node}
-            layout={layout}
+        {routes.map((route, index) => (
+          <RouteRune key={`${route.id}-rune`} from={route.from} to={route.to} index={index} />
+        ))}
+
+        {(activeLayout.props ?? []).map((prop) => (
+          <AdventureMapProp
+            key={prop.id}
+            prop={prop}
+            qaEnabled={qaEnabled}
+            selected={selectedEditor?.kind === "prop" && selectedEditor.id === prop.id}
+            onSelect={() => setSelectedEditor({ kind: "prop", id: prop.id })}
+            onDragStart={() => setDragging({ kind: "prop", id: prop.id })}
+          />
+        ))}
+
+        {visualNodes.map((visualNode) => (
+          <AdventureMapNode
+            key={visualNode.id}
+            visualNode={visualNode}
+            active={visualNode.id === selectedId}
             accent={meta.accent}
-            active={selectedId === node.lvl.id}
+            totalNodes={visualNodes.length}
             onSelect={onSelect}
-            totalNodes={nodes.length}
+            t={t}
+            qaEnabled={qaEnabled}
+            editorSelected={selectedEditor?.kind === "node" && selectedEditor.id === visualNode.id}
+            onEditorSelect={() => {
+              setSelectedEditor({ kind: "node", id: visualNode.id });
+              if (nodes.some((node) => node.lvl.id === visualNode.id)) {
+                onSelect(visualNode.id);
+              }
+            }}
+            onEditorDragStart={() => setDragging({ kind: "node", id: visualNode.id })}
+          />
+        ))}
+
+        {partyNode ? (
+          <AdventurePartyMarker
+            visualNode={partyNode}
+            layout={activeLayout.partyMarker}
+            qaEnabled={qaEnabled}
+            selected={selectedEditor?.kind === "party"}
+            onSelect={() => setSelectedEditor({ kind: "party", id: "party" })}
+            onDragStart={() => setDragging({ kind: "party", id: "party" })}
+          />
+        ) : null}
+
+        {qaEnabled && showRouteHandles
+          ? routes.flatMap((route) => {
+              const controls = getRouteControls(route);
+              return (["control1", "control2"] as const).map((handle) => (
+                <RouteControlHandle
+                  key={`${route.id}-${handle}`}
+                  route={route}
+                  handle={handle}
+                  point={controls[handle]}
+                  selected={selectedEditor?.kind === "routeControl" && selectedEditor.id === route.id && selectedEditor.handle === handle}
+                  onSelect={() => setSelectedEditor({ kind: "routeControl", id: route.id, handle })}
+                  onDragStart={() => setDragging({ kind: "routeControl", id: route.id, handle })}
+                />
+              ));
+            })
+          : null}
+
+        {!fullScreen ? (
+        <div className="pointer-events-none absolute left-4 top-4 z-[5] max-w-[18rem] rounded-[22px] border border-white/10 bg-black/30 px-3 py-2 backdrop-blur-xl">
+          <div className="text-[9px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{meta.subtitle}</div>
+          <div className="mt-1 truncate text-sm font-black text-white">{meta.name}</div>
+          <div className="mt-1 text-[11px] leading-4 text-white/56">{meta.terrainLabel}</div>
+        </div>
+        ) : null}
+
+        {qaEnabled ? (
+          <AdventureMapEditorOverlay
+            cursor={cursor}
+            visualNodes={visualNodes}
+            routes={routes}
+            layout={editorLayout}
+            selected={selectedEditor}
+            showRouteHandles={showRouteHandles}
+            copyStatus={copyStatus}
+            onSelect={setSelectedEditor}
+            onUpdateNode={updateNode}
+            onUpdateProp={updateProp}
+            onUpdateParty={updateParty}
+            onUpdateRoute={updateRoute}
+            onAddNode={addNode}
+            onAddProp={addProp}
+            onAddRoute={() => addRouteFromSelection(selectedEditor)}
+            onDuplicate={() => duplicateSelection(selectedEditor)}
+            onRemove={() => removeSelection(selectedEditor)}
+            onSave={saveEditorDraft}
+            onSaveToCode={saveEditorToCode}
+            onReset={resetEditorLayout}
+            onToggleRouteHandles={() => setShowRouteHandles((value) => !value)}
+            onCopy={(label, value) => {
+              void navigator.clipboard?.writeText(value);
+              setCopyStatus(`${label} copied`);
+            }}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function AdventureMapRoute({ route, accent }: { route: AdventureVisualRoute; accent: string }) {
+  const { from, to } = route;
+  const fromDone = from.status === "cleared" || from.status === "claimed" || from.status === "completed";
+  const toDone = to.status === "cleared" || to.status === "claimed" || to.status === "completed";
+  const routeState = route.state ?? (to.status === "locked" ? "locked" : fromDone && toDone ? "cleared" : "available");
+  const boss = to.type === "boss";
+  const stroke =
+    routeState === "locked"
+      ? "rgba(47,52,60,0.12)"
+      : routeState === "cleared"
+        ? "rgba(190,137,63,0.62)"
+        : boss
+          ? "rgba(255,135,78,0.74)"
+          : "rgba(238,180,86,0.78)";
+  const d = curvedRoute(route);
+  const available = routeState === "available";
+
+  return (
+    <>
+      <path
+        d={d}
+        fill="none"
+        stroke={routeState === "locked" ? "rgba(2,3,6,0.12)" : "rgba(3,2,1,0.48)"}
+        strokeWidth={routeState === "locked" ? 6 : 14}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={routeState === "locked" ? 0.18 : 0.92}
+      />
+      <path
+        d={d}
+        fill="none"
+        stroke={routeState === "locked" ? "rgba(78,84,94,0.07)" : "rgba(117,79,40,0.38)"}
+        strokeWidth={routeState === "locked" ? 3 : 9}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray={routeState === "locked" ? "3 28" : "18 13"}
+        opacity={routeState === "locked" ? 0.08 : 0.72}
+      />
+      <path
+        d={d}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={routeState === "locked" ? 1.2 : available ? 4.25 : boss ? 4 : 3}
+        strokeLinecap={routeState === "locked" ? "butt" : "round"}
+        strokeLinejoin="round"
+        strokeDasharray={routeState === "locked" ? "4 28" : available ? "14 12" : "12 16"}
+        filter={available || boss ? "url(#adventureRouteGlow)" : undefined}
+        opacity={routeState === "locked" ? 0.07 : available ? 0.95 : 0.78}
+      />
+    </>
+  );
+}
+
+function RouteRune({ from, to, index }: { from: AdventureVisualNode; to: AdventureVisualNode; index: number }) {
+  const locked = to.status === "locked";
+  if (locked) return null;
+  return (
+    <>
+      {[0.36, 0.64].map((t, markerIndex) => {
+        const x = from.x + (to.x - from.x) * t;
+        const y = from.y + (to.y - from.y) * t;
+        const offset = (index + markerIndex) % 2 === 0 ? 10 : -10;
+        return (
+          <span
+            key={`${from.id}-${to.id}-${markerIndex}`}
+            className="pointer-events-none absolute z-[3] h-3.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[3px] border border-[#f5c451]/46 bg-[#f5c451]/26 shadow-[0_0_10px_rgba(245,196,81,0.24)]"
+            style={nodeStyle(x + offset, y + (markerIndex === 0 ? -8 : 8))}
           />
         );
       })}
+    </>
+  );
+}
 
-      <div className="pointer-events-none absolute inset-x-[4%] bottom-[5%] h-[18%] rounded-[50%] bg-[radial-gradient(circle_at_50%_40%,rgba(14,18,28,0),rgba(8,10,16,0.04)_26%,rgba(8,10,16,0.66)_74%,rgba(8,10,16,0.94)_100%)]" />
-      <div className="pointer-events-none absolute inset-x-[-8%] bottom-[-5%] h-[16rem] rounded-[50%] bg-[radial-gradient(circle_at_50%_36%,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_28%,rgba(8,10,16,0)_48%)] blur-2xl" />
+function AdventureMapNode({
+  visualNode,
+  active,
+  accent,
+  totalNodes,
+  onSelect,
+  t,
+  qaEnabled,
+  editorSelected,
+  onEditorSelect,
+  onEditorDragStart,
+}: {
+  visualNode: AdventureVisualNode;
+  active: boolean;
+  accent: string;
+  totalNodes: number;
+  onSelect: (id: string) => void;
+  t: TranslateFn;
+  qaEnabled: boolean;
+  editorSelected: boolean;
+  onEditorSelect: () => void;
+  onEditorDragStart: () => void;
+}) {
+  const node = visualNode.node;
+  const tone =
+    visualNode.status === "locked"
+      ? "steel"
+      : visualNode.status === "cleared"
+        ? "emerald"
+        : visualNode.type === "boss"
+          ? "ember"
+          : visualNode.type === "chest"
+            ? "gold"
+            : "sky";
+  const label = node.locked
+    ? t("adventure.node.sealed")
+    : node.cleared
+      ? t("adventure.node.cleared")
+      : visualNode.type === "boss"
+        ? t("adventure.node.boss")
+        : visualNode.type === "elite"
+          ? t("adventure.node.elite")
+          : visualNode.type === "chest"
+            ? t("adventure.reward.firstClear")
+            : t("adventure.node.battle");
+  const size = visualNode.size ?? (visualNode.type === "boss" ? 68 : visualNode.type === "chest" ? 54 : 48);
+  const visualSize = Math.round(size * getNodeVisualScale(visualNode, active));
+  const nodeTheme = getNodeTheme(visualNode, active, accent);
+  const nodeAssetId = getNodeAssetId(visualNode);
+  const nodeAsset = getAdventureNodeAsset(nodeAssetId);
+  const clearedAsset = visualNode.status === "cleared" || visualNode.status === "claimed" || visualNode.status === "completed" ? getAdventureNodeAsset("cleared") : null;
+
+  return (
+    <button
+      type="button"
+      data-adventure-node={visualNode.id}
+      data-node-status={visualNode.status}
+      data-node-type={visualNode.type}
+      aria-label={`${node.lvl.name} ${label}`}
+      onClick={() => (qaEnabled ? onEditorSelect() : onSelect(visualNode.id))}
+      onPointerDown={(event) => {
+        if (!qaEnabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onEditorSelect();
+        const startX = event.clientX;
+        const startY = event.clientY;
+
+        const move = (moveEvent: globalThis.PointerEvent) => {
+          if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < 4) return;
+          onEditorDragStart();
+          window.removeEventListener("pointermove", move);
+        };
+
+        const up = () => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+        };
+
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up, { once: true });
+      }}
+      className={cn(
+        "group absolute z-[6] -translate-x-1/2 -translate-y-1/2 transition duration-200 hover:brightness-110",
+        active && "z-[8]",
+        visualNode.status === "locked" && "opacity-58",
+        editorSelected && "ring-2 ring-sky-200 ring-offset-2 ring-offset-black",
+      )}
+      style={{ ...nodeStyle(visualNode.x, visualNode.y), width: visualSize, height: visualSize, zIndex: visualNode.zIndex ?? undefined }}
+    >
+      <span className={cn("pointer-events-none absolute left-1/2 top-[88%] h-[22%] w-[78%] -translate-x-1/2 rounded-full bg-black/56 blur-[4px]", visualNode.status === "locked" && "opacity-50")} />
+      {visualNode.status === "available" || active ? (
+        <span
+          className={cn(
+            "pointer-events-none absolute left-1/2 top-[82%] h-[12%] w-[62%] -translate-x-1/2 rounded-full blur-[3px]",
+            active ? "bg-[#f5c451]/42" : "bg-[#8fd5ff]/24",
+          )}
+        />
+      ) : null}
+      {visualNode.type === "boss" ? <span className="pointer-events-none absolute left-1/2 top-[82%] h-[14%] w-[72%] -translate-x-1/2 rounded-full bg-[#ff5b2f]/24 blur-[3px]" /> : null}
+      {nodeAsset ? (
+        <span className="relative block h-full w-full">
+          <img
+            src={nodeAsset.src}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            loading="lazy"
+            decoding="async"
+            style={{ transform: `scale(${getNodeAssetScale(visualNode, active)})` }}
+            className={cn(
+              "h-full w-full object-contain drop-shadow-[0_15px_18px_rgba(0,0,0,0.82)] transition duration-200",
+              active && "brightness-125 saturate-[1.18] drop-shadow-[0_18px_24px_rgba(0,0,0,0.9)]",
+              visualNode.type === "boss" && "brightness-112 saturate-[1.18] drop-shadow-[0_18px_24px_rgba(0,0,0,0.88)]",
+              visualNode.type === "chest" && "brightness-125 saturate-[1.2] drop-shadow-[0_14px_18px_rgba(98,55,11,0.72)]",
+              visualNode.status === "locked" && "opacity-72 saturate-[0.46] brightness-70",
+              (visualNode.status === "cleared" || visualNode.status === "claimed" || visualNode.status === "completed") && "opacity-88 saturate-[0.78] brightness-95",
+            )}
+          />
+          {clearedAsset ? (
+            <img
+              src={clearedAsset.src}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              loading="lazy"
+              decoding="async"
+              className="pointer-events-none absolute -bottom-[7%] -right-[10%] h-[48%] w-[48%] object-contain drop-shadow-[0_8px_10px_rgba(0,0,0,0.52)]"
+            />
+          ) : null}
+        </span>
+      ) : (
+        <span
+          className="relative grid h-full w-full place-items-center overflow-hidden rounded-full border shadow-[0_16px_30px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.18),inset_0_-12px_18px_rgba(0,0,0,0.28)]"
+          style={{ borderColor: nodeTheme.border, background: nodeTheme.background }}
+        >
+          <span className="absolute inset-[6px] rounded-full border border-black/40 bg-[radial-gradient(circle_at_42%_34%,rgba(255,255,255,0.18),transparent_30%),linear-gradient(180deg,rgba(12,15,20,0.28),rgba(0,0,0,0.52))]" />
+          <span className="absolute inset-[13px] rounded-full border" style={{ borderColor: nodeTheme.innerBorder, boxShadow: nodeTheme.glow }} />
+          <GameIcon kind={nodeIcon(visualNode)} tone={tone} size="sm" className="relative z-[1] h-[62%] w-[62%] rounded-full border border-white/10 bg-black/20" />
+          {visualNode.status === "cleared" || visualNode.status === "claimed" || visualNode.status === "completed" ? (
+            <span className="absolute bottom-0 right-0 grid h-5 w-5 place-items-center rounded-full border border-emerald-200/28 bg-emerald-950/86 text-[10px] font-black text-emerald-200">
+              OK
+            </span>
+          ) : null}
+        </span>
+      )}
+      <span className="pointer-events-none absolute left-1/2 top-[calc(100%+0.34rem)] hidden -translate-x-1/2 whitespace-nowrap rounded-full border border-[#f5d498]/16 bg-[#080b10]/68 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-white/72 opacity-0 backdrop-blur-md transition group-hover:opacity-100 md:block">
+        {visualNode.type === "boss" ? node.lvl.name : `${node.lvl.index}/${totalNodes}`}
+      </span>
+    </button>
+  );
+}
+
+function AdventurePartyMarker({
+  visualNode,
+  layout,
+  qaEnabled,
+  selected,
+  onSelect,
+  onDragStart,
+}: {
+  visualNode: AdventureVisualNode;
+  layout?: AdventureMapPartyMarkerLayout;
+  qaEnabled: boolean;
+  selected: boolean;
+  onSelect: () => void;
+  onDragStart: () => void;
+}) {
+  const x = layout?.x ?? visualNode.x;
+  const y = layout?.y ?? visualNode.y;
+  const size = Math.round((layout?.size ?? 56) * (qaEnabled ? 1 : 1.34));
+  const markerAsset = getAdventureNodeAsset("current");
+  return (
+    <div
+      className={cn(
+        "absolute -translate-x-1/2 -translate-y-[112%]",
+        qaEnabled ? "pointer-events-auto cursor-grab" : "pointer-events-none",
+        selected && "rounded-full ring-2 ring-amber-200",
+      )}
+      style={{ ...nodeStyle(x, y), zIndex: qaEnabled ? layout?.zIndex ?? 28 : Math.max(layout?.zIndex ?? 28, 42) }}
+      data-adventure-party-marker
+      onClick={(event) => {
+        if (!qaEnabled) return;
+        event.stopPropagation();
+        onSelect();
+      }}
+      onPointerDown={(event) => {
+        if (!qaEnabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onSelect();
+        onDragStart();
+      }}
+    >
+      <div className="relative" style={{ width: size, height: size }}>
+        <span className="pointer-events-none absolute bottom-[3%] left-1/2 h-[30%] w-[70%] -translate-x-1/2 rounded-full bg-black/62 blur-[5px]" />
+        <span className="pointer-events-none absolute bottom-[6%] left-1/2 h-[24%] w-[56%] -translate-x-1/2 rounded-full bg-[#f5c451]/36 blur-[4px]" />
+        {markerAsset ? (
+          <img
+            src={markerAsset.src}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            loading="lazy"
+            decoding="async"
+            className="relative h-full w-full object-contain brightness-110 saturate-[1.12] drop-shadow-[0_16px_20px_rgba(0,0,0,0.82)]"
+          />
+        ) : (
+          <>
+            <span className="absolute bottom-1 left-1/2 h-4 w-10 -translate-x-1/2 rounded-full bg-[#f5c451]/18 blur-md" />
+            <span className="absolute left-1/2 top-[1.2rem] h-11 w-[3px] -translate-x-1/2 rounded-full bg-[#f5d498]/78 shadow-[0_0_10px_rgba(245,196,81,0.24)]" />
+            <span className="absolute left-[1.7rem] top-1 h-7 w-9 rounded-r-[10px] border border-[#f5d498]/34 bg-[linear-gradient(135deg,rgba(245,196,81,0.82),rgba(102,41,30,0.96))] shadow-[0_8px_18px_rgba(0,0,0,0.36)]" />
+            <span className="absolute left-[1.72rem] top-2.5 h-3 w-5 rounded-r-md bg-black/18" />
+            <span className="absolute bottom-0 left-1/2 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-[#f5d498]/28 bg-black/76 shadow-[0_10px_22px_rgba(0,0,0,0.34)]">
+              <ModeIcon name="campaign" size="xs" />
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AdventureMapProp({
+  prop,
+  qaEnabled,
+  selected,
+  onSelect,
+  onDragStart,
+}: {
+  prop: AdventureMapPropLayout;
+  qaEnabled: boolean;
+  selected: boolean;
+  onSelect: () => void;
+  onDragStart: () => void;
+}) {
+  if (!prop.enabled && !qaEnabled) return null;
+  const content = getPropContent(prop);
+  const visualZIndex = qaEnabled ? prop.zIndex : Math.min(prop.zIndex, 14);
+  const style = {
+    ...nodeStyle(prop.x, prop.y),
+    zIndex: visualZIndex,
+    width: getPropWidth(prop),
+    height: getPropHeight(prop),
+    opacity: getPropVisualOpacity(prop),
+  };
+
+  if (!qaEnabled) {
+    return (
+      <span
+        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={style}
+        data-adventure-prop={prop.id}
+        aria-hidden="true"
+      >
+        {content}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition",
+        qaEnabled ? "pointer-events-auto cursor-grab" : "pointer-events-none",
+        selected && "ring-2 ring-sky-200 ring-offset-2 ring-offset-black",
+        !prop.enabled && "opacity-40",
+      )}
+      style={style}
+      data-adventure-prop={prop.id}
+      aria-label={prop.id}
+      onClick={(event) => {
+        if (!qaEnabled) return;
+        event.stopPropagation();
+        onSelect();
+      }}
+      onPointerDown={(event) => {
+        if (!qaEnabled) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onSelect();
+        onDragStart();
+      }}
+    >
+      {content}
+      <span className="pointer-events-none absolute inset-0 rounded-full border border-sky-200/70 bg-sky-200/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.7)]" />
+      <span className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-black/82" />
+      <span className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-white/45" />
+      <span className="pointer-events-none absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-white/45" />
+      <span className="pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-black/82 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-sky-100">
+        {prop.id}
+      </span>
+    </button>
+  );
+}
+
+function RouteControlHandle({
+  route,
+  handle,
+  point,
+  selected,
+  onSelect,
+  onDragStart,
+}: {
+  route: AdventureVisualRoute;
+  handle: "control1" | "control2";
+  point: { x: number; y: number };
+  selected: boolean;
+  onSelect: () => void;
+  onDragStart: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "absolute z-[26] h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/70 bg-cyan-400/60 shadow-[0_0_18px_rgba(125,211,252,0.35)]",
+        selected && "ring-2 ring-white",
+      )}
+      style={nodeStyle(point.x, point.y)}
+      aria-label={`${route.id} ${handle}`}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect();
+      }}
+      onPointerDown={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onSelect();
+        onDragStart();
+      }}
+    />
+  );
+}
+
+function AdventureMapEditorOverlay({
+  cursor,
+  visualNodes,
+  routes,
+  layout,
+  selected,
+  showRouteHandles,
+  copyStatus,
+  onSelect,
+  onUpdateNode,
+  onUpdateProp,
+  onUpdateParty,
+  onUpdateRoute,
+  onAddNode,
+  onAddProp,
+  onAddRoute,
+  onDuplicate,
+  onRemove,
+  onSave,
+  onSaveToCode,
+  onReset,
+  onToggleRouteHandles,
+  onCopy,
+}: {
+  cursor: { x: number; y: number } | null;
+  visualNodes: AdventureVisualNode[];
+  routes: AdventureVisualRoute[];
+  layout: AdventureMapChapterLayout;
+  selected: EditorSelection | null;
+  showRouteHandles: boolean;
+  copyStatus: string;
+  onSelect: (selection: EditorSelection | null) => void;
+  onUpdateNode: (id: string, patch: Partial<AdventureNodeLayout>) => void;
+  onUpdateProp: (id: string, patch: Partial<AdventureMapPropLayout>) => void;
+  onUpdateParty: (patch: Partial<AdventureMapPartyMarkerLayout>) => void;
+  onUpdateRoute: (id: string, patch: Partial<AdventureMapRouteLayout>) => void;
+  onAddNode: () => void;
+  onAddProp: (type: AdventureMapPropType) => void;
+  onAddRoute: () => void;
+  onDuplicate: () => void;
+  onRemove: () => void;
+  onSave: () => void;
+  onSaveToCode: () => Promise<string>;
+  onReset: () => void;
+  onToggleRouteHandles: () => void;
+  onCopy: (label: string, value: string) => void;
+}) {
+  const selectedNode = selected?.kind === "node" ? visualNodes.find((node) => node.id === selected.id) : null;
+  const selectedNodeLayout = selectedNode ? layout.nodes.find((node) => node.id === selectedNode.id) : null;
+  const selectedProp = selected?.kind === "prop" ? layout.props?.find((prop) => prop.id === selected.id) : null;
+  const selectedRoute = selected?.kind === "routeControl" ? getEditableRoutes(layout, visualNodes).find((route) => route.id === selected.id) : null;
+  const selectedJson = JSON.stringify(getSelectedExport(layout, selected), null, 2);
+  const nodesJson = JSON.stringify(layout.nodes.map((node, index) => ({ ...node, id: node.id ?? visualNodes[index]?.id })), null, 2);
+  const routesJson = JSON.stringify(getEditableRoutes(layout, visualNodes), null, 2);
+  const propsJson = JSON.stringify(layout.props ?? [], null, 2);
+  const allJson = JSON.stringify(layout, null, 2);
+  const [newPropType, setNewPropType] = useState<AdventureMapPropType>("campfire");
+  const [panelPosition, setPanelPosition] = useState<{ left: number; top: number } | null>(null);
+  const [status, setStatus] = useState("Autosaved locally");
+  const elementOptions = [
+    ...visualNodes.map((node) => ({ value: `node:${node.id}`, label: `node | ${node.id}` })),
+    ...(layout.props ?? []).map((prop) => ({ value: `prop:${prop.id}`, label: `prop | ${prop.id}` })),
+    { value: "party:party", label: "party | marker" },
+    ...getEditableRoutes(layout, visualNodes).flatMap((route) => [
+      { value: `routeControl:${route.id}:control1`, label: `route | ${route.id} c1` },
+      { value: `routeControl:${route.id}:control2`, label: `route | ${route.id} c2` },
+    ]),
+  ];
+  const selectedValue =
+    selected?.kind === "routeControl"
+      ? `${selected.kind}:${selected.id}:${selected.handle}`
+      : selected
+        ? `${selected.kind}:${selected.id}`
+        : "";
+
+  function parseSelection(value: string): EditorSelection | null {
+    const [kind, id, handle] = value.split(":");
+    if (kind === "node" && id) return { kind, id };
+    if (kind === "prop" && id) return { kind, id };
+    if (kind === "party") return { kind: "party", id: "party" };
+    if (kind === "routeControl" && id && (handle === "control1" || handle === "control2")) return { kind, id, handle };
+    return null;
+  }
+
+  function startPanelDrag(event: ReactPointerEvent<HTMLElement>) {
+    if (event.button !== 0) return;
+    const panel = event.currentTarget.closest("[data-adventure-map-editor-panel]");
+    if (!(panel instanceof HTMLElement)) return;
+
+    event.preventDefault();
+    const rect = panel.getBoundingClientRect();
+    const grabX = event.clientX - rect.left;
+    const grabY = event.clientY - rect.top;
+
+    const move = (moveEvent: globalThis.PointerEvent) => {
+      const maxLeft = Math.max(0, window.innerWidth - rect.width);
+      const maxTop = Math.max(0, window.innerHeight - rect.height);
+      setPanelPosition({
+        left: clamp(moveEvent.clientX - grabX, 0, maxLeft),
+        top: clamp(moveEvent.clientY - grabY, 0, maxTop),
+      });
+    };
+
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up, { once: true });
+  }
+
+  function copyText(label: string, value: string) {
+    onCopy(label, value);
+    setStatus(`${label} copied`);
+  }
+
+  async function saveToCode() {
+    try {
+      const message = await onSaveToCode();
+      setStatus(message);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Could not save to code");
+    }
+  }
+
+  function saveDraft() {
+    onSave();
+    setStatus(`Saved locally ${new Date().toLocaleTimeString()}`);
+  }
+
+  return (
+    <div className="absolute inset-0 z-[40] pointer-events-none">
+      <div className="absolute inset-0 border border-sky-300/45" />
+      {visualNodes.map((node) => (
+        <div
+          key={`qa-${node.id}`}
+          className="absolute z-[21] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-sky-200/35"
+          style={nodeStyle(node.x, node.y)}
+        >
+          <span className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-200" />
+          <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded bg-black/80 px-1.5 py-0.5 text-[9px] font-black text-sky-100">
+            {node.id} {Math.round(node.x)},{Math.round(node.y)}
+          </span>
+        </div>
+      ))}
+      <div
+        data-adventure-map-editor-panel="1"
+        className="pointer-events-auto fixed right-3 top-24 z-[80] flex w-[25rem] max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-[18px] border border-sky-200/24 bg-black/86 p-3 text-white shadow-[0_18px_42px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+        style={
+          panelPosition
+            ? {
+                left: panelPosition.left,
+                top: panelPosition.top,
+                right: "auto",
+                maxHeight: "min(42rem, calc(100dvh - 10rem))",
+              }
+            : { maxHeight: "min(42rem, calc(100dvh - 10rem))" }
+        }
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 cursor-move select-none" onPointerDown={startPanelDrag} title="Drag panel">
+            <div className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">Adventure map editor</div>
+            <div className="mt-1 text-xs text-white/66">
+              Canvas {DESIGN_WIDTH}x{DESIGN_HEIGHT} {cursor ? `| cursor ${cursor.x}, ${cursor.y}` : ""}
+            </div>
+            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.12em] text-sky-200/46">Drag this header to move panel</div>
+          </div>
+          <div className="grid shrink-0 gap-1">
+            <button type="button" onClick={saveDraft} className={cn(editorButtonClass(false), "border-emerald-300/28 text-emerald-100")}>
+              Save draft
+            </button>
+            <button type="button" onClick={() => void saveToCode()} className={cn(editorButtonClass(false), "border-yellow-300/28 text-yellow-100")}>
+              Save to code
+            </button>
+            <button type="button" onClick={() => copyText("selected", selectedJson)} className={editorButtonClass(false)}>
+              Copy selected
+            </button>
+            <button type="button" onClick={() => copyText("layout", allJson)} className={editorButtonClass(true)}>
+              Copy all
+            </button>
+          </div>
+        </div>
+
+        <select
+          className="mt-3 rounded-lg border border-sky-300/25 bg-black/52 px-2 py-1.5 text-xs font-bold text-white outline-none"
+          value={selectedValue}
+          onChange={(event) => onSelect(parseSelection(event.target.value))}
+        >
+          <option value="">Select element...</option>
+          {elementOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <div className="mt-3 grid grid-cols-[1fr_auto] items-end gap-2">
+          <SelectField label="new prop" value={newPropType} options={ADVENTURE_MAP_PROP_TYPES} onChange={(type) => setNewPropType(type as AdventureMapPropType)} />
+          <button type="button" onClick={() => onAddProp(newPropType)} className={editorButtonClass(true)}>
+            New prop
+          </button>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={onAddNode} className={editorButtonClass(false)}>
+            New node
+          </button>
+          <button type="button" onClick={onAddRoute} className={editorButtonClass(false)}>
+            New route
+          </button>
+          <button type="button" onClick={onDuplicate} disabled={!selected} className={editorButtonClass(false)}>
+            Duplicate selected
+          </button>
+          <button type="button" onClick={onRemove} disabled={!selected || selected.kind === "party"} className={cn(editorButtonClass(false), "border-rose-300/28 text-rose-100 disabled:opacity-35")}>
+            Delete selected
+          </button>
+          <button type="button" onClick={() => onSelect(null)} className={editorButtonClass(false)}>
+            Clear selection
+          </button>
+          <button type="button" onClick={() => setPanelPosition(null)} className={editorButtonClass(false)}>
+            Reset panel
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" onClick={onToggleRouteHandles} className={editorButtonClass(showRouteHandles)}>
+            Route handles
+          </button>
+          <button type="button" onClick={onReset} className={cn(editorButtonClass(false), "border-amber-300/28 text-amber-100")}>
+            Reset local edits
+          </button>
+        </div>
+
+        <div className="mt-3 min-h-0 overflow-y-auto pr-1">
+        <div className="rounded-[14px] border border-white/10 bg-white/[0.04] p-3">
+          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/48">Selected</div>
+          {!selected ? <div className="mt-2 text-xs text-white/58">Click a node, prop, party marker or route handle.</div> : null}
+          {selectedNode && selectedNodeLayout ? (
+            <NodeEditorFields node={selectedNode} layout={selectedNodeLayout} onUpdate={(patch) => onUpdateNode(selectedNode.id, patch)} />
+          ) : null}
+          {selectedProp ? <PropEditorFields prop={selectedProp} onUpdate={(patch) => onUpdateProp(selectedProp.id, patch)} /> : null}
+          {selected?.kind === "party" ? <PartyEditorFields party={layout.partyMarker} onUpdate={onUpdateParty} /> : null}
+          {selectedRoute && selected?.kind === "routeControl" ? (
+            <RouteEditorFields route={selectedRoute} handle={selected.handle} onUpdate={(patch) => onUpdateRoute(selectedRoute.id, patch)} />
+          ) : null}
+        </div>
+
+        <textarea
+          readOnly
+          value={selectedJson}
+          className="mt-3 h-28 w-full resize-none rounded-[12px] border border-white/10 bg-black/54 p-2 font-mono text-[10px] text-white/78"
+        />
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => copyText("nodes", nodesJson)} className={editorButtonClass(false)}>Copy nodes JSON</button>
+          <button type="button" onClick={() => copyText("routes", routesJson)} className={editorButtonClass(false)}>Copy routes JSON</button>
+          <button type="button" onClick={() => copyText("props", propsJson)} className={editorButtonClass(false)}>Copy props JSON</button>
+          <button type="button" onClick={() => copyText("layout", allJson)} className={editorButtonClass(true)}>Copy all layout</button>
+        </div>
+        <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-white/42">
+          Drag selected. Arrows: 2px. Shift+arrows: 10px. +/- resizes. {status}.
+        </div>
+        {copyStatus ? <div className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-200">{copyStatus}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NodeEditorFields({
+  node,
+  layout,
+  onUpdate,
+}: {
+  node: AdventureVisualNode;
+  layout: AdventureNodeLayout;
+  onUpdate: (patch: Partial<AdventureNodeLayout>) => void;
+}) {
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+      <Readout label="id" value={node.id} />
+      <NumberField label="x" value={layout.x} onChange={(x) => onUpdate({ x })} />
+      <NumberField label="y" value={layout.y} onChange={(y) => onUpdate({ y })} />
+      <NumberField label="size" value={layout.size ?? node.size ?? 48} onChange={(size) => onUpdate({ size })} />
+      <NumberField label="z" value={layout.zIndex ?? node.zIndex ?? 20} onChange={(zIndex) => onUpdate({ zIndex })} />
+      <SelectField label="type" value={layout.type ?? node.type} options={ADVENTURE_MAP_NODE_TYPES} onChange={(type) => onUpdate({ type: type as AdventureMapNodeType })} />
+      <SelectField label="status" value={layout.status ?? node.status} options={ADVENTURE_MAP_NODE_STATUSES} onChange={(status) => onUpdate({ status: status as AdventureMapNodeStatus })} />
+    </div>
+  );
+}
+
+function PropEditorFields({ prop, onUpdate }: { prop: AdventureMapPropLayout; onUpdate: (patch: Partial<AdventureMapPropLayout>) => void }) {
+  const effect = prop.effect;
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+      <Readout label="id" value={prop.id} />
+      <SelectField label="type" value={prop.type} options={ADVENTURE_MAP_PROP_TYPES} onChange={(type) => onUpdate({ type: type as AdventureMapPropType })} />
+      <NumberField label="x" value={prop.x} onChange={(x) => onUpdate({ x })} />
+      <NumberField label="y" value={prop.y} onChange={(y) => onUpdate({ y })} />
+      <NumberField label="width" value={getPropWidth(prop)} onChange={(width) => onUpdate({ width, size: undefined })} />
+      <NumberField label="height" value={getPropHeight(prop)} onChange={(height) => onUpdate({ height, size: undefined })} />
+      <NumberField label="z" value={prop.zIndex} onChange={(zIndex) => onUpdate({ zIndex })} />
+      <NumberField label="opacity" value={prop.opacity ?? 1} step={0.05} onChange={(opacity) => onUpdate({ opacity })} />
+      <label className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/70">
+        <input type="checkbox" checked={prop.enabled} onChange={(event) => onUpdate({ enabled: event.target.checked })} />
+        enabled
+      </label>
+      <div className="col-span-2 mt-1 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.16em] text-white/38">Prop effect</div>
+      <SelectField
+        label="effect"
+        value={effect?.type ?? "none"}
+        options={["none", ...HOME_EFFECT_IDS]}
+        onChange={(type) =>
+          onUpdate({
+            effect:
+              type === "none"
+                ? undefined
+                : {
+                    ...(effect ?? {
+                      xPercent: 50,
+                      yPercent: 40,
+                      widthPercent: 40,
+                      heightPercent: 40,
+                      opacity: 0.85,
+                      durationMs: getEffectDuration(type as HomeEffectId),
+                      enabled: true,
+                    }),
+                    type: type as HomeEffectId,
+                  },
+          })
+        }
+      />
+      <label className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/70">
+        <input
+          type="checkbox"
+          checked={effect?.enabled ?? false}
+          onChange={(event) => onUpdate({ effect: { ...(effect ?? getDefaultPropEffect(prop.type) ?? { type: "flame_loop", xPercent: 50, yPercent: 40, widthPercent: 40, heightPercent: 40 }), enabled: event.target.checked } })}
+        />
+        effect enabled
+      </label>
+      {effect ? (
+        <>
+          <NumberField label="effect x%" value={effect.xPercent} step={0.5} onChange={(xPercent) => onUpdate({ effect: { ...effect, xPercent } })} />
+          <NumberField label="effect y%" value={effect.yPercent} step={0.5} onChange={(yPercent) => onUpdate({ effect: { ...effect, yPercent } })} />
+          <NumberField label="effect w%" value={effect.widthPercent} step={0.5} onChange={(widthPercent) => onUpdate({ effect: { ...effect, widthPercent } })} />
+          <NumberField label="effect h%" value={effect.heightPercent} step={0.5} onChange={(heightPercent) => onUpdate({ effect: { ...effect, heightPercent } })} />
+          <NumberField label="effect opacity" value={effect.opacity ?? 0.85} step={0.05} onChange={(opacity) => onUpdate({ effect: { ...effect, opacity } })} />
+          <NumberField label="effect ms" value={effect.durationMs ?? getEffectDuration(effect.type)} onChange={(durationMs) => onUpdate({ effect: { ...effect, durationMs } })} />
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function PartyEditorFields({ party, onUpdate }: { party?: AdventureMapPartyMarkerLayout; onUpdate: (patch: Partial<AdventureMapPartyMarkerLayout>) => void }) {
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+      <NumberField label="x" value={party?.x ?? 0} onChange={(x) => onUpdate({ x })} />
+      <NumberField label="y" value={party?.y ?? 0} onChange={(y) => onUpdate({ y })} />
+      <NumberField label="size" value={party?.size ?? 56} onChange={(size) => onUpdate({ size })} />
+      <NumberField label="z" value={party?.zIndex ?? 28} onChange={(zIndex) => onUpdate({ zIndex })} />
+      <SelectField label="style" value={party?.style ?? "banner"} options={["banner", "token", "camp"]} onChange={(style) => onUpdate({ style: style as AdventureMapPartyMarkerLayout["style"] })} />
+    </div>
+  );
+}
+
+function RouteEditorFields({
+  route,
+  handle,
+  onUpdate,
+}: {
+  route: AdventureMapRouteLayout;
+  handle: "control1" | "control2";
+  onUpdate: (patch: Partial<AdventureMapRouteLayout>) => void;
+}) {
+  const point = route[handle] ?? { x: 0, y: 0 };
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+      <Readout label="route" value={route.id} />
+      <Readout label="handle" value={handle} />
+      <NumberField label="x" value={point.x} onChange={(x) => onUpdate({ [handle]: { ...point, x } })} />
+      <NumberField label="y" value={point.y} onChange={(y) => onUpdate({ [handle]: { ...point, y } })} />
+      <SelectField label="state" value={route.state ?? "available"} options={["cleared", "available", "locked", "boss"]} onChange={(state) => onUpdate({ state: state as AdventureMapRouteState })} />
+    </div>
+  );
+}
+
+function NumberField({ label, value, step = 1, onChange }: { label: string; value: number; step?: number; onChange: (value: number) => void }) {
+  return (
+    <label className="rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/66">
+      <span className="block text-[9px] uppercase tracking-[0.14em] text-white/36">{label}</span>
+      <input
+        type="number"
+        step={step}
+        value={Number.isFinite(value) ? value : 0}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="mt-1 w-full bg-transparent text-[12px] font-black text-white outline-none"
+      />
+    </label>
+  );
+}
+
+function SelectField({ label, value, options, onChange }: { label: string; value: string; options: readonly string[]; onChange: (value: string) => void }) {
+  return (
+    <label className="rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/66">
+      <span className="block text-[9px] uppercase tracking-[0.14em] text-white/36">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="mt-1 w-full bg-black text-[12px] font-black text-white outline-none">
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function Readout({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/66">
+      <span className="block text-[9px] uppercase tracking-[0.14em] text-white/36">{label}</span>
+      <span className="mt-1 block truncate text-[12px] font-black text-white">{value}</span>
     </div>
   );
 }
@@ -135,688 +1533,264 @@ export function AdventureMissionPanel({
   meta,
   node,
   totalNodes,
+  nodeDefinition,
+  progress,
+  claimedRewards,
+  expanded = false,
+  onToggleExpanded,
   onOpenBattle,
 }: {
   meta: AdventureCampaignMeta;
   node: AdventureNodeState;
   totalNodes: number;
+  nodeDefinition?: AdventureNodeDefinition;
+  progress?: AdventureProgressEntry;
+  claimedRewards?: Rewards | null;
+  expanded?: boolean;
+  onToggleExpanded?: () => void;
   onOpenBattle: () => void;
 }) {
   const { t } = useI18n();
-  const nodeRole = getNodeRole(node, node.lvl.index, totalNodes);
-  const tone = node.locked ? "neutral" : node.cleared ? "emerald" : nodeRole === "boss" ? "ember" : "gold";
-  const statusLabel = node.pausedHere
-    ? t("adventure.pausedEncounter")
-    : node.locked
-      ? node.lvl.unlockAccountLevel
-        ? t("adventure.unlocksAtLevel", { level: node.lvl.unlockAccountLevel })
-        : t("adventure.routeSealed")
-      : node.cleared
-        ? t("adventure.clearedEncounter")
-        : nodeRole === "boss"
-          ? t("adventure.bossEncounter")
-          : nodeRole === "elite"
-            ? t("adventure.eliteEncounter")
-            : t("adventure.battleEncounter");
-
-  const atmosphere = describeEncounter(meta, node, nodeRole, t);
+  const definition = nodeDefinition ?? getAdventureNodeDefinition(node.lvl);
+  const nodeType = definition.type;
+  const nodeClaimed = isAdventureClaimed(nodeType, progress) || node.claimed;
+  const combatNode = isAdventureCombatNode(nodeType);
+  const firstClearAvailable = node.firstClearAvailable && !nodeClaimed;
+  const tone =
+    node.locked || nodeType === "locked"
+      ? "neutral"
+      : nodeClaimed || node.cleared
+        ? "emerald"
+        : nodeType === "boss"
+          ? "ember"
+          : nodeType === "elite" || nodeType === "danger"
+            ? "sky"
+            : "gold";
+  const statusLabel = getMissionStatusLabel(node, definition, progress, firstClearAvailable, t);
   const frontlineSquad = getFrontlineAdventureSquad(node.lvl);
   const enemyTotal = frontlineSquad.reduce((sum, enemy) => sum + enemy.maxHp + enemy.atk * 2 + enemy.def * 2 + enemy.tier * 6, 0);
-  const missionTone = node.locked
-    ? t("adventure.sealedRoute")
-    : node.pausedHere
-      ? t("adventure.activeBreach")
-      : nodeRole === "boss"
-        ? t("adventure.decisiveStrike")
-        : nodeRole === "elite"
-          ? t("adventure.pressureLane")
-          : t("adventure.forwardAssault");
-  const objective =
-    nodeRole === "boss"
-      ? t("adventure.objectives.boss")
-      : nodeRole === "elite"
-        ? t("adventure.objectives.elite")
-        : node.locked
-          ? t("adventure.objectives.locked")
-          : t("adventure.objectives.battle");
+  const objective = getMissionObjective(node, definition, t);
+  const rewardPreview = claimedRewards ?? getAdventureNodeRewardPreview(node.lvl, progress);
+  const rewardChips = buildRewardChipsFromRewards(rewardPreview, firstClearAvailable, t);
+  const primaryReward = rewardChips[0];
+  const cta = getMissionCta(node, definition, progress, t);
+  const showEnemyFormation = combatNode;
 
   return (
-    <ScreenPanel className="pointer-events-auto max-h-none overflow-hidden p-0 shadow-[0_28px_68px_rgba(0,0,0,0.4)] xl:max-h-[calc(100dvh-7.5rem)] xl:overflow-y-auto">
+    <ScreenPanel className="pointer-events-auto overflow-hidden border-[#f5d498]/14 bg-[linear-gradient(180deg,rgba(12,15,22,0.74),rgba(6,8,12,0.88))] p-0 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl">
       <div className="relative">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(245,196,81,0.12),transparent_22%),radial-gradient(circle_at_84%_18%,rgba(143,213,255,0.12),transparent_16%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0)_28%,rgba(8,10,16,0.16)_100%)]" />
-        <div className="relative grid gap-0">
-          <div className="px-4 py-4 md:px-5 md:py-5">
-            <div className="flex flex-wrap items-center gap-2">
-              <ScreenBadge tone="gold">{meta.subtitle}</ScreenBadge>
-              <ScreenBadge tone="sky">{t("adventure.power")} {node.lvl.recommendedPower}</ScreenBadge>
-              <ScreenBadge tone={tone}>{statusLabel}</ScreenBadge>
-              {node.lvl.obstacles?.length ? <ScreenBadge tone="neutral">{node.lvl.obstacles.length} {t("adventure.hazards")}</ScreenBadge> : null}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(245,196,81,0.14),transparent_22%),radial-gradient(circle_at_88%_0%,rgba(143,213,255,0.1),transparent_20%)]" />
+        <div className="relative p-2.5">
+          <div className="grid items-center gap-2 md:grid-cols-[minmax(17rem,1fr)_auto_auto_auto]">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <SceneMedallion
+                icon={node.locked || nodeType === "locked" ? "shield" : nodeType === "boss" || nodeType === "elite" || nodeType === "danger" ? "battle" : nodeClaimed || node.cleared || nodeType === "chest" ? "rewards" : "adventure"}
+                tone={node.locked || nodeType === "locked" ? "violet" : nodeType === "boss" ? "ember" : nodeClaimed || node.cleared ? "emerald" : "gold"}
+                className="h-11 w-11 shrink-0 rounded-[15px]"
+              />
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <ScreenBadge tone={tone}>{statusLabel}</ScreenBadge>
+                  <ScreenBadge tone="sky">{getNodeTypeLabel(nodeType)}</ScreenBadge>
+                  {combatNode ? <ScreenBadge tone="sky">{t("adventure.power")} {node.lvl.recommendedPower}</ScreenBadge> : null}
+                </div>
+                <h2 className="mt-1 truncate text-[1.05rem] font-black leading-tight text-white md:text-[1.2rem]">{node.lvl.name}</h2>
+              </div>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-[30px] border border-[#f5d498]/12 bg-[linear-gradient(180deg,rgba(43,31,18,0.32),rgba(7,10,16,0.88))] shadow-[0_20px_44px_rgba(0,0,0,0.22)]">
-              <div className="relative px-4 py-4">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_40%,rgba(245,196,81,0.16),transparent_20%),radial-gradient(circle_at_86%_20%,rgba(143,213,255,0.1),transparent_18%),linear-gradient(135deg,rgba(255,255,255,0.02),rgba(255,255,255,0))]" />
-                <div className="relative grid gap-4">
-                  <div>
-                    <div className="flex items-start gap-3 md:gap-4">
-                      <div className="relative mt-0.5 shrink-0">
-                        <div className="absolute inset-0 rounded-[24px] blur-xl" style={{ background: `radial-gradient(circle,${meta.accent}36,transparent 72%)` }} />
-                        <SceneMedallion
-                          icon={node.locked ? "shield" : nodeRole === "boss" ? "battle" : node.cleared ? "rewards" : "adventure"}
-                          tone={node.locked ? "violet" : nodeRole === "boss" ? "ember" : node.cleared ? "emerald" : "gold"}
-                          className="relative h-14 w-14 rounded-[18px] md:h-16 md:w-16 md:rounded-[22px]"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[10px] uppercase tracking-[0.24em] text-[#f5d498]">{missionTone}</div>
-                        <h2 className="mt-1 text-[1.35rem] font-black leading-tight text-white md:text-[1.95rem]">{node.lvl.name}</h2>
-                        <p className="mt-2 text-[12px] leading-5 text-white/72">{atmosphere.blurb}</p>
-                      </div>
-                    </div>
+            <div className="grid gap-1.5 md:min-w-[8rem]">
+              <MissionFact
+                label={combatNode ? t("adventure.enemySquadPower") : t("adventure.nodeAction")}
+                value={combatNode ? `${enemyTotal}` : nodeClaimed ? t("adventure.claimedNode") : t("adventure.noCombat")}
+                icon={combatNode ? "power" : "rewards"}
+              />
+            </div>
 
-                    <SceneButton onClick={onOpenBattle} disabled={node.locked} className="mt-4 w-full">
-                      {node.pausedHere ? t("adventure.resumeMission") : node.locked ? t("adventure.lockedCta") : t("adventure.startAdventure")}
-                    </SceneButton>
+            <div className="min-w-0">
+              {primaryReward ? (
+                <RewardChip key={`${primaryReward.label}-${primaryReward.value}`} compact {...primaryReward} />
+              ) : (
+                <ScreenBadge tone="neutral">{t("adventure.rewardOutlook")}</ScreenBadge>
+              )}
+            </div>
 
-                    <div className="mt-4 grid gap-2.5 sm:grid-cols-3 xl:grid-cols-1">
-                      <MissionFact label={t("adventure.terrain")} value={meta.terrainLabel} icon="fortress" />
-                      <MissionFact label={t("adventure.threat")} value={meta.threatLabel} icon="battle" />
-                      <MissionFact label={t("adventure.enemySquadPower")} value={`${enemyTotal}`} icon="power" />
-                    </div>
-
-                    <div className="mt-4 rounded-[24px] border border-[#f5d498]/10 bg-[linear-gradient(180deg,rgba(58,38,18,0.28),rgba(8,10,16,0.88))] px-4 py-3 shadow-[0_14px_32px_rgba(0,0,0,0.18)]">
-                      <div className="text-[10px] uppercase tracking-[0.22em] text-[#f5d498]">{t("adventure.objective")}</div>
-                      <div className="mt-2 text-[0.95rem] font-black leading-6 text-white">{objective}</div>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                    <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,22,33,0.68),rgba(8,10,16,0.96))] p-4 shadow-[0_16px_36px_rgba(0,0,0,0.18)]">
-                      <div className="text-[10px] uppercase tracking-[0.22em] text-white/48">{t("adventure.rewardOutlook")}</div>
-                      <div className="mt-2 text-sm font-black text-white">{atmosphere.rewardTone}</div>
-                      <div className="mt-3 flex flex-wrap gap-2.5">
-                        {buildRewardChips(node.lvl, node.firstClearAvailable, t).map((chip) => (
-                          <RewardChip key={`${chip.label}-${chip.value}`} compact {...chip} />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,16,24,0.48),rgba(8,10,16,0.94))] p-4 shadow-[0_16px_36px_rgba(0,0,0,0.18)]">
-                      <div className="text-[10px] uppercase tracking-[0.22em] text-white/48">{t("adventure.formationTag")}</div>
-                      <div className="mt-2 flex items-center justify-between gap-3">
-                        <div className="text-sm font-black leading-6 text-white">
-                          {nodeRole === "boss"
-                            ? t("adventure.commandCell")
-                            : nodeRole === "elite"
-                              ? t("adventure.chokePointSquad")
-                              : t("adventure.forwardPatrol")}
-                        </div>
-                        <ScreenBadge tone={tone}>{node.lvl.index}/{totalNodes}</ScreenBadge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[10px] uppercase tracking-[0.22em] text-white/48">{t("adventure.enemyFormation")}</div>
-                    </div>
-                    <ScreenBadge tone={tone}>{frontlineSquad.length} {t("adventure.units")}</ScreenBadge>
-                  </div>
-                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar md:flex-wrap md:gap-3 md:overflow-visible md:pb-0">
-                    {frontlineSquad.map((enemy, index) => {
-                      const visual = getFrontlineHeroVisualAsset(enemy.heroId);
-                      return (
-                        <EnemyPortraitCard
-                          key={`${enemy.heroId}-${index}`}
-                          name={enemy.name}
-                          portrait={visual.standeeSrc ?? visual.portraitFallbackSrc}
-                          tier={enemy.tier}
-                          role={enemy.role}
-                          factionTone={enemy.role.toLowerCase().includes("troll") || enemy.role.toLowerCase().includes("venom") ? "wild" : enemy.role.toLowerCase().includes("chanter") ? "arcane" : "shadow"}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <SceneButton onClick={onOpenBattle} disabled={cta.disabled} className="min-w-[10.5rem] px-4 py-2.5">
+                {cta.label}
+              </SceneButton>
+              <button
+                type="button"
+                onClick={onToggleExpanded}
+                className="rounded-full border border-white/12 bg-white/[0.045] px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-white/68 transition hover:border-[#f5d498]/28 hover:text-[#f5d498]"
+              >
+                {expanded ? t("options.close") : "Details"}
+              </button>
             </div>
           </div>
 
-          <div className="grid gap-3 border-t border-white/8 bg-[linear-gradient(180deg,rgba(9,12,18,0.34),rgba(7,9,14,0.82))] px-4 py-4 md:px-5 xl:grid-cols-1">
-            <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] p-4 shadow-[0_16px_36px_rgba(0,0,0,0.2)]">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-[#f5d498]">{t("adventure.encounterPulse")}</div>
-              <div className="mt-2 text-[1.05rem] font-black leading-tight text-white">{atmosphere.kicker}</div>
-            </div>
+          {expanded ? (
+            <div className="mt-2 grid gap-2 border-t border-white/10 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_17rem]">
+              <div className="rounded-[16px] border border-white/10 bg-black/18 p-2.5">
+                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/44">{t("adventure.objective")}</div>
+                <p className="mt-1 text-[11px] leading-4 text-white/62">{objective}</p>
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
+                  <MissionFact label={t("adventure.terrain")} value={meta.terrainLabel} icon="fortress" />
+                  <MissionFact label={t("adventure.routePace")} value={getRepeatPolicyLabel(definition, nodeClaimed || node.cleared, t)} icon="adventure" />
+                </div>
+                {definition.nodeRule ? (
+                  <div className="mt-2 rounded-[12px] border border-[#f5d498]/12 bg-[#f5c451]/8 px-2.5 py-2 text-[10px] leading-4 text-[#f5d498]/72">
+                    <span className="font-black uppercase tracking-[0.12em] text-[#f5d498]">{definition.nodeRule.label}</span> · {definition.nodeRule.description}
+                  </div>
+                ) : null}
+              </div>
 
-            <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,16,24,0.52),rgba(7,9,14,0.96))] p-4 shadow-[0_16px_36px_rgba(0,0,0,0.18)]">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-white/48">{t("adventure.routeState")}</div>
-              <div className="mt-2 text-sm font-black leading-6 text-white">
-                {node.pausedHere
-                  ? t("adventure.routePaused")
-                  : node.locked
-                    ? t("adventure.routeLocked")
-                    : node.cleared
-                      ? t("adventure.routeCleared")
-                      : t("adventure.routeOpen")}
+              <div className="rounded-[16px] border border-white/10 bg-black/18 p-2.5">
+                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/44">{t("adventure.rewardOutlook")}</div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {rewardChips.map((chip) => (
+                    <RewardChip key={`${chip.label}-${chip.value}`} compact {...chip} />
+                  ))}
+                </div>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <MissionPressureStat label={t("adventure.nodeType")} value={nodeRole === "boss" ? t("adventure.boss") : nodeRole === "elite" ? t("adventure.elite") : t("adventure.battle")} />
-                <MissionPressureStat label={t("adventure.routePace")} value={node.locked ? t("adventure.sealed") : node.cleared ? t("adventure.secured") : t("adventure.open")} />
+
+              <div className="rounded-[16px] border border-white/10 bg-black/18 p-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/44">
+                    {showEnemyFormation ? t("adventure.enemyFormation") : t("adventure.nodeAction")}
+                  </div>
+                  <ScreenBadge tone={tone}>{showEnemyFormation ? `${frontlineSquad.length} ${t("adventure.units")}` : getRepeatPolicyLabel(definition, nodeClaimed || node.cleared, t)}</ScreenBadge>
+                </div>
+                {showEnemyFormation ? <div className="mt-2 grid gap-1.5">
+                  {frontlineSquad.map((enemy, index) => {
+                    const visual = getFrontlineHeroVisualAsset(enemy.heroId);
+                    return (
+                      <EnemyRow
+                        key={`${enemy.heroId}-${index}`}
+                        name={enemy.name}
+                        portrait={visual.standeeSrc ?? visual.portraitFallbackSrc ?? undefined}
+                        role={enemy.role}
+                        stats={`HP ${enemy.maxHp} / ATK ${enemy.atk} / DEF ${enemy.def}`}
+                      />
+                    );
+                  })}
+                </div> : (
+                  <p className="mt-2 text-[11px] leading-4 text-white/58">
+                    {nodeClaimed ? t("adventure.cacheAlreadyClaimed") : t("adventure.cacheOpenHint")}
+                  </p>
+                )}
               </div>
             </div>
-
-            <div className="hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,22,33,0.72),rgba(8,10,16,0.96))] p-4 shadow-[0_16px_36px_rgba(0,0,0,0.18)]">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-white/48">{t("adventure.rewardOutlook")}</div>
-              <div className="mt-2 text-sm font-black text-white">
-                {node.firstClearAvailable ? t("adventure.reward.firstClearReady") : node.lvl.rewards.gems ? t("adventure.reward.premiumRoute") : t("adventure.reward.steadyFront")}
-              </div>
-              <div className="mt-2 text-[12px] leading-6 text-white/64">
-                {node.lvl.rewards.gems
-                  ? t("adventure.reward.gemsDetail")
-                  : node.lvl.rewards.dust
-                    ? t("adventure.reward.dustDetail")
-                    : t("adventure.reward.goldDetail")}
-              </div>
-            </div>
-
-            <SceneButton onClick={onOpenBattle} disabled={node.locked} className="hidden">
-              {node.pausedHere ? t("adventure.resumeMission") : node.locked ? t("adventure.lockedCta") : t("adventure.openBattleGate")}
-            </SceneButton>
-          </div>
+          ) : null}
         </div>
       </div>
     </ScreenPanel>
   );
 }
 
-function CampaignHeader({
-  meta,
-  progress,
-  nodes,
-}: {
-  meta: AdventureCampaignMeta;
-  progress: number;
-  nodes: AdventureNodeState[];
-}) {
-  const { t } = useI18n();
-  const cleared = nodes.filter((node) => node.cleared).length;
-
-  return (
-    <div className="pointer-events-none absolute inset-x-4 top-[4.7rem] z-20 flex flex-wrap items-start justify-between gap-3 md:inset-x-6 md:top-[4.9rem]">
-      <div className="max-w-[31rem] rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(14,18,30,0.44),rgba(8,10,16,0.82))] px-4 py-3 shadow-[0_20px_44px_rgba(0,0,0,0.24)] backdrop-blur-2xl">
-        <div className="text-[10px] uppercase tracking-[0.22em] text-[#f5d498]">{meta.subtitle}</div>
-        <div className="mt-1 text-xl font-black text-white md:text-[1.8rem]">{meta.name}</div>
-        <div className="mt-2 max-w-[29rem] text-[12px] leading-6 text-white/66">{meta.hint}</div>
-      </div>
-
-      <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(13,16,26,0.42),rgba(8,10,16,0.88))] px-4 py-3 shadow-[0_16px_34px_rgba(0,0,0,0.22)] backdrop-blur-2xl">
-        <div className="text-[10px] uppercase tracking-[0.18em] text-white/46">{t("adventure.campaignPressure")}</div>
-        <div className="mt-2 flex items-center gap-3">
-          <div className="h-2.5 w-28 overflow-hidden rounded-full bg-white/10 md:w-36">
-            <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,#ffe5a3_0%,#f5c451_46%,#ff8f4a_100%)] shadow-[0_0_18px_rgba(245,196,81,0.34)]"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="text-sm font-black text-white">{cleared}/{nodes.length}</div>
-        </div>
-      </div>
-    </div>
-  );
+function getMissionStatusLabel(
+  node: AdventureNodeState,
+  definition: AdventureNodeDefinition,
+  progress: AdventureProgressEntry | undefined,
+  firstClearAvailable: boolean,
+  t: TranslateFn,
+) {
+  if (node.locked || definition.type === "locked") {
+    return node.lvl.unlockAccountLevel ? t("adventure.unlocksAtLevel", { level: node.lvl.unlockAccountLevel }) : t("adventure.routeSealed");
+  }
+  if (isAdventureClaimed(definition.type, progress) || node.claimed) return t("adventure.claimedNode");
+  if (node.pausedHere) return t("adventure.pausedEncounter");
+  if (firstClearAvailable) return t("adventure.firstClear");
+  if (node.cleared) {
+    if (definition.repeatPolicy === "reduced") return t("adventure.replayReduced");
+    if (definition.repeatPolicy === "free_no_reward") return t("adventure.practiceNoReward");
+    return t("adventure.clearedEncounter");
+  }
+  if (definition.type === "chest") return t("adventure.rewardCache");
+  if (definition.type === "boss") return t("adventure.bossEncounter");
+  if (definition.type === "elite") return t("adventure.eliteEncounter");
+  return t("adventure.battleEncounter");
 }
 
-function CampaignIntel({
-  meta,
-  cleared,
-  total,
-}: {
-  meta: AdventureCampaignMeta;
-  cleared: number;
-  total: number;
-}) {
-  const { t } = useI18n();
-
-  return (
-    <div className="pointer-events-none absolute inset-x-4 top-[12.7rem] z-20 hidden items-center justify-between gap-3 md:inset-x-6 md:flex xl:top-[13.1rem]">
-      <div className="inline-flex items-center gap-2 rounded-[999px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,13,22,0.46),rgba(7,10,16,0.88))] px-3 py-2 shadow-[0_16px_34px_rgba(0,0,0,0.2)] backdrop-blur-xl">
-        <ScreenBadge tone="gold">{t("adventure.terrain")}</ScreenBadge>
-        <span className="text-[11px] uppercase tracking-[0.18em] text-white/74">{meta.terrainLabel}</span>
-      </div>
-      <div className="inline-flex items-center gap-2 rounded-[999px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,13,22,0.46),rgba(7,10,16,0.88))] px-3 py-2 shadow-[0_16px_34px_rgba(0,0,0,0.2)] backdrop-blur-xl">
-        <ScreenBadge tone="sky">{t("adventure.front")}</ScreenBadge>
-        <span className="text-[11px] uppercase tracking-[0.18em] text-white/74">{meta.threatLabel}</span>
-        <span className="rounded-full border border-white/10 bg-white/6 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/76">
-          {cleared}/{total}
-        </span>
-      </div>
-    </div>
-  );
+function getMissionObjective(node: AdventureNodeState, definition: AdventureNodeDefinition, t: TranslateFn) {
+  if (node.locked || definition.type === "locked") return t("adventure.objectives.locked");
+  if (definition.type === "chest") return t("adventure.cacheOpenHint");
+  if (definition.type === "boss") return t("adventure.objectives.boss");
+  if (definition.type === "elite") return t("adventure.objectives.elite");
+  if (definition.type === "merchant") return "Future merchant node prepared for campaign shops.";
+  if (definition.type === "shrine") return "Future shrine node prepared for blessings.";
+  if (definition.type === "event" || definition.type === "secret") return "Future event node prepared for non-combat route choices.";
+  return t("adventure.objectives.battle");
 }
 
-function AdventureTerrain({ meta }: { meta: AdventureCampaignMeta }) {
-  const moon = meta.scene === "adventureMoon";
-
-  return (
-    <>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0)_28%,rgba(8,10,16,0.08)_60%,rgba(8,10,16,0.34)_100%)]" />
-      <div
-        className={cn(
-          "absolute inset-x-[-4%] bottom-[3%] h-[64%] rounded-[45%] opacity-90 blur-[0.2px]",
-          moon
-            ? "bg-[radial-gradient(ellipse_at_20%_66%,rgba(63,86,119,0.38),transparent_31%),radial-gradient(ellipse_at_58%_48%,rgba(55,76,98,0.3),transparent_34%),linear-gradient(180deg,rgba(26,42,62,0),rgba(21,34,48,0.46)_42%,rgba(10,16,24,0.88)_100%)]"
-            : "bg-[radial-gradient(ellipse_at_20%_66%,rgba(114,71,37,0.34),transparent_31%),radial-gradient(ellipse_at_58%_48%,rgba(119,82,45,0.28),transparent_34%),linear-gradient(180deg,rgba(62,39,22,0),rgba(58,35,23,0.5)_42%,rgba(12,10,15,0.88)_100%)]",
-        )}
-      />
-      <div className="absolute inset-0 opacity-[0.16] [background-image:linear-gradient(115deg,rgba(255,255,255,0.09)_1px,transparent_1px),linear-gradient(25deg,rgba(0,0,0,0.12)_1px,transparent_1px)] [background-size:64px_38px,46px_58px]" />
-      <div className={cn("absolute left-[9%] top-[14%] h-24 w-24 rounded-full blur-xl md:h-36 md:w-36", moon ? "bg-sky-200/24" : "bg-orange-200/24")} />
-      <div className={cn("absolute right-[12%] top-[17%] h-28 w-28 rounded-full blur-2xl md:h-40 md:w-40", moon ? "bg-sky-300/16" : "bg-amber-300/18")} />
-      <div className={cn("absolute left-[26%] top-[8%] h-20 w-40 rounded-full blur-3xl animate-[cloudDrift_22s_ease-in-out_infinite]", moon ? "bg-sky-200/10" : "bg-orange-100/10")} />
-      <div className={cn("absolute right-[18%] top-[10%] h-24 w-44 rounded-full blur-3xl animate-[cloudDriftReverse_26s_ease-in-out_infinite]", moon ? "bg-sky-100/8" : "bg-orange-100/8")} />
-
-      <div className="absolute inset-x-0 bottom-[35%] h-[34%] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0)_40%,rgba(8,10,16,0.12)_100%)]" />
-      <MountainBand className="bottom-[32%] h-[24%] opacity-90" tone={moon ? "moonFar" : "ashFar"} />
-      <MountainBand className="bottom-[21%] h-[29%]" tone={moon ? "moonNear" : "ashNear"} />
-      <MountainBand className="bottom-[8%] h-[22%] opacity-90" tone={moon ? "moonFront" : "ashFront"} />
-
-      <PathValley tone={moon ? "moon" : "ash"} />
-      <TerrainScatter tone={moon ? "moon" : "ash"} />
-      <AmbientFog className="bottom-[24%] left-[-12%] h-[14rem] w-[58%]" reverse={false} />
-      <AmbientFog className="bottom-[17%] right-[-10%] h-[12rem] w-[54%]" reverse />
-
-      <WorldSetPiece className="left-[9%] bottom-[25%] md:left-[11%]" kind={moon ? "camp" : "spire"} />
-      <WorldSetPiece className="left-[19%] bottom-[31%] md:left-[20%]" kind={moon ? "watch" : "totem"} />
-      <WorldSetPiece className="left-[31%] bottom-[16%] md:left-[30%]" kind={moon ? "altar" : "ruin"} />
-      <WorldSetPiece className="left-[39%] bottom-[28%] md:left-[40%]" kind={moon ? "arch" : "forge"} />
-      <WorldSetPiece className="left-[51%] bottom-[25%] md:left-[49%]" kind={moon ? "bridge" : "forge"} />
-      <WorldSetPiece className="left-[61%] bottom-[15%] md:left-[60%]" kind={moon ? "tree" : "obelisk"} />
-      <WorldSetPiece className="left-[74%] bottom-[20%] md:left-[73%]" kind={moon ? "gate" : "crater"} />
-      <WorldSetPiece className="left-[81%] bottom-[29%] md:left-[81%]" kind={moon ? "ruin" : "watch"} />
-      <WorldSetPiece className="left-[24%] bottom-[21%] md:left-[26%]" kind={moon ? "wagon" : "barricade"} />
-      <WorldSetPiece className="left-[57%] bottom-[32%] md:left-[58%]" kind={moon ? "lantern" : "totem"} />
-      <WorldSetPiece className="left-[87%] bottom-[18%] md:left-[87%]" kind={moon ? "camp" : "forge"} />
-      <WorldSetPiece className="left-[13%] bottom-[41%] md:left-[14%]" kind={moon ? "lantern" : "crystal"} />
-      <WorldSetPiece className="left-[28%] bottom-[39%] md:left-[30%]" kind={moon ? "wagon" : "barricade"} />
-      <WorldSetPiece className="left-[47%] bottom-[37%] md:left-[49%]" kind={moon ? "lantern" : "crystal"} />
-      <WorldSetPiece className="left-[69%] bottom-[38%] md:left-[70%]" kind={moon ? "wagon" : "totem"} />
-      <WorldSetPiece className="left-[85%] bottom-[35%] md:left-[85%]" kind={moon ? "lantern" : "barricade"} />
-
-      <ParticleCluster tone={moon ? "#c8e2ff" : "#ffc17f"} />
-      <BirdSweep />
-    </>
-  );
+function getMissionCta(
+  node: AdventureNodeState,
+  definition: AdventureNodeDefinition,
+  progress: AdventureProgressEntry | undefined,
+  t: TranslateFn,
+) {
+  if (node.locked || definition.type === "locked") return { label: t("adventure.lockedCta"), disabled: true };
+  if (isAdventureClaimed(definition.type, progress) || node.claimed) return { label: t("adventure.claimedNode"), disabled: true };
+  if (definition.type === "chest") return { label: t("adventure.openChest"), disabled: false };
+  if (definition.type === "elite") return { label: t("adventure.challengeElite"), disabled: false };
+  if (definition.type === "boss") return { label: t("adventure.faceBoss"), disabled: false };
+  if (!isAdventureCombatNode(definition.type)) return { label: t("adventure.notReady"), disabled: true };
+  return { label: node.pausedHere ? t("adventure.resumeMission") : t("adventure.startAdventure"), disabled: false };
 }
 
-function CampaignTrail({
-  d,
-  accent,
-  className,
-}: {
-  d: string;
-  accent: string;
-  className?: string;
-}) {
-  return (
-    <svg viewBox="0 0 100 100" className={cn("pointer-events-none absolute inset-0 z-10 h-full w-full", className)}>
-      <defs>
-        <filter id="adventureRoadRoughness" x="-10%" y="-10%" width="120%" height="120%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" seed="7" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.55" />
-        </filter>
-      </defs>
-      <path d={d} fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="25" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={d} fill="none" stroke="rgba(54,34,20,0.86)" strokeWidth="21" strokeLinecap="round" strokeLinejoin="round" filter="url(#adventureRoadRoughness)" />
-      <path d={d} fill="none" stroke="rgba(134,88,47,0.78)" strokeWidth="16.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#adventureRoadRoughness)" />
-      <path d={d} fill="none" stroke="rgba(203,151,82,0.68)" strokeWidth="11.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#adventureRoadRoughness)" />
-      <path d={d} fill="none" stroke="rgba(255,224,162,0.22)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="0.9 7.5" />
-      <path d={d} fill="none" stroke={accent} strokeOpacity="0.18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="8 15" />
-    </svg>
-  );
+function getNodeTypeLabel(type: AdventureNodeDefinition["type"]) {
+  const labels: Record<AdventureNodeDefinition["type"], string> = {
+    battle: "Battle",
+    elite: "Elite",
+    boss: "Boss",
+    chest: "Chest",
+    shrine: "Shrine",
+    merchant: "Merchant",
+    event: "Event",
+    secret: "Secret",
+    danger: "Danger",
+    locked: "Locked",
+  };
+  return labels[type];
 }
 
-function PathRunes({
-  layouts,
-  accent,
-}: {
-  layouts: AdventureNodeLayout[];
-  accent: string;
-}) {
-  const desktopMarkers = buildTrailMarkers(layouts, "desktop");
-  const mobileMarkers = buildTrailMarkers(layouts, "mobile");
-
-  return (
-    <>
-      {mobileMarkers.map((marker, index) => (
-        <div key={`mobile-${index}`}>
-          <div
-            className="pointer-events-none absolute z-10 block md:hidden"
-            style={{ left: marker.x, top: marker.y, transform: "translate(-50%, -50%)" }}
-          >
-            <RuneMarker accent={accent} variant={marker.variant} />
-          </div>
-        </div>
-      ))}
-      {desktopMarkers.map((marker, index) => (
-        <div key={`desktop-${index}`}>
-          <div
-            className="pointer-events-none absolute z-10 hidden md:block"
-            style={{ left: marker.x, top: marker.y, transform: "translate(-50%, -50%)" }}
-          >
-            <RuneMarker accent={accent} variant={marker.variant} />
-          </div>
-        </div>
-      ))}
-    </>
-  );
+function getRepeatPolicyLabel(definition: AdventureNodeDefinition, clearedOrClaimed: boolean, t?: TranslateFn) {
+  const tr = t ?? ((key: string) => key);
+  if (definition.type === "chest") return clearedOrClaimed ? tr("adventure.claimedNode") : tr("adventure.claimOnce");
+  if (definition.repeatPolicy === "reduced") return clearedOrClaimed ? tr("adventure.replayReduced") : tr("adventure.firstClear");
+  if (definition.repeatPolicy === "free_no_reward") return clearedOrClaimed ? tr("adventure.practiceOnly") : tr("adventure.firstClear");
+  if (definition.repeatPolicy === "ticket_cost") return "Ticket cost";
+  return clearedOrClaimed ? tr("adventure.completed") : tr("adventure.firstClear");
 }
 
-function RuneMarker({
-  accent,
-  variant,
-}: {
-  accent: string;
-  variant: "rune" | "torch" | "cache";
-}) {
+function MissionFact({ label, value, icon }: { label: string; value: string; icon: "adventure" | "battle" | "fortress" | "power" | "rewards" }) {
   return (
-    <div className={cn("relative", variant === "torch" ? "h-7 w-5" : "h-5 w-6")}>
-      <div className="absolute inset-[-0.35rem] rounded-full blur-md" style={{ background: `radial-gradient(circle,${accent}30,transparent 72%)` }} />
-      {variant === "torch" ? (
-        <>
-          <div className="absolute bottom-0 left-1/2 h-5 w-[2px] -translate-x-1/2 rounded-full bg-[#4b2c18]" />
-          <div
-            className="absolute left-1/2 top-[8%] h-3 w-3 -translate-x-1/2 rounded-full animate-[sparkPulse_4.6s_ease-in-out_infinite]"
-            style={{ background: `radial-gradient(circle,#fff2b5 0%,${accent} 48%,rgba(255,120,46,0.18) 100%)` }}
-          />
-        </>
-      ) : variant === "cache" ? (
-        <div className="absolute left-1/2 top-1/2 h-3 w-5 -translate-x-1/2 -translate-y-1/2 rounded-[4px] border border-[#ffe1a6]/24 bg-[linear-gradient(180deg,rgba(91,58,30,0.92),rgba(34,22,15,0.96))]" />
-      ) : (
-        <div className="absolute left-1/2 top-1/2 h-2.5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-[999px] border border-[#ffe1a6]/16 bg-[linear-gradient(180deg,rgba(157,114,64,0.72),rgba(52,35,20,0.96))]" />
-      )}
-    </div>
-  );
-}
-
-function LandmarkAnchor({
-  landmark,
-  accent,
-}: {
-  landmark: AdventureLandmark;
-  accent: string;
-}) {
-  const mobilePoint = projectPoint(landmark.mobileX, landmark.mobileY, "mobile");
-  const desktopPoint = projectPoint(landmark.x, landmark.y, "desktop");
-
-  return (
-    <>
-      <div
-        className="pointer-events-none absolute z-20 block md:hidden"
-        style={{ left: mobilePoint.left, top: mobilePoint.top, transform: "translate(-50%, -50%)" }}
-      >
-        <LandmarkPill landmark={landmark} accent={accent} />
-      </div>
-      <div
-        className="pointer-events-none absolute z-20 hidden md:block"
-        style={{ left: desktopPoint.left, top: desktopPoint.top, transform: "translate(-50%, -50%)" }}
-      >
-        <LandmarkPill landmark={landmark} accent={accent} />
-      </div>
-    </>
-  );
-}
-
-function LandmarkPill({
-  landmark,
-  accent,
-}: {
-  landmark: AdventureLandmark;
-  accent: string;
-}) {
-  const icon =
-    landmark.kind === "camp"
-      ? "fortress"
-      : landmark.kind === "bridge"
-        ? "adventure"
-        : landmark.kind === "altar"
-          ? "power"
-          : landmark.kind === "gate"
-            ? "battle"
-            : landmark.kind === "spire"
-              ? "events"
-              : "rewards";
-
-  return (
-    <div className="relative">
-      <div className="absolute left-1/2 top-full h-8 w-px -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,255,255,0.24),rgba(255,255,255,0))]" />
-      <div className="relative grid place-items-center">
-        <div className="absolute inset-0 rounded-full blur-lg" style={{ background: `radial-gradient(circle,${accent}2e,transparent 72%)` }} />
-        <div className="relative grid h-9 w-9 place-items-center rounded-[16px] border border-white/12 bg-[linear-gradient(180deg,rgba(10,13,22,0.62),rgba(7,10,16,0.94))] shadow-[0_14px_30px_rgba(0,0,0,0.22)] backdrop-blur-xl md:h-10 md:w-10">
-          <SceneMedallion icon={icon} tone={landmark.kind === "gate" ? "ember" : "sky"} className="h-8 w-8 rounded-[12px] border-0 p-1.5 shadow-none" />
-        </div>
-        <div className="mt-2 hidden rounded-[999px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,13,22,0.54),rgba(7,10,16,0.9))] px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-white/76 shadow-[0_14px_30px_rgba(0,0,0,0.22)] md:block">
-          {landmark.label}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AdventureNodeAnchor({
-  node,
-  layout,
-  accent,
-  active,
-  onSelect,
-  totalNodes,
-}: {
-  node: AdventureNodeState;
-  layout: AdventureNodeLayout;
-  accent: string;
-  active: boolean;
-  onSelect: (id: string) => void;
-  totalNodes: number;
-}) {
-  const mobilePoint = projectPoint(layout.mobileX, layout.mobileY, "mobile");
-  const desktopPoint = projectPoint(layout.x, layout.y, "desktop");
-
-  return (
-    <>
-      <NodeButton
-        node={node}
-        accent={accent}
-        active={active}
-        totalNodes={totalNodes}
-        onSelect={onSelect}
-        style={{ left: mobilePoint.left, top: mobilePoint.top, transform: "translate(-50%, -50%)" }}
-        className="md:hidden"
-      />
-      <NodeButton
-        node={node}
-        accent={accent}
-        active={active}
-        totalNodes={totalNodes}
-        onSelect={onSelect}
-        style={{ left: desktopPoint.left, top: desktopPoint.top, transform: "translate(-50%, -50%)" }}
-        className="hidden md:block"
-      />
-    </>
-  );
-}
-
-function NodeButton({
-  node,
-  accent,
-  active,
-  totalNodes,
-  onSelect,
-  style,
-  className,
-}: {
-  node: AdventureNodeState;
-  accent: string;
-  active: boolean;
-  totalNodes: number;
-  onSelect: (id: string) => void;
-  style: CSSProperties;
-  className?: string;
-}) {
-  const { t } = useI18n();
-  const role = getNodeRole(node, node.lvl.index, totalNodes);
-  const tone = node.locked ? "#7b889e" : node.cleared ? "#64e3b1" : role === "boss" ? "#ff9a5c" : accent;
-  const label = node.pausedHere
-    ? t("adventure.node.resume")
-    : node.locked
-      ? t("adventure.node.sealed")
-      : role === "boss"
-        ? t("adventure.node.boss")
-        : role === "elite"
-          ? t("adventure.node.elite")
-          : node.cleared
-            ? t("adventure.node.cleared")
-            : t("adventure.node.battle");
-  const icon = role === "boss" ? "battle" : role === "elite" ? "power" : node.locked ? "shield" : "adventure";
-  const shortName = compactNodeName(node.lvl.name);
-  const rewardHint = node.lvl.rewards.gems ? "gem" : node.firstClearAvailable ? "cache" : node.lvl.rewards.dust ? "dust" : "gold";
-  const rewardTone =
-    rewardHint === "gem"
-      ? "bg-sky-300/88"
-      : rewardHint === "cache"
-        ? "bg-emerald-300/88"
-        : rewardHint === "dust"
-          ? "bg-violet-300/88"
-          : "bg-amber-300/88";
-
-  return (
-    <button
-      onClick={() => onSelect(node.lvl.id)}
-      className={cn("absolute z-[14] h-[5.25rem] w-[5.1rem] transition-transform duration-200 hover:scale-[1.06] md:h-[6rem] md:w-[5.85rem]", className)}
-      style={style}
-    >
-      {active ? (
-        <>
-          <span
-            className="absolute left-1/2 top-[42%] h-[5rem] w-[5rem] -translate-x-1/2 -translate-y-1/2 rounded-full border animate-[pulseRing_2.2s_ease-out_infinite] md:h-[5.9rem] md:w-[5.9rem]"
-            style={{ borderColor: `${tone}55` }}
-          />
-          <span
-            className="absolute left-1/2 top-[42%] h-[4.7rem] w-[4.7rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-            style={{ background: `radial-gradient(circle,${tone}38,transparent 68%)` }}
-          />
-        </>
-      ) : null}
-
-      <div
-        className="absolute left-1/2 top-[41%] h-[4.15rem] w-[3.9rem] -translate-x-1/2 -translate-y-1/2 border shadow-[0_18px_36px_rgba(0,0,0,0.34)] md:h-[4.75rem] md:w-[4.45rem]"
-        style={{
-          borderColor: `${tone}d0`,
-          clipPath: "polygon(50% 0%,86% 12%,100% 45%,83% 82%,50% 100%,17% 82%,0% 45%,14% 12%)",
-          background: node.locked
-            ? "linear-gradient(180deg,rgba(25,28,39,0.92),rgba(8,10,16,0.98))"
-            : node.cleared
-              ? "linear-gradient(180deg,rgba(38,102,74,0.94),rgba(7,20,16,0.98))"
-              : role === "boss"
-                ? "linear-gradient(180deg,rgba(93,42,26,0.96),rgba(12,9,12,0.98))"
-                : "linear-gradient(180deg,rgba(46,34,18,0.96),rgba(8,10,16,0.98))",
-        }}
-      />
-      <div
-        className="absolute left-1/2 top-[40%] h-[3.25rem] w-[3rem] -translate-x-1/2 -translate-y-1/2 border border-white/14 opacity-80 md:h-[3.7rem] md:w-[3.45rem]"
-        style={{
-          clipPath: "polygon(50% 0%,86% 15%,96% 48%,78% 78%,50% 94%,22% 78%,4% 48%,14% 15%)",
-          background: `radial-gradient(circle at 50% 35%,rgba(255,255,255,0.18),transparent 30%),linear-gradient(180deg,${tone}33,rgba(6,8,13,0.58))`,
-        }}
-      />
-      <div
-        className="absolute left-1/2 top-[42%] h-[5rem] w-[5rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-xl md:h-[5.5rem] md:w-[5.5rem]"
-        style={{ background: `radial-gradient(circle,${tone}2f,transparent 70%)` }}
-      />
-      <div
-        className="absolute left-1/2 top-[72%] h-4 w-[4.2rem] -translate-x-1/2 rounded-[999px] blur-md md:w-[4.9rem]"
-        style={{ background: `radial-gradient(circle,rgba(0,0,0,0.72),rgba(0,0,0,0))` }}
-      />
-      <div
-        className="absolute left-1/2 top-[62%] h-[0.82rem] w-[3.35rem] -translate-x-1/2 rounded-[999px] border border-white/10 shadow-[0_6px_12px_rgba(0,0,0,0.18)] md:w-[3.85rem]"
-        style={{
-          background: node.locked
-            ? "linear-gradient(180deg,rgba(88,96,112,0.88),rgba(36,40,50,0.98))"
-            : node.cleared
-              ? "linear-gradient(180deg,rgba(105,227,176,0.82),rgba(24,82,58,0.98))"
-              : role === "boss"
-                ? "linear-gradient(180deg,rgba(255,162,102,0.86),rgba(102,44,24,0.98))"
-                : `linear-gradient(180deg,${tone}d0,rgba(60,38,15,0.98))`,
-        }}
-      />
-
-      <div className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2">
-        <SceneMedallion
-          icon={icon}
-          tone={role === "boss" ? "ember" : node.cleared ? "emerald" : node.locked ? "violet" : "gold"}
-          className="h-10 w-10 rounded-[15px] border-0 bg-transparent p-0 shadow-none md:h-11 md:w-11"
-        />
-      </div>
-
-      <div
-        className="absolute right-[-2%] top-[5%] rounded-full border border-black/24 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-white shadow-[0_8px_18px_rgba(0,0,0,0.34)]"
-        style={{
-          background:
-            role === "boss"
-              ? "linear-gradient(180deg,rgba(255,148,92,0.94),rgba(91,34,20,0.96))"
-              : node.cleared
-                ? "linear-gradient(180deg,rgba(112,248,178,0.88),rgba(20,74,52,0.96))"
-                : node.locked
-                  ? "linear-gradient(180deg,rgba(123,136,158,0.9),rgba(39,44,57,0.96))"
-                  : "linear-gradient(180deg,rgba(255,230,161,0.9),rgba(118,79,18,0.96))",
-        }}
-      >
-        {node.cleared ? "OK" : role === "boss" ? "BOSS" : role === "elite" ? "EL" : node.lvl.index}
-      </div>
-
-      <div className={cn("absolute left-[3%] top-[17%] h-3 w-3 rounded-full shadow-[0_0_12px_rgba(255,255,255,0.18)]", rewardTone)} />
-
-      {active ? (
-        <div className="absolute left-1/2 top-[94%] min-w-[6.4rem] -translate-x-1/2 -translate-y-1/2 rounded-[999px] border border-[#f5d498]/16 bg-[linear-gradient(180deg,rgba(45,30,15,0.82),rgba(7,9,14,0.97))] px-2.5 py-1.5 shadow-[0_14px_24px_rgba(0,0,0,0.24)]">
-          <div className="text-[7px] font-black uppercase tracking-[0.2em] text-[#f5d498]/86 md:text-[8px]">{label}</div>
-          <div className="mt-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-white md:text-[9px]">{shortName}</div>
-        </div>
-      ) : null}
-    </button>
-  );
-}
-
-function MissionFact({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon: "fortress" | "battle" | "power" | "rewards";
-}) {
-  return (
-    <div className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,16,24,0.38),rgba(8,10,16,0.88))] px-3 py-3 shadow-[0_14px_32px_rgba(0,0,0,0.18)]">
-      <div className="flex items-center gap-3">
-        <SceneMedallion icon={icon} className="h-10 w-10 rounded-[14px] shadow-[0_10px_18px_rgba(0,0,0,0.22)]" />
+    <div className="min-w-0 rounded-[15px] border border-white/10 bg-white/[0.035] px-2.5 py-1.5">
+      <div className="flex items-center gap-1.5">
+        <GameIcon kind={icon} tone="steel" size="sm" className="h-7 w-7 rounded-[10px]" />
         <div className="min-w-0">
-          <div className="text-[9px] uppercase tracking-[0.18em] text-white/42">{label}</div>
-          <div className="mt-1 text-sm font-black leading-5 text-white">{value}</div>
+          <div className="text-[8px] font-black uppercase tracking-[0.12em] text-white/42">{label}</div>
+          <div className="mt-0.5 truncate text-[11px] font-black text-white">{value}</div>
         </div>
       </div>
     </div>
   );
 }
 
-function MissionPressureStat({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function EnemyRow({ name, portrait, role, stats }: { name: string; portrait?: string; role: string; stats: string }) {
   return (
-    <div className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] px-3 py-2">
-      <div className="text-[8px] uppercase tracking-[0.18em] text-white/42">{label}</div>
-      <div className="mt-1 text-sm font-black text-white">{value}</div>
+    <div className="flex items-center gap-2 rounded-[14px] border border-white/10 bg-black/16 px-2 py-1.5">
+      <div className="grid h-10 w-9 shrink-0 place-items-end overflow-hidden rounded-[11px] border border-rose-200/14 bg-black/24">
+        {portrait ? (
+          <img src={portrait} alt="" aria-hidden="true" loading="lazy" decoding="async" className="h-full w-full object-contain object-bottom drop-shadow-[0_9px_12px_rgba(0,0,0,0.44)]" />
+        ) : (
+          <GameIcon kind="battle" tone="ember" size="sm" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[11px] font-black text-white">{name}</div>
+        <div className="mt-0.5 truncate text-[10px] uppercase tracking-[0.1em] text-white/42">{role}</div>
+      </div>
+      <div className="hidden text-[9px] font-black uppercase tracking-[0.08em] text-rose-100/58 sm:block">{stats}</div>
     </div>
   );
 }
@@ -826,7 +1800,7 @@ function RewardChip({
   label,
   value,
   tone,
-  compact = false,
+  compact,
 }: {
   icon: "gold" | "gem" | "dust" | "rewards";
   label: string;
@@ -837,446 +1811,332 @@ function RewardChip({
   return (
     <GameRewardToken
       icon={icon}
-      tone={tone}
       label={label}
       value={value}
+      tone={tone}
       size={compact ? "sm" : "md"}
       featured={icon === "gold" || icon === "gem" || icon === "dust"}
     />
   );
 }
 
-function EnemyPortraitCard({
-  name,
-  portrait,
-  tier,
-  role,
-  factionTone,
-}: {
-  name: string;
-  portrait: string | null;
-  tier: number;
-  role: string;
-  factionTone: "order" | "shadow" | "wild" | "arcane";
-}) {
-  const tone =
-    factionTone === "order"
-      ? "from-sky-200/42 via-sky-500/28 to-slate-900"
-      : factionTone === "shadow"
-        ? "from-fuchsia-200/42 via-violet-500/28 to-slate-950"
-        : factionTone === "wild"
-          ? "from-emerald-200/38 via-emerald-500/28 to-slate-950"
-          : "from-cyan-100/38 via-indigo-500/28 to-slate-950";
-
-  return (
-    <div className="w-[5.9rem] overflow-hidden rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,16,24,0.52),rgba(7,9,14,0.96))] shadow-[0_16px_32px_rgba(0,0,0,0.22)] md:w-[6.25rem]">
-      <div className={cn("relative h-[4.6rem] bg-gradient-to-b md:h-20", tone)}>
-        <ArtPortrait
-          src={portrait}
-          alt={name}
-          className="h-full w-full"
-          imgClassName="object-contain object-bottom"
-          fallback={<span className="text-lg font-black text-white">{name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span>}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-10 bg-[linear-gradient(180deg,rgba(0,0,0,0),rgba(6,8,14,0.84))]" />
-        <div className="absolute right-2 top-2 rounded-full border border-black/18 bg-black/42 px-1.5 py-0.5 text-[9px] font-black text-white">
-          T{tier}
-        </div>
-      </div>
-      <div className="px-2.5 py-2">
-        <div className="truncate text-[11px] font-black text-white">{name}</div>
-        <div className="mt-1 truncate text-[10px] uppercase tracking-[0.16em] text-[#f5d498]">{role}</div>
-      </div>
-    </div>
+function buildRoutes(nodes: AdventureVisualNode[], routeLayouts: AdventureMapRouteLayout[] = []): AdventureVisualRoute[] {
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  if (routeLayouts.length) {
+    return routeLayouts
+      .map((route) => {
+        const from = byId.get(route.from);
+        const to = byId.get(route.to);
+        if (!from || !to) return null;
+        return { ...route, from, to };
+      })
+      .filter((route): route is AdventureVisualRoute => Boolean(route));
+  }
+  return nodes.flatMap((from) =>
+    from.connectsTo
+      .map((id) => byId.get(id))
+      .filter((to): to is AdventureVisualNode => Boolean(to))
+      .map((to) => ({ id: `${from.id}-${to.id}`, from, to })),
   );
 }
 
-function MountainBand({
-  className,
-  tone,
-}: {
-  className?: string;
-  tone: "moonFar" | "moonNear" | "moonFront" | "ashFar" | "ashNear" | "ashFront";
-}) {
-  const fill =
-    tone === "moonFar"
-      ? "linear-gradient(180deg,#263963 0%,#14253f 54%,#0b1422 100%)"
-      : tone === "moonNear"
-        ? "linear-gradient(180deg,#31456d 0%,#192942 52%,#09111d 100%)"
-        : tone === "moonFront"
-          ? "linear-gradient(180deg,#223650 0%,#121f32 48%,#081019 100%)"
-          : tone === "ashFar"
-            ? "linear-gradient(180deg,#704a38 0%,#382324 54%,#110e18 100%)"
-            : tone === "ashNear"
-              ? "linear-gradient(180deg,#86553d 0%,#442624 52%,#110d17 100%)"
-              : "linear-gradient(180deg,#55322d 0%,#2a1719 50%,#0b0912 100%)";
+function curvedRoute(route: AdventureVisualRoute) {
+  const { from, to } = route;
+  const controls = getRouteControls(route);
+  return `M ${from.x} ${from.y} C ${controls.control1.x} ${controls.control1.y}, ${controls.control2.x} ${controls.control2.y}, ${to.x} ${to.y}`;
+}
 
-  const points =
-    tone === "moonFar" || tone === "ashFar"
-      ? "0,100 8,56 17,64 28,34 38,44 48,24 58,38 69,20 78,42 88,28 100,38 100,100"
-      : tone === "moonNear" || tone === "ashNear"
-        ? "0,100 10,62 18,48 28,58 36,38 46,48 56,24 66,40 74,28 84,46 92,32 100,44 100,100"
-        : "0,100 8,78 18,60 28,70 38,52 50,60 60,42 71,57 82,44 92,58 100,54 100,100";
+function getRouteControls(route: AdventureVisualRoute) {
+  const { from, to } = route;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  return {
+    control1: route.control1 ?? { x: Math.round(from.x + dx * 0.38), y: Math.round(from.y + dy * 0.12 - 28) },
+    control2: route.control2 ?? { x: Math.round(from.x + dx * 0.62), y: Math.round(from.y + dy * 0.88 + 28) },
+  };
+}
 
-  return (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={cn("absolute left-[-8%] right-[-8%]", className)}>
-      <polygon points={points} fill={fill} />
-    </svg>
+function getEditableRoutes(layout: AdventureMapChapterLayout, nodes: AdventureVisualNode[]): AdventureMapRouteLayout[] {
+  if (layout.routes?.length) return layout.routes;
+  return buildRoutes(nodes).map((route) => {
+    const controls = getRouteControls(route);
+    return {
+      id: route.id,
+      from: route.from.id,
+      to: route.to.id,
+      state: route.state,
+      control1: controls.control1,
+      control2: controls.control2,
+    };
+  });
+}
+
+function nodeStyle(x: number, y: number): CSSProperties {
+  return {
+    left: `${(x / DESIGN_WIDTH) * 100}%`,
+    top: `${(y / DESIGN_HEIGHT) * 100}%`,
+  };
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function editorButtonClass(active: boolean) {
+  return cn(
+    "rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] transition",
+    active ? "border-sky-200/36 bg-sky-300/18 text-sky-100" : "border-white/10 bg-white/[0.06] text-white/64 hover:bg-white/10",
   );
 }
 
-function PathValley({ tone }: { tone: "moon" | "ash" }) {
-  return (
-    <>
-      <div
-        className={cn(
-          "absolute bottom-[9%] left-[11%] h-[28%] w-[78%] rotate-[-8deg] rounded-[999px] blur-2xl",
-          tone === "moon" ? "bg-sky-300/12" : "bg-orange-300/12",
-        )}
-      />
-      <div
-        className={cn(
-          "absolute bottom-[10.5%] left-[13%] h-[13%] w-[74%] rotate-[-8deg] rounded-[999px] border border-white/8",
-          tone === "moon"
-            ? "bg-[linear-gradient(90deg,rgba(35,49,78,0.38),rgba(80,116,170,0.4),rgba(29,42,60,0.32))]"
-            : "bg-[linear-gradient(90deg,rgba(75,47,28,0.42),rgba(149,92,56,0.4),rgba(39,25,18,0.34))]",
-        )}
-      />
-      <div
-        className={cn(
-          "absolute bottom-[11.8%] left-[16%] h-[8.4%] w-[68%] rotate-[-8deg] rounded-[999px] border border-white/10",
-          tone === "moon"
-            ? "bg-[linear-gradient(90deg,rgba(220,244,255,0.06),rgba(171,216,255,0.16),rgba(220,244,255,0.06))]"
-            : "bg-[linear-gradient(90deg,rgba(255,221,188,0.06),rgba(255,184,128,0.18),rgba(255,221,188,0.06))]",
-        )}
-      />
-      <div
-        className={cn(
-          "absolute bottom-[13.2%] left-[19%] h-[2.4%] w-[60%] rotate-[-8deg] rounded-[999px] blur-sm",
-          tone === "moon" ? "bg-sky-200/30" : "bg-orange-200/28",
-        )}
-      />
-      <div
-        className={cn(
-          "absolute bottom-[11.9%] left-[20%] h-[1.6%] w-[49%] rotate-[-8deg] rounded-[999px] animate-[waterShimmer_7s_ease-in-out_infinite]",
-          tone === "moon" ? "bg-sky-100/24" : "bg-orange-100/18",
-        )}
-      />
-    </>
-  );
+function getSelectedExport(layout: AdventureMapChapterLayout, selected: EditorSelection | null) {
+  if (!selected) return { selected: null };
+  if (selected.kind === "node") return layout.nodes.find((node) => node.id === selected.id) ?? { id: selected.id };
+  if (selected.kind === "prop") return layout.props?.find((prop) => prop.id === selected.id) ?? { id: selected.id };
+  if (selected.kind === "party") return layout.partyMarker ?? { id: "party" };
+  if (selected.kind === "routeControl") return { route: layout.routes?.find((route) => route.id === selected.id), handle: selected.handle };
+  return { selected };
 }
 
-function TerrainScatter({ tone }: { tone: "moon" | "ash" }) {
-  const props =
-    tone === "moon"
-      ? [
-          { left: "11%", top: "64%", w: 16, h: 6, kind: "rock" },
-          { left: "22%", top: "56%", w: 20, h: 7, kind: "bush" },
-          { left: "34%", top: "66%", w: 22, h: 8, kind: "rock" },
-          { left: "48%", top: "60%", w: 18, h: 6, kind: "torch" },
-          { left: "59%", top: "68%", w: 24, h: 8, kind: "rock" },
-          { left: "69%", top: "58%", w: 20, h: 7, kind: "bush" },
-          { left: "82%", top: "63%", w: 16, h: 6, kind: "rock" },
-        ]
-      : [
-          { left: "14%", top: "63%", w: 18, h: 6, kind: "rock" },
-          { left: "26%", top: "55%", w: 20, h: 7, kind: "torch" },
-          { left: "39%", top: "67%", w: 22, h: 8, kind: "rock" },
-          { left: "52%", top: "58%", w: 20, h: 7, kind: "ember" },
-          { left: "65%", top: "68%", w: 24, h: 8, kind: "rock" },
-          { left: "74%", top: "54%", w: 22, h: 7, kind: "torch" },
-          { left: "86%", top: "61%", w: 16, h: 6, kind: "rock" },
-        ];
-
-  return (
-    <>
-      {props.map((item, index) => (
-        <div
-          key={`${item.kind}-${index}`}
-          className="pointer-events-none absolute z-[2]"
-          style={{ left: item.left, top: item.top, width: item.w, height: item.h, transform: "translate(-50%, -50%)" }}
-        >
-          {item.kind === "rock" ? (
-            <div className="h-full w-full rounded-[999px] border border-white/6 bg-[linear-gradient(180deg,rgba(84,90,112,0.36),rgba(10,12,17,0.92))]" />
-          ) : item.kind === "bush" ? (
-            <div className="h-full w-full rounded-[999px] bg-[radial-gradient(circle_at_40%_40%,rgba(183,229,255,0.18),rgba(31,55,67,0.92)_72%)]" />
-          ) : item.kind === "ember" ? (
-            <div className="relative h-full w-full">
-              <div className="absolute inset-0 rounded-[999px] bg-[linear-gradient(180deg,rgba(83,47,30,0.56),rgba(15,11,14,0.96))]" />
-              <div className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-200/30 blur-sm animate-[sparkPulse_4.6s_ease-in-out_infinite]" />
-            </div>
-          ) : (
-            <div className="relative h-full w-full">
-              <div className="absolute left-1/2 bottom-0 h-full w-[2px] -translate-x-1/2 rounded-full bg-white/18" />
-              <div className={cn("absolute left-1/2 top-0 h-2.5 w-2.5 -translate-x-1/2 rounded-full blur-[1px] animate-[sparkPulse_4.8s_ease-in-out_infinite]", tone === "moon" ? "bg-sky-100/60" : "bg-orange-200/70")} />
-            </div>
-          )}
-        </div>
-      ))}
-    </>
-  );
+function getPropContent(prop: AdventureMapPropLayout) {
+  const type = prop.type;
+  if (isAdventurePropAsset(type)) {
+    const asset = getAdventurePropAsset(type);
+    if (asset) {
+      return (
+        <span className="relative block h-full w-full">
+          <img
+            src={asset.src}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,0.48)]"
+          />
+          {prop.effect?.enabled !== false ? <AdventurePropEffect prop={prop} /> : null}
+        </span>
+      );
+    }
+  }
+  if (isHomeEffectProp(type)) {
+    return (
+      <HomeEffectSprite
+        effect={type}
+        durationMs={type === "clouds_dark_layer" ? 90000 : type === "crow_fly_loop" ? 720 : 720}
+        width="100%"
+        height="100%"
+        dataId={prop.id}
+        opacity={1}
+        mobileDisabled={false}
+        className="left-1/2 top-1/2"
+      />
+    );
+  }
+  if (type === "camp_prop") return <span className="block h-full w-full rounded-[40%] border border-[#f5d498]/24 bg-[linear-gradient(180deg,rgba(245,196,81,0.24),rgba(46,28,12,0.76))]" />;
+  if (type === "chest_prop") return <span className="block h-[70%] w-full rounded-[18%] border border-[#f5d498]/28 bg-[linear-gradient(180deg,rgba(245,196,81,0.28),rgba(70,38,16,0.82))]" />;
+  return <span className="block h-full w-full rounded-full bg-amber-300/36 blur-[1px] shadow-[0_0_14px_currentColor]" />;
 }
 
-function AmbientFog({
-  className,
-  reverse,
-}: {
-  className?: string;
-  reverse?: boolean;
-}) {
+function AdventurePropEffect({ prop }: { prop: AdventureMapPropLayout }) {
+  if (!prop.effect || !HOME_EFFECT_PROP_IDS.has(prop.effect.type)) return null;
   return (
-    <div
-      className={cn(
-        "absolute rounded-[50%] bg-white/6 blur-3xl",
-        reverse ? "animate-[fogDriftReverse_14s_ease-in-out_infinite]" : "animate-[fogDrift_16s_ease-in-out_infinite]",
-        className,
-      )}
+    <HomeEffectSprite
+      effect={prop.effect.type}
+      durationMs={prop.effect.durationMs ?? getEffectDuration(prop.effect.type)}
+      width={`${prop.effect.widthPercent}%`}
+      height={`${prop.effect.heightPercent}%`}
+      dataId={`${prop.id}-effect`}
+      opacity={prop.effect.opacity ?? 0.85}
+      mobileDisabled={false}
+      className="absolute"
+      style={{
+        left: `${prop.effect.xPercent}%`,
+        top: `${prop.effect.yPercent}%`,
+      }}
     />
   );
 }
 
-function WorldSetPiece({
-  className,
-  kind,
-}: {
-  className?: string;
-  kind: "camp" | "altar" | "bridge" | "gate" | "spire" | "ruin" | "forge" | "crater" | "watch" | "tree" | "arch" | "obelisk" | "totem" | "wagon" | "lantern" | "barricade" | "crystal";
-}) {
-  if (kind === "camp") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-24 w-24">
-          <div className="absolute bottom-0 left-2 right-2 h-10 rounded-[16px] bg-[linear-gradient(180deg,rgba(16,21,30,0.74),rgba(8,10,16,0.96))]" />
-          <div className="absolute left-0 right-0 top-1 h-12 bg-[linear-gradient(180deg,#dfefff_0%,#78a8ff_44%,#27426d_100%)]" style={{ clipPath: "polygon(50% 0%,100% 48%,86% 100%,14% 100%,0 48%)" }} />
-          <div className="absolute left-1/2 top-[30%] h-8 w-8 -translate-x-1/2 rounded-full bg-amber-200/26 blur-lg animate-[iconBreath_4.4s_ease-in-out_infinite]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "watch") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-24 w-20">
-          <div className="absolute bottom-0 left-1/2 h-20 w-14 -translate-x-1/2 rounded-t-[20px] border border-white/8 bg-[linear-gradient(180deg,rgba(74,84,109,0.9),rgba(9,12,18,0.96))]" />
-          <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-[14px] border border-white/8 bg-[linear-gradient(180deg,rgba(101,116,148,0.9),rgba(21,27,40,0.98))]" />
-          <div className="absolute left-1/2 top-2 h-3 w-3 -translate-x-1/2 rounded-full bg-sky-100/30 blur-md animate-[sparkPulse_5.4s_ease-in-out_infinite]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "altar") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-20 w-20 rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(37,49,83,0.84),rgba(10,14,22,0.98))]">
-          <div className="absolute left-1/2 top-3 h-8 w-8 -translate-x-1/2 rotate-45 rounded-[10px] bg-sky-200/18 shadow-[0_0_22px_rgba(173,224,255,0.2)] animate-[sparkPulse_5s_ease-in-out_infinite]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "bridge") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-16 w-32">
-          <div className="absolute inset-x-0 top-6 h-6 rounded-[999px] border border-white/10 bg-[linear-gradient(180deg,rgba(82,63,43,0.88),rgba(20,15,14,0.98))]" />
-          {[12, 32, 52, 72, 92, 112].map((left) => (
-            <div key={left} className="absolute top-4 h-10 w-[3px] rounded-full bg-white/10" style={{ left }} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-  if (kind === "gate") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-28 w-28 rounded-t-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(64,48,32,0.9),rgba(12,10,12,0.98))]">
-          <div className="absolute inset-x-5 bottom-0 top-7 rounded-t-[16px] border border-white/10 bg-[#090b12]" />
-          <div className="absolute left-1/2 top-4 h-8 w-8 -translate-x-1/2 rounded-full bg-orange-200/24 blur-lg animate-[iconBreath_4.8s_ease-in-out_infinite]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "spire") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-32 w-20">
-          <div className="absolute bottom-0 left-1/2 h-full w-16 -translate-x-1/2 bg-[linear-gradient(180deg,#7b5c47_0%,#391f22_38%,#0d0b14_100%)]" style={{ clipPath: "polygon(46% 0%,58% 10%,100% 100%,0% 100%)" }} />
-          <div className="absolute left-1/2 top-[26%] h-9 w-4 -translate-x-1/2 rounded-full bg-amber-200/22 blur-lg animate-[iconBreath_5s_ease-in-out_infinite]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "tree") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-28 w-[5.5rem]">
-          <div className="absolute bottom-0 left-1/2 h-16 w-[5px] -translate-x-1/2 rounded-full bg-[#2d1f14]" />
-          <div className="absolute left-1/2 top-2 h-16 w-16 -translate-x-1/2 rounded-[50%] bg-[radial-gradient(circle_at_45%_40%,rgba(170,216,255,0.26),rgba(40,72,88,0.9)_68%,rgba(15,24,30,0.98)_100%)]" />
-          <div className="absolute left-[26%] top-7 h-8 w-8 rounded-[50%] bg-[radial-gradient(circle_at_40%_40%,rgba(210,236,255,0.18),rgba(32,62,77,0.92)_70%)]" />
-          <div className="absolute right-[22%] top-8 h-7 w-7 rounded-[50%] bg-[radial-gradient(circle_at_40%_40%,rgba(210,236,255,0.18),rgba(32,62,77,0.92)_70%)]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "arch") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-20 w-28">
-          <div className="absolute bottom-0 left-3 h-16 w-4 rounded-full bg-white/10" />
-          <div className="absolute bottom-0 right-3 h-16 w-4 rounded-full bg-white/10" />
-          <div className="absolute left-1/2 top-2 h-8 w-20 -translate-x-1/2 rounded-t-[999px] border border-white/8 border-b-0 bg-[linear-gradient(180deg,rgba(97,87,70,0.84),rgba(24,18,18,0.98))]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "forge") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-24 w-28 rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(64,40,28,0.88),rgba(10,10,14,0.98))]">
-          <div className="absolute left-1/2 top-[42%] h-10 w-10 -translate-x-1/2 rounded-full bg-orange-300/20 blur-xl animate-[sparkPulse_4.8s_ease-in-out_infinite]" />
-          <div className="absolute inset-x-3 bottom-3 h-4 rounded-full bg-white/8" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "obelisk") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-24 w-[4.5rem]">
-          <div className="absolute bottom-0 left-1/2 h-24 w-12 -translate-x-1/2 bg-[linear-gradient(180deg,#4d2e2c_0%,#1c1218_52%,#0d0a12_100%)]" style={{ clipPath: "polygon(50% 0%,100% 100%,0% 100%)" }} />
-          <div className="absolute left-1/2 top-[28%] h-4 w-4 -translate-x-1/2 rotate-45 rounded-[5px] bg-orange-200/18 shadow-[0_0_18px_rgba(255,167,98,0.24)] animate-[sparkPulse_5.6s_ease-in-out_infinite]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "totem") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-20 w-[4.5rem]">
-          <div className="absolute bottom-0 left-1/2 h-20 w-6 -translate-x-1/2 rounded-full bg-[#2a1715]" />
-          <div className="absolute left-1/2 top-3 h-10 w-10 -translate-x-1/2 rounded-[14px] border border-white/8 bg-[linear-gradient(180deg,rgba(107,67,49,0.92),rgba(25,15,16,0.98))]" />
-          <div className="absolute left-1/2 top-6 h-4 w-4 -translate-x-1/2 rounded-full bg-orange-200/16 blur-sm" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "wagon") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-16 w-24">
-          <div className="absolute inset-x-3 bottom-4 h-7 rounded-[14px] border border-white/8 bg-[linear-gradient(180deg,rgba(88,66,45,0.92),rgba(24,18,18,0.98))]" />
-          <div className="absolute left-6 bottom-0 h-5 w-5 rounded-full border border-white/8 bg-[linear-gradient(180deg,rgba(36,42,56,0.94),rgba(10,11,16,0.98))]" />
-          <div className="absolute right-6 bottom-0 h-5 w-5 rounded-full border border-white/8 bg-[linear-gradient(180deg,rgba(36,42,56,0.94),rgba(10,11,16,0.98))]" />
-          <div className="absolute left-7 top-0 h-7 w-[2px] rounded-full bg-white/12" />
-          <div className="absolute right-7 top-0 h-7 w-[2px] rounded-full bg-white/12" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "lantern") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-16 w-10">
-          <div className="absolute left-1/2 top-0 h-6 w-[2px] -translate-x-1/2 rounded-full bg-white/16" />
-          <div className="absolute left-1/2 top-5 h-8 w-6 -translate-x-1/2 rounded-[12px] border border-white/10 bg-[linear-gradient(180deg,rgba(70,82,104,0.92),rgba(14,16,24,0.98))]" />
-          <div className="absolute left-1/2 top-7 h-3 w-3 -translate-x-1/2 rounded-full bg-amber-200/28 blur-sm animate-[sparkPulse_4.8s_ease-in-out_infinite]" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "barricade") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-16 w-24">
-          {[0, 1, 2, 3].map((index) => (
-            <div
-              key={index}
-              className="absolute bottom-0 h-14 w-[7px] rounded-full bg-[linear-gradient(180deg,rgba(91,56,39,0.94),rgba(21,14,16,0.98))]"
-              style={{ left: `${20 + index * 15}px`, transform: "rotate(18deg)" }}
-            />
-          ))}
-          <div className="absolute inset-x-2 bottom-4 h-[3px] rounded-full bg-white/10" />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "crystal") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="relative h-20 w-20">
-          <div className="absolute left-1/2 top-3 h-12 w-9 -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,191,135,0.72),rgba(120,54,40,0.18))] blur-sm" style={{ clipPath: "polygon(50% 0%,100% 36%,72% 100%,28% 100%,0% 36%)" }} />
-          <div className="absolute left-[22%] top-8 h-7 w-5 bg-[linear-gradient(180deg,rgba(255,191,135,0.48),rgba(120,54,40,0.16))] blur-sm" style={{ clipPath: "polygon(50% 0%,100% 36%,72% 100%,28% 100%,0% 36%)" }} />
-          <div className="absolute right-[22%] top-10 h-6 w-4 bg-[linear-gradient(180deg,rgba(255,191,135,0.48),rgba(120,54,40,0.16))] blur-sm" style={{ clipPath: "polygon(50% 0%,100% 36%,72% 100%,28% 100%,0% 36%)" }} />
-        </div>
-      </div>
-    );
-  }
-  if (kind === "crater") {
-    return (
-      <div className={cn("absolute", className)}>
-        <div className="h-20 w-28 rounded-[50%] border border-white/8 bg-[radial-gradient(circle_at_50%_44%,rgba(255,167,98,0.22),rgba(61,28,17,0.42)_40%,rgba(10,10,14,0.92)_100%)]" />
-      </div>
-    );
-  }
-  return (
-    <div className={cn("absolute", className)}>
-      <div className="relative h-20 w-24">
-        <div className="absolute bottom-0 left-1/2 h-16 w-20 -translate-x-1/2 rounded-[20px] border border-white/8 bg-[linear-gradient(180deg,rgba(61,74,109,0.82),rgba(10,14,22,0.96))]" />
-        <div className="absolute left-1/2 top-2 h-7 w-7 -translate-x-1/2 rotate-45 rounded-[9px] bg-white/10" />
-      </div>
-    </div>
-  );
+function isHomeEffectProp(type: AdventureMapPropType): type is HomeEffectId {
+  return HOME_EFFECT_PROP_IDS.has(type);
 }
 
-function ParticleCluster({ tone }: { tone: string }) {
-  return (
-    <>
-      {[
-        { left: "15%", top: "28%", size: 4, delay: 0 },
-        { left: "26%", top: "20%", size: 5, delay: 2.2 },
-        { left: "42%", top: "30%", size: 3, delay: 1.1 },
-        { left: "58%", top: "22%", size: 4, delay: 3.1 },
-        { left: "72%", top: "31%", size: 5, delay: 0.6 },
-        { left: "84%", top: "24%", size: 3, delay: 2.7 },
-      ].map((item, index) => (
-        <span
-          key={index}
-          className="absolute rounded-full blur-[1px] animate-[particleFloat_18s_ease-in-out_infinite]"
-          style={{
-            left: item.left,
-            top: item.top,
-            width: item.size,
-            height: item.size,
-            background: tone,
-            opacity: 0.72,
-            animationDelay: `-${item.delay}s`,
-          }}
-        />
-      ))}
-    </>
-  );
+function isAdventurePropAsset(type: AdventureMapPropType): type is AdventurePropAssetId {
+  return ADVENTURE_PROP_ASSET_ID_SET.has(type);
 }
 
-function BirdSweep() {
-  return (
-    <>
-      {[
-        { left: "18%", top: "18%", delay: 0, scale: 1 },
-        { left: "22%", top: "21%", delay: 0.7, scale: 0.78 },
-        { left: "76%", top: "17%", delay: 1.4, scale: 0.86 },
-      ].map((bird, index) => (
-        <div
-          key={index}
-          className="absolute text-white/18 animate-[birdDrift_9s_ease-in-out_infinite]"
-          style={{ left: bird.left, top: bird.top, transform: `scale(${bird.scale})`, animationDelay: `-${bird.delay}s` }}
-        >
-          <svg width="34" height="14" viewBox="0 0 34 14" fill="none">
-            <path d="M1 11C4.5 7.6 7.7 6.4 10.5 7.1C13.2 7.8 15.4 9.4 16.8 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            <path d="M16.8 11C19.6 7.6 22.6 6.1 25.4 6.7C28.2 7.3 30.5 8.6 33 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </div>
-      ))}
-    </>
-  );
+function getNodeAssetId(node: AdventureVisualNode): AdventureNodeAssetId {
+  if (node.status === "locked") return "locked";
+  if (node.status === "claimed" || node.status === "completed") return "cleared";
+  if (node.type === "hidden") return "secret";
+  return node.type === "locked" ? "locked" : node.type;
+}
+
+function getNodeVisualScale(node: AdventureVisualNode, active: boolean) {
+  if (active || node.status === "current") return node.type === "boss" ? 1.38 : 1.34;
+  if (node.type === "boss") return 1.28;
+  if (node.type === "chest") return 1.22;
+  if (node.type === "elite") return 1.18;
+  if (node.status === "locked") return 0.86;
+  if (node.status === "cleared" || node.status === "claimed" || node.status === "completed") return 1.1;
+  return 1.18;
+}
+
+function getNodeAssetScale(node: AdventureVisualNode, active: boolean) {
+  if (active || node.status === "current") return 1.08;
+  if (node.type === "boss") return 1.08;
+  if (node.type === "chest") return 1.06;
+  if (node.status === "locked") return 0.96;
+  return 1.04;
+}
+
+function getPropWidth(prop: AdventureMapPropLayout) {
+  return prop.width ?? prop.size ?? getDefaultPropDimensions(prop.type).width;
+}
+
+function getPropHeight(prop: AdventureMapPropLayout) {
+  return prop.height ?? prop.size ?? getDefaultPropDimensions(prop.type).height;
+}
+
+function getPropVisualOpacity(prop: AdventureMapPropLayout) {
+  const base = prop.opacity ?? 1;
+  if (prop.type === "hidden_glow" || prop.type === "hidden_glow_alt") return Math.min(base, 0.42);
+  if (prop.type === "campfire" || prop.type === "road_lantern") return Math.min(base, 0.82);
+  if (prop.type === "merchant_cart") return Math.min(base, 0.78);
+  return base;
+}
+
+function getDefaultPropDimensions(type: AdventureMapPropType) {
+  if (type === "clouds_dark_layer") return { width: 220, height: 92 };
+  if (type === "campfire") return { width: 54, height: 54 };
+  if (type === "small_camp") return { width: 82, height: 68 };
+  if (type === "road_lantern") return { width: 38, height: 56 };
+  if (type === "merchant_cart") return { width: 92, height: 74 };
+  if (type === "ruin_marker") return { width: 70, height: 72 };
+  if (type === "hidden_glow" || type === "hidden_glow_alt") return { width: 52, height: 52 };
+  return { width: 72, height: 72 };
+}
+
+function getDefaultPropEffect(type: AdventureMapPropType): AdventureMapPropLayout["effect"] {
+  if (type === "campfire") {
+    return {
+      type: "flame_loop",
+      xPercent: 50,
+      yPercent: 35,
+      widthPercent: 46,
+      heightPercent: 46,
+      opacity: 0.95,
+      durationMs: 720,
+      enabled: true,
+    };
+  }
+  if (type === "road_lantern" || type === "small_camp" || type === "merchant_cart") {
+    return {
+      type: "lantern_warm_loop",
+      xPercent: 52,
+      yPercent: 38,
+      widthPercent: 34,
+      heightPercent: 34,
+      opacity: 0.74,
+      durationMs: 980,
+      enabled: true,
+    };
+  }
+  if (type === "hidden_glow" || type === "hidden_glow_alt") {
+    return {
+      type: "purple_flame_loop",
+      xPercent: 50,
+      yPercent: 50,
+      widthPercent: 42,
+      heightPercent: 42,
+      opacity: 0.5,
+      durationMs: 820,
+      enabled: false,
+    };
+  }
+  return undefined;
+}
+
+function getEffectDuration(effect: HomeEffectId) {
+  if (effect === "clouds_dark_layer") return 90000;
+  if (effect === "crow_fly_loop") return 720;
+  if (effect === "lantern_warm_loop") return 980;
+  if (effect === "candle_loop") return 760;
+  return 720;
+}
+
+function deriveNodeStatus(node: AdventureNodeState): AdventureMapNodeStatus {
+  if (node.locked) return "locked";
+  if (node.claimed) return "claimed";
+  if (node.pausedHere || node.current) return "current";
+  if (node.cleared) return "cleared";
+  return "available";
+}
+
+function deriveNodeType(node: AdventureNodeState, index: number, total: number): AdventureMapNodeType {
+  if (node.locked) return "locked";
+  if (/boss/i.test(node.lvl.name) || index === total - 1) return "boss";
+  if (node.firstClearAvailable && (node.lvl.firstClearRewards?.frontlineCards?.length || node.lvl.firstClearRewards?.gems)) return "chest";
+  const squad = getFrontlineAdventureSquad(node.lvl);
+  if ((node.lvl.obstacles?.length ?? 0) >= 2 || squad.some((enemy) => enemy.tier >= 3)) return "elite";
+  return "battle";
+}
+
+function nodeIcon(node: AdventureVisualNode): "battle" | "rewards" | "shield" | "adventure" {
+  if (node.status === "locked") return "shield";
+  if (node.type === "chest" || node.status === "cleared") return "rewards";
+  if (node.type === "boss" || node.type === "elite") return "battle";
+  return "adventure";
+}
+
+function getNodeTheme(node: AdventureVisualNode, active: boolean, accent: string) {
+  if (node.status === "locked") {
+    return {
+      border: "rgba(156,163,175,0.24)",
+      innerBorder: "rgba(255,255,255,0.1)",
+      background: "radial-gradient(circle at 42% 32%, rgba(93,103,118,0.34), rgba(13,16,22,0.94) 68%)",
+      glow: "0 0 0 rgba(0,0,0,0)",
+    };
+  }
+  if (node.status === "cleared" || node.status === "claimed" || node.status === "completed") {
+    return {
+      border: "rgba(152,209,174,0.28)",
+      innerBorder: "rgba(152,209,174,0.18)",
+      background: "radial-gradient(circle at 42% 32%, rgba(130,180,145,0.24), rgba(18,24,18,0.94) 70%)",
+      glow: "0 0 14px rgba(99,180,121,0.12)",
+    };
+  }
+  if (node.type === "boss") {
+    return {
+      border: "rgba(255,184,117,0.5)",
+      innerBorder: "rgba(255,133,84,0.34)",
+      background: "radial-gradient(circle at 42% 30%, rgba(255,147,84,0.36), rgba(47,17,14,0.96) 70%)",
+      glow: active ? "0 0 24px rgba(255,147,84,0.34)" : "0 0 16px rgba(255,147,84,0.18)",
+    };
+  }
+  if (node.type === "chest") {
+    return {
+      border: "rgba(245,212,152,0.48)",
+      innerBorder: "rgba(245,196,81,0.3)",
+      background: "radial-gradient(circle at 42% 30%, rgba(245,196,81,0.34), rgba(48,32,12,0.95) 70%)",
+      glow: active ? "0 0 22px rgba(245,196,81,0.28)" : "0 0 13px rgba(245,196,81,0.14)",
+    };
+  }
+  return {
+    border: active ? "rgba(245,212,152,0.5)" : `${accent}80`,
+    innerBorder: "rgba(145,205,255,0.24)",
+    background: "radial-gradient(circle at 42% 30%, rgba(130,196,255,0.26), rgba(12,22,35,0.96) 70%)",
+    glow: active ? "0 0 22px rgba(145,205,255,0.25)" : "0 0 12px rgba(145,205,255,0.12)",
+  };
+}
+
+function getNodeRole(node: AdventureNodeState, index: number, totalNodes: number) {
+  if (node.pausedHere) return "resume";
+  if (/boss/i.test(node.lvl.name) || index === totalNodes) return "boss";
+  const squad = getFrontlineAdventureSquad(node.lvl);
+  if ((node.lvl.obstacles?.length ?? 0) >= 2 || squad.some((enemy) => enemy.tier >= 3)) return "elite";
+  return "battle";
 }
 
 function buildRewardChips(level: AdventureLevel, firstClearAvailable: boolean, t: TranslateFn) {
@@ -1293,107 +2153,20 @@ function buildRewardChips(level: AdventureLevel, firstClearAvailable: boolean, t
   return chips;
 }
 
-function getNodeRole(node: AdventureNodeState, index: number, totalNodes: number) {
-  if (node.pausedHere) return "resume";
-  if (/boss/i.test(node.lvl.name) || index === totalNodes) return "boss";
-  const squad = getFrontlineAdventureSquad(node.lvl);
-  if ((node.lvl.obstacles?.length ?? 0) >= 2 || squad.some((enemy) => enemy.tier >= 3)) return "elite";
-  return "battle";
-}
-
-function describeEncounter(
-  meta: AdventureCampaignMeta,
-  node: AdventureNodeState,
-  role: ReturnType<typeof getNodeRole>,
-  t: TranslateFn,
-) {
-  const hasHazards = Boolean(node.lvl.obstacles?.length);
-  const roleKey = role === "boss" ? "boss" : role === "elite" ? "elite" : "battle";
-
-  return {
-    kicker: t(`adventure.encounter.${roleKey}.kicker`),
-    blurb: t(`adventure.encounter.${roleKey}.${hasHazards ? "blurbHazards" : "blurbClean"}`, { chapter: meta.name.toLowerCase() }),
-    secondary: t(`adventure.encounter.${roleKey}.secondary`),
-    rewardTone:
-      node.firstClearAvailable
-        ? t("adventure.reward.firstClearTone")
-        : node.lvl.rewards.gems
-          ? t("adventure.reward.gemTone")
-          : node.lvl.rewards.dust
-            ? t("adventure.reward.dustTone")
-            : t("adventure.reward.goldTone"),
-  };
-}
-
-function compactNodeName(name: string) {
-  const words = name
-    .replace(/[^a-zA-Z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean);
-  if (words.length <= 2) return words.join(" ");
-  return `${words[0]} ${words[1]}`;
-}
-
-function buildTrailMarkers(layouts: AdventureNodeLayout[], mode: "desktop" | "mobile") {
-  const points = layouts.map((layout) => {
-    const point = projectPoint(mode === "desktop" ? layout.x : layout.mobileX, mode === "desktop" ? layout.y : layout.mobileY, mode);
-    return { x: parseFloat(point.left), y: parseFloat(point.top) };
-  });
-
-  const markers: { x: string; y: string; variant: "rune" | "torch" | "cache" }[] = [];
-  for (let index = 0; index < points.length - 1; index++) {
-    if (index % 2 === 1 && index !== points.length - 2) continue;
-    const current = points[index];
-    const next = points[index + 1];
-    const midX = (current.x + next.x) / 2;
-    const midY = (current.y + next.y) / 2;
-    const dx = next.x - current.x;
-    const dy = next.y - current.y;
-    const length = Math.max(1, Math.hypot(dx, dy));
-    const offset = index % 2 === 0 ? 1.65 : -1.65;
-    const normalX = (-dy / length) * offset;
-    const normalY = (dx / length) * offset;
-    markers.push({
-      x: `${midX + normalX}%`,
-      y: `${midY + normalY}%`,
-      variant: index % 5 === 0 ? "cache" : index % 2 === 0 ? "torch" : "rune",
-    });
+function buildRewardChipsFromRewards(rewards: Rewards, firstClearAvailable: boolean, t: TranslateFn) {
+  const chips: { icon: "gold" | "gem" | "dust" | "rewards"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
+  if (rewards.gold) chips.push({ icon: "gold", label: t("adventure.reward.gold"), value: `${rewards.gold}`, tone: "gold" });
+  if (rewards.dust) chips.push({ icon: "dust", label: t("adventure.reward.dust"), value: `${rewards.dust}`, tone: "violet" });
+  if (rewards.gems) chips.push({ icon: "gem", label: t("adventure.reward.gems"), value: `${rewards.gems}`, tone: "sky" });
+  if (rewards.accountXp) chips.push({ icon: "rewards", label: "Account XP", value: `${rewards.accountXp}`, tone: "emerald" });
+  if (rewards.xp) chips.push({ icon: "rewards", label: "Hero XP", value: `${rewards.xp}`, tone: "emerald" });
+  if (firstClearAvailable && (rewards.frontlineCards?.length || rewards.shards?.length)) {
+    chips.push({ icon: "rewards", label: t("adventure.reward.firstClear"), value: t("adventure.reward.bonusCache"), tone: "emerald" });
   }
-  return markers;
-}
-
-function buildSmoothPath(layouts: AdventureNodeLayout[], mode: "desktop" | "mobile") {
-  const points = layouts.map((layout) => {
-    const point = projectPoint(mode === "desktop" ? layout.x : layout.mobileX, mode === "desktop" ? layout.y : layout.mobileY, mode);
-    return { x: parseFloat(point.left), y: parseFloat(point.top) };
-  });
-  if (points.length === 0) return "";
-  if (points.length === 1) return `M${points[0].x} ${points[0].y}`;
-
-  const parts = [`M${points[0].x} ${points[0].y}`];
-  for (let index = 0; index < points.length - 1; index++) {
-    const current = points[index];
-    const next = points[index + 1];
-    const prev = points[index - 1] ?? current;
-    const after = points[index + 2] ?? next;
-    const tension = mode === "desktop" ? 4.8 : 4.2;
-    const c1x = current.x + (next.x - prev.x) / tension;
-    const c1y = current.y + (next.y - prev.y) / tension;
-    const c2x = next.x - (after.x - current.x) / tension;
-    const c2y = next.y - (after.y - current.y) / tension;
-    parts.push(`C${c1x} ${c1y}, ${c2x} ${c2y}, ${next.x} ${next.y}`);
+  for (const unlock of rewards.frontlineCards ?? []) {
+    const card = FRONTLINE_CARD_BY_ID[unlock.cardId];
+    if (!card) continue;
+    chips.push({ icon: "rewards", label: t("frontline.cardUnlocks"), value: frontlineCardName(t, card), tone: "emerald" });
   }
-  return parts.join(" ");
-}
-
-function projectPoint(x: string, y: string, mode: "desktop" | "mobile") {
-  const stage = mode === "desktop" ? { left: 8, right: 8, top: 24, bottom: 14 } : { left: 8, right: 8, top: 28, bottom: 16 };
-  const usableWidth = 100 - stage.left - stage.right;
-  const usableHeight = 100 - stage.top - stage.bottom;
-  const px = parseFloat(x);
-  const py = parseFloat(y);
-  return {
-    left: `${stage.left + (px / 100) * usableWidth}%`,
-    top: `${stage.top + (py / 100) * usableHeight}%`,
-  };
+  return chips;
 }

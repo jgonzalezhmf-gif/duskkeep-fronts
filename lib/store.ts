@@ -44,6 +44,11 @@ import {
 } from "@/features/frontline/fortress";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import {
+  getAdventureChestClaimRewards,
+  getAdventureNodeType,
+  type AdventureProgressEntry,
+} from "@/features/adventure/nodeResolution";
+import {
   ACCOUNT_XP_PER_LEVEL,
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
@@ -90,7 +95,7 @@ export type GameState = {
   frontlineCardUnlocks: FrontlineCardUnlocks;
   frontlineCardLevels: FrontlineCardLevels;
   frontlineFortress: FrontlineFortressState;
-  adventureProgress: Record<string, { cleared: boolean; firstClearTaken: boolean }>;
+  adventureProgress: Record<string, AdventureProgressEntry>;
   missionsProgress: Record<string, MissionProgress>;
   arenaWins: number;
   arenaLosses: number;
@@ -165,6 +170,7 @@ export type GameActions = {
     meta?: Record<string, unknown>,
   ) => void;
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
+  claimAdventureNode: (levelId: string) => Rewards | null;
   claimMission: (missionId: string) => Rewards | null;
   purchaseOffer: (offerId: string) => { ok: boolean; reason?: string };
   pushNotification: (kind: NotificationKind, message: string) => void;
@@ -766,11 +772,45 @@ export const useGameStore = create<GameState & GameActions>()(
         set((st) => ({
           adventureProgress: {
             ...st.adventureProgress,
-            [levelId]: { cleared: true, firstClearTaken: prev.firstClearTaken || firstClear },
+            [levelId]: {
+              ...prev,
+              cleared: true,
+              firstClearTaken: prev.firstClearTaken || firstClear,
+              completions: (prev.completions ?? 0) + 1,
+              lastCompletedAt: localDayKey(),
+            },
           },
         }));
         if (firstClear) get().updateMissionProgress("adventure_levels_cleared", 1);
         return { firstClear };
+      },
+
+      claimAdventureNode: (levelId) => {
+        const level = ADVENTURE.find((entry) => entry.id === levelId);
+        if (!level) return null;
+        const type = getAdventureNodeType(level);
+        const prev = get().adventureProgress[levelId] ?? { cleared: false, firstClearTaken: false };
+        const rewards = getAdventureChestClaimRewards(level, prev);
+        if (!rewards) {
+          get().pushNotification("info", type === "chest" ? "Chest already claimed" : "Node cannot be claimed");
+          return null;
+        }
+        set((st) => ({
+          adventureProgress: {
+            ...st.adventureProgress,
+            [levelId]: {
+              ...prev,
+              cleared: true,
+              firstClearTaken: true,
+              claimed: true,
+              completions: (prev.completions ?? 0) + 1,
+              lastCompletedAt: localDayKey(),
+            },
+          },
+        }));
+        get().updateMissionProgress("adventure_levels_cleared", 1);
+        get().awardRewards(rewards, level.name);
+        return rewards;
       },
 
       claimMission: (missionId) => {
