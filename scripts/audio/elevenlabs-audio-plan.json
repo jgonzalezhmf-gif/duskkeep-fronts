@@ -236,20 +236,20 @@
     {
       "id": "home",
       "output": "public/assets/audio/music/home.mp3",
-      "musicLengthMs": 180000,
-      "prompt": "Loopable instrumental background music for a dark medieval fantasy game home hub, three minutes long. Calm, quiet and slightly melancholic, darker medieval fantasy mood, low strings, soft frame drums, deep drones, sparse bells, warm fortress at dusk, no angelic bright choir, no high happy lead, no vocals, no copyrighted style references."
+      "musicLengthMs": 210000,
+      "prompt": "Loopable instrumental background music for a dark medieval fantasy game home hub, three and a half minutes long. Calm and listenable for long menu time, mysterious, slightly melancholic, with restrained epic warmth. Low strings, cello drones, soft frame drums, distant bells, dark medieval harp or lute, subtle fortress ambience, very soft distant choir texture without lyrics. Warm sanctuary at dusk, ancient war council, safe but haunted. Several gentle variations, no long silence, seamless loop, no modern synth, no happy cartoon tone, no vocals, no copyrighted style references."
     },
     {
       "id": "adventure",
       "output": "public/assets/audio/music/adventure.mp3",
-      "musicLengthMs": 60000,
-      "prompt": "Loopable instrumental adventure map music for a dark fantasy tactical campaign. Traveling through misty roads, hand drums, plucked strings, low drones, cautious heroic mood, no vocals, no copyrighted style references."
+      "musicLengthMs": 180000,
+      "prompt": "Loopable instrumental adventure map music for a dark medieval fantasy tactical campaign, three minutes long. Similar mood to a dark campaign map theme but longer, richer and more varied. Misty roads, ancient ruins, distant mountains, cautious heroic travel. Low strings, hand drums, plucked medieval instruments, subtle brass swells, restrained epic moments, dark atmosphere, seamless loop, no vocals, no long intro, no bright cartoon mood, no copyrighted style references."
     },
     {
       "id": "battle",
       "output": "public/assets/audio/music/battle.mp3",
-      "musicLengthMs": 180000,
-      "prompt": "Loopable instrumental main battle theme for a turn-based dark medieval tactics game, three minutes long. Tense tactical drums, low brass, pulsing strings, dark magical undertone, memorable rhythm, sections with stronger percussion, sections led by tense violins, a few short instrumental solo phrases, dramatic but readable, no vocals, no copyrighted style references."
+      "musicLengthMs": 240000,
+      "prompt": "Loopable instrumental battle theme for a dark medieval fantasy tactical game, four minutes long. Starts strong immediately with no slow intro. Very epic and tense, powerful war percussion, low contrabasses and cellos, aggressive violin ostinatos, dark brass, epic choir sections without lyrics, short violin solo phrases and percussion breaks, several variations to avoid repetition. Grim heroic battlefield energy, seamless loop, no modern electronic trailer sound, no vocals, no silence at start or end, no copyrighted style references."
     },
     {
       "id": "shop",

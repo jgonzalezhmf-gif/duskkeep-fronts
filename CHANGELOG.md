@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.21.14] - 2026-05-03
+
+### Changed
+- Regenerada la musica final de Home con una pieza mas larga, loopable, tranquila, misteriosa y dark medieval fantasy.
+- Regenerada la musica final de Adventure con una pieza de campana mas larga, variada y preparada para bucle.
+- Regenerada la musica final de Battle con una pieza mas extensa, de entrada inmediata, percusion potente, cuerdas tensas y secciones corales epicas.
+- Actualizados los prompts del plan ElevenLabs para futuras regeneraciones coherentes con la nueva direccion sonora.
+
 ## [0.21.13] - 2026-05-03
 
 ### Added
