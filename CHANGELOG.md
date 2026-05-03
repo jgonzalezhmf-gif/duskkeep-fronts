@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.21.15] - 2026-05-03
+
+### Fixed
+- Restauradas las musicas finales aprobadas de Home, Adventure y Battle desde el commit previo para no perder los temas existentes.
+- Conservadas las nuevas generaciones de Home, Adventure y Battle como drafts locales en `_drafts` en lugar de reemplazar los assets finales.
+- Protegido el script `audio:music` para generar drafts por defecto y exigir `--final`/`--approve-final` antes de sobrescribir una pista final.
+
 ## [0.21.14] - 2026-05-03
 
 ### Changed

@@ -24,14 +24,16 @@ function parseArgs() {
   const variantsArg = args.find((arg) => arg.startsWith("--variants="));
   return {
     dryRun: args.includes("--dry-run"),
+    final: args.includes("--final") || args.includes("--approve-final"),
     batch: batchArg ? batchArg.split("=")[1] : null,
     variants: variantsArg ? Math.max(1, Number(variantsArg.split("=")[1]) || 1) : 1,
+    runStamp: new Date().toISOString().replace(/[-:]/g, "").replace(/\..+$/, "").replace("T", "_"),
     ids: args.filter((arg) => !arg.startsWith("--")),
   };
 }
 
 async function main() {
-  const { dryRun, ids, batch, variants } = parseArgs();
+  const { dryRun, final, ids, batch, variants, runStamp } = parseArgs();
   const plan = JSON.parse(await readFile(PLAN_PATH, "utf8"));
   const batches = JSON.parse(await readFile(BATCHES_PATH, "utf8"));
   const batchIds = batch ? batches[batch]?.music : null;
@@ -51,7 +53,7 @@ async function main() {
   if (dryRun) {
     for (const item of selected) {
       for (let variant = 1; variant <= variants; variant += 1) {
-        console.log(`[dry-run] ${item.id}#${variant} -> ${getOutputPath(item, variants, variant)}`);
+        console.log(`[dry-run] ${item.id}#${variant} -> ${getOutputPath(item, { final, variants, variant, runStamp })}`);
       }
     }
     return;
@@ -82,7 +84,7 @@ async function main() {
         throw new Error(`ElevenLabs music failed for ${item.id}#${variant}: ${response.status} ${body}`);
       }
 
-      const relativeOutput = getOutputPath(item, variants, variant);
+      const relativeOutput = getOutputPath(item, { final, variants, variant, runStamp });
       const buffer = Buffer.from(await response.arrayBuffer());
       const output = path.join(ROOT, relativeOutput);
       await mkdir(path.dirname(output), { recursive: true });
@@ -92,10 +94,14 @@ async function main() {
   }
 }
 
-function getOutputPath(item, variants, variant) {
-  if (variants <= 1) return item.output;
+function getOutputPath(item, { final, variants, variant, runStamp }) {
+  if (final && variants <= 1) return item.output;
   const parsed = path.parse(item.output);
-  return path.join(parsed.dir, "_drafts", `${parsed.name}_v${String(variant).padStart(2, "0")}${parsed.ext}`).replaceAll("\\", "/");
+  const suffix =
+    variants > 1
+      ? `_v${String(variant).padStart(2, "0")}_${runStamp}`
+      : `_draft_${runStamp}`;
+  return path.join(parsed.dir, "_drafts", `${parsed.name}${suffix}${parsed.ext}`).replaceAll("\\", "/");
 }
 
 main().catch((error) => {
