@@ -31,6 +31,7 @@ import type {
   FrontlineSupportProfileMap,
 } from "@/features/frontline/types";
 import type { FrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
+import { previewCardOutcome, type FrontlinePreview } from "@/features/frontline/preview";
 import { getBattleBackdrop, getLeaderPortrait } from "@/lib/art";
 import { audio, sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
@@ -49,8 +50,10 @@ import {
   type TranslateFn,
 } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
-import type { FrontlineLane, FrontlineLoadout } from "@/lib/types";
+import type { FrontlineLane, FrontlineLoadout, FrontlineSide } from "@/lib/types";
 import { getFrontlineCardVisualAsset, getFrontlineHeroVisualAsset } from "./frontlineVisualAssets";
+
+export type FrontlineEncounterBadgeKind = "elite" | "boss" | "danger";
 
 type Props = {
   seed: number;
@@ -59,6 +62,8 @@ type Props = {
   allyHeroProfiles?: FrontlineHeroProfileMap;
   allyCardProfiles?: FrontlineCardProfileMap;
   allySupportProfiles?: FrontlineSupportProfileMap;
+  encounterKind?: FrontlineEncounterBadgeKind | null;
+  encounterTitle?: string | null;
   onFinished: (winner: "ally" | "enemy" | "draw", state: FrontlineBattleState) => void;
 };
 
@@ -67,8 +72,6 @@ type LaneInsight = {
   allyScore: number;
   enemyScore: number;
   status: "ally_edge" | "enemy_edge" | "open_breach" | "breach_threat" | "even" | "vacant";
-  title: string;
-  subtitle: string;
   priority: number;
   allyLow: boolean;
   enemyLow: boolean;
@@ -196,8 +199,6 @@ function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): LaneInsi
       allyScore,
       enemyScore,
       status: "open_breach",
-      title: "Breach",
-      subtitle: `Enemy core is exposed here for ${laneBreachValue(lane)} damage.`,
       priority: lane === "center" ? 98 : 90,
       allyLow,
       enemyLow,
@@ -210,8 +211,6 @@ function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): LaneInsi
       allyScore,
       enemyScore,
       status: "breach_threat",
-      title: "Danger",
-      subtitle: `Enemy threatens ${laneBreachValue(lane)} core damage on this front.`,
       priority: lane === "center" ? 110 : 100,
       allyLow,
       enemyLow,
@@ -224,8 +223,6 @@ function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): LaneInsi
       allyScore,
       enemyScore,
       status: "vacant",
-      title: "Open",
-      subtitle: "No one controls this front right now.",
       priority: lane === "center" ? 38 : 26,
       allyLow,
       enemyLow,
@@ -240,8 +237,6 @@ function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): LaneInsi
       allyScore,
       enemyScore,
       status: "ally_edge",
-      title: "Edge",
-      subtitle: "You are ahead here. Convert pressure into core damage.",
       priority: allyLow ? 62 : 42,
       allyLow,
       enemyLow,
@@ -254,8 +249,6 @@ function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): LaneInsi
       allyScore,
       enemyScore,
       status: "enemy_edge",
-      title: "Under",
-      subtitle: "This front is falling behind and needs help.",
       priority: lane === "center" ? 92 : 78,
       allyLow,
       enemyLow,
@@ -268,13 +261,35 @@ function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): LaneInsi
     allyScore,
     enemyScore,
     status: "even",
-    title: "Even",
-    subtitle: "One card can swing this clash.",
     priority: lane === "center" ? 60 : 50,
     allyLow,
     enemyLow,
     breachSide: null,
   };
+}
+
+function laneStatusTitle(t: TranslateFn, status: LaneInsight["status"]) {
+  if (status === "open_breach") return t("frontline.statusBreach");
+  if (status === "breach_threat") return t("frontline.statusDanger");
+  if (status === "vacant") return t("frontline.statusOpen");
+  if (status === "ally_edge") return t("frontline.statusEdge");
+  if (status === "enemy_edge") return t("frontline.statusUnder");
+  return t("frontline.statusEven");
+}
+
+function laneStatusSubtitle(t: TranslateFn, lane: FrontlineLane, status: LaneInsight["status"]) {
+  if (status === "open_breach") return t("frontline.subtitleBreach", { amount: laneBreachValue(lane) });
+  if (status === "breach_threat") return t("frontline.subtitleDanger", { amount: laneBreachValue(lane) });
+  if (status === "vacant") return t("frontline.subtitleVacant");
+  if (status === "ally_edge") return t("frontline.subtitleAllyEdge");
+  if (status === "enemy_edge") return t("frontline.subtitleEnemyEdge");
+  return t("frontline.subtitleEven");
+}
+
+function laneLabel(t: TranslateFn, lane: FrontlineLane) {
+  if (lane === "left") return t("frontline.left");
+  if (lane === "center") return t("frontline.center");
+  return t("frontline.right");
 }
 
 function impactTone(kind: FrontlineBattleState["events"][number]["kind"] | undefined) {
@@ -535,23 +550,23 @@ function eventFloatClass(event: FrontlineEvent) {
     : "top-[70%] bg-[#ff6f7d] text-white shadow-[0_0_24px_rgba(240,95,114,0.38)]";
 }
 
-function laneStatusMeta(insight: LaneInsight) {
+function laneStatusMeta(t: TranslateFn, insight: LaneInsight) {
   if (insight.status === "open_breach") {
-    return { tone: "ally" as const, label: "Breach", detail: `${laneBreachValue(insight.lane)}` };
+    return { tone: "ally" as const, label: t("frontline.statusBreach"), detail: `${laneBreachValue(insight.lane)}` };
   }
   if (insight.status === "breach_threat") {
-    return { tone: "enemy" as const, label: "Danger", detail: `${laneBreachValue(insight.lane)}` };
+    return { tone: "enemy" as const, label: t("frontline.statusDanger"), detail: `${laneBreachValue(insight.lane)}` };
   }
   if (insight.status === "ally_edge") {
-    return { tone: "ally" as const, label: "Edge", detail: "" };
+    return { tone: "ally" as const, label: t("frontline.statusEdge"), detail: "" };
   }
   if (insight.status === "enemy_edge") {
-    return { tone: "enemy" as const, label: "Under", detail: "" };
+    return { tone: "enemy" as const, label: t("frontline.statusUnder"), detail: "" };
   }
   if (insight.status === "vacant") {
-    return { tone: "neutral" as const, label: "Open", detail: "" };
+    return { tone: "neutral" as const, label: t("frontline.statusOpen"), detail: "" };
   }
-  return { tone: "neutral" as const, label: "Even", detail: "" };
+  return { tone: "neutral" as const, label: t("frontline.statusEven"), detail: "" };
 }
 
 function cardFamilyLabel(t: TranslateFn, card: FrontlineCardDef) {
@@ -570,6 +585,11 @@ function cardTone(card: FrontlineCardDef) {
   if (card.kind === "order") return "order";
   if (card.kind === "tactic") return "tactic";
   return "summon";
+}
+
+function shouldCoreFlash(event: FrontlineEvent | null | undefined, attackerSide: FrontlineSide) {
+  if (!event || event.side !== attackerSide) return false;
+  return event.kind === "breach" || event.kind === "damage";
 }
 
 function nextActionLabel(
@@ -593,6 +613,8 @@ export default function FrontlineBattle({
   allyHeroProfiles,
   allyCardProfiles,
   allySupportProfiles,
+  encounterKind,
+  encounterTitle,
   onFinished,
 }: Props) {
   const { t } = useI18n();
@@ -611,6 +633,7 @@ export default function FrontlineBattle({
   const [cardPlayFx, setCardPlayFx] = useState<CardPlayFx | null>(null);
   const [finishFx, setFinishFx] = useState<BattleFinishFx | null>(null);
   const [deathGhosts, setDeathGhosts] = useState<DeathGhostFx[]>([]);
+  const [coreShock, setCoreShock] = useState<{ side: "ally" | "enemy"; amount: number; key: number } | null>(null);
   const finishedRef = useRef(false);
   const fxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardFxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -620,6 +643,9 @@ export default function FrontlineBattle({
   const fxIdRef = useRef(0);
   const playedFxEventIdRef = useRef<string | null>(null);
   const finishStingerPlayedRef = useRef(false);
+  const prevCoreRef = useRef({ ally: 0, enemy: 0 });
+  const coreShockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const coreShockIdRef = useRef(0);
   const backdrop = useMemo(() => getBattleBackdrop(seed), [seed]);
 
   useEffect(() => {
@@ -652,8 +678,34 @@ export default function FrontlineBattle({
       if (cardFxTimerRef.current) clearTimeout(cardFxTimerRef.current);
       if (finishOverlayTimerRef.current) clearTimeout(finishOverlayTimerRef.current);
       if (finishDoneTimerRef.current) clearTimeout(finishDoneTimerRef.current);
+      if (coreShockTimerRef.current) clearTimeout(coreShockTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const ally = state.allyCoreHp;
+    const enemy = state.enemyCoreHp;
+    const prev = prevCoreRef.current;
+    if (prev.ally === 0 && prev.enemy === 0) {
+      prevCoreRef.current = { ally, enemy };
+      return;
+    }
+    const allyLoss = Math.max(0, prev.ally - ally);
+    const enemyLoss = Math.max(0, prev.enemy - enemy);
+    if (allyLoss > 0 || enemyLoss > 0) {
+      coreShockIdRef.current += 1;
+      const id = coreShockIdRef.current;
+      const side: "ally" | "enemy" = allyLoss >= enemyLoss ? "ally" : "enemy";
+      const amount = side === "ally" ? allyLoss : enemyLoss;
+      setCoreShock({ side, amount, key: id });
+      sfx.coreDamage();
+      if (coreShockTimerRef.current) clearTimeout(coreShockTimerRef.current);
+      coreShockTimerRef.current = setTimeout(() => {
+        setCoreShock((current) => (current?.key === id ? null : current));
+      }, 950);
+    }
+    prevCoreRef.current = { ally, enemy };
+  }, [state.allyCoreHp, state.enemyCoreHp]);
 
   function showResolutionFx(events: FrontlineEvent[]) {
     const meaningfulEvents = events.filter(isResolutionEvent).slice(0, 12);
@@ -719,22 +771,31 @@ export default function FrontlineBattle({
 
   const allyLeader = FRONTLINE_LEADER_BY_ID[state.allyDeck.leaderId];
   const selectedCard = state.selectedCardId ? state.allyCardProfiles?.[state.selectedCardId] ?? FRONTLINE_CARD_BY_ID[state.selectedCardId] : null;
-  const targetableLanes = state.selectedLeaderPower
-    ? validLeaderPowerTargets(state, "ally")
-    : selectedCard
-      ? validCardTargets(state, "ally", selectedCard.id)
-      : [];
+  const targetableLanes = useMemo(() => {
+    if (state.selectedLeaderPower) return validLeaderPowerTargets(state, "ally");
+    if (selectedCard) return validCardTargets(state, "ally", selectedCard.id);
+    return [];
+  }, [selectedCard, state]);
 
   const laneInsights = useMemo(
     () =>
       FRONTLINE_LANES.map((lane) => analyzeLane(state, lane)).sort((left, right) => right.priority - left.priority),
-    [state],
+    [state.lanes], // eslint-disable-line react-hooks/exhaustive-deps
   );
   const priorityLane = laneInsights[0];
   const displayLane = focusedLane ?? priorityLane.lane;
   const displayInsight = laneInsights.find((entry) => entry.lane === displayLane) ?? priorityLane;
   const latestImpact = state.events[0] ?? null;
-  const latestFeed = state.events.slice(0, 3);
+  const latestFeed = state.events.slice(0, 8);
+  const previewOutcome = useMemo<FrontlinePreview | null>(() => {
+    if (state.selectedLeaderPower || !selectedCard) return null;
+    if (selectedCard.target === "none") {
+      return previewCardOutcome(state, "ally", selectedCard.id);
+    }
+    const lane = focusedLane && targetableLanes.includes(focusedLane) ? focusedLane : null;
+    if (!lane) return null;
+    return previewCardOutcome(state, "ally", selectedCard.id, lane);
+  }, [focusedLane, selectedCard, state, targetableLanes]);
   const allyLeaderPowerName = frontlineLeaderPowerName(t, allyLeader);
   const allyLeaderPowerDescription = frontlineLeaderPowerDescription(t, allyLeader);
   const actionState = nextActionLabel(state, t, allyLeaderPowerName, selectedCard, state.selectedLeaderPower);
@@ -862,13 +923,13 @@ export default function FrontlineBattle({
     ? allyLeaderPowerName
     : selectedCard
       ? frontlineCardName(t, selectedCard)
-      : `${displayLane} ${t("frontline.front")}`;
+      : `${laneLabel(t, displayLane)} ${t("frontline.front")}`;
 
   const selectedContextBody = state.selectedLeaderPower
     ? allyLeaderPowerDescription
     : selectedCard
       ? `${cardEffectSummary(t, selectedCard)} - ${cardTargetLabel(t, selectedCard)}`
-      : displayInsight.subtitle;
+      : laneStatusSubtitle(t, displayInsight.lane, displayInsight.status);
 
   return (
     <section
@@ -962,6 +1023,27 @@ export default function FrontlineBattle({
           52% { transform: translateX(-3px) scale(1.015); }
           100% { transform: translateX(0) scale(1); filter: brightness(1); }
         }
+        @keyframes frontline-core-shock {
+          0% { opacity: 0; transform: translate(-50%, 24%) scale(0.55); filter: blur(3px); }
+          18% { opacity: 1; transform: translate(-50%, -8%) scale(1.18); filter: blur(0); }
+          62% { opacity: 1; transform: translate(-50%, -32%) scale(1.06); }
+          100% { opacity: 0; transform: translate(-50%, -64%) scale(0.94); }
+        }
+        @keyframes frontline-core-shock-flash {
+          0% { opacity: 0; transform: scale(0.6); }
+          22% { opacity: 0.95; transform: scale(1.2); }
+          100% { opacity: 0; transform: scale(2.4); }
+        }
+        .frontline-core-shock-fx { animation: frontline-core-shock 920ms cubic-bezier(0.18,0.89,0.32,1.28) forwards; }
+        .frontline-core-shock-flash-fx { animation: frontline-core-shock-flash 720ms ease-out forwards; }
+        @keyframes frontline-power-ready-ring {
+          0%, 100% { filter: drop-shadow(0 0 4px rgba(245,196,81,0.42)); opacity: 0.85; }
+          50% { filter: drop-shadow(0 0 16px rgba(245,196,81,0.78)); opacity: 1; }
+        }
+        .frontline-power-ready-ring-fx { animation: frontline-power-ready-ring 1.6s ease-in-out infinite; }
+        html[data-motion="reduced"] .frontline-core-shock-fx,
+        html[data-motion="reduced"] .frontline-core-shock-flash-fx { animation-duration: 180ms !important; }
+        html[data-motion="reduced"] .frontline-power-ready-ring-fx { animation: none !important; opacity: 1; }
         @keyframes frontline-lane-impact {
           0% { transform: scale(1); filter: brightness(1); }
           28% { transform: scale(1.018); filter: brightness(1.18) saturate(1.12); }
@@ -1093,20 +1175,27 @@ export default function FrontlineBattle({
       <div className="absolute inset-x-5 top-[37%] h-28 -skew-y-3 rounded-[999px] bg-[linear-gradient(90deg,rgba(101,210,200,0.08),rgba(245,196,81,0.17),rgba(240,95,114,0.08))] blur-xl" />
       <div className="absolute inset-x-10 bottom-[13rem] h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.26),transparent)]" />
       <ClashSpotlight event={activeResolutionEvent} index={resolutionFx?.activeIndex ?? 0} total={resolutionFx?.events.length ?? 0} />
+      {!activeResolutionEvent && !cardPlayFx && !finishFx ? (
+        <PreviewSpotlight preview={previewOutcome} cardName={selectedCard ? frontlineCardName(t, selectedCard) : null} />
+      ) : null}
       <CardUseToast fx={cardPlayFx} />
       {finishFx ? <BattleEndOverlay winner={finishFx.winner} /> : null}
 
       <div className="relative z-[1] flex flex-col gap-4 p-4 md:p-5">
+        {encounterKind ? <EncounterBanner kind={encounterKind} title={encounterTitle ?? null} /> : null}
         <header className="grid gap-3 lg:grid-cols-[13rem_minmax(0,1fr)_13rem] xl:grid-cols-[15rem_minmax(0,1fr)_15rem]">
-          <CoreTotem
-            leaderId={state.enemyDeck.leaderId}
-            title={t("frontline.enemyCore")}
-            hp={state.enemyCoreHp}
-            maxHp={state.enemyCoreMaxHp}
-            powerLabel={state.enemyDeck.powerCooldown > 0 ? `cd ${state.enemyDeck.powerCooldown}` : t("frontline.ready")}
-            accent="enemy"
-            flash={(activeResolutionEvent ?? latestImpact)?.side === "ally" && ((activeResolutionEvent ?? latestImpact)?.kind === "breach" || (activeResolutionEvent ?? latestImpact)?.kind === "damage")}
-          />
+          <div className="relative">
+            <CoreTotem
+              leaderId={state.enemyDeck.leaderId}
+              title={t("frontline.enemyCore")}
+              hp={state.enemyCoreHp}
+              maxHp={state.enemyCoreMaxHp}
+              accent="enemy"
+              flash={shouldCoreFlash(activeResolutionEvent ?? latestImpact, "ally")}
+              powerCooldown={state.enemyDeck.powerCooldown}
+            />
+            <CoreShockOverlay shock={coreShock} side="enemy" />
+          </div>
 
           <div className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(135deg,rgba(255,255,255,0.09),rgba(255,255,255,0.025)_42%,rgba(0,0,0,0.22))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_42px_rgba(0,0,0,0.24)]">
             <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.55),transparent)]" />
@@ -1198,15 +1287,19 @@ export default function FrontlineBattle({
             </div>
           </div>
 
-          <CoreTotem
-            leaderId={state.allyDeck.leaderId}
-            title={t("frontline.yourCore")}
-            hp={state.allyCoreHp}
-            maxHp={state.allyCoreMaxHp}
-            powerLabel={state.allyDeck.powerCooldown > 0 ? `cd ${state.allyDeck.powerCooldown}` : t("frontline.ready")}
-            accent="ally"
-            flash={(activeResolutionEvent ?? latestImpact)?.side === "enemy" && ((activeResolutionEvent ?? latestImpact)?.kind === "breach" || (activeResolutionEvent ?? latestImpact)?.kind === "damage")}
-          />
+          <div className="relative">
+            <CoreTotem
+              leaderId={state.allyDeck.leaderId}
+              title={t("frontline.yourCore")}
+              hp={state.allyCoreHp}
+              maxHp={state.allyCoreMaxHp}
+              accent="ally"
+              flash={shouldCoreFlash(activeResolutionEvent ?? latestImpact, "enemy")}
+              powerCooldown={state.allyDeck.powerCooldown}
+              powerReadyExtra={state.allyDeck.command >= allyLeader.power.cost && !state.allyDeck.usedLeaderPower}
+            />
+            <CoreShockOverlay shock={coreShock} side="ally" />
+          </div>
         </header>
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
@@ -1216,7 +1309,7 @@ export default function FrontlineBattle({
               const active = targetableLanes.includes(lane);
               const focused = displayLane === lane;
               const insight = laneInsights.find((entry) => entry.lane === lane)!;
-              const statusMeta = laneStatusMeta(insight);
+              const statusMeta = laneStatusMeta(t, insight);
               const latestHere = latestImpact?.lane === lane;
               const activeLaneEvent = activeResolutionEvent?.lane === lane ? activeResolutionEvent : null;
               const laneFx = activeLaneEvent ? [activeLaneEvent] : [];
@@ -1260,10 +1353,10 @@ export default function FrontlineBattle({
                     latestHere && impactTone(latestImpact?.kind) !== "low" && "frontline-lane-impact-fx",
                     laneCardFx && "frontline-lane-impact-fx ring-2 ring-[#f5c451]/34 shadow-[0_0_44px_rgba(245,196,81,0.22)]",
                     active && "ring-2 ring-[#f5c451]/26",
-                    activeResolutionEvent && !activeLaneEvent && "opacity-45 saturate-[0.62] scale-[0.985]",
-                    activeLaneEvent && "z-[2] ring-2 ring-[#f5c451]/45 shadow-[0_0_58px_rgba(245,196,81,0.24)]",
+                    activeResolutionEvent && !activeLaneEvent && "opacity-60 saturate-[0.78] scale-[0.99] transition-[opacity,filter,transform] duration-200",
+                    activeLaneEvent && "z-[2] ring-[3px] ring-[#f5c451]/56 shadow-[0_0_72px_rgba(245,196,81,0.32)] transition-[box-shadow,transform] duration-200",
                   )}
-                  title={insight.subtitle}
+                  title={laneStatusSubtitle(t, insight.lane, insight.status)}
                 >
                   <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),transparent_28%,rgba(0,0,0,0.28))]" />
                   <div className="pointer-events-none absolute inset-x-6 top-11 h-24 rounded-[999px] bg-[radial-gradient(circle,rgba(245,196,81,0.13),transparent_67%)] blur-lg" />
@@ -1331,12 +1424,12 @@ export default function FrontlineBattle({
                       />
                       <span>
                         {active
-                          ? "Target"
+                          ? t("frontline.target")
                           : insight.breachSide === "ally"
-                            ? "Breach"
+                            ? t("frontline.statusBreach")
                             : insight.breachSide === "enemy"
-                              ? "Defend"
-                              : "Clash"}
+                              ? t("frontline.defend")
+                              : t("frontline.clash")}
                       </span>
                     </div>
                     <div className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.28),transparent)]" />
@@ -1362,8 +1455,8 @@ export default function FrontlineBattle({
             <section className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025)_44%,rgba(0,0,0,0.22))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.5),transparent)]" />
               <div className="flex items-center justify-between gap-2">
-                <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">Focus</div>
-                {focusedLane ? <CompactPill tone="neutral">{focusedLane}</CompactPill> : null}
+                <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("frontline.focus")}</div>
+                {focusedLane ? <CompactPill tone="neutral">{laneLabel(t, focusedLane)}</CompactPill> : null}
               </div>
 
               <div className="mt-3 rounded-[20px] bg-black/16 p-3">
@@ -1373,12 +1466,17 @@ export default function FrontlineBattle({
                     <span className="truncate">{selectedContextTitle}</span>
                   </div>
                   {!selectedCard && !state.selectedLeaderPower ? (
-                    <StatusTag
-                      tone={laneStatusMeta(displayInsight).tone}
-                      label={laneStatusMeta(displayInsight).label}
-                      detail={laneStatusMeta(displayInsight).detail}
-                      icon={combatIconForLaneStatus(displayInsight.status)}
-                    />
+                    (() => {
+                      const meta = laneStatusMeta(t, displayInsight);
+                      return (
+                        <StatusTag
+                          tone={meta.tone}
+                          label={meta.label}
+                          detail={meta.detail}
+                          icon={combatIconForLaneStatus(displayInsight.status)}
+                        />
+                      );
+                    })()
                   ) : null}
                 </div>
                 <div className="mt-2 text-[12px] leading-5 text-white/58">{selectedContextBody}</div>
@@ -1398,33 +1496,54 @@ export default function FrontlineBattle({
                         className="inline-flex items-center gap-1 rounded-full bg-[#f5c451]/12 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#f5d498]"
                       >
                         <CombatIcon name="target" size="xs" fallbackClassName="opacity-90" />
-                        <span>{lane}</span>
+                        <span>{laneLabel(t, lane)}</span>
                       </div>
                     ))}
                   </div>
                 ) : null}
               </div>
 
-              <div className="mt-3 space-y-2">
-                {latestFeed.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className={cn(
-                      "rounded-[16px] px-3 py-2",
-                      impactTone(entry.kind) === "high"
-                        ? "bg-[#f5c451]/10 text-[#f5d498]"
-                        : "bg-white/[0.045] text-white/68",
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-black">
-                        <CombatIcon name={combatIconForEvent(entry)} size="xs" fallbackClassName="opacity-90" />
-                        <span className="truncate">{entry.label}</span>
+              <div className="mt-3 space-y-1.5">
+                {latestFeed.map((entry, index) => {
+                  if (entry.kind === "round") {
+                    return (
+                      <div
+                        key={entry.id}
+                        className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/44"
+                      >
+                        <span className="h-px flex-1 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.18))]" />
+                        <span className="rounded-full border border-white/14 bg-black/30 px-2 py-0.5">{entry.label}</span>
+                        <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.18),transparent)]" />
                       </div>
-                      {typeof entry.amount === "number" ? <div className="text-[11px] font-black">{entry.amount}</div> : null}
+                    );
+                  }
+                  const high = impactTone(entry.kind) === "high";
+                  const isTop = index === 0;
+                  return (
+                    <div
+                      key={entry.id}
+                      className={cn(
+                        "rounded-[14px] border px-3 py-1.5 transition",
+                        high
+                          ? "border-[#f5c451]/30 bg-[#f5c451]/12 text-[#f5d498]"
+                          : "border-white/8 bg-white/[0.045] text-white/72",
+                        isTop && high && "shadow-[0_0_18px_rgba(245,196,81,0.22)] ring-1 ring-[#f5c451]/45",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className={cn("flex min-w-0 items-center gap-2 font-black", isTop ? "text-[12px]" : "text-[11px]")}>
+                          <CombatIcon name={combatIconForEvent(entry)} size="sm" fallbackClassName="opacity-90 h-4 w-4" className="h-4 w-4" />
+                          <span className="truncate">{entry.label}</span>
+                        </div>
+                        {typeof entry.amount === "number" ? (
+                          <div className={cn("font-black tabular-nums", isTop && high ? "text-[13px]" : "text-[11px]")}>
+                            {entry.amount}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           </aside>
@@ -1432,9 +1551,9 @@ export default function FrontlineBattle({
 
         <section className="relative overflow-visible rounded-[28px] bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(0,0,0,0.12))] px-3 pb-3 pt-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:px-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">Hand</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("frontline.hand")}</div>
             <div className="rounded-full bg-white/[0.055] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/62">
-              {state.allyDeck.deck.length} deck - {state.allyDeck.discard.length} discard
+              {t("frontline.handFooter", { deck: state.allyDeck.deck.length, discard: state.allyDeck.discard.length })}
             </div>
           </div>
 
@@ -1517,6 +1636,7 @@ function FrontlineHandCard({
   const statusIcon = statusIconForCard(card);
   const cardName = frontlineCardName(t, card);
   const cardDescription = frontlineCardDescription(t, card);
+  const insufficientCommand = card.cost > command;
   return (
     <button
       type="button"
@@ -1526,7 +1646,9 @@ function FrontlineHandCard({
       className={cn(
         "group relative h-[12.75rem] w-[11rem] shrink-0 overflow-hidden rounded-[24px] p-3 text-left shadow-[0_18px_38px_rgba(0,0,0,0.3)] transition duration-300 xl:h-[13.25rem] xl:w-auto",
         cardSurfaceClass(cardTone(card), selected, playable),
-        playable ? "frontline-card-ready-fx hover:-translate-y-1 hover:shadow-[0_24px_46px_rgba(0,0,0,0.38)]" : "opacity-55 grayscale-[0.35]",
+        playable
+          ? "frontline-card-ready-fx hover:-translate-y-1 hover:shadow-[0_24px_46px_rgba(0,0,0,0.38)]"
+          : "opacity-65 grayscale-[0.5] saturate-[0.7]",
         selected && "frontline-card-selected-fx",
       )}
       onClick={onClick}
@@ -1564,9 +1686,16 @@ function FrontlineHandCard({
           </div>
           <div className="mt-1 max-w-[7rem] truncate text-base font-black leading-tight text-white">{cardName}</div>
         </div>
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_28%,rgba(255,247,213,0.6),rgba(245,196,81,0.34)_44%,rgba(0,0,0,0.36)_100%)] text-lg font-black text-[#ffe7a2] shadow-[0_0_24px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]">
+        <div
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg font-black shadow-[0_0_24px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
+            insufficientCommand
+              ? "bg-[radial-gradient(circle_at_35%_28%,rgba(255,200,200,0.55),rgba(220,80,90,0.42)_44%,rgba(40,0,0,0.5)_100%)] ring-2 ring-rose-300/60 text-rose-50"
+              : "bg-[radial-gradient(circle_at_35%_28%,rgba(255,247,213,0.6),rgba(245,196,81,0.34)_44%,rgba(0,0,0,0.36)_100%)] text-[#ffe7a2]",
+          )}
+        >
           <span className="relative grid place-items-center">
-            <ResourceIcon kind="command" size="small" className="h-7 w-7 opacity-90" />
+            <ResourceIcon kind="command" size="small" className={cn("h-7 w-7 opacity-90", insufficientCommand && "opacity-70")} />
             <span className="absolute text-sm font-black text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">{card.cost}</span>
           </span>
         </div>
@@ -1589,7 +1718,7 @@ function FrontlineHandCard({
               {cardTargetLabel(t, card)}
             </span>
           </CompactPill>
-          {recommendedLane ? <CompactPill tone="ally">{recommendedLane}</CompactPill> : null}
+          {recommendedLane ? <CompactPill tone="ally">{laneLabel(t, recommendedLane)}</CompactPill> : null}
           {selected ? (
             <CompactPill tone="ally">
               <span className="inline-flex items-center gap-1">
@@ -1606,6 +1735,15 @@ function FrontlineHandCard({
           </span>
         </div>
       </div>
+
+      {!playable ? (
+        <div className="pointer-events-none absolute inset-0 z-[2] grid place-items-center rounded-[24px] bg-[radial-gradient(circle_at_50%_45%,rgba(20,8,8,0.34),rgba(8,5,5,0.62)_72%)] backdrop-blur-[1px]">
+          <div className="flex items-center gap-1.5 rounded-full border border-rose-200/40 bg-[#1a0a10]/86 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-rose-100 shadow-[0_8px_22px_rgba(0,0,0,0.4)]">
+            <ResourceIcon kind="command" size="small" className="h-4 w-4 opacity-80" />
+            <span>{t("frontline.needCommand", { amount: Math.max(0, card.cost - command) })}</span>
+          </div>
+        </div>
+      ) : null}
     </button>
   );
 }
@@ -1633,24 +1771,24 @@ function ResolutionFloat({ events }: { events: FrontlineEvent[] }) {
   );
 }
 
+const CAST_TONE_LABEL_KEY: Record<VisualFxTone, string> = {
+  heal: "frontline.castHeal",
+  shield: "frontline.castShield",
+  summon: "frontline.castSummon",
+  stun: "frontline.castStun",
+  power: "frontline.castPower",
+  damage: "frontline.castStrike",
+  breach: "frontline.castStrike",
+  ko: "frontline.castStrike",
+};
+
 function CardCastFx({ fx }: { fx: CardPlayFx | null }) {
+  const { t } = useI18n();
   if (!fx) return null;
   const icon = combatIconForTone(fx.tone);
   const card = fx.cardId.startsWith("leader:") ? null : FRONTLINE_CARD_BY_ID[fx.cardId];
-  const label =
-    fx.tone === "heal"
-      ? "HEAL"
-      : fx.tone === "shield"
-        ? "SHIELD"
-        : fx.tone === "summon"
-          ? "SUMMON"
-          : fx.tone === "stun"
-            ? "STUN"
-            : fx.tone === "power"
-              ? "POWER"
-              : card
-                ? "STRIKE"
-                : "CAST";
+  const fallbackKey = card ? "frontline.castStrike" : "frontline.castCast";
+  const label = t(CAST_TONE_LABEL_KEY[fx.tone] ?? fallbackKey).toUpperCase();
   const toneClass =
     fx.tone === "heal"
       ? "border-emerald-200/60 bg-emerald-300/16 text-emerald-50 shadow-[0_0_54px_rgba(75,224,141,0.34)]"
@@ -1749,6 +1887,67 @@ function ClashSpotlight({ event, index, total }: { event: FrontlineEvent | null;
   );
 }
 
+const PREVIEW_KIND_META: Record<FrontlinePreview["kind"], { tone: string; icon: CombatAssetIconName; positive: boolean }> = {
+  heal: { tone: "border-emerald-200/40 bg-emerald-300/14 text-emerald-50", icon: "heal", positive: true },
+  shield: { tone: "border-cyan-100/42 bg-cyan-300/14 text-cyan-50", icon: "shield", positive: true },
+  buff: { tone: "border-cyan-100/42 bg-cyan-300/14 text-cyan-50", icon: "advantage", positive: true },
+  summon: { tone: "border-emerald-100/40 bg-emerald-200/14 text-emerald-50", icon: "summon", positive: true },
+  stun: { tone: "border-[#f5c451]/52 bg-[#f5c451]/16 text-[#fff0bd]", icon: "stun", positive: false },
+  core: { tone: "border-rose-100/40 bg-rose-400/14 text-rose-50", icon: "breach", positive: false },
+  damage: { tone: "border-rose-100/40 bg-rose-400/14 text-rose-50", icon: "attack", positive: false },
+};
+
+function PreviewSpotlight({
+  preview,
+  cardName,
+}: {
+  preview: FrontlinePreview | null;
+  cardName: string | null;
+}) {
+  const { t } = useI18n();
+  if (!preview || !cardName) return null;
+  const meta = PREVIEW_KIND_META[preview.kind];
+  const sign = meta.positive ? "+" : "-";
+  const detail = preview.targetName
+    ? typeof preview.targetHpBefore === "number" && typeof preview.targetHpAfter === "number"
+      ? `${preview.targetName} (${preview.targetHpBefore}→${preview.targetHpAfter})`
+      : preview.targetName
+    : preview.note === "to_core"
+      ? t("frontline.enemyCore")
+      : preview.scope === "all"
+        ? t("frontline.allyPower")
+        : null;
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-[8.8rem] z-[6] hidden justify-center px-4 md:flex">
+      <div
+        className={cn(
+          "frontline-clash-spotlight-fx relative min-w-[18rem] max-w-[28rem] overflow-hidden rounded-[24px] border px-4 py-2.5 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-md",
+          meta.tone,
+        )}
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,255,255,0.16),transparent_36%)]" />
+        <div className="relative flex items-center gap-3">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] bg-black/26 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]">
+            <CombatIcon name={meta.icon} size="lg" className="h-9 w-9" fallbackClassName="h-9 w-9" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/56">{t("frontline.targeting")}</div>
+            <div className="mt-0.5 flex items-center gap-2">
+              <div className="rounded-full bg-black/34 px-2.5 py-1 text-base font-black text-white">
+                {sign}
+                {preview.amount}
+                {preview.kind === "stun" ? "T" : ""}
+              </div>
+              <div className="truncate text-[12px] font-bold text-white/82">{cardName}</div>
+            </div>
+            {detail ? <div className="mt-0.5 truncate text-[11px] text-white/68">{detail}</div> : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CardUseToast({ fx }: { fx: CardPlayFx | null }) {
   const { t } = useI18n();
   if (!fx) return null;
@@ -1756,7 +1955,7 @@ function CardUseToast({ fx }: { fx: CardPlayFx | null }) {
   const leaderId = isLeader ? fx.cardId.replace("leader:", "") : "";
   const card = isLeader ? null : FRONTLINE_CARD_BY_ID[fx.cardId];
   const leader = isLeader ? FRONTLINE_LEADER_BY_ID[leaderId] : null;
-  const name = card ? frontlineCardName(t, card) : leader ? frontlineLeaderPowerName(t, leader) : "Power";
+  const name = card ? frontlineCardName(t, card) : leader ? frontlineLeaderPowerName(t, leader) : t("frontline.power");
   const visual = card ? getFrontlineCardVisualAsset(card) : null;
   return (
     <div className="pointer-events-none absolute left-1/2 top-[7.4rem] z-[9] hidden md:block">
@@ -2033,22 +2232,31 @@ function CoreTotem({
   title,
   hp,
   maxHp,
-  powerLabel,
   accent,
   flash,
+  powerCooldown,
+  powerReadyExtra,
 }: {
   leaderId: string;
   title: string;
   hp: number;
   maxHp: number;
-  powerLabel: string;
   accent: "ally" | "enemy";
   flash?: boolean;
+  powerCooldown?: number;
+  powerReadyExtra?: boolean;
 }) {
   const { t } = useI18n();
   const leader = FRONTLINE_LEADER_BY_ID[leaderId];
   const leaderName = frontlineLeaderName(t, leader);
   const width = Math.max(0, (hp / maxHp) * 100);
+  const cooldownMax = leader?.power.cooldown ?? 0;
+  const cooldownRemaining = typeof powerCooldown === "number" ? Math.max(0, powerCooldown) : 0;
+  const cooldownProgress = cooldownMax > 0 ? Math.min(1, cooldownRemaining / cooldownMax) : 0;
+  const cooldownDeg = Math.round((1 - cooldownProgress) * 360);
+  const showRing = typeof powerCooldown === "number";
+  const powerReady = cooldownRemaining === 0 && (powerReadyExtra ?? true);
+  const powerLabel = cooldownRemaining > 0 ? `cd ${cooldownRemaining}` : t("frontline.ready");
   return (
     <div
       className={cn(
@@ -2061,12 +2269,33 @@ function CoreTotem({
     >
       <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.42),transparent)]" />
       <div className="flex items-start gap-3">
-        <ArtPortrait
-          src={getLeaderPortrait(leaderId)}
-          alt={leaderName}
-          className="h-16 w-14 shrink-0 rounded-[18px] bg-black/20 object-cover shadow-[0_12px_28px_rgba(0,0,0,0.28)]"
-          fallback={<GameGlyph kind="battle" shell="none" className="h-6 w-6" />}
-        />
+        <div className="relative h-16 w-14 shrink-0">
+          {showRing ? (
+            <div
+              className={cn(
+                "pointer-events-none absolute -inset-1 rounded-[20px]",
+                powerReady && "frontline-power-ready-ring-fx",
+              )}
+              style={{
+                background:
+                  cooldownProgress > 0
+                    ? `conic-gradient(rgba(245,196,81,0.86) 0deg ${cooldownDeg}deg, rgba(255,255,255,0.08) ${cooldownDeg}deg 360deg)`
+                    : powerReady
+                      ? "conic-gradient(rgba(245,196,81,0.86) 0deg 360deg)"
+                      : "conic-gradient(rgba(255,255,255,0.16) 0deg 360deg)",
+                WebkitMask: "radial-gradient(circle, transparent 64%, black 66%)",
+                mask: "radial-gradient(circle, transparent 64%, black 66%)",
+              }}
+              aria-hidden
+            />
+          ) : null}
+          <ArtPortrait
+            src={getLeaderPortrait(leaderId)}
+            alt={leaderName}
+            className="h-16 w-14 rounded-[18px] bg-black/20 object-cover shadow-[0_12px_28px_rgba(0,0,0,0.28)]"
+            fallback={<GameGlyph kind="battle" shell="none" className="h-6 w-6" />}
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-white/42">
             <CombatIcon name="core" size="xs" fallbackClassName="opacity-80" />
@@ -2083,6 +2312,61 @@ function CoreTotem({
               {powerLabel}
             </span>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const ENCOUNTER_KIND_META: Record<FrontlineEncounterBadgeKind, { labelKey: string; tone: string; icon: CombatAssetIconName }> = {
+  boss: {
+    labelKey: "frontline.encounterBoss",
+    tone: "border-[#f5c451]/56 bg-[linear-gradient(180deg,rgba(245,196,81,0.22),rgba(40,18,8,0.8))] text-[#fff0bd] shadow-[0_18px_48px_rgba(245,196,81,0.22)]",
+    icon: "leader_power",
+  },
+  elite: {
+    labelKey: "frontline.encounterElite",
+    tone: "border-violet-300/40 bg-[linear-gradient(180deg,rgba(192,132,252,0.22),rgba(28,12,46,0.78))] text-violet-50 shadow-[0_18px_48px_rgba(192,132,252,0.22)]",
+    icon: "advantage",
+  },
+  danger: {
+    labelKey: "frontline.encounterDanger",
+    tone: "border-rose-300/42 bg-[linear-gradient(180deg,rgba(240,95,114,0.22),rgba(54,12,20,0.8))] text-rose-50 shadow-[0_18px_48px_rgba(240,95,114,0.22)]",
+    icon: "danger",
+  },
+};
+
+function EncounterBanner({ kind, title }: { kind: FrontlineEncounterBadgeKind; title: string | null }) {
+  const { t } = useI18n();
+  const meta = ENCOUNTER_KIND_META[kind];
+  const label = t(meta.labelKey);
+  const tone = meta.tone;
+  const icon = meta.icon;
+  return (
+    <div className={cn("flex items-center justify-center gap-3 rounded-[20px] border px-4 py-2 backdrop-blur-md", tone)}>
+      <CombatIcon name={icon} size="md" className="h-7 w-7" fallbackClassName="h-7 w-7" />
+      <div className="flex flex-col items-center sm:flex-row sm:items-baseline sm:gap-3">
+        <span className="text-[10px] font-black uppercase tracking-[0.32em]">{label}</span>
+        {title ? <span className="text-sm font-black uppercase tracking-[0.18em] text-white/86">{title}</span> : null}
+      </div>
+    </div>
+  );
+}
+
+function CoreShockOverlay({
+  shock,
+  side,
+}: {
+  shock: { side: "ally" | "enemy"; amount: number; key: number } | null;
+  side: "ally" | "enemy";
+}) {
+  if (!shock || shock.side !== side) return null;
+  return (
+    <div key={shock.key} className="pointer-events-none absolute inset-0 z-[3]">
+      <span className="frontline-core-shock-flash-fx absolute inset-0 rounded-[26px] bg-[radial-gradient(circle_at_50%_50%,rgba(245,196,81,0.45),rgba(240,95,114,0.22)_42%,transparent_72%)]" />
+      <div className="frontline-core-shock-fx absolute left-1/2 top-1/2 grid place-items-center">
+        <div className="rounded-full border-2 border-[#f5c451]/70 bg-[#1a0a08]/82 px-4 py-1.5 text-2xl font-black text-[#fff0bd] shadow-[0_0_42px_rgba(245,196,81,0.46)] backdrop-blur-sm">
+          -{shock.amount}
         </div>
       </div>
     </div>

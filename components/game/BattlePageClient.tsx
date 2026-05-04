@@ -15,6 +15,8 @@ import {
   getFrontlineAdventureVictoryRewards,
   getFrontlinePresetForAdventure,
 } from "@/features/frontline/adventure";
+import { getAdventureNodeType } from "@/features/adventure/nodeResolution";
+import type { FrontlineEncounterBadgeKind } from "@/components/game/frontline/FrontlineBattle";
 import { ACCOUNT_XP_PER_LEVEL } from "@/lib/constants";
 import { audio } from "@/lib/audio";
 import { cn } from "@/lib/cn";
@@ -64,6 +66,13 @@ type ResultContext = {
   accountBefore: { level: number; xp: number };
   accountAfter: { level: number; xp: number };
 };
+
+function deriveEncounterBadge(adventureLevel: ReturnType<typeof getAdventureLevelForFrontline>): FrontlineEncounterBadgeKind | null {
+  if (!adventureLevel) return null;
+  const nodeType = getAdventureNodeType(adventureLevel);
+  if (nodeType === "boss" || nodeType === "elite" || nodeType === "danger") return nodeType;
+  return null;
+}
 
 function projectAccount(level: number, xp: number, gain: number) {
   let nextLevel = level;
@@ -240,6 +249,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   }
 
   if (phase === "battle") {
+    const encounterKind = deriveEncounterBadge(adventureLevel);
     return (
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
         <FrontlineBattle
@@ -249,6 +259,8 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
           allyHeroProfiles={allyHeroProfiles}
           allyCardProfiles={allyCardProfiles}
           allySupportProfiles={allySupportProfiles}
+          encounterKind={encounterKind}
+          encounterTitle={adventureLevel?.name ?? null}
           onFinished={(winner, battleState) => finishBattle(winner, battleState)}
         />
       </div>
@@ -501,14 +513,17 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                         />
                       </div>
                       <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-white/56">
-                        <span>
-                          {resultContext.resourcesBefore.gold}g to {resultContext.resourcesAfter.gold}g
+                        <span className="inline-flex items-center gap-1">
+                          <ResourceIcon kind="gold" size="small" className="h-4 w-4" />
+                          {t("frontline.resourceShift", { before: resultContext.resourcesBefore.gold, after: resultContext.resourcesAfter.gold })}
                         </span>
-                        <span>
-                          {resultContext.resourcesBefore.dust}d to {resultContext.resourcesAfter.dust}d
+                        <span className="inline-flex items-center gap-1">
+                          <ResourceIcon kind="dust" size="small" className="h-4 w-4" />
+                          {t("frontline.resourceShift", { before: resultContext.resourcesBefore.dust, after: resultContext.resourcesAfter.dust })}
                         </span>
-                        <span>
-                          {resultContext.resourcesBefore.gems}m to {resultContext.resourcesAfter.gems}m
+                        <span className="inline-flex items-center gap-1">
+                          <ResourceIcon kind="gems" size="small" className="h-4 w-4" />
+                          {t("frontline.resourceShift", { before: resultContext.resourcesBefore.gems, after: resultContext.resourcesAfter.gems })}
                         </span>
                       </div>
                     </div>
@@ -630,11 +645,12 @@ function Panel({ title, children, variant = "neutral" }: { title: string; childr
 }
 
 function EmptyCard() {
+  const { t } = useI18n();
   return (
     <div className="grid min-h-[12rem] place-items-center rounded-[24px] border border-dashed border-white/12 bg-white/[0.025] px-3 text-center">
       <div>
         <div className="mx-auto h-12 w-12 rounded-[18px] border border-white/10 bg-white/[0.04]" />
-        <div className="mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-white/42">Empty card slot</div>
+        <div className="mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-white/42">{t("frontline.emptyCardSlot")}</div>
       </div>
     </div>
   );
@@ -714,6 +730,7 @@ function Metric({ label, value, ok, t }: { label: string; value: string | number
 }
 
 function ResultMetric({ label, value, finalValue, icon }: { label: string; value: number; finalValue?: number; icon?: ProgressionIconName }) {
+  const { t } = useI18n();
   return (
     <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-3 py-3">
       <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-white/42">
@@ -722,7 +739,7 @@ function ResultMetric({ label, value, finalValue, icon }: { label: string; value
       </div>
       <div className="mt-1 text-lg font-black text-white">{value}</div>
       {typeof finalValue === "number" ? (
-        <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-white/40">final {finalValue}</div>
+        <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-white/40">{t("frontline.finalLabel")} {finalValue}</div>
       ) : null}
     </div>
   );
