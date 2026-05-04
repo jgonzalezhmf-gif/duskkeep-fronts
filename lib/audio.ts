@@ -415,6 +415,16 @@ class AudioManager {
     const channel = this.activeMusicAssetChannel;
     if (!channel) return;
     this.activeMusicAssetChannel = null;
+    if (fadeSeconds <= 0) {
+      if (channel.timer !== null) {
+        window.clearInterval(channel.timer);
+        channel.timer = null;
+      }
+      channel.audio.pause();
+      channel.audio.src = "";
+      channel.audio.load();
+      return;
+    }
     this.fadeHtmlAudio(channel, 0, fadeSeconds, () => {
       channel.audio.pause();
       channel.audio.src = "";
@@ -430,8 +440,13 @@ class AudioManager {
       this.applyMusicAssetVolume(0.18);
       return true;
     }
+    if (this.activeMusicAssetChannel?.audio.currentSrc.endsWith(asset.src)) {
+      this.activeMusicAssetChannel.theme = theme;
+      this.applyMusicAssetVolume(0.18);
+      return true;
+    }
 
-    this.stopMusicAssetChannel(0.45);
+    this.stopMusicAssetChannel(0);
     const audio = new Audio(asset.src);
     audio.loop = asset.loop ?? true;
     audio.preload = "auto";

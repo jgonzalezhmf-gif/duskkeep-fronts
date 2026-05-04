@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.21.17] - 2026-05-04
+
+### Fixed
+- Corregida la direccion musical del pre-combate de Adventure para mantener el tema de Adventure en lugar de forzar musica de Battle.
+- Evitado que el director global de rutas pise la musica que `BattlePageClient` gestiona por fase: setup, battle y result.
+- Evitado el solape de MP3 al cambiar de tema: una pista final se detiene antes de iniciar la siguiente.
+- Evitado reiniciar musica cuando dos pantallas usan el mismo MP3 registrado; el canal activo conserva su posicion y solo actualiza mezcla/tema.
+
 ## [0.21.16] - 2026-05-04
 
 ### Changed

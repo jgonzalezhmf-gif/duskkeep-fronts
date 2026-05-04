@@ -167,8 +167,12 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       audio.setTheme("postbattle");
       return;
     }
+    if (adventureLevel) {
+      audio.setTheme("adventure");
+      return;
+    }
     audio.setTheme("prebattle");
-  }, [phase]);
+  }, [adventureLevel, phase]);
 
   const startBattle = useCallback(() => {
     if (!squadReady || !deckReady) return;

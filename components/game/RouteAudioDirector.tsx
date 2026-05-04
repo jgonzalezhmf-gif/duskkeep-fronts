@@ -34,7 +34,8 @@ export default function RouteAudioDirector() {
 
   useEffect(() => {
     if (isBattleRoute(pathname)) {
-      audio.setTheme("battle");
+      // BattlePageClient owns setup/battle/result music by phase.
+      // Avoid route-level overrides that can restart or overlap tracks.
       return;
     }
     if (isAdventureRoute(pathname)) {
