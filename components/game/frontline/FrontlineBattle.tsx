@@ -37,6 +37,10 @@ import { previewCardOutcome, type FrontlinePreview } from "@/features/frontline/
 import { getBattleBackdrop, getLeaderPortrait } from "@/lib/art";
 import { audio, sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
+import {
+  getFrontlineEnemyLeaderPortraitForPreset,
+  getFrontlineLeaderPortraitSrc,
+} from "@/lib/frontlineLeaderPortraitAssets";
 import type { CombatAssetIconName, GameAssetIconSize } from "@/lib/iconAssets";
 import {
   frontlineCardEffectSummary,
@@ -47,6 +51,7 @@ import {
   frontlineLeaderName,
   frontlineLeaderPowerDescription,
   frontlineLeaderPowerName,
+  frontlinePresetName,
   frontlineSupportName,
   frontlineTraitInfo,
   tx,
@@ -54,7 +59,9 @@ import {
 } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import type { FrontlineLane, FrontlineLoadout, FrontlineSide } from "@/lib/types";
-import { getFrontlineCardVisualAsset, getFrontlineHeroVisualAsset } from "./frontlineVisualAssets";
+import { getFrontlineBossAssetSrc, getFrontlineCardVisualAsset, getFrontlineHeroVisualAsset } from "./frontlineVisualAssets";
+import { getFrontlineBoss } from "@/features/frontline/bosses";
+import type { FrontlineBossConfig, FrontlineBossSegmentConfig } from "@/features/frontline/types";
 
 export type FrontlineEncounterBadgeKind = "elite" | "boss" | "danger";
 
@@ -128,6 +135,7 @@ function combatIconForEvent(event: Pick<FrontlineEvent, "kind"> | null | undefin
   if (event?.kind === "stun") return "stun";
   if (event?.kind === "power") return "leader_power";
   if (event?.kind === "ko") return "danger";
+  if (event?.kind === "boss_signature") return "leader_power";
   return "attack";
 }
 
@@ -310,7 +318,8 @@ function isResolutionEvent(event: FrontlineEvent) {
     event.kind === "shield" ||
     event.kind === "heal" ||
     event.kind === "summon" ||
-    event.kind === "stun"
+    event.kind === "stun" ||
+    (event.kind === "boss_signature" && event.signature === "cast")
   );
 }
 
@@ -374,6 +383,7 @@ function eventDuration(event: FrontlineEvent) {
   if (event.kind === "breach") return 1900;
   if (event.kind === "ko") return 1750;
   if (event.kind === "summon") return 1450;
+  if (event.kind === "boss_signature" && event.signature === "cast") return 1850;
   if (event.kind === "heal" || event.kind === "shield" || event.kind === "stun") return 1350;
   return 1500;
 }
@@ -537,6 +547,11 @@ function playFrontlineResolutionSfx(event: FrontlineEvent, ghosts: DeathGhostFx[
   }
   if (event.kind === "power") {
     sfx.leaderPower();
+    return;
+  }
+  if (event.kind === "boss_signature" && event.signature === "cast") {
+    sfx.coreDamage();
+    window.setTimeout(() => sfx.breach(), 220);
   }
 }
 
@@ -794,6 +809,13 @@ export default function FrontlineBattle({
   const displayInsight = laneInsights.find((entry) => entry.lane === displayLane) ?? priorityLane;
   const latestImpact = state.events[0] ?? null;
   const latestFeed = state.events.slice(0, 8);
+  const bossConfig = useMemo(() => getFrontlineBoss(state.bossState?.id), [state.bossState?.id]);
+  const bossSegmentByLane = useMemo(() => {
+    const map: Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> = {};
+    if (bossConfig) for (const seg of bossConfig.segments) map[seg.lane] = seg;
+    return map;
+  }, [bossConfig]);
+
   const previewOutcome = useMemo<FrontlinePreview | null>(() => {
     if (state.selectedLeaderPower || !selectedCard) return null;
     if (selectedCard.target === "none") {
@@ -938,9 +960,15 @@ export default function FrontlineBattle({
       ? `${cardEffectSummary(t, selectedCard)} - ${cardTargetLabel(t, selectedCard)}`
       : laneStatusSubtitle(t, displayInsight.lane, displayInsight.status);
 
+  const infernoCasting =
+    activeResolutionEvent?.kind === "boss_signature" && activeResolutionEvent.signature === "cast";
+
   return (
     <section
-      className="relative isolate overflow-hidden rounded-[30px] bg-[#080a0d] shadow-[0_34px_95px_rgba(0,0,0,0.5)]"
+      className={cn(
+        "relative isolate overflow-hidden rounded-[30px] bg-[#080a0d] shadow-[0_34px_95px_rgba(0,0,0,0.5)]",
+        infernoCasting && "frontline-inferno-cast-fx",
+      )}
       style={{ backgroundImage: `url('${backdrop}')`, backgroundSize: "cover", backgroundPosition: "center" }}
     >
       <style>{`
@@ -1054,10 +1082,24 @@ export default function FrontlineBattle({
           75% { filter: drop-shadow(0 0 14px rgba(245,196,81,0.48)) saturate(0.7); transform: rotate(1.2deg); }
         }
         .frontline-stun-pulse-fx { animation: frontline-stun-pulse 1.2s ease-in-out infinite; }
+        @keyframes frontline-inferno-cast {
+          0% { box-shadow: inset 0 0 0 rgba(255,150,80,0); filter: brightness(1) saturate(1); }
+          18% { box-shadow: inset 0 0 220px rgba(255,150,80,0.62); filter: brightness(1.18) saturate(1.16); }
+          55% { box-shadow: inset 0 0 180px rgba(240,95,114,0.42); filter: brightness(1.08) saturate(1.08); }
+          100% { box-shadow: inset 0 0 0 rgba(255,150,80,0); filter: brightness(1) saturate(1); }
+        }
+        .frontline-inferno-cast-fx { animation: frontline-inferno-cast 820ms ease-out; }
+        @keyframes frontline-boss-breath {
+          0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 28px 56px rgba(180,70,40,0.42)) brightness(1); }
+          50% { transform: translateY(-3px) scale(1.012); filter: drop-shadow(0 36px 72px rgba(245,140,80,0.5)) brightness(1.06); }
+        }
+        .frontline-boss-breath-fx { animation: frontline-boss-breath 5.4s ease-in-out infinite; }
         html[data-motion="reduced"] .frontline-core-shock-fx,
         html[data-motion="reduced"] .frontline-core-shock-flash-fx { animation-duration: 180ms !important; }
         html[data-motion="reduced"] .frontline-power-ready-ring-fx,
-        html[data-motion="reduced"] .frontline-stun-pulse-fx { animation: none !important; opacity: 1; transform: none !important; filter: none !important; }
+        html[data-motion="reduced"] .frontline-stun-pulse-fx,
+        html[data-motion="reduced"] .frontline-inferno-cast-fx,
+        html[data-motion="reduced"] .frontline-boss-breath-fx { animation: none !important; opacity: 1; transform: none !important; filter: none !important; }
         @keyframes frontline-lane-impact {
           0% { transform: scale(1); filter: brightness(1); }
           28% { transform: scale(1.018); filter: brightness(1.18) saturate(1.12); }
@@ -1201,6 +1243,8 @@ export default function FrontlineBattle({
           <div className="relative">
             <CoreTotem
               leaderId={state.enemyDeck.leaderId}
+              leaderNameOverride={frontlinePresetName(t, getEnemyPreset(enemyPresetId))}
+              portraitSrc={getFrontlineEnemyLeaderPortraitForPreset(getEnemyPreset(enemyPresetId))}
               title={t("frontline.enemyCore")}
               hp={state.enemyCoreHp}
               maxHp={state.enemyCoreMaxHp}
@@ -1304,6 +1348,7 @@ export default function FrontlineBattle({
           <div className="relative">
             <CoreTotem
               leaderId={state.allyDeck.leaderId}
+              portraitSrc={getFrontlineLeaderPortraitSrc(state.allyDeck.leaderId)}
               title={t("frontline.yourCore")}
               hp={state.allyCoreHp}
               maxHp={state.allyCoreMaxHp}
@@ -1316,8 +1361,17 @@ export default function FrontlineBattle({
           </div>
         </header>
 
+        {bossConfig && state.bossState ? (
+          <BossBanner
+            boss={bossConfig}
+            bossState={state.bossState}
+            modifiers={modifiers ?? null}
+          />
+        ) : null}
+
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
-          <div className="grid gap-3 lg:grid-cols-3">
+          <div className="relative grid gap-3 lg:grid-cols-3">
+            {bossConfig ? <BossColossusOverlay assetKey={bossConfig.assetKey} /> : null}
             {FRONTLINE_LANES.map((lane) => {
               const laneState = state.lanes[lane];
               const active = targetableLanes.includes(lane);
@@ -1395,7 +1449,23 @@ export default function FrontlineBattle({
                   <LaneKoFx event={activeLaneEvent} />
 
                   <div className="relative z-[1] flex items-center justify-between gap-3">
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/48">{lane}</div>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em]">
+                      <span className="text-white/48">{lane}</span>
+                      {bossSegmentByLane[lane] ? (
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
+                            bossSegmentByLane[lane]?.weakpoint
+                              ? "border-rose-200/52 bg-rose-400/16 text-rose-50"
+                              : "border-[#f5c451]/52 bg-[#f5c451]/12 text-[#fff0bd]",
+                          )}
+                          title={bossSegmentByLane[lane]?.weakpoint ? t("frontline.bossSegmentWeakpoint") : t("frontline.bossSegmentTitle")}
+                        >
+                          <CombatIcon name={bossSegmentByLane[lane]?.weakpoint ? "danger" : "leader_power"} size="xs" fallbackClassName="opacity-90" />
+                          <span>{t(bossSegmentByLane[lane]!.titleKey)}</span>
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="flex items-center gap-2">
                       {insight.breachSide ? (
                         <div className="inline-flex items-center gap-1 rounded-full bg-black/24 px-2 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white/72">
@@ -1456,6 +1526,7 @@ export default function FrontlineBattle({
                       accent="ally"
                       pressured={insight.allyLow}
                       visualState={allyVisualState}
+                      scorch={state.bossState?.scorch[lane] ?? 0}
                     />
                   </div>
 
@@ -2243,6 +2314,8 @@ function cardSurfaceClass(tone: string, selected: boolean, playable: boolean) {
 
 function CoreTotem({
   leaderId,
+  leaderNameOverride,
+  portraitSrc,
   title,
   hp,
   maxHp,
@@ -2252,6 +2325,8 @@ function CoreTotem({
   powerReadyExtra,
 }: {
   leaderId: string;
+  leaderNameOverride?: string | null;
+  portraitSrc?: string | null;
   title: string;
   hp: number;
   maxHp: number;
@@ -2262,7 +2337,7 @@ function CoreTotem({
 }) {
   const { t } = useI18n();
   const leader = FRONTLINE_LEADER_BY_ID[leaderId];
-  const leaderName = frontlineLeaderName(t, leader);
+  const leaderName = leaderNameOverride ?? frontlineLeaderName(t, leader);
   const width = Math.max(0, (hp / maxHp) * 100);
   const cooldownMax = leader?.power.cooldown ?? 0;
   const cooldownRemaining = typeof powerCooldown === "number" ? Math.max(0, powerCooldown) : 0;
@@ -2304,7 +2379,7 @@ function CoreTotem({
             />
           ) : null}
           <ArtPortrait
-            src={getLeaderPortrait(leaderId)}
+            src={portraitSrc ?? getLeaderPortrait(leaderId)}
             alt={leaderName}
             className="h-16 w-14 rounded-[18px] bg-black/20 object-cover shadow-[0_12px_28px_rgba(0,0,0,0.28)]"
             fallback={<GameGlyph kind="battle" shell="none" className="h-6 w-6" />}
@@ -2363,6 +2438,83 @@ function EncounterBanner({ kind, title }: { kind: FrontlineEncounterBadgeKind; t
         <span className="text-[10px] font-black uppercase tracking-[0.32em]">{label}</span>
         {title ? <span className="text-sm font-black uppercase tracking-[0.18em] text-white/86">{title}</span> : null}
       </div>
+    </div>
+  );
+}
+
+function BossColossusOverlay({ assetKey }: { assetKey: string }) {
+  const src = getFrontlineBossAssetSrc(assetKey);
+  if (!src) return null;
+  return (
+    <div className="pointer-events-none absolute inset-x-0 -top-6 bottom-[26%] z-0 flex items-start justify-center overflow-hidden">
+      <div className="relative h-full w-full max-w-[58rem]">
+        <div className="absolute inset-x-[6%] inset-y-0 rounded-[44px] bg-[radial-gradient(ellipse_at_50%_38%,rgba(245,140,80,0.32),rgba(80,16,12,0.28)_42%,transparent_72%)] blur-md" />
+        <img
+          src={src}
+          alt=""
+          aria-hidden
+          className="frontline-boss-breath-fx absolute inset-x-0 top-0 mx-auto h-full w-auto max-w-full object-contain object-top opacity-92 mix-blend-screen drop-shadow-[0_28px_56px_rgba(180,70,40,0.42)]"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent,rgba(8,6,12,0.92))]" />
+      </div>
+    </div>
+  );
+}
+
+function BossBanner({
+  boss,
+  bossState,
+  modifiers,
+}: {
+  boss: FrontlineBossConfig;
+  bossState: NonNullable<FrontlineBattleState["bossState"]>;
+  modifiers: { enemyCoreBonus?: number; enemyStartingCommandBonus?: number } | null;
+}) {
+  const { t } = useI18n();
+  const inferno = boss.signatures.find((sig) => sig.type === "inferno_wave");
+  const countdown = bossState.infernoCountdown;
+  const ready = inferno && inferno.type === "inferno_wave" && countdown <= 1;
+  const bossName = t(boss.nameKey);
+  return (
+    <div className="relative overflow-hidden rounded-[20px] border border-[#f5c451]/56 bg-[linear-gradient(180deg,rgba(245,140,80,0.22),rgba(40,12,8,0.86))] px-4 py-3 text-[#fff0bd] shadow-[0_18px_48px_rgba(245,196,81,0.22)] backdrop-blur-md">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,255,255,0.16),transparent_36%)]" />
+      <div className="relative flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <CombatIcon name="leader_power" size="md" className="h-7 w-7" fallbackClassName="h-7 w-7" />
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-[0.32em] text-[#fff0bd]/80">{t("frontline.encounterBoss")}</div>
+            <div className="text-base font-black uppercase tracking-[0.16em]">{bossName}</div>
+          </div>
+        </div>
+        {inferno && inferno.type === "inferno_wave" ? (
+          <div
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em]",
+              ready
+                ? "frontline-power-ready-ring-fx border-rose-200/72 bg-rose-400/24 text-rose-50"
+                : "border-[#f5c451]/56 bg-[#1a0a08]/72 text-[#fff0bd]",
+            )}
+          >
+            {ready ? t("frontline.infernoReady") : t("frontline.infernoCharge", { amount: countdown })}
+          </div>
+        ) : null}
+      </div>
+      {modifiers && (modifiers.enemyCoreBonus || modifiers.enemyStartingCommandBonus) ? (
+        <div className="relative mt-2 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#fff0bd]/82">
+          {modifiers.enemyCoreBonus ? (
+            <span className="rounded-full border border-[#f5c451]/40 bg-black/30 px-2 py-0.5">
+              {t("frontline.modifierEnemyCore", { amount: modifiers.enemyCoreBonus })}
+            </span>
+          ) : null}
+          {modifiers.enemyStartingCommandBonus ? (
+            <span className="rounded-full border border-[#f5c451]/40 bg-black/30 px-2 py-0.5">
+              {t("frontline.modifierEnemyCommand", { amount: modifiers.enemyStartingCommandBonus })}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -2427,12 +2579,14 @@ function FrontlineHeroPiece({
   accent,
   pressured,
   visualState,
+  scorch,
 }: {
   actor: FrontlineBattleState["lanes"]["left"]["allyHero"];
   support: FrontlineBattleState["lanes"]["left"]["allySupport"];
   accent: "ally" | "enemy";
   pressured?: boolean;
   visualState?: HeroVisualState;
+  scorch?: number;
 }) {
   const { t } = useI18n();
   if (!actor) {
@@ -2557,6 +2711,14 @@ function FrontlineHeroPiece({
                   <span className="inline-flex items-center gap-1">
                     <StatusIcon name="debuff" size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
                     {actor.stun}
+                  </span>
+                </CompactPill>
+              ) : null}
+              {scorch && scorch > 0 ? (
+                <CompactPill tone="enemy">
+                  <span className="inline-flex items-center gap-1">
+                    <StatusIcon name="poison" size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
+                    {scorch}
                   </span>
                 </CompactPill>
               ) : null}

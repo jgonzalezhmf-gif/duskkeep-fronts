@@ -42,6 +42,21 @@ const FRONTLINE_EFFECT_ASSETS: FrontlineAssetManifest = {
   // breach: `${FRONTLINE_ASSET_ROOT}/effects/breach.png`,
 };
 
+const FRONTLINE_BOSS_ASSETS: FrontlineAssetManifest = {
+  crown_of_ashes: `${FRONTLINE_ASSET_ROOT}/bosses/crown_of_ashes.png`,
+};
+
+const FRONTLINE_UNIT_PLACEHOLDER_ASSET = `${FRONTLINE_ASSET_ROOT}/unit_placeholder.png`;
+
+export function getFrontlineBossAssetSrc(assetKey: string | null | undefined): string | null {
+  if (!assetKey) return null;
+  return FRONTLINE_BOSS_ASSETS[assetKey] ?? null;
+}
+
+export function getFrontlineUnitPlaceholderSrc() {
+  return FRONTLINE_UNIT_PLACEHOLDER_ASSET;
+}
+
 const CARD_FALLBACK_HERO: Partial<Record<string, string>> = {
   order_twin_slash: "kara",
   order_guard_wall: "bran",
@@ -74,7 +89,7 @@ export function getFrontlineHeroVisualAsset(heroId: string): FrontlineHeroVisual
   return {
     artKey: heroId,
     standeeSrc: FRONTLINE_HERO_STANDEE_ASSETS[heroId] ?? null,
-    portraitFallbackSrc: getHeroPortrait(heroId),
+    portraitFallbackSrc: getHeroPortrait(heroId) ?? FRONTLINE_UNIT_PLACEHOLDER_ASSET,
   };
 }
 
