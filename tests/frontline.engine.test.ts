@@ -104,6 +104,27 @@ describe("frontline engine", () => {
     expect(state.lanes.left.enemyHero?.maxHp).toBe(FRONTLINE_UNIT_BY_ID[FRONTLINE_PRESETS[0].squad[0]].maxHp);
   });
 
+  it("applies encounter modifiers to enemy core and starting command", () => {
+    const baseEnemyCore = 24; // leader_morrow.coreHp
+    const state = createFrontlineBattleState({
+      seed: 77,
+      allyLoadout: createDefaultFrontlineLoadout(),
+      enemyPreset: FRONTLINE_PRESETS[0],
+      modifiers: { enemyCoreBonus: 5, enemyStartingCommandBonus: 1 },
+    });
+
+    expect(state.enemyCoreHp).toBe(baseEnemyCore + 5);
+    expect(state.enemyCoreMaxHp).toBe(baseEnemyCore + 5);
+    expect(state.allyCoreHp).toBe(state.allyCoreMaxHp);
+    expect(state.enemyDeck.command).toBe(0);
+    expect(state.enemyStartCommandBonus).toBe(1);
+
+    const afterAllyTurn = resolveTurn(state);
+    expect(afterAllyTurn.turn).toBe("enemy");
+    expect(afterAllyTurn.enemyDeck.command).toBe(4);
+    expect(afterAllyTurn.enemyStartCommandBonus).toBe(0);
+  });
+
   it("uses progressed Frontline card effects for player cards", () => {
     const cardProfiles = createFrontlineCardProfileMap({ order_focus_fire: 3 });
     const state = createFrontlineBattleState({

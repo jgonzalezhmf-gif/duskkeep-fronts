@@ -414,6 +414,16 @@ export const dictionaries = {
         stunFront: "Stun {turns}",
         temporarySupport: "Temporary support",
       },
+      traits: {
+        bulwark: { label: "Bulwark", description: "Gains shield each clash." },
+        flurry: { label: "Flurry", description: "Hits harder while above half HP." },
+        breach: { label: "Breach", description: "Deals extra core damage on breach." },
+        mend: { label: "Mend", description: "Heals the most wounded ally each clash." },
+        ambush: { label: "Ambush", description: "Bonus damage against wounded enemies." },
+        chant: { label: "Chant", description: "Boosts attack of allies on every front." },
+        lifesteal: { label: "Lifesteal", description: "Heals when striking an enemy hero." },
+        venom: { label: "Venom", description: "Deals follow-up damage after a hit." },
+      },
     },
     shop: {
       grandBazaar: "Grand Bazaar",
@@ -1541,6 +1551,16 @@ export const dictionaries = {
         frontShot: "{damage} DAN",
         stunFront: "Aturde {turns}",
         temporarySupport: "Apoyo temporal",
+      },
+      traits: {
+        bulwark: { label: "Baluarte", description: "Gana escudo en cada clash." },
+        flurry: { label: "Furia", description: "Pega mas duro mientras esta sobre la mitad de vida." },
+        breach: { label: "Brecha", description: "Hace dano extra al nucleo al abrir frente." },
+        mend: { label: "Remendado", description: "Cura al aliado mas herido en cada clash." },
+        ambush: { label: "Emboscada", description: "Dano extra contra enemigos heridos." },
+        chant: { label: "Canto", description: "Aumenta el ataque de aliados en todos los frentes." },
+        lifesteal: { label: "Robavida", description: "Se cura al golpear un heroe enemigo." },
+        venom: { label: "Veneno", description: "Aplica dano residual tras un golpe." },
       },
     },
     shop: {

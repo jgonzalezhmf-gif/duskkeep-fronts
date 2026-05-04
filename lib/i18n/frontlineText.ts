@@ -1,4 +1,16 @@
-import type { FrontlineCardDef, FrontlineHeroDef, FrontlineLeaderDef, FrontlinePreset, FrontlineSupportDef } from "@/features/frontline/types";
+import type { FrontlineCardDef, FrontlineHeroDef, FrontlineHeroTrait, FrontlineLeaderDef, FrontlinePreset, FrontlineSupportDef } from "@/features/frontline/types";
+import type { StatusAssetIconName } from "@/lib/iconAssets";
+
+const TRAIT_ICONS: Record<Exclude<FrontlineHeroTrait["type"], "none">, StatusAssetIconName> = {
+  bulwark: "guard",
+  flurry: "rush",
+  breach: "armor_break",
+  mend: "regen",
+  ambush: "rush",
+  chant: "buff",
+  lifesteal: "bleed",
+  venom: "poison",
+};
 
 export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -105,4 +117,21 @@ export function frontlineCardEffectSummary(t: TranslateFn, card: FrontlineCardDe
     case "summon":
       return tx(t, `frontlineData.supports.${card.effect.supportId}.name`, t("frontlineData.effects.temporarySupport"));
   }
+}
+
+export type FrontlineTraitInfo = {
+  type: Exclude<FrontlineHeroTrait["type"], "none">;
+  label: string;
+  description: string;
+  icon: StatusAssetIconName;
+};
+
+export function frontlineTraitInfo(t: TranslateFn, trait: FrontlineHeroTrait): FrontlineTraitInfo | null {
+  if (trait.type === "none") return null;
+  return {
+    type: trait.type,
+    label: t(`frontlineData.traits.${trait.type}.label`),
+    description: t(`frontlineData.traits.${trait.type}.description`),
+    icon: TRAIT_ICONS[trait.type],
+  };
 }

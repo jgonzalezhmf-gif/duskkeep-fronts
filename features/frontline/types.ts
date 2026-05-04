@@ -167,6 +167,11 @@ export type FrontlineEvent = {
   emphasis?: "high" | "mid" | "low";
 };
 
+export type FrontlineBattleModifiers = {
+  enemyCoreBonus?: number;
+  enemyStartingCommandBonus?: number;
+};
+
 export type FrontlineBattleState = {
   seed: number;
   round: number;
@@ -189,4 +194,5 @@ export type FrontlineBattleState = {
   selectedLeaderPower: boolean;
   events: FrontlineEvent[];
   lastResolution: string[];
+  enemyStartCommandBonus: number;
 };

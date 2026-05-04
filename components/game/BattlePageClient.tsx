@@ -17,6 +17,7 @@ import {
 } from "@/features/frontline/adventure";
 import { getAdventureNodeType } from "@/features/adventure/nodeResolution";
 import type { FrontlineEncounterBadgeKind } from "@/components/game/frontline/FrontlineBattle";
+import type { FrontlineBattleModifiers } from "@/features/frontline/types";
 import { ACCOUNT_XP_PER_LEVEL } from "@/lib/constants";
 import { audio } from "@/lib/audio";
 import { cn } from "@/lib/cn";
@@ -72,6 +73,12 @@ function deriveEncounterBadge(adventureLevel: ReturnType<typeof getAdventureLeve
   const nodeType = getAdventureNodeType(adventureLevel);
   if (nodeType === "boss" || nodeType === "elite" || nodeType === "danger") return nodeType;
   return null;
+}
+
+function encounterModifiers(badge: FrontlineEncounterBadgeKind | null): FrontlineBattleModifiers | undefined {
+  if (badge === "boss") return { enemyCoreBonus: 5, enemyStartingCommandBonus: 1 };
+  if (badge === "elite") return { enemyCoreBonus: 2 };
+  return undefined;
 }
 
 function projectAccount(level: number, xp: number, gain: number) {
@@ -250,6 +257,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
 
   if (phase === "battle") {
     const encounterKind = deriveEncounterBadge(adventureLevel);
+    const modifiers = encounterModifiers(encounterKind);
     return (
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
         <FrontlineBattle
@@ -259,6 +267,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
           allyHeroProfiles={allyHeroProfiles}
           allyCardProfiles={allyCardProfiles}
           allySupportProfiles={allySupportProfiles}
+          modifiers={modifiers}
           encounterKind={encounterKind}
           encounterTitle={adventureLevel?.name ?? null}
           onFinished={(winner, battleState) => finishBattle(winner, battleState)}

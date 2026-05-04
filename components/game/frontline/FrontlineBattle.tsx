@@ -11,6 +11,7 @@ import {
   FRONTLINE_CARD_BY_ID,
   FRONTLINE_LANES,
   FRONTLINE_LEADER_BY_ID,
+  FRONTLINE_UNIT_BY_ID,
 } from "@/features/frontline/data";
 import {
   activateLeaderPower,
@@ -24,6 +25,7 @@ import {
   validLeaderPowerTargets,
 } from "@/features/frontline/engine";
 import type {
+  FrontlineBattleModifiers,
   FrontlineBattleState,
   FrontlineCardDef,
   FrontlineCardProfileMap,
@@ -46,6 +48,7 @@ import {
   frontlineLeaderPowerDescription,
   frontlineLeaderPowerName,
   frontlineSupportName,
+  frontlineTraitInfo,
   tx,
   type TranslateFn,
 } from "@/lib/i18n/frontlineText";
@@ -62,6 +65,7 @@ type Props = {
   allyHeroProfiles?: FrontlineHeroProfileMap;
   allyCardProfiles?: FrontlineCardProfileMap;
   allySupportProfiles?: FrontlineSupportProfileMap;
+  modifiers?: FrontlineBattleModifiers;
   encounterKind?: FrontlineEncounterBadgeKind | null;
   encounterTitle?: string | null;
   onFinished: (winner: "ally" | "enemy" | "draw", state: FrontlineBattleState) => void;
@@ -613,6 +617,7 @@ export default function FrontlineBattle({
   allyHeroProfiles,
   allyCardProfiles,
   allySupportProfiles,
+  modifiers,
   encounterKind,
   encounterTitle,
   onFinished,
@@ -626,6 +631,7 @@ export default function FrontlineBattle({
       allyHeroProfiles,
       allyCardProfiles,
       allySupportProfiles,
+      modifiers,
     }),
   );
   const [focusedLane, setFocusedLane] = useState<FrontlineLane | null>(null);
@@ -668,9 +674,10 @@ export default function FrontlineBattle({
         allyHeroProfiles,
         allyCardProfiles,
         allySupportProfiles,
+        modifiers,
       }),
     );
-  }, [allyCardProfiles, allyHeroProfiles, allySupportProfiles, enemyPresetId, loadout, seed]);
+  }, [allyCardProfiles, allyHeroProfiles, allySupportProfiles, enemyPresetId, loadout, modifiers, seed]);
 
   useEffect(() => {
     return () => {
@@ -1041,9 +1048,16 @@ export default function FrontlineBattle({
           50% { filter: drop-shadow(0 0 16px rgba(245,196,81,0.78)); opacity: 1; }
         }
         .frontline-power-ready-ring-fx { animation: frontline-power-ready-ring 1.6s ease-in-out infinite; }
+        @keyframes frontline-stun-pulse {
+          0%, 100% { filter: drop-shadow(0 0 0 rgba(245,196,81,0)) saturate(1); transform: rotate(0deg); }
+          25% { filter: drop-shadow(0 0 12px rgba(245,196,81,0.62)) saturate(0.65); transform: rotate(-1.2deg); }
+          75% { filter: drop-shadow(0 0 14px rgba(245,196,81,0.48)) saturate(0.7); transform: rotate(1.2deg); }
+        }
+        .frontline-stun-pulse-fx { animation: frontline-stun-pulse 1.2s ease-in-out infinite; }
         html[data-motion="reduced"] .frontline-core-shock-fx,
         html[data-motion="reduced"] .frontline-core-shock-flash-fx { animation-duration: 180ms !important; }
-        html[data-motion="reduced"] .frontline-power-ready-ring-fx { animation: none !important; opacity: 1; }
+        html[data-motion="reduced"] .frontline-power-ready-ring-fx,
+        html[data-motion="reduced"] .frontline-stun-pulse-fx { animation: none !important; opacity: 1; transform: none !important; filter: none !important; }
         @keyframes frontline-lane-impact {
           0% { transform: scale(1); filter: brightness(1); }
           28% { transform: scale(1.018); filter: brightness(1.18) saturate(1.12); }
@@ -2442,6 +2456,8 @@ function FrontlineHeroPiece({
   const actorName = tx(t, `frontlineData.heroes.${actor.heroId}.name`, actor.name);
   const actorRole = tx(t, `frontlineData.heroes.${actor.heroId}.role`, actor.role);
   const supportName = support ? frontlineSupportName(t, support) : "";
+  const heroDef = FRONTLINE_UNIT_BY_ID[actor.heroId];
+  const traitInfo = heroDef ? frontlineTraitInfo(t, heroDef.trait) : null;
   return (
     <div
       title={`${actorName} - ${actorRole}${supportName ? ` - support ${supportName}` : ""}`}
@@ -2498,6 +2514,7 @@ function FrontlineHeroPiece({
               fx.selected && "ring-[#f5c451]/40 shadow-[0_0_34px_rgba(245,196,81,0.22),0_22px_44px_rgba(0,0,0,0.46)]",
               fx.targeted && "ring-[#f5c451]/55",
               fx.breachSource && "shadow-[0_0_38px_rgba(245,196,81,0.34),0_22px_44px_rgba(0,0,0,0.46)]",
+              actor.stun > 0 && "frontline-stun-pulse-fx",
             )}
             imgClassName={cn("h-full w-full object-top", visual.standeeSrc ? "object-contain" : "object-cover")}
             fallback={
@@ -2512,9 +2529,25 @@ function FrontlineHeroPiece({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="truncate text-lg font-black leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]">{actorName}</div>
-              <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/52">
-                <CombatIcon name="attack" size="xs" fallbackClassName="opacity-75" />
-                <span>{actor.atk + actor.tempAtk}</span>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/52">
+                <span className="inline-flex items-center gap-1">
+                  <CombatIcon name="attack" size="xs" fallbackClassName="opacity-75" />
+                  <span>{actor.atk + actor.tempAtk}</span>
+                </span>
+                {traitInfo ? (
+                  <span
+                    title={`${traitInfo.label} — ${traitInfo.description}`}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5",
+                      accent === "ally"
+                        ? "border-cyan-200/30 bg-cyan-300/12 text-cyan-100/82"
+                        : "border-rose-200/30 bg-rose-300/12 text-rose-100/82",
+                    )}
+                  >
+                    <StatusIcon name={traitInfo.icon} size="sm" className="h-4 w-4" fallbackClassName="opacity-90" />
+                    <span className="truncate max-w-[5.2rem]">{traitInfo.label}</span>
+                  </span>
+                ) : null}
               </div>
             </div>
             <div className="flex flex-wrap justify-end gap-1">

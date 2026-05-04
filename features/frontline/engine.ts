@@ -9,6 +9,7 @@ import {
   FRONTLINE_UNIT_BY_ID,
 } from "./data";
 import type {
+  FrontlineBattleModifiers,
   FrontlineBattleState,
   FrontlineCardDef,
   FrontlineCardProfileMap,
@@ -535,6 +536,10 @@ function prepareTurn(state: FrontlineBattleState, side: FrontlineSide) {
   next.selectedLeaderPower = false;
   const deck = drawInto(ownDeck(next, side), DRAW_PER_TURN, next.seed + next.round * (side === "ally" ? 23 : 47));
   deck.command = COMMAND_PER_TURN;
+  if (side === "enemy" && next.enemyStartCommandBonus > 0) {
+    deck.command += next.enemyStartCommandBonus;
+    next.enemyStartCommandBonus = 0;
+  }
   deck.usedLeaderPower = false;
   deck.powerCooldown = Math.max(0, deck.powerCooldown - 1);
   setOwnDeck(next, side, deck);
@@ -551,11 +556,14 @@ export function createFrontlineBattleState(input: {
   allyHeroProfiles?: FrontlineHeroProfileMap;
   allyCardProfiles?: FrontlineCardProfileMap;
   allySupportProfiles?: FrontlineSupportProfileMap;
+  modifiers?: FrontlineBattleModifiers;
 }) {
   const allyLeader = leaderDefinition(input.allyLoadout.leaderId);
   const enemyLeader = leaderDefinition(input.enemyPreset.leaderId);
   const allySquad = input.allyLoadout.squad.map((id, index) => id ?? input.enemyPreset.squad[index]) as [string, string, string];
   const enemySquad = input.enemyPreset.squad;
+  const enemyCoreBonus = Math.max(0, input.modifiers?.enemyCoreBonus ?? 0);
+  const enemyStartCommandBonus = Math.max(0, input.modifiers?.enemyStartingCommandBonus ?? 0);
   const state: FrontlineBattleState = {
     seed: input.seed,
     round: 1,
@@ -565,9 +573,9 @@ export function createFrontlineBattleState(input: {
     eventSeq: 0,
     lanes: createEmptyLanes(allySquad, enemySquad, input.allyHeroProfiles),
     allyCoreHp: allyLeader.coreHp,
-    enemyCoreHp: enemyLeader.coreHp,
+    enemyCoreHp: enemyLeader.coreHp + enemyCoreBonus,
     allyCoreMaxHp: allyLeader.coreHp,
-    enemyCoreMaxHp: enemyLeader.coreHp,
+    enemyCoreMaxHp: enemyLeader.coreHp + enemyCoreBonus,
     allyDeck: seededDeckState(input.allyLoadout.deck.filter(Boolean) as string[], input.allyLoadout.leaderId, input.seed + 11),
     enemyDeck: seededDeckState(input.enemyPreset.deck, input.enemyPreset.leaderId, input.seed + 29),
     allyCardProfiles: input.allyCardProfiles,
@@ -578,6 +586,7 @@ export function createFrontlineBattleState(input: {
     selectedLeaderPower: false,
     events: [],
     lastResolution: [],
+    enemyStartCommandBonus,
   };
   return prepareTurn(state, "ally");
 }
