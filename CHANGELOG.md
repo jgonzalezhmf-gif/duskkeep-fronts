@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.21.16] - 2026-05-04
+
+### Changed
+- Promovidas las nuevas musicas generadas para Home, Adventure y Battle a los assets finales usados por el juego.
+- Reutilizada la musica Battle anterior como nuevo tema `battle_boss`.
+- Archivadas copias de seguridad de las musicas anteriores de Home, Adventure, Battle, Boss y Event en `public/assets/audio/music/archive/2026-05-04`.
+
 ## [0.21.15] - 2026-05-03
 
 ### Fixed
