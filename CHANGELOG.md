@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.21.18] - 2026-05-04
+
+### Fixed
+- Anadida salida de vuelta desde el pre-combate hacia Adventure cuando el combate viene del mapa, o hacia Home en combates directos.
+- Anadidas acciones de salida en el resultado de combate para volver al mapa de Adventure y/o al Home sin depender de repetir combate.
+- Corregido el party marker del mapa de Adventure para seguir el ultimo nodo completado o reclamado, en lugar de quedarse en una posicion fija del layout o saltar al siguiente nodo actual.
+- Mantenida la posicion manual del party marker en `?qa=adventure-map`, sin afectar el comportamiento normal del mapa.
+
 ## [0.21.17] - 2026-05-04
 
 ### Fixed

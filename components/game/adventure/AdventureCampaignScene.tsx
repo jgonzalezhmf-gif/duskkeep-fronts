@@ -252,8 +252,8 @@ export function AdventureCampaignMap({
 
   const selectedNode = visualNodes.find((node) => node.id === selectedId) ?? visualNodes[0];
   const partyNode =
+    [...visualNodes].reverse().find((node) => isCompletedPartyNode(node)) ??
     visualNodes.find((node) => node.node.pausedHere || node.status === "current") ??
-    [...visualNodes].reverse().find((node) => node.status === "cleared") ??
     selectedNode;
   const routes = buildRoutes(visualNodes, activeLayout.routes);
 
@@ -936,8 +936,8 @@ function AdventurePartyMarker({
   onSelect: () => void;
   onDragStart: () => void;
 }) {
-  const x = layout?.x ?? visualNode.x;
-  const y = layout?.y ?? visualNode.y;
+  const x = qaEnabled ? layout?.x ?? visualNode.x : visualNode.x;
+  const y = qaEnabled ? layout?.y ?? visualNode.y : visualNode.y;
   const size = Math.round((layout?.size ?? 56) * (qaEnabled ? 1 : 1.34));
   const markerAsset = getAdventureNodeAsset("current");
   return (
@@ -989,6 +989,10 @@ function AdventurePartyMarker({
       </div>
     </div>
   );
+}
+
+function isCompletedPartyNode(node: AdventureVisualNode) {
+  return node.status === "cleared" || node.status === "claimed" || node.status === "completed";
 }
 
 function AdventureMapProp({

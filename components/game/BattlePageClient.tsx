@@ -327,6 +327,12 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                 >
                   {t("frontline.startBattle")}
                 </button>
+                <Link
+                  href={adventureLevel ? "/adventure" : "/"}
+                  className="mt-3 block rounded-[18px] border border-[#f5d498]/16 bg-[#f5c451]/8 px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498] transition hover:bg-[#f5c451]/14"
+                >
+                  {adventureLevel ? t("adventure.returnToMap") : `${t("common.return")} ${t("common.home")}`}
+                </Link>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <RewardPreview label={t("resources.gold")} value={rewardPreview.gold ?? 0} icon="gold" tone="gold" />
                   <RewardPreview label={t("resources.dust")} value={rewardPreview.dust ?? 0} icon="dust" tone="dust" />
@@ -553,6 +559,20 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                         className="rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white/74"
                       >
                         {t("frontline.tuneSquadInDeck")}
+                      </Link>
+                      {adventureLevel ? (
+                        <Link
+                          href="/adventure"
+                          className="rounded-[18px] border border-[#f5d498]/16 bg-[#f5c451]/8 px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498] transition hover:bg-[#f5c451]/14"
+                        >
+                          {t("adventure.returnToMap")}
+                        </Link>
+                      ) : null}
+                      <Link
+                        href="/"
+                        className="rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white/74 transition hover:bg-white/[0.07]"
+                      >
+                        {t("common.home")}
                       </Link>
                     </div>
                   </div>
