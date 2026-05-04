@@ -11,6 +11,8 @@ import {
 import type {
   FrontlineBattleModifiers,
   FrontlineBattleState,
+  FrontlineBossConfig,
+  FrontlineBossState,
   FrontlineCardDef,
   FrontlineCardProfileMap,
   FrontlineDeckState,
@@ -23,6 +25,7 @@ import type {
   FrontlineSupportState,
   FrontlineSupportProfileMap,
 } from "./types";
+import { getFrontlineBoss } from "./bosses";
 import type { FrontlineHeroProfileMap } from "./heroProfile";
 
 const COMMAND_PER_TURN = 3;
@@ -73,6 +76,17 @@ function cloneState(state: FrontlineBattleState): FrontlineBattleState {
     allySupportProfiles: state.allySupportProfiles,
     events: [...state.events],
     lastResolution: [...state.lastResolution],
+    bossState: state.bossState ? { ...state.bossState, scorch: { ...state.bossState.scorch } } : null,
+  };
+}
+
+function initBossState(boss: FrontlineBossConfig | null): FrontlineBossState | null {
+  if (!boss) return null;
+  const inferno = boss.signatures.find((sig) => sig.type === "inferno_wave");
+  return {
+    id: boss.id,
+    infernoCountdown: inferno && inferno.type === "inferno_wave" ? inferno.cadenceRounds : 0,
+    scorch: {},
   };
 }
 
@@ -347,9 +361,35 @@ function chantAura(state: FrontlineBattleState, side: FrontlineSide) {
 
 function attackPower(state: FrontlineBattleState, hero: FrontlineHeroState) {
   const trait = heroDefinition(hero).trait;
-  let value = hero.atk + hero.tempAtk + chantAura(state, hero.side);
+  let value = hero.atk + hero.tempAtk + chantAura(state, hero.side) + emberCrownBonus(state, hero);
   if (trait.type === "flurry" && hero.hp > hero.maxHp / 2) value += trait.atk;
   return value;
+}
+
+function emberCrownBonus(state: FrontlineBattleState, hero: FrontlineHeroState) {
+  if (hero.side !== "enemy" || !state.bossState) return 0;
+  const boss = getFrontlineBoss(state.bossState.id);
+  if (!boss) return 0;
+  const ember = boss.signatures.find((sig) => sig.type === "ember_crown");
+  if (!ember || ember.type !== "ember_crown") return 0;
+  const isSegmentLane = boss.segments.some((seg) => seg.lane === hero.lane);
+  if (!isSegmentLane) return 0;
+  const aliveCount = boss.segments.filter((seg) => {
+    const segHero = getHeroInLane(state, "enemy", seg.lane);
+    return Boolean(segHero?.alive);
+  }).length;
+  return aliveCount >= ember.minSegmentsAlive ? ember.atkBonus : 0;
+}
+
+function applyCinderMarkOnHit(state: FrontlineBattleState, attackerSide: FrontlineSide, lane: FrontlineLane) {
+  if (attackerSide !== "enemy" || !state.bossState) return;
+  const boss = getFrontlineBoss(state.bossState.id);
+  if (!boss) return;
+  const cinder = boss.signatures.find((sig) => sig.type === "cinder_mark");
+  if (!cinder) return;
+  const isSegmentLane = boss.segments.some((seg) => seg.lane === lane);
+  if (!isSegmentLane) return;
+  state.bossState.scorch[lane] = (state.bossState.scorch[lane] ?? 0) + 1;
 }
 
 function breachBonus(hero: FrontlineHeroState | null) {
@@ -416,6 +456,7 @@ function resolveActorStrike(state: FrontlineBattleState, actor: Actor) {
       if (trait.type === "ambush" && enemyHero.hp < enemyHero.maxHp) dealt += trait.bonusVsWounded;
       dealt = dealHeroDamage(enemyHero, dealt);
       pushEvent(state, { kind: "damage", side: actor.side, lane: actor.lane, label: `${hero.name} hits ${enemyHero.name}`, amount: dealt, emphasis: "mid" });
+      if (dealt > 0) applyCinderMarkOnHit(state, actor.side, actor.lane);
       if (dealt > 0 && trait.type === "lifesteal") {
         const healed = healHero(hero, trait.heal);
         if (healed > 0) {
@@ -546,7 +587,91 @@ function prepareTurn(state: FrontlineBattleState, side: FrontlineSide) {
   if (side === "ally") next.allyLeaderUsed = false;
   else next.enemyLeaderUsed = false;
   pushEvent(next, { kind: "round", side, label: `${side === "ally" ? "Player" : "Enemy"} turn ${next.round}`, emphasis: "low" });
+  if (side === "ally") consumeCinderMark(next);
+  if (side === "enemy") tickBossSignatures(next);
   return next;
+}
+
+function tickBossSignatures(state: FrontlineBattleState) {
+  if (!state.bossState) return;
+  const boss = getFrontlineBoss(state.bossState.id);
+  if (!boss) return;
+  const inferno = boss.signatures.find((sig) => sig.type === "inferno_wave");
+  if (inferno && inferno.type === "inferno_wave") {
+    state.bossState.infernoCountdown = Math.max(0, state.bossState.infernoCountdown - 1);
+    if (state.bossState.infernoCountdown === 0) {
+      castInfernoWave(state, inferno.damagePerHero);
+      state.bossState.infernoCountdown = inferno.cadenceRounds;
+    } else {
+      pushEvent(state, {
+        kind: "boss_signature",
+        side: "enemy",
+        label: `Inferno Wave in ${state.bossState.infernoCountdown}`,
+        amount: state.bossState.infernoCountdown,
+        emphasis: "mid",
+        signature: "charge",
+        signatureId: "inferno_wave",
+      });
+    }
+  }
+}
+
+function castInfernoWave(state: FrontlineBattleState, damagePerHero: number) {
+  pushEvent(state, {
+    kind: "boss_signature",
+    side: "enemy",
+    label: "Inferno Wave",
+    emphasis: "high",
+    signature: "cast",
+    signatureId: "inferno_wave",
+  });
+  for (const lane of FRONTLINE_LANES) {
+    const hero = getHeroInLane(state, "ally", lane);
+    if (!hero?.alive) continue;
+    const dealt = dealHeroDamage(hero, damagePerHero);
+    pushEvent(state, {
+      kind: "damage",
+      side: "enemy",
+      lane,
+      label: `Inferno burns ${hero.name}`,
+      amount: dealt,
+      emphasis: "high",
+    });
+    if (!hero.alive) {
+      setHeroInLane(state, "ally", lane, null);
+      pushEvent(state, { kind: "ko", side: "enemy", lane, label: `${hero.name} falls`, emphasis: "high" });
+    }
+  }
+}
+
+function consumeCinderMark(state: FrontlineBattleState) {
+  if (!state.bossState) return;
+  const boss = getFrontlineBoss(state.bossState.id);
+  if (!boss) return;
+  const cinder = boss.signatures.find((sig) => sig.type === "cinder_mark");
+  if (!cinder || cinder.type !== "cinder_mark") return;
+  for (const lane of FRONTLINE_LANES) {
+    const stacks = state.bossState.scorch[lane] ?? 0;
+    if (stacks <= 0) continue;
+    const hero = getHeroInLane(state, "ally", lane);
+    if (hero?.alive) {
+      const damage = stacks * cinder.damagePerStack;
+      const dealt = dealHeroDamage(hero, damage);
+      pushEvent(state, {
+        kind: "damage",
+        side: "enemy",
+        lane,
+        label: `Cinder scorches ${hero.name}`,
+        amount: dealt,
+        emphasis: "mid",
+      });
+      if (!hero.alive) {
+        setHeroInLane(state, "ally", lane, null);
+        pushEvent(state, { kind: "ko", side: "enemy", lane, label: `${hero.name} falls`, emphasis: "high" });
+      }
+    }
+    state.bossState.scorch[lane] = 0;
+  }
 }
 
 export function createFrontlineBattleState(input: {
@@ -564,6 +689,7 @@ export function createFrontlineBattleState(input: {
   const enemySquad = input.enemyPreset.squad;
   const enemyCoreBonus = Math.max(0, input.modifiers?.enemyCoreBonus ?? 0);
   const enemyStartCommandBonus = Math.max(0, input.modifiers?.enemyStartingCommandBonus ?? 0);
+  const bossConfig = getFrontlineBoss(input.enemyPreset.bossId);
   const state: FrontlineBattleState = {
     seed: input.seed,
     round: 1,
@@ -587,6 +713,7 @@ export function createFrontlineBattleState(input: {
     events: [],
     lastResolution: [],
     enemyStartCommandBonus,
+    bossState: initBossState(bossConfig),
   };
   return prepareTurn(state, "ally");
 }

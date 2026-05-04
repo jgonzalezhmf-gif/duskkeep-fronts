@@ -345,6 +345,14 @@ export const dictionaries = {
       encounterElite: "Elite",
       encounterBoss: "Boss",
       encounterDanger: "Danger",
+      bossSegmentTitle: "Segment",
+      bossSegmentWeakpoint: "Weakpoint",
+      infernoCharge: "Inferno Wave in {amount}",
+      infernoReady: "Inferno Wave NOW",
+      infernoCast: "Inferno Wave hits all allies for {amount}",
+      modifierEnemyCore: "Enemy core +{amount}",
+      modifierEnemyCommand: "Enemy starts +{amount} command",
+      cinderMark: "Scorch {amount}",
     },
     frontlineData: {
       leaders: {
@@ -423,6 +431,12 @@ export const dictionaries = {
         chant: { label: "Chant", description: "Boosts attack of allies on every front." },
         lifesteal: { label: "Lifesteal", description: "Heals when striking an enemy hero." },
         venom: { label: "Venom", description: "Deals follow-up damage after a hit." },
+      },
+    },
+    frontlineBosses: {
+      crown_of_ashes: {
+        name: "Crown of Ashes",
+        segments: { head: "Crown", core: "Core", blade: "Blade" },
       },
     },
     shop: {
@@ -1483,6 +1497,14 @@ export const dictionaries = {
       encounterElite: "Elite",
       encounterBoss: "Jefe",
       encounterDanger: "Peligro",
+      bossSegmentTitle: "Segmento",
+      bossSegmentWeakpoint: "Punto debil",
+      infernoCharge: "Oleada infernal en {amount}",
+      infernoReady: "Oleada infernal AHORA",
+      infernoCast: "Oleada infernal golpea a todos los aliados con {amount}",
+      modifierEnemyCore: "Nucleo enemigo +{amount}",
+      modifierEnemyCommand: "El enemigo empieza con +{amount} command",
+      cinderMark: "Brasa {amount}",
     },
     frontlineData: {
       leaders: {
@@ -1561,6 +1583,12 @@ export const dictionaries = {
         chant: { label: "Canto", description: "Aumenta el ataque de aliados en todos los frentes." },
         lifesteal: { label: "Robavida", description: "Se cura al golpear un heroe enemigo." },
         venom: { label: "Veneno", description: "Aplica dano residual tras un golpe." },
+      },
+    },
+    frontlineBosses: {
+      crown_of_ashes: {
+        name: "Corona de Cenizas",
+        segments: { head: "Corona", core: "Nucleo", blade: "Hoja" },
       },
     },
     shop: {

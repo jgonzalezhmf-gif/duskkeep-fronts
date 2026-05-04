@@ -94,6 +94,7 @@ export type FrontlinePreset = {
     gems: number;
     accountXp: number;
   };
+  bossId?: string;
 };
 
 export type FrontlineHeroState = {
@@ -155,7 +156,8 @@ export type FrontlineEventKind =
   | "breach"
   | "ko"
   | "stun"
-  | "round";
+  | "round"
+  | "boss_signature";
 
 export type FrontlineEvent = {
   id: string;
@@ -165,11 +167,41 @@ export type FrontlineEvent = {
   label: string;
   amount?: number;
   emphasis?: "high" | "mid" | "low";
+  signature?: "charge" | "cast";
+  signatureId?: string;
 };
 
 export type FrontlineBattleModifiers = {
   enemyCoreBonus?: number;
   enemyStartingCommandBonus?: number;
+};
+
+export type FrontlineBossSegmentId = "head" | "core" | "blade";
+
+export type FrontlineBossSegmentConfig = {
+  lane: FrontlineLane;
+  segmentId: FrontlineBossSegmentId;
+  titleKey: string;
+  weakpoint?: boolean;
+};
+
+export type FrontlineBossSignature =
+  | { type: "inferno_wave"; cadenceRounds: number; damagePerHero: number }
+  | { type: "ember_crown"; minSegmentsAlive: number; atkBonus: number }
+  | { type: "cinder_mark"; damagePerStack: number };
+
+export type FrontlineBossConfig = {
+  id: string;
+  nameKey: string;
+  assetKey: string;
+  segments: FrontlineBossSegmentConfig[];
+  signatures: FrontlineBossSignature[];
+};
+
+export type FrontlineBossState = {
+  id: string;
+  infernoCountdown: number;
+  scorch: Partial<Record<FrontlineLane, number>>;
 };
 
 export type FrontlineBattleState = {
@@ -195,4 +227,5 @@ export type FrontlineBattleState = {
   events: FrontlineEvent[];
   lastResolution: string[];
   enemyStartCommandBonus: number;
+  bossState: FrontlineBossState | null;
 };
