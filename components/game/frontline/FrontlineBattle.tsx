@@ -400,10 +400,12 @@ function resolutionSequenceDuration(events: FrontlineEvent[]) {
 function collectDeathGhosts(previous: FrontlineBattleState, events: FrontlineEvent[]) {
   return events.flatMap((event) => {
     if (event.kind !== "ko" || !event.lane) return [];
+    if (event.subKind && event.subKind !== "hero") return [];
     const targetSide = eventPrimaryTargetSide(event);
     if (!targetSide) return [];
     const actor = targetSide === "ally" ? previous.lanes[event.lane].allyHero : previous.lanes[event.lane].enemyHero;
-    return actor ? [{ eventId: event.id, lane: event.lane, targetSide, actor }] : [];
+    if (!actor || !actor.alive) return [];
+    return [{ eventId: event.id, lane: event.lane, targetSide, actor }];
   });
 }
 
@@ -1366,6 +1368,7 @@ export default function FrontlineBattle({
             boss={bossConfig}
             bossState={state.bossState}
             modifiers={modifiers ?? null}
+            cardCostMod={state.playerCardCostMod}
           />
         ) : null}
 
@@ -2467,16 +2470,41 @@ function BossBanner({
   boss,
   bossState,
   modifiers,
+  cardCostMod,
 }: {
   boss: FrontlineBossConfig;
   bossState: NonNullable<FrontlineBattleState["bossState"]>;
   modifiers: { enemyCoreBonus?: number; enemyStartingCommandBonus?: number } | null;
+  cardCostMod: number;
 }) {
   const { t } = useI18n();
   const inferno = boss.signatures.find((sig) => sig.type === "inferno_wave");
-  const countdown = bossState.infernoCountdown;
-  const ready = inferno && inferno.type === "inferno_wave" && countdown <= 1;
+  const veil = boss.signatures.find((sig) => sig.type === "twilight_veil");
   const bossName = t(boss.nameKey);
+
+  const infernoBadge =
+    inferno && inferno.type === "inferno_wave"
+      ? (() => {
+          const countdown = bossState.infernoCountdown;
+          const ready = countdown <= 1;
+          return {
+            ready,
+            label: ready ? t("frontline.infernoReady") : t("frontline.infernoCharge", { amount: countdown }),
+          };
+        })()
+      : null;
+  const twilightBadge =
+    veil && veil.type === "twilight_veil"
+      ? (() => {
+          const countdown = bossState.twilightCountdown;
+          const ready = countdown <= 1;
+          return {
+            ready,
+            label: ready ? t("frontline.twilightReady") : t("frontline.twilightCharge", { amount: countdown }),
+          };
+        })()
+      : null;
+
   return (
     <div className="relative overflow-hidden rounded-[20px] border border-[#f5c451]/56 bg-[linear-gradient(180deg,rgba(245,140,80,0.22),rgba(40,12,8,0.86))] px-4 py-3 text-[#fff0bd] shadow-[0_18px_48px_rgba(245,196,81,0.22)] backdrop-blur-md">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,255,255,0.16),transparent_36%)]" />
@@ -2488,18 +2516,37 @@ function BossBanner({
             <div className="text-base font-black uppercase tracking-[0.16em]">{bossName}</div>
           </div>
         </div>
-        {inferno && inferno.type === "inferno_wave" ? (
-          <div
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em]",
-              ready
-                ? "frontline-power-ready-ring-fx border-rose-200/72 bg-rose-400/24 text-rose-50"
-                : "border-[#f5c451]/56 bg-[#1a0a08]/72 text-[#fff0bd]",
-            )}
-          >
-            {ready ? t("frontline.infernoReady") : t("frontline.infernoCharge", { amount: countdown })}
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {infernoBadge ? (
+            <div
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em]",
+                infernoBadge.ready
+                  ? "frontline-power-ready-ring-fx border-rose-200/72 bg-rose-400/24 text-rose-50"
+                  : "border-[#f5c451]/56 bg-[#1a0a08]/72 text-[#fff0bd]",
+              )}
+            >
+              {infernoBadge.label}
+            </div>
+          ) : null}
+          {twilightBadge ? (
+            <div
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em]",
+                twilightBadge.ready
+                  ? "frontline-power-ready-ring-fx border-violet-200/72 bg-violet-400/24 text-violet-50"
+                  : "border-violet-300/56 bg-[#160a1f]/72 text-violet-100",
+              )}
+            >
+              {twilightBadge.label}
+            </div>
+          ) : null}
+          {cardCostMod > 0 ? (
+            <div className="rounded-full border border-violet-300/72 bg-violet-500/24 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-violet-50">
+              {t("frontline.twilightActive", { amount: cardCostMod })}
+            </div>
+          ) : null}
+        </div>
       </div>
       {modifiers && (modifiers.enemyCoreBonus || modifiers.enemyStartingCommandBonus) ? (
         <div className="relative mt-2 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#fff0bd]/82">

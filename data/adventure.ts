@@ -149,7 +149,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l12", chapter: 1, index: 12, name: "Boss: The Eclipse",
     recommendedPower: 250,
-    frontlinePresetId: "eclipse_court",
+    frontlinePresetId: "the_eclipse",
     enemyTeam: [
       { heroId: "noct", level: 10, stars: 2 },
       { heroId: "morr", level: 10, stars: 2 },

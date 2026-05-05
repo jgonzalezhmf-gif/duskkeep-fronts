@@ -44,6 +44,7 @@ const FRONTLINE_EFFECT_ASSETS: FrontlineAssetManifest = {
 
 const FRONTLINE_BOSS_ASSETS: FrontlineAssetManifest = {
   crown_of_ashes: `${FRONTLINE_ASSET_ROOT}/bosses/crown_of_ashes.png`,
+  // the_eclipse: optional PNG. When unavailable the UI falls back to per-segment standees.
 };
 
 const FRONTLINE_UNIT_PLACEHOLDER_ASSET = `${FRONTLINE_ASSET_ROOT}/unit_placeholder.png`;

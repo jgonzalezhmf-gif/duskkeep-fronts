@@ -350,6 +350,9 @@ export const dictionaries = {
       infernoCharge: "Inferno Wave in {amount}",
       infernoReady: "Inferno Wave NOW",
       infernoCast: "Inferno Wave hits all allies for {amount}",
+      twilightCharge: "Twilight Veil in {amount}",
+      twilightReady: "Twilight Veil NOW",
+      twilightActive: "Cards cost +{amount}",
       modifierEnemyCore: "Enemy core +{amount}",
       modifierEnemyCommand: "Enemy starts +{amount} command",
       cinderMark: "Scorch {amount}",
@@ -437,6 +440,10 @@ export const dictionaries = {
       crown_of_ashes: {
         name: "Crown of Ashes",
         segments: { head: "Crown", core: "Core", blade: "Blade" },
+      },
+      the_eclipse: {
+        name: "The Eclipse",
+        segments: { head: "Veil", core: "Heart", blade: "Talons" },
       },
     },
     shop: {
@@ -1502,6 +1509,9 @@ export const dictionaries = {
       infernoCharge: "Oleada infernal en {amount}",
       infernoReady: "Oleada infernal AHORA",
       infernoCast: "Oleada infernal golpea a todos los aliados con {amount}",
+      twilightCharge: "Velo de Crepusculo en {amount}",
+      twilightReady: "Velo de Crepusculo AHORA",
+      twilightActive: "Cartas cuestan +{amount}",
       modifierEnemyCore: "Nucleo enemigo +{amount}",
       modifierEnemyCommand: "El enemigo empieza con +{amount} command",
       cinderMark: "Brasa {amount}",
@@ -1589,6 +1599,10 @@ export const dictionaries = {
       crown_of_ashes: {
         name: "Corona de Cenizas",
         segments: { head: "Corona", core: "Nucleo", blade: "Hoja" },
+      },
+      the_eclipse: {
+        name: "El Eclipse",
+        segments: { head: "Velo", core: "Corazon", blade: "Garras" },
       },
     },
     shop: {

@@ -111,4 +111,89 @@ describe("frontline boss — Crown of Ashes", () => {
     expect(next.events.some((e) => e.kind === "boss_signature")).toBe(false);
     expect(next.bossState).toBeNull();
   });
+
+  it("stops resolving the clash as soon as a core is broken", () => {
+    const state = makeBossState();
+    state.enemyCoreHp = 1;
+    state.lanes.left.enemyHero = null;
+    state.lanes.center.enemyHero = null;
+    state.lanes.right.enemyHero = null;
+    const next = resolveTurn(state);
+    expect(next.winner).toBe("ally");
+    expect(next.enemyCoreHp).toBe(0);
+  });
+
+  it("flags KO subKind so support breaks do not paint hero death ghosts", () => {
+    const state = makeBossState();
+    state.lanes.left.enemySupport = {
+      id: "test_support",
+      side: "enemy",
+      lane: "left",
+      name: "Test Support",
+      hp: 1,
+      maxHp: 6,
+      atk: 0,
+      duration: 2,
+      intercepts: false,
+    };
+    const next = resolveTurn(state);
+    const koEvents = next.events.filter((e) => e.kind === "ko");
+    for (const event of koEvents) {
+      expect(event.subKind).toBeDefined();
+    }
+    const supportKo = koEvents.find((e) => e.label.includes("Test Support"));
+    expect(supportKo?.subKind).toBe("support");
+  });
+});
+
+describe("frontline boss — The Eclipse", () => {
+  const ECLIPSE = FRONTLINE_PRESET_BY_ID["the_eclipse"];
+
+  function makeEclipseState() {
+    return createFrontlineBattleState({
+      seed: 31,
+      allyLoadout: createDefaultFrontlineLoadout(),
+      enemyPreset: ECLIPSE,
+    });
+  }
+
+  it("initialises Twilight Veil countdown from cadenceRounds", () => {
+    const state = makeEclipseState();
+    expect(state.bossState?.id).toBe("the_eclipse");
+    expect(state.bossState?.twilightCountdown).toBe(4);
+    expect(state.playerCardCostMod).toBe(0);
+  });
+
+  it("casts Twilight Veil when its countdown reaches zero and bumps player card cost", () => {
+    const state = makeEclipseState();
+    state.bossState!.twilightCountdown = 1;
+    const next = resolveTurn(state);
+    expect(next.playerCardCostMod).toBeGreaterThan(0);
+    expect(next.playerCardCostModTurnsLeft).toBeGreaterThan(0);
+    const cast = next.events.find((e) => e.signatureId === "twilight_veil" && e.signature === "cast");
+    expect(cast).toBeTruthy();
+  });
+
+  it("clears the Twilight Veil card cost penalty after the player turn", () => {
+    let state = makeEclipseState();
+    state.bossState!.twilightCountdown = 1;
+    state = resolveTurn(state); // cast happens at end of ally turn → enemy turn
+    expect(state.playerCardCostMod).toBeGreaterThan(0);
+    state = resolveTurn(state); // enemy turn ends → ally turn (penalty active)
+    state = resolveTurn(state); // ally turn ends → decrement, penalty consumed
+    expect(state.playerCardCostMod).toBe(0);
+    expect(state.playerCardCostModTurnsLeft).toBe(0);
+  });
+
+  it("reduces incoming damage on segments while all three are alive (Veil Armor)", () => {
+    const state = makeEclipseState();
+    const segment = state.lanes.left.enemyHero!;
+    const before = segment.hp;
+    segment.shield = 0;
+    state.lanes.left.allyHero!.atk = 4;
+    state.allyDeck.command = 0;
+    const next = resolveTurn(state);
+    const after = next.lanes.left.enemyHero?.hp ?? 0;
+    expect(before - after).toBeLessThan(4);
+  });
 });

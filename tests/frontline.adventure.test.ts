@@ -18,8 +18,11 @@ describe("frontline adventure presets", () => {
     const bossLevels = ADVENTURE.filter((level) => /boss/i.test(level.name));
 
     expect(bossLevels.map((level) => getFrontlinePresetForAdventure(level).id)).toEqual([
-      "eclipse_court",
+      "the_eclipse",
       "crown_of_ashes",
     ]);
+    for (const bossLevel of bossLevels) {
+      expect(getFrontlinePresetForAdventure(bossLevel).bossId, bossLevel.id).toBeTruthy();
+    }
   });
 });

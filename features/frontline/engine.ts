@@ -80,12 +80,18 @@ function cloneState(state: FrontlineBattleState): FrontlineBattleState {
   };
 }
 
+function battleResolved(state: FrontlineBattleState) {
+  return state.allyCoreHp <= 0 || state.enemyCoreHp <= 0 || Boolean(state.winner);
+}
+
 function initBossState(boss: FrontlineBossConfig | null): FrontlineBossState | null {
   if (!boss) return null;
   const inferno = boss.signatures.find((sig) => sig.type === "inferno_wave");
+  const veil = boss.signatures.find((sig) => sig.type === "twilight_veil");
   return {
     id: boss.id,
     infernoCountdown: inferno && inferno.type === "inferno_wave" ? inferno.cadenceRounds : 0,
+    twilightCountdown: veil && veil.type === "twilight_veil" ? veil.cadenceRounds : 0,
     scorch: {},
   };
 }
@@ -312,19 +318,19 @@ function applyDirectDamage(
     pushResolution(state, `${source} cracked ${support.name} on ${lane}.`);
     if (support.hp <= 0) {
       setSupportInLane(state, targetSide, lane, null);
-      pushEvent(state, { kind: "ko", side, lane, label: `${support.name} breaks`, emphasis: "high" });
+      pushEvent(state, { kind: "ko", side, lane, label: `${support.name} breaks`, emphasis: "high", subKind: "support" });
     }
     return;
   }
 
   const hero = getHeroInLane(state, targetSide, lane);
   if (hero) {
-    const dealt = dealHeroDamage(hero, amount);
+    const dealt = applyHeroDamageWithVeilArmor(state, hero, amount);
     pushEvent(state, { kind: "damage", side, lane, label: `${source} hits ${hero.name}`, amount: dealt, emphasis: "mid" });
     pushResolution(state, `${source} struck ${hero.name} on ${lane} for ${dealt}.`);
     if (!hero.alive) {
       setHeroInLane(state, targetSide, lane, null);
-      pushEvent(state, { kind: "ko", side, lane, label: `${hero.name} falls`, emphasis: "high" });
+      pushEvent(state, { kind: "ko", side, lane, label: `${hero.name} falls`, emphasis: "high", subKind: "hero" });
     }
     return;
   }
@@ -445,7 +451,7 @@ function resolveActorStrike(state: FrontlineBattleState, actor: Actor) {
       pushEvent(state, { kind: "damage", side: actor.side, lane: actor.lane, label: `${hero.name} hits ${support.name}`, amount: damage, emphasis: "mid" });
       if (support.hp <= 0) {
         setSupportInLane(state, targetSide, actor.lane, null);
-        pushEvent(state, { kind: "ko", side: actor.side, lane: actor.lane, label: `${support.name} breaks`, emphasis: "mid" });
+        pushEvent(state, { kind: "ko", side: actor.side, lane: actor.lane, label: `${support.name} breaks`, emphasis: "mid", subKind: "support" });
       }
       return;
     }
@@ -454,7 +460,7 @@ function resolveActorStrike(state: FrontlineBattleState, actor: Actor) {
       let dealt = Math.max(1, damage - Math.floor(enemyHero.def / 2));
       const trait = heroDefinition(hero).trait;
       if (trait.type === "ambush" && enemyHero.hp < enemyHero.maxHp) dealt += trait.bonusVsWounded;
-      dealt = dealHeroDamage(enemyHero, dealt);
+      dealt = applyHeroDamageWithVeilArmor(state, enemyHero, dealt);
       pushEvent(state, { kind: "damage", side: actor.side, lane: actor.lane, label: `${hero.name} hits ${enemyHero.name}`, amount: dealt, emphasis: "mid" });
       if (dealt > 0) applyCinderMarkOnHit(state, actor.side, actor.lane);
       if (dealt > 0 && trait.type === "lifesteal") {
@@ -464,12 +470,13 @@ function resolveActorStrike(state: FrontlineBattleState, actor: Actor) {
         }
       }
       if (dealt > 0 && trait.type === "venom" && enemyHero.alive) {
-        const venomDealt = dealHeroDamage(enemyHero, trait.damage);
+        const venomDealt = applyHeroDamageWithVeilArmor(state, enemyHero, trait.damage);
         pushEvent(state, { kind: "damage", side: actor.side, lane: actor.lane, label: `${hero.name} venom burns`, amount: venomDealt, emphasis: "mid" });
       }
+      if (dealt > 0 && actor.side === "enemy") applySoulDrain(state, hero, actor.lane);
       if (!enemyHero.alive) {
         setHeroInLane(state, targetSide, actor.lane, null);
-        pushEvent(state, { kind: "ko", side: actor.side, lane: actor.lane, label: `${enemyHero.name} falls`, emphasis: "high" });
+        pushEvent(state, { kind: "ko", side: actor.side, lane: actor.lane, label: `${enemyHero.name} falls`, emphasis: "high", subKind: "hero" });
       }
     }
     return;
@@ -614,6 +621,24 @@ function tickBossSignatures(state: FrontlineBattleState) {
       });
     }
   }
+  const veil = boss.signatures.find((sig) => sig.type === "twilight_veil");
+  if (veil && veil.type === "twilight_veil") {
+    state.bossState.twilightCountdown = Math.max(0, state.bossState.twilightCountdown - 1);
+    if (state.bossState.twilightCountdown === 0) {
+      castTwilightVeil(state, veil.cardCostBonus, veil.durationTurns);
+      state.bossState.twilightCountdown = veil.cadenceRounds;
+    } else {
+      pushEvent(state, {
+        kind: "boss_signature",
+        side: "enemy",
+        label: `Twilight Veil in ${state.bossState.twilightCountdown}`,
+        amount: state.bossState.twilightCountdown,
+        emphasis: "mid",
+        signature: "charge",
+        signatureId: "twilight_veil",
+      });
+    }
+  }
 }
 
 function castInfernoWave(state: FrontlineBattleState, damagePerHero: number) {
@@ -639,9 +664,23 @@ function castInfernoWave(state: FrontlineBattleState, damagePerHero: number) {
     });
     if (!hero.alive) {
       setHeroInLane(state, "ally", lane, null);
-      pushEvent(state, { kind: "ko", side: "enemy", lane, label: `${hero.name} falls`, emphasis: "high" });
+      pushEvent(state, { kind: "ko", side: "enemy", lane, label: `${hero.name} falls`, emphasis: "high", subKind: "hero" });
     }
   }
+}
+
+function castTwilightVeil(state: FrontlineBattleState, cardCostBonus: number, durationTurns: number) {
+  state.playerCardCostMod = cardCostBonus;
+  state.playerCardCostModTurnsLeft = durationTurns;
+  pushEvent(state, {
+    kind: "boss_signature",
+    side: "enemy",
+    label: "Twilight Veil",
+    amount: cardCostBonus,
+    emphasis: "high",
+    signature: "cast",
+    signatureId: "twilight_veil",
+  });
 }
 
 function consumeCinderMark(state: FrontlineBattleState) {
@@ -667,10 +706,51 @@ function consumeCinderMark(state: FrontlineBattleState) {
       });
       if (!hero.alive) {
         setHeroInLane(state, "ally", lane, null);
-        pushEvent(state, { kind: "ko", side: "enemy", lane, label: `${hero.name} falls`, emphasis: "high" });
+        pushEvent(state, { kind: "ko", side: "enemy", lane, label: `${hero.name} falls`, emphasis: "high", subKind: "hero" });
       }
     }
     state.bossState.scorch[lane] = 0;
+  }
+}
+
+function applyHeroDamageWithVeilArmor(state: FrontlineBattleState, hero: FrontlineHeroState, amount: number) {
+  return dealHeroDamage(hero, applyVeilArmor(state, hero, amount));
+}
+
+function applyVeilArmor(state: FrontlineBattleState, hero: FrontlineHeroState, amount: number) {
+  if (hero.side !== "enemy" || !state.bossState) return amount;
+  const boss = getFrontlineBoss(state.bossState.id);
+  if (!boss) return amount;
+  const armor = boss.signatures.find((sig) => sig.type === "veil_armor");
+  if (!armor || armor.type !== "veil_armor") return amount;
+  const isSegmentLane = boss.segments.some((seg) => seg.lane === hero.lane);
+  if (!isSegmentLane) return amount;
+  const aliveCount = boss.segments.filter((seg) => {
+    const segHero = getHeroInLane(state, "enemy", seg.lane);
+    return Boolean(segHero?.alive);
+  }).length;
+  if (aliveCount < armor.minSegmentsAlive) return amount;
+  return Math.max(1, amount - armor.damageReduction);
+}
+
+function applySoulDrain(state: FrontlineBattleState, attacker: FrontlineHeroState, lane: FrontlineLane) {
+  if (!state.bossState) return;
+  const boss = getFrontlineBoss(state.bossState.id);
+  if (!boss) return;
+  const drain = boss.signatures.find((sig) => sig.type === "soul_drain");
+  if (!drain || drain.type !== "soul_drain") return;
+  const isSegmentLane = boss.segments.some((seg) => seg.lane === lane);
+  if (!isSegmentLane) return;
+  const healed = healHero(attacker, drain.healPerHit);
+  if (healed > 0) {
+    pushEvent(state, {
+      kind: "heal",
+      side: "enemy",
+      lane,
+      label: `${attacker.name} drains soul`,
+      amount: healed,
+      emphasis: "low",
+    });
   }
 }
 
@@ -714,6 +794,8 @@ export function createFrontlineBattleState(input: {
     lastResolution: [],
     enemyStartCommandBonus,
     bossState: initBossState(bossConfig),
+    playerCardCostMod: 0,
+    playerCardCostModTurnsLeft: 0,
   };
   return prepareTurn(state, "ally");
 }
@@ -732,9 +814,18 @@ function getStateSupport(state: FrontlineBattleState, side: FrontlineSide, suppo
   return side === "ally" ? state.allySupportProfiles?.[supportId] ?? FRONTLINE_SUPPORT_BY_ID[supportId] : FRONTLINE_SUPPORT_BY_ID[supportId];
 }
 
+function effectiveCardCost(state: FrontlineBattleState, side: FrontlineSide, baseCost: number) {
+  if (side === "ally" && state.playerCardCostMod > 0) return baseCost + state.playerCardCostMod;
+  return baseCost;
+}
+
+export function getEffectiveCardCost(state: FrontlineBattleState, side: FrontlineSide, cardId: string) {
+  return effectiveCardCost(state, side, getStateCard(state, side, cardId).cost);
+}
+
 export function validCardTargets(state: FrontlineBattleState, side: FrontlineSide, cardId: string): FrontlineLane[] {
   const card = getStateCard(state, side, cardId);
-  if (ownDeck(state, side).command < card.cost) return [];
+  if (ownDeck(state, side).command < effectiveCardCost(state, side, card.cost)) return [];
   if (!ownDeck(state, side).hand.includes(card.id)) return [];
   if (card.target === "none") return [];
   if (card.target === "ally_front") {
@@ -766,7 +857,7 @@ export function validLeaderPowerTargets(state: FrontlineBattleState, side: Front
 export function playableCards(state: FrontlineBattleState, side: FrontlineSide) {
   return ownDeck(state, side).hand
     .map((cardId) => getStateCard(state, side, cardId))
-    .filter((card) => card.cost <= ownDeck(state, side).command);
+    .filter((card) => effectiveCardCost(state, side, card.cost) <= ownDeck(state, side).command);
 }
 
 function removeHandCard(deck: FrontlineDeckState, cardId: string) {
@@ -790,7 +881,8 @@ export function playCard(
   const next = cloneState(state);
   const deck = ownDeck(next, side);
   const card = getStateCard(next, side, cardId);
-  if (deck.command < card.cost) return state;
+  const cost = effectiveCardCost(next, side, card.cost);
+  if (deck.command < cost) return state;
   if (!deck.hand.includes(card.id)) return state;
   if (card.target !== "none" && !lane) return state;
   if (card.target !== "none" && lane && !validCardTargets(next, side, card.id).includes(lane)) return state;
@@ -863,7 +955,7 @@ export function playCard(
     }
   }
 
-  const nextDeck = removeHandCard({ ...deck, command: deck.command - card.cost }, card.id);
+  const nextDeck = removeHandCard({ ...deck, command: deck.command - cost }, card.id);
   setOwnDeck(next, side, nextDeck);
   return next;
 }
@@ -906,18 +998,31 @@ export function activateLeaderPower(state: FrontlineBattleState, side: Frontline
 export function resolveTurn(state: FrontlineBattleState) {
   const next = cloneState(state);
   for (const lane of ["center", "left", "right"] as const) {
+    if (battleResolved(next)) break;
     applySupportEffectsForLane(next, "ally", lane);
+    if (battleResolved(next)) break;
     applySupportEffectsForLane(next, "enemy", lane);
+    if (battleResolved(next)) break;
     const actors = actorList(next, lane);
-    for (const actor of actors) resolveActorStrike(next, actor);
+    for (const actor of actors) {
+      if (battleResolved(next)) break;
+      resolveActorStrike(next, actor);
+    }
     cleanupExpiredSupport(next, "ally", lane);
     cleanupExpiredSupport(next, "enemy", lane);
   }
 
-  applyHeroAftermath(next, "ally");
-  applyHeroAftermath(next, "enemy");
-  applyBreach(next);
+  if (!battleResolved(next)) {
+    applyHeroAftermath(next, "ally");
+    applyHeroAftermath(next, "enemy");
+    applyBreach(next);
+  }
   clearClashTemps(next);
+
+  if (next.turn === "ally" && next.playerCardCostModTurnsLeft > 0) {
+    next.playerCardCostModTurnsLeft -= 1;
+    if (next.playerCardCostModTurnsLeft === 0) next.playerCardCostMod = 0;
+  }
 
   const winner = determineWinner(next);
   if (winner) {

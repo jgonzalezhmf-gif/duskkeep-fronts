@@ -169,6 +169,7 @@ export type FrontlineEvent = {
   emphasis?: "high" | "mid" | "low";
   signature?: "charge" | "cast";
   signatureId?: string;
+  subKind?: "hero" | "support";
 };
 
 export type FrontlineBattleModifiers = {
@@ -188,7 +189,10 @@ export type FrontlineBossSegmentConfig = {
 export type FrontlineBossSignature =
   | { type: "inferno_wave"; cadenceRounds: number; damagePerHero: number }
   | { type: "ember_crown"; minSegmentsAlive: number; atkBonus: number }
-  | { type: "cinder_mark"; damagePerStack: number };
+  | { type: "cinder_mark"; damagePerStack: number }
+  | { type: "twilight_veil"; cadenceRounds: number; cardCostBonus: number; durationTurns: number }
+  | { type: "soul_drain"; healPerHit: number }
+  | { type: "veil_armor"; minSegmentsAlive: number; damageReduction: number };
 
 export type FrontlineBossConfig = {
   id: string;
@@ -202,6 +206,7 @@ export type FrontlineBossState = {
   id: string;
   infernoCountdown: number;
   scorch: Partial<Record<FrontlineLane, number>>;
+  twilightCountdown: number;
 };
 
 export type FrontlineBattleState = {
@@ -228,4 +233,6 @@ export type FrontlineBattleState = {
   lastResolution: string[];
   enemyStartCommandBonus: number;
   bossState: FrontlineBossState | null;
+  playerCardCostMod: number;
+  playerCardCostModTurnsLeft: number;
 };
