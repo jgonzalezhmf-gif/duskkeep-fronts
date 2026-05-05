@@ -21,7 +21,9 @@ import {
   laneStrikeOrder,
   playCard,
   resolveTurn,
+  resolveTurnTraced,
   runEnemyTurn,
+  runEnemyTurnTraced,
   validCardTargets,
   validLeaderPowerTargets,
 } from "@/features/frontline/engine";
@@ -31,6 +33,7 @@ import type {
   FrontlineCardDef,
   FrontlineCardProfileMap,
   FrontlineEvent,
+  FrontlineSnapshot,
   FrontlineSupportProfileMap,
 } from "@/features/frontline/types";
 import type { FrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
@@ -376,6 +379,20 @@ function visualTargetSideForLeader(effectType: "beam" | "rally"): "ally" | "enem
   return effectType === "beam" ? "enemy" : "ally";
 }
 
+function truncateAtWinner(final: FrontlineBattleState, snapshots: FrontlineSnapshot[]) {
+  if (!final.winner || snapshots.length === 0) {
+    return { snapshots, allowedEventIds: new Set(snapshots.map((s) => s.eventId).concat(snapshots.flatMap((s) => s.state.events.map((e) => e.id)))) };
+  }
+  const killSnapshotIndex = snapshots.findIndex(
+    (snap) => snap.state.allyCoreHp <= 0 || snap.state.enemyCoreHp <= 0,
+  );
+  if (killSnapshotIndex < 0) {
+    return { snapshots, allowedEventIds: new Set(snapshots.map((s) => s.eventId)) };
+  }
+  const trimmed = snapshots.slice(0, killSnapshotIndex + 1);
+  return { snapshots: trimmed, allowedEventIds: new Set(trimmed.map((s) => s.eventId)) };
+}
+
 function collectNewEvents(previous: FrontlineBattleState, next: FrontlineBattleState) {
   const previousEventIds = new Set(previous.events.map((event) => event.id));
   return next.events.filter((event) => !previousEventIds.has(event.id)).reverse();
@@ -659,6 +676,7 @@ function FrontlineBattleInner({
   const [finishFx, setFinishFx] = useState<BattleFinishFx | null>(null);
   const [deathGhosts, setDeathGhosts] = useState<DeathGhostFx[]>([]);
   const [coreShock, setCoreShock] = useState<{ side: "ally" | "enemy"; amount: number; key: number } | null>(null);
+  const [pendingResolution, setPendingResolution] = useState<{ finalState: FrontlineBattleState; snapshots: FrontlineSnapshot[] } | null>(null);
   const finishedRef = useRef(false);
   const fxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardFxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -761,26 +779,33 @@ function FrontlineBattleInner({
   }, [resolutionFx]);
 
   useEffect(() => {
+    if (resolutionFx || !pendingResolution) return;
+    setState(pendingResolution.finalState);
+    setPendingResolution(null);
+  }, [resolutionFx, pendingResolution]);
+
+  useEffect(() => {
     if (!state.bossState || state.winner) return;
     audio.setTheme("boss");
   }, [state.bossState, state.winner]);
 
   useEffect(() => {
-    if (state.turn !== "enemy" || state.winner) return;
+    if (state.turn !== "enemy" || state.winner || pendingResolution) return;
     const previous = state;
     const timeout = setTimeout(() => {
-      const next = runEnemyTurn(previous);
-      const newEvents = collectNewEvents(previous, next);
+      const { final, snapshots } = runEnemyTurnTraced(previous);
+      const truncated = truncateAtWinner(final, snapshots);
+      const newEvents = collectNewEvents(previous, final).filter((event) => truncated.allowedEventIds.has(event.id));
       setDeathGhosts(collectDeathGhosts(previous, newEvents));
-      finishDelayRef.current = next.winner ? resolutionSequenceDuration(newEvents) : 1800;
-      setState(next);
+      finishDelayRef.current = final.winner ? 900 : 1800;
+      setPendingResolution({ finalState: final, snapshots: truncated.snapshots });
       showResolutionFx(newEvents);
-      if (!next.winner && next.turn === "ally") {
+      if (!final.winner && final.turn === "ally") {
         window.setTimeout(() => sfx.turnStart(), Math.max(380, resolutionSequenceDuration(newEvents) - 420));
       }
     }, 700);
     return () => clearTimeout(timeout);
-  }, [state]);
+  }, [state, pendingResolution]);
 
   useEffect(() => {
     if (!state.winner || finishedRef.current) return;
@@ -802,6 +827,14 @@ function FrontlineBattleInner({
 
   const allyLeader = FRONTLINE_LEADER_BY_ID[state.allyDeck.leaderId];
   const selectedCard = state.selectedCardId ? state.allyCardProfiles?.[state.selectedCardId] ?? FRONTLINE_CARD_BY_ID[state.selectedCardId] : null;
+  const displayState = useMemo<FrontlineBattleState>(() => {
+    if (!pendingResolution || !resolutionFx) return state;
+    const idx = resolutionFx.activeIndex;
+    const matchById = pendingResolution.snapshots.findIndex((snap) => snap.eventId === resolutionFx.events[idx]?.id);
+    if (matchById < 0) return state;
+    if (matchById === 0) return state;
+    return pendingResolution.snapshots[matchById - 1]?.state ?? state;
+  }, [state, pendingResolution, resolutionFx]);
   const targetableLanes = useMemo(() => {
     if (state.selectedLeaderPower) return validLeaderPowerTargets(state, "ally");
     if (selectedCard) return validCardTargets(state, "ally", selectedCard.id);
@@ -810,8 +843,8 @@ function FrontlineBattleInner({
 
   const laneInsights = useMemo(
     () =>
-      FRONTLINE_LANES.map((lane) => analyzeLane(state, lane)).sort((left, right) => right.priority - left.priority),
-    [state.lanes], // eslint-disable-line react-hooks/exhaustive-deps
+      FRONTLINE_LANES.map((lane) => analyzeLane(displayState, lane)).sort((left, right) => right.priority - left.priority),
+    [displayState.lanes], // eslint-disable-line react-hooks/exhaustive-deps
   );
   const priorityLane = laneInsights[0];
   const displayLane = focusedLane ?? priorityLane.lane;
@@ -949,11 +982,12 @@ function FrontlineBattleInner({
     if (actionsLocked) return;
     sfx.resolveClash();
     setCardPlayFx(null);
-    const next = resolveTurn(state);
-    const newEvents = collectNewEvents(state, next);
+    const { final, snapshots } = resolveTurnTraced(state);
+    const truncated = truncateAtWinner(final, snapshots);
+    const newEvents = collectNewEvents(state, final).filter((event) => truncated.allowedEventIds.has(event.id));
     setDeathGhosts(collectDeathGhosts(state, newEvents));
-    finishDelayRef.current = next.winner ? resolutionSequenceDuration(newEvents) : 1800;
-    setState(next);
+    finishDelayRef.current = final.winner ? 900 : 1800;
+    setPendingResolution({ finalState: final, snapshots: truncated.snapshots });
     showResolutionFx(newEvents);
   }
 
@@ -1255,7 +1289,7 @@ function FrontlineBattleInner({
               leaderNameOverride={frontlinePresetName(t, getEnemyPreset(enemyPresetId))}
               portraitSrc={getFrontlineEnemyLeaderPortraitForPreset(getEnemyPreset(enemyPresetId))}
               title={t("frontline.enemyCore")}
-              hp={state.enemyCoreHp}
+              hp={displayState.enemyCoreHp}
               maxHp={state.enemyCoreMaxHp}
               accent="enemy"
               flash={shouldCoreFlash(activeResolutionEvent ?? latestImpact, "ally")}
@@ -1361,7 +1395,7 @@ function FrontlineBattleInner({
               leaderId={state.allyDeck.leaderId}
               portraitSrc={getFrontlineLeaderPortraitSrc(state.allyDeck.leaderId)}
               title={t("frontline.yourCore")}
-              hp={state.allyCoreHp}
+              hp={displayState.allyCoreHp}
               maxHp={state.allyCoreMaxHp}
               accent="ally"
               flash={shouldCoreFlash(activeResolutionEvent ?? latestImpact, "enemy")}
@@ -1385,7 +1419,7 @@ function FrontlineBattleInner({
           <div className="relative grid gap-3 lg:grid-cols-3">
             {bossConfig ? <BossColossusOverlay assetKey={bossConfig.assetKey} /> : null}
             {FRONTLINE_LANES.map((lane) => {
-              const laneState = state.lanes[lane];
+              const laneState = displayState.lanes[lane];
               const active = targetableLanes.includes(lane);
               const focused = displayLane === lane;
               const insight = laneInsights.find((entry) => entry.lane === lane)!;
@@ -1489,14 +1523,29 @@ function FrontlineBattleInner({
                     </div>
                   </div>
 
-                  <div className="relative z-[1] mt-3">
-                    <FrontlineHeroPiece
-                      actor={laneState.enemyHero}
-                      support={laneState.enemySupport}
-                      accent="enemy"
-                      pressured={insight.enemyLow}
-                      visualState={enemyVisualState}
-                    />
+                  <div className="relative z-[2] mt-3">
+                    {bossConfig && bossSegmentByLane[lane] ? (
+                      <BossSegmentReadout
+                        segment={bossSegmentByLane[lane]!}
+                        hero={laneState.enemyHero}
+                        scorch={displayState.bossState?.scorch[lane] ?? 0}
+                        active={active}
+                        focused={focused}
+                        targeted={enemyTargeted}
+                        pressured={insight.enemyLow}
+                        attacking={Boolean(enemyVisualState.attacking)}
+                        hit={Boolean(enemyVisualState.hit)}
+                        ko={Boolean(enemyVisualState.ko)}
+                      />
+                    ) : (
+                      <FrontlineHeroPiece
+                        actor={laneState.enemyHero}
+                        support={laneState.enemySupport}
+                        accent="enemy"
+                        pressured={insight.enemyLow}
+                        visualState={enemyVisualState}
+                      />
+                    )}
                   </div>
 
                   <div className="relative z-[1] my-3 flex items-center gap-3">
@@ -1580,8 +1629,8 @@ function FrontlineBattleInner({
 
                 {!selectedCard && !state.selectedLeaderPower ? (
                   <div className="mt-3 space-y-2">
-                    <MiniActorLine actor={state.lanes[displayLane].allyHero} support={state.lanes[displayLane].allySupport} side="ally" />
-                    <MiniActorLine actor={state.lanes[displayLane].enemyHero} support={state.lanes[displayLane].enemySupport} side="enemy" />
+                    <MiniActorLine actor={displayState.lanes[displayLane].allyHero} support={displayState.lanes[displayLane].allySupport} side="ally" />
+                    <MiniActorLine actor={displayState.lanes[displayLane].enemyHero} support={displayState.lanes[displayLane].enemySupport} side="enemy" />
                     <LaneInitiativeReadout state={state} lane={displayLane} />
                   </div>
                 ) : null}
@@ -2459,18 +2508,130 @@ function BossColossusOverlay({ assetKey }: { assetKey: string }) {
   const src = getFrontlineBossAssetSrc(assetKey);
   if (!src) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 -top-6 bottom-[26%] z-0 flex items-start justify-center overflow-hidden">
-      <div className="relative h-full w-full max-w-[58rem]">
-        <div className="absolute inset-x-[6%] inset-y-0 rounded-[44px] bg-[radial-gradient(ellipse_at_50%_38%,rgba(245,140,80,0.32),rgba(80,16,12,0.28)_42%,transparent_72%)] blur-md" />
+    <div className="pointer-events-none absolute inset-x-0 -top-4 bottom-[42%] z-[1] flex items-start justify-center overflow-visible">
+      <div className="relative flex h-full w-full max-w-[64rem] items-start justify-center">
+        <div className="absolute inset-x-[8%] -top-2 bottom-[-6%] rounded-[60px] bg-[radial-gradient(ellipse_at_50%_42%,rgba(245,140,80,0.42),rgba(80,16,12,0.32)_44%,transparent_76%)] blur-lg" />
         <img
           src={src}
           alt=""
           aria-hidden
-          className="frontline-boss-breath-fx absolute inset-x-0 top-0 mx-auto h-full w-auto max-w-full object-contain object-top opacity-92 mix-blend-screen drop-shadow-[0_28px_56px_rgba(180,70,40,0.42)]"
+          className="frontline-boss-breath-fx relative z-[1] h-full w-auto max-w-full object-contain object-top drop-shadow-[0_38px_64px_rgba(180,70,40,0.55)]"
           loading="eager"
           decoding="async"
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent,rgba(8,6,12,0.92))]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] h-20 bg-[linear-gradient(180deg,transparent,rgba(8,6,12,0.95))]" />
+      </div>
+    </div>
+  );
+}
+
+function BossSegmentReadout({
+  segment,
+  hero,
+  scorch,
+  active,
+  focused,
+  targeted,
+  pressured,
+  attacking,
+  hit,
+  ko,
+}: {
+  segment: FrontlineBossSegmentConfig;
+  hero: FrontlineBattleState["lanes"]["left"]["enemyHero"];
+  scorch: number;
+  active: boolean;
+  focused: boolean;
+  targeted: boolean;
+  pressured: boolean;
+  attacking: boolean;
+  hit: boolean;
+  ko: boolean;
+}) {
+  const { t } = useI18n();
+  if (!hero) {
+    return (
+      <div className="grid h-[7.4rem] place-items-center rounded-[20px] border border-rose-200/24 bg-[radial-gradient(circle_at_50%_46%,rgba(240,95,114,0.18),rgba(20,8,12,0.92))] text-[10px] font-black uppercase tracking-[0.18em] text-rose-100/72">
+        <span className="inline-flex items-center gap-1.5">
+          <CombatIcon name="breach" size="sm" fallbackClassName="opacity-80" />
+          {t(segment.titleKey)} · {t("frontline.openFront")}
+        </span>
+      </div>
+    );
+  }
+  const hpWidth = Math.max(0, (hero.hp / hero.maxHp) * 100);
+  const heroDef = FRONTLINE_UNIT_BY_ID[hero.heroId];
+  const traitInfo = heroDef ? frontlineTraitInfo(t, heroDef.trait) : null;
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-[20px] border px-3 py-2.5 backdrop-blur-md transition",
+        segment.weakpoint
+          ? "border-rose-200/56 bg-[linear-gradient(180deg,rgba(240,95,114,0.18),rgba(20,6,10,0.78))]"
+          : "border-[#f5c451]/44 bg-[linear-gradient(180deg,rgba(245,140,80,0.18),rgba(20,10,6,0.78))]",
+        targeted && "ring-2 ring-[#f5c451]/64 shadow-[0_0_28px_rgba(245,196,81,0.32)]",
+        focused && !targeted && "ring-1 ring-[#f5c451]/30",
+        active && "shadow-[0_0_24px_rgba(245,196,81,0.24)]",
+        pressured && "shadow-[0_0_22px_rgba(244,99,112,0.22)]",
+        hit && "frontline-hit-fx",
+        attacking && "frontline-attack-enemy-fx",
+        ko && "opacity-60 grayscale-[0.4]",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em]">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
+              segment.weakpoint
+                ? "border-rose-200/52 bg-rose-400/16 text-rose-50"
+                : "border-[#f5c451]/52 bg-[#f5c451]/12 text-[#fff0bd]",
+            )}
+          >
+            <CombatIcon name={segment.weakpoint ? "danger" : "leader_power"} size="xs" fallbackClassName="opacity-90" />
+            <span>{t(segment.titleKey)}</span>
+          </span>
+          {traitInfo ? (
+            <span
+              title={`${traitInfo.label} — ${traitInfo.description}`}
+              className="inline-flex items-center gap-1 rounded-full border border-rose-200/30 bg-rose-300/12 px-1.5 py-0.5 text-rose-100/82"
+            >
+              <StatusIcon name={traitInfo.icon} size="sm" className="h-4 w-4" fallbackClassName="opacity-90" />
+              <span className="truncate max-w-[5.6rem]">{traitInfo.label}</span>
+            </span>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-rose-100/82">
+          <CombatIcon name="attack" size="xs" fallbackClassName="opacity-80" />
+          <span>{hero.atk + hero.tempAtk}</span>
+          {hero.shield > 0 ? (
+            <span className="inline-flex items-center gap-0.5">
+              <StatusIcon name="guard" size="sm" className="h-4 w-4" fallbackClassName="opacity-80" />
+              {hero.shield}
+            </span>
+          ) : null}
+          {hero.stun > 0 ? (
+            <span className="inline-flex items-center gap-0.5">
+              <StatusIcon name="debuff" size="sm" className="h-4 w-4" fallbackClassName="opacity-80" />
+              {hero.stun}
+            </span>
+          ) : null}
+        </div>
+      </div>
+      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-black/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div
+          className="h-full rounded-full bg-[linear-gradient(90deg,#ff6d69,#ffd86f)] shadow-[0_0_14px_rgba(255,140,140,0.32)] transition-[width] duration-300"
+          style={{ width: `${hpWidth}%` }}
+        />
+      </div>
+      <div className="mt-1 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/68">
+        <span>{hero.hp}/{hero.maxHp}</span>
+        {scorch > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-400/22 px-1.5 py-0.5 text-rose-100">
+            <StatusIcon name="poison" size="sm" className="h-4 w-4" fallbackClassName="opacity-80" />
+            {scorch}
+          </span>
+        ) : null}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import {
   createFrontlineBattleState,
   playCard,
   resolveTurn,
+  resolveTurnTraced,
   runEnemyTurn,
   validLeaderPowerTargets,
 } from "@/features/frontline/engine";
@@ -124,6 +125,40 @@ describe("frontline engine", () => {
     expect(afterAllyTurn.turn).toBe("enemy");
     expect(afterAllyTurn.enemyDeck.command).toBe(4);
     expect(afterAllyTurn.enemyStartCommandBonus).toBe(0);
+  });
+
+  it("does not freeze the enemy turn when a heal-only hand has no valid target", () => {
+    const state = makeState();
+    // Force enemy hand to a single heal_front card with no wounded enemy hero in range.
+    state.enemyDeck.hand = ["enemy_tactic_blood_rite"];
+    state.enemyDeck.command = 3;
+    // All enemy heroes at full HP — no lowLane → heal cannot apply.
+    for (const lane of ["left", "center", "right"] as const) {
+      const hero = state.lanes[lane].enemyHero;
+      if (hero) hero.hp = hero.maxHp;
+    }
+    state.turn = "enemy";
+
+    const start = Date.now();
+    const next = runEnemyTurn(state);
+    const elapsed = Date.now() - start;
+
+    expect(elapsed).toBeLessThan(1000);
+    expect(next).toBeDefined();
+    expect(next.turn).not.toBe("enemy");
+  });
+
+  it("emits per-event snapshots from resolveTurnTraced for UI sync", () => {
+    const state = makeState();
+    const { final, snapshots } = resolveTurnTraced(state);
+    expect(snapshots.length).toBeGreaterThan(0);
+    for (const snap of snapshots) {
+      expect(snap.eventId).toBeTruthy();
+      expect(snap.state).toBeTruthy();
+      expect(snap.state).not.toBe(final);
+    }
+    const lastSnap = snapshots[snapshots.length - 1].state;
+    expect(lastSnap.events.length).toBeGreaterThanOrEqual(snapshots.length);
   });
 
   it("uses progressed Frontline card effects for player cards", () => {

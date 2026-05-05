@@ -22,6 +22,8 @@ import type {
   FrontlineLaneState,
   FrontlineLeaderDef,
   FrontlinePreset,
+  FrontlineSnapshot,
+  FrontlineTracedResult,
   FrontlineSupportState,
   FrontlineSupportProfileMap,
 } from "./types";
@@ -211,8 +213,27 @@ function createEmptyLanes(
 function pushEvent(state: FrontlineBattleState, event: Omit<FrontlineEvent, "id">) {
   const nextSeq = state.eventSeq + 1;
   state.eventSeq = nextSeq;
-  state.events.unshift({ ...event, id: `${state.round}:${state.turn}:${nextSeq}` });
+  const fullEvent: FrontlineEvent = { ...event, id: `${state.round}:${state.turn}:${nextSeq}` };
+  state.events.unshift(fullEvent);
   state.events = state.events.slice(0, 12);
+  if (state._trace && isVisibleEventKind(fullEvent)) {
+    const snapshot = cloneState(state);
+    delete (snapshot as { _trace?: FrontlineSnapshot[] })._trace;
+    state._trace.push({ eventId: fullEvent.id, state: snapshot });
+  }
+}
+
+function isVisibleEventKind(event: FrontlineEvent) {
+  if (event.kind === "boss_signature") return event.signature === "cast";
+  return (
+    event.kind === "damage" ||
+    event.kind === "heal" ||
+    event.kind === "shield" ||
+    event.kind === "ko" ||
+    event.kind === "breach" ||
+    event.kind === "summon" ||
+    event.kind === "stun"
+  );
 }
 
 function pushResolution(state: FrontlineBattleState, line: string) {
@@ -1077,45 +1098,78 @@ function enemyShouldUsePower(state: FrontlineBattleState) {
 export function runEnemyTurn(state: FrontlineBattleState) {
   let next = cloneState(state);
   if (next.turn !== "enemy" || next.winner) return state;
-  let playable = playableCards(next, "enemy");
-  while (playable.length) {
+
+  const skipCardIds = new Set<string>();
+  const MAX_ITERATIONS = 24;
+  let iterations = 0;
+
+  while (iterations < MAX_ITERATIONS) {
+    iterations += 1;
+    const playable = playableCards(next, "enemy").filter((card) => !skipCardIds.has(card.id));
+    if (!playable.length) break;
+    if (ownDeck(next, "enemy").command <= 0) break;
+
+    let chosen: { card: FrontlineCardDef; lane: FrontlineLane | undefined } | null = null;
+
     const healCard = playable.find((card) => card.effect.type === "heal_front");
     if (healCard) {
       const lowLane = FRONTLINE_LANES.find((lane) => {
         const hero = getHeroInLane(next, "enemy", lane);
         return hero && hero.hp <= hero.maxHp / 2;
       });
-      if (lowLane) {
-        next = playCard(next, "enemy", healCard.id, lowLane);
-        playable = playableCards(next, "enemy");
+      if (lowLane) chosen = { card: healCard, lane: lowLane };
+    }
+
+    if (!chosen) {
+      const summonCard = playable.find((card) => card.kind === "summon");
+      const openSummonLane = FRONTLINE_LANES.find((lane) => !getSupportInLane(next, "enemy", lane));
+      if (summonCard && openSummonLane) chosen = { card: summonCard, lane: openSummonLane };
+    }
+
+    if (!chosen) {
+      const priority = [...playable].sort((left, right) => right.cost - left.cost || left.id.localeCompare(right.id))[0];
+      if (!priority) break;
+      const target = priority.target === "none" ? undefined : chooseEnemyTarget(next, priority) ?? undefined;
+      if (priority.target !== "none" && !target) {
+        skipCardIds.add(priority.id);
         continue;
       }
+      chosen = { card: priority, lane: target };
     }
 
-    const summonCard = playable.find((card) => card.kind === "summon");
-    const openSummonLane = FRONTLINE_LANES.find((lane) => !getSupportInLane(next, "enemy", lane));
-    if (summonCard && openSummonLane) {
-      next = playCard(next, "enemy", summonCard.id, openSummonLane);
-      playable = playableCards(next, "enemy");
+    const before = next;
+    next = playCard(next, "enemy", chosen.card.id, chosen.lane);
+    if (next === before) {
+      skipCardIds.add(chosen.card.id);
       continue;
     }
-
-    const priority = [...playable].sort((left, right) => right.cost - left.cost || left.id.localeCompare(right.id))[0];
-    if (!priority) break;
-    const target =
-      priority.target === "none"
-        ? undefined
-        : chooseEnemyTarget(next, priority) ?? undefined;
-    next = playCard(next, "enemy", priority.id, target);
-    playable = playableCards(next, "enemy");
-    if (ownDeck(next, "enemy").command <= 0) break;
   }
 
   const powerLane = enemyShouldUsePower(next);
   if (powerLane) {
-      next = activateLeaderPower(next, "enemy", powerLane);
+    next = activateLeaderPower(next, "enemy", powerLane);
   }
   return resolveTurn(next);
+}
+
+function withTrace<T>(state: FrontlineBattleState, runner: (traced: FrontlineBattleState) => T): { final: T; snapshots: FrontlineSnapshot[] } {
+  const snapshots: FrontlineSnapshot[] = [];
+  const traced = cloneState(state);
+  traced._trace = snapshots;
+  const final = runner(traced);
+  return { final, snapshots };
+}
+
+export function resolveTurnTraced(state: FrontlineBattleState): FrontlineTracedResult {
+  const { final, snapshots } = withTrace(state, (traced) => resolveTurn(traced));
+  delete (final as { _trace?: FrontlineSnapshot[] })._trace;
+  return { final, snapshots };
+}
+
+export function runEnemyTurnTraced(state: FrontlineBattleState): FrontlineTracedResult {
+  const { final, snapshots } = withTrace(state, (traced) => runEnemyTurn(traced));
+  delete (final as { _trace?: FrontlineSnapshot[] })._trace;
+  return { final, snapshots };
 }
 
 export type FrontlineStrikeOrderEntry = {

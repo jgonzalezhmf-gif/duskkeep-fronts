@@ -235,4 +235,16 @@ export type FrontlineBattleState = {
   bossState: FrontlineBossState | null;
   playerCardCostMod: number;
   playerCardCostModTurnsLeft: number;
+  /** When set during a traced run, every visible event also pushes a deep-copy snapshot of the state at that point. UI uses these to keep the rendered board in sync with the animation playback. Internal — never persisted. */
+  _trace?: FrontlineSnapshot[];
+};
+
+export type FrontlineSnapshot = {
+  eventId: string;
+  state: FrontlineBattleState;
+};
+
+export type FrontlineTracedResult = {
+  final: FrontlineBattleState;
+  snapshots: FrontlineSnapshot[];
 };
