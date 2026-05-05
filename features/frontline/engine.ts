@@ -221,7 +221,11 @@ function pushResolution(state: FrontlineBattleState, line: string) {
 }
 
 function heroDefinition(hero: FrontlineHeroState) {
-  return FRONTLINE_UNIT_BY_ID[hero.heroId] as FrontlineHeroDef;
+  const definition = FRONTLINE_UNIT_BY_ID[hero.heroId];
+  if (!definition) {
+    throw new Error(`Unknown frontline combatant in lane ${hero.lane}: ${hero.heroId}`);
+  }
+  return definition as FrontlineHeroDef;
 }
 
 function leaderDefinition(leaderId: string) {

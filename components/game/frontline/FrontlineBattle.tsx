@@ -61,6 +61,7 @@ import {
 import { useI18n } from "@/lib/i18n/useI18n";
 import type { FrontlineLane, FrontlineLoadout, FrontlineSide } from "@/lib/types";
 import { getFrontlineBossAssetSrc, getFrontlineCardVisualAsset, getFrontlineHeroVisualAsset } from "./frontlineVisualAssets";
+import { FrontlineErrorBoundary } from "./FrontlineErrorBoundary";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
 import type { FrontlineBossConfig, FrontlineBossSegmentConfig } from "@/features/frontline/types";
 
@@ -628,7 +629,7 @@ function nextActionLabel(
   return { title: t("frontline.playCard"), subtitle: t("frontline.spendCommand") };
 }
 
-export default function FrontlineBattle({
+function FrontlineBattleInner({
   seed,
   loadout,
   enemyPresetId,
@@ -1267,8 +1268,10 @@ export default function FrontlineBattle({
             <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.55),transparent)]" />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CompactPill tone={state.turn === "ally" ? "ally" : "enemy"}>{state.turn === "ally" ? t("frontline.yourTurn") : t("frontline.enemy")}</CompactPill>
-                <CompactPill tone="neutral">R{state.round}</CompactPill>
+                <CompactPill tone={state.turn === "ally" ? "ally" : "enemy"}>
+                  {state.turn === "ally" ? t("frontline.playerPhase") : t("frontline.enemyPhase")}
+                </CompactPill>
+                <CompactPill tone="neutral">{t("frontline.roundLabel", { round: state.round })}</CompactPill>
                 <CommandPips value={state.allyDeck.command} />
               </div>
               {latestImpact ? (
@@ -2973,5 +2976,13 @@ function CompactPill({
     >
       {children}
     </div>
+  );
+}
+
+export default function FrontlineBattle(props: Props) {
+  return (
+    <FrontlineErrorBoundary>
+      <FrontlineBattleInner {...props} />
+    </FrontlineErrorBoundary>
   );
 }
