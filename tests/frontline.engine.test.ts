@@ -40,12 +40,13 @@ describe("frontline engine", () => {
     expect(next.lanes.left.allyHero?.tempAtk).toBeGreaterThan(0);
   });
 
-  it("breaches the core when a front is opened", () => {
+  it("breaches the core when a front is opened (resolved at end of round)", () => {
     const state = makeState();
     state.lanes.left.enemyHero = null;
-    const next = resolveTurn(state);
+    const afterAlly = resolveTurn(state);
+    const afterEnemy = resolveTurn(afterAlly);
 
-    expect(next.enemyCoreHp).toBeLessThan(next.enemyCoreMaxHp);
+    expect(afterEnemy.enemyCoreHp).toBeLessThan(afterEnemy.enemyCoreMaxHp);
   });
 
   it("exposes leader power targets and applies beam damage", () => {

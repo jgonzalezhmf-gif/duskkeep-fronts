@@ -113,14 +113,30 @@ describe("frontline boss — Crown of Ashes", () => {
   });
 
   it("stops resolving the clash as soon as a core is broken", () => {
-    const state = makeBossState();
+    let state = makeBossState();
     state.enemyCoreHp = 1;
     state.lanes.left.enemyHero = null;
     state.lanes.center.enemyHero = null;
     state.lanes.right.enemyHero = null;
-    const next = resolveTurn(state);
-    expect(next.winner).toBe("ally");
-    expect(next.enemyCoreHp).toBe(0);
+    state = resolveTurn(state); // ally clash → enemy turn (no breach yet)
+    state = resolveTurn(state); // enemy clash → end of round → breach kills core
+    expect(state.winner).toBe("ally");
+    expect(state.enemyCoreHp).toBe(0);
+  });
+
+  it("only applies hero aftermath once per round", () => {
+    const state = createFrontlineBattleState({
+      seed: 13,
+      allyLoadout: createDefaultFrontlineLoadout(),
+      enemyPreset: NORMAL,
+    });
+    // Bran has bulwark → +3 shield once per round (not twice).
+    const bran = state.lanes.left.allyHero!;
+    bran.shield = 0;
+    const afterAlly = resolveTurn(state);
+    const afterEnemy = resolveTurn(afterAlly);
+    const branShield = afterEnemy.lanes.left.allyHero?.shield ?? 0;
+    expect(branShield).toBeLessThanOrEqual(3);
   });
 
   it("flags KO subKind so support breaks do not paint hero death ghosts", () => {

@@ -1012,7 +1012,8 @@ export function resolveTurn(state: FrontlineBattleState) {
     cleanupExpiredSupport(next, "enemy", lane);
   }
 
-  if (!battleResolved(next)) {
+  const isEndOfRound = next.turn === "enemy";
+  if (isEndOfRound && !battleResolved(next)) {
     applyHeroAftermath(next, "ally");
     applyHeroAftermath(next, "enemy");
     applyBreach(next);
