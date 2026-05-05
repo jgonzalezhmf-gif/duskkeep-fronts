@@ -1113,6 +1113,22 @@ export function runEnemyTurn(state: FrontlineBattleState) {
   return resolveTurn(next);
 }
 
+export type FrontlineStrikeOrderEntry = {
+  side: FrontlineSide;
+  kind: "hero" | "support";
+  initiative: number;
+  name: string;
+};
+
+export function laneStrikeOrder(state: FrontlineBattleState, lane: FrontlineLane): FrontlineStrikeOrderEntry[] {
+  return actorList(state, lane).map((actor) => ({
+    side: actor.side,
+    kind: actor.kind,
+    initiative: actor.kind === "hero" ? initiativeForHero(actor.hero) : 1,
+    name: actor.kind === "hero" ? actor.hero.name : actor.support.name,
+  }));
+}
+
 export function frontPresenceScore(heroId: string, heroProfiles?: FrontlineHeroProfileMap) {
   const hero = heroProfiles?.[heroId] ?? FRONTLINE_UNIT_BY_ID[heroId];
   if (!hero) return 0;

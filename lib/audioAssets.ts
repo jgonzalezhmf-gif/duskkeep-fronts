@@ -38,6 +38,7 @@ export type AudioMusicAssetName =
   | "home"
   | "adventure"
   | "battle"
+  | "boss"
   | "battle_boss"
   | "battle_event"
   | "prebattle"
@@ -93,6 +94,7 @@ export const AUDIO_MUSIC_ASSETS: AudioAssetManifest<AudioMusicAssetName> = {
   adventure: { src: "/assets/audio/music/adventure.mp3", credit: "elevenlabs", loop: true, gain: 0.58 },
   battle: { src: "/assets/audio/music/battle.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
   battle_boss: { src: "/assets/audio/music/battle_boss.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
+  boss: { src: "/assets/audio/music/battle_boss.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
   battle_event: { src: "/assets/audio/music/battle_event.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
   event: { src: "/assets/audio/music/battle_event.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },
   home: { src: "/assets/audio/music/home.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },

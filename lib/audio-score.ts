@@ -1,6 +1,6 @@
 "use client";
 
-export type AudioThemeName = "home" | "battle" | "adventure" | "event" | "shop" | "prebattle" | "postbattle";
+export type AudioThemeName = "home" | "battle" | "boss" | "adventure" | "event" | "shop" | "prebattle" | "postbattle";
 
 export type AudioInstrument =
   | "pad"
@@ -976,6 +976,7 @@ function createDefeatStinger(): AudioStingerScore {
 export const THEME_SCORES: Record<AudioThemeName, AudioThemeScore> = {
   home: createHomeScore(),
   battle: createBattleScore(),
+  boss: createBattleScore(),
   adventure: createAdventureScore(),
   event: createEventScore(),
   shop: createShopScore(),

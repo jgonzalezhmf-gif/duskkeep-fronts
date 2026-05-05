@@ -73,6 +73,7 @@ const THEME_MIX: Record<AudioThemeName, ThemeMixProfile> = {
   home: { fadeIn: 1.7, fadeOut: 1.18, preRoll: 0.14, dryLevel: 0.92, fxLevel: 0.72 },
   adventure: { fadeIn: 1.3, fadeOut: 0.95, preRoll: 0.1, dryLevel: 0.96, fxLevel: 0.76 },
   battle: { fadeIn: 0.82, fadeOut: 0.68, preRoll: 0.08, dryLevel: 1, fxLevel: 0.42 },
+  boss: { fadeIn: 0.6, fadeOut: 0.7, preRoll: 0.06, dryLevel: 1, fxLevel: 0.46 },
   event: { fadeIn: 1.1, fadeOut: 0.88, preRoll: 0.08, dryLevel: 0.96, fxLevel: 0.68 },
   postbattle: { fadeIn: 0.55, fadeOut: 0.58, preRoll: 0.02, dryLevel: 0.92, fxLevel: 0.58 },
   prebattle: { fadeIn: 0.55, fadeOut: 0.58, preRoll: 0.02, dryLevel: 0.95, fxLevel: 0.52 },
