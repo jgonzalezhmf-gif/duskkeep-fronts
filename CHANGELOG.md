@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.1] - 2026-05-06
+
+### Fixed
+- Corregido el prop del cofre con llave de Adventure para que aparezca en `?qa=adventure-map` como `key_chest` en vez de estar oculto bajo un `hidden_glow`.
+- Anadido `key_chest` al selector de nuevos props del editor QA, con interaccion de cofre de llave preparada por defecto.
+- Mejorada la etiqueta del selector de props del editor para mostrar tipo e id del elemento.
+
+### Tested
+- `npm.cmd run typecheck`
+
 ## [0.24.0] - 2026-05-06
 
 ### Added

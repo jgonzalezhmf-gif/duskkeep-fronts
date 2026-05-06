@@ -42,6 +42,7 @@ export type AdventureMapRouteLayout = {
 };
 
 export type AdventureMapPropType =
+  | "key_chest"
   | "campfire"
   | "small_camp"
   | "road_lantern"
@@ -137,6 +138,7 @@ export const ADVENTURE_MAP_NODE_STATUSES: AdventureMapNodeStatus[] = [
 ];
 
 export const ADVENTURE_MAP_PROP_TYPES: AdventureMapPropType[] = [
+  "key_chest",
   "campfire",
   "small_camp",
   "road_lantern",
@@ -588,8 +590,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         }
       },
       {
-        id: "hidden_glow-moo7kw8v",
-        type: "hidden_glow",
+        id: "key_chest-c1-lower-cache",
+        type: "key_chest",
         x: 1698,
         y: 962,
         width: 118,
@@ -598,16 +600,6 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         zIndex: 36,
         opacity: 1,
         enabled: true,
-        effect: {
-          type: "purple_flame_loop",
-          xPercent: 50,
-          yPercent: 50,
-          widthPercent: 42,
-          heightPercent: 42,
-          opacity: 0.5,
-          durationMs: 820,
-          enabled: false
-        },
         interaction: {
           id: "c1-lower-cache",
           kind: "keyChest",

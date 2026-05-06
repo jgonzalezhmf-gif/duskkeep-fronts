@@ -402,6 +402,18 @@ export function AdventureCampaignMap({
       opacity: 1,
       enabled: true,
       ...(getDefaultPropEffect(type) ? { effect: getDefaultPropEffect(type) } : {}),
+      ...(type === "key_chest"
+        ? {
+            interaction: {
+              id: "c1-lower-cache",
+              kind: "keyChest" as const,
+              keyCost: 1,
+              unlockAfter: ["c1l2"],
+              rewardId: "c1-lower-cache",
+              enabled: true,
+            },
+          }
+        : {}),
     };
     setEditorLayout((current) => ({ ...current, props: [...(current.props ?? []), next] }));
     setSelectedEditor({ kind: "prop", id });
@@ -1286,7 +1298,7 @@ function AdventureMapEditorOverlay({
   const [status, setStatus] = useState("Autosaved locally");
   const elementOptions = [
     ...visualNodes.map((node) => ({ value: `node:${node.id}`, label: `node | ${node.id}` })),
-    ...(layout.props ?? []).map((prop) => ({ value: `prop:${prop.id}`, label: `prop | ${prop.id}` })),
+    ...(layout.props ?? []).map((prop) => ({ value: `prop:${prop.id}`, label: `prop | ${prop.type} | ${prop.id}` })),
     { value: "party:party", label: "party | marker" },
     ...getEditableRoutes(layout, visualNodes).flatMap((route) => [
       { value: `routeControl:${route.id}:control1`, label: `route | ${route.id} c1` },
@@ -2397,6 +2409,22 @@ function getSelectedExport(layout: AdventureMapChapterLayout, selected: EditorSe
 
 function getPropContent(prop: AdventureMapPropLayout) {
   const type = prop.type;
+  if (type === "key_chest") {
+    const src = getAdventureMapInteractionAsset("locked");
+    return (
+      <span className="relative block h-full w-full">
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain drop-shadow-[0_12px_16px_rgba(0,0,0,0.52)]"
+        />
+      </span>
+    );
+  }
   if (isAdventurePropAsset(type)) {
     const asset = getAdventurePropAsset(type);
     if (asset) {
@@ -2505,6 +2533,7 @@ function getPropVisualOpacity(prop: AdventureMapPropLayout) {
 }
 
 function getDefaultPropDimensions(type: AdventureMapPropType) {
+  if (type === "key_chest") return { width: 118, height: 84 };
   if (type === "clouds_dark_layer") return { width: 220, height: 92 };
   if (type === "campfire") return { width: 54, height: 54 };
   if (type === "small_camp") return { width: 82, height: 68 };
