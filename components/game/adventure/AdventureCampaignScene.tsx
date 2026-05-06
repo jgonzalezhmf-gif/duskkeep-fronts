@@ -1236,14 +1236,24 @@ function InteractionPropContent({
     >
       {status === "ready" && shine ? (
         <span className="pointer-events-none absolute left-1/2 top-[47%] z-[0] block h-[124%] w-[142%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[44%] opacity-60">
-          <span
-            className="absolute left-0 top-0 h-full bg-[image:var(--adventure-gold-shine)] bg-[length:100%_100%] bg-no-repeat motion-safe:animate-[adventureGoldShineLoop_1.05s_steps(6)_infinite] motion-reduce:hidden"
-            style={{
-              width: `${shine.frameCount * 100}%`,
-              ["--adventure-gold-shine" as string]: `url(${shine.src})`,
-              ["--adventure-gold-shine-end" as string]: `${-((shine.frameCount - 1) / shine.frameCount) * 100}%`,
-            }}
-          />
+          {Array.from({ length: shine.frameCount }).map((_, index) => (
+            <span
+              key={`gold-shine-frame-${index}`}
+              className="absolute inset-0 opacity-0 motion-safe:animate-[adventureGoldShineFrame_1.05s_steps(1,end)_infinite] motion-reduce:hidden"
+              style={{
+                animationDelay: `${index * (1050 / shine.frameCount)}ms`,
+              }}
+            >
+              <span
+                className="absolute top-0 h-full bg-[image:var(--adventure-gold-shine)] bg-[length:100%_100%] bg-no-repeat"
+                style={{
+                  left: `${index * -100}%`,
+                  width: `${shine.frameCount * 100}%`,
+                  ["--adventure-gold-shine" as string]: `url(${shine.src})`,
+                }}
+              />
+            </span>
+          ))}
         </span>
       ) : null}
       <img
@@ -2442,12 +2452,14 @@ function AdventureMapInteractionStyles() {
         }
       }
 
-      @keyframes adventureGoldShineLoop {
-        from {
-          transform: translate3d(0, 0, 0);
+      @keyframes adventureGoldShineFrame {
+        0%,
+        19.999% {
+          opacity: 1;
         }
-        to {
-          transform: translate3d(var(--adventure-gold-shine-end), 0, 0);
+        20%,
+        100% {
+          opacity: 0;
         }
       }
     `}</style>
