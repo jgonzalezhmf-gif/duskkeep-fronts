@@ -828,7 +828,7 @@ function RewardToken({
       tone={tone}
       label={hint}
       value={label}
-      featured={featured || icon === "gold" || icon === "gem" || icon === "gems" || icon === "dust" || icon === "shards"}
+      featured={featured || icon === "gold" || icon === "gem" || icon === "gems" || icon === "dust" || icon === "shards" || icon === "adventure_key"}
       size={featured ? "lg" : compact ? "sm" : "md"}
     />
   );
@@ -893,7 +893,7 @@ function BundleShowcase({
           <div className="absolute left-[10%] top-[34%]">
             {offer.contents.adventureKeys ? (
               <span className="grid h-24 w-24 place-items-center rounded-[28px] border border-[#f5d498]/18 bg-[linear-gradient(180deg,rgba(245,196,81,0.12),rgba(8,8,12,0.72))]">
-                <ResourceIcon kind="adventure_key" size="large" className="h-24 w-24" />
+                <ResourceIcon kind="adventure_key" size="large" className="h-24 w-24" imgClassName="scale-[1.28]" />
               </span>
             ) : (
               <StoreGlyph icon={icon} tone="from-[#fff3c7] via-[#f5c451] to-[#c77716]" className="h-20 w-20" />
@@ -910,7 +910,7 @@ function BundleShowcase({
             >
               {isResourceIconKind(token.icon) ? (
                 <span className={cn("grid place-items-center rounded-[20px] border border-white/10 bg-black/18 shadow-[0_14px_28px_rgba(0,0,0,0.24)]", index === 0 ? "h-16 w-16" : "h-12 w-12")}>
-                  <ResourceIcon kind={token.icon} size="large" className="h-[92%] w-[92%]" />
+                  <ResourceIcon kind={token.icon} size="large" className="h-[92%] w-[92%]" imgClassName={token.icon === "adventure_key" ? "scale-[1.28]" : undefined} />
                 </span>
               ) : (
                 <GameIcon kind={token.icon} tone={token.tone} size="lg" className={index === 0 ? "h-16 w-16" : "h-12 w-12"} />

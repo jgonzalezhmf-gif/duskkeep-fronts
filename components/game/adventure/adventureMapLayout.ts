@@ -84,6 +84,8 @@ export type AdventureMapPropLayout = {
   width?: number;
   height?: number;
   rotation?: number;
+  rotationX?: number;
+  rotationY?: number;
   zIndex: number;
   opacity?: number;
   enabled: boolean;
@@ -571,8 +573,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       {
         id: "merchant_cart-moo7k8bk",
         type: "merchant_cart",
-        x: 592,
-        y: 634,
+        x: 593,
+        y: 631,
         width: 92,
         height: 74,
         zIndex: 35,
@@ -590,14 +592,37 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         }
       },
       {
-        id: "key_chest-c1-lower-cache",
+        id: "hidden_glow-moo7kw8v",
+        type: "hidden_glow",
+        x: 1194,
+        y: 723,
+        width: 52,
+        height: 52,
+        zIndex: 35,
+        opacity: 1,
+        enabled: true,
+        effect: {
+          type: "purple_flame_loop",
+          xPercent: 50,
+          yPercent: 50,
+          widthPercent: 42,
+          heightPercent: 42,
+          opacity: 0.5,
+          durationMs: 820,
+          enabled: false
+        }
+      },
+      {
+        id: "key_chest-mouenvk8",
         type: "key_chest",
-        x: 1698,
-        y: 962,
-        width: 118,
-        height: 84,
-        rotation: -4,
-        zIndex: 36,
+        x: 1675,
+        y: 969,
+        width: 192,
+        height: 191,
+        rotation: 0,
+        rotationX: 0,
+        rotationY: 0,
+        zIndex: 20,
         opacity: 1,
         enabled: true,
         interaction: {
@@ -611,8 +636,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       }
     ],
     partyMarker: {
-      x: 1102,
-      y: 487,
+      x: 1106,
+      y: 466,
       size: 80,
       zIndex: 40,
       anchorNodeId: "c1l1",

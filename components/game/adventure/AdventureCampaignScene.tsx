@@ -1059,7 +1059,8 @@ function AdventureMapProp({
   );
   const style = {
     ...nodeStyle(prop.x, prop.y),
-    transform: `translate(-50%, -50%) rotate(${prop.rotation ?? 0}deg)`,
+    transform: `translate(-50%, -50%) perspective(520px) rotateX(${prop.rotationX ?? 0}deg) rotateY(${prop.rotationY ?? 0}deg) rotateZ(${prop.rotation ?? 0}deg)`,
+    transformStyle: "preserve-3d" as const,
     zIndex: visualZIndex,
     width: getPropWidth(prop),
     height: getPropHeight(prop),
@@ -1547,7 +1548,9 @@ function PropEditorFields({ prop, onUpdate }: { prop: AdventureMapPropLayout; on
       <NumberField label="width" value={getPropWidth(prop)} onChange={(width) => onUpdate({ width, size: undefined })} />
       <NumberField label="height" value={getPropHeight(prop)} onChange={(height) => onUpdate({ height, size: undefined })} />
       <NumberField label="z" value={prop.zIndex} onChange={(zIndex) => onUpdate({ zIndex })} />
-      <NumberField label="rotation" value={prop.rotation ?? 0} step={1} onChange={(rotation) => onUpdate({ rotation })} />
+      <NumberField label="rotate z" value={prop.rotation ?? 0} step={1} onChange={(rotation) => onUpdate({ rotation })} />
+      <NumberField label="rotate x" value={prop.rotationX ?? 0} step={1} onChange={(rotationX) => onUpdate({ rotationX })} />
+      <NumberField label="rotate y" value={prop.rotationY ?? 0} step={1} onChange={(rotationY) => onUpdate({ rotationY })} />
       <NumberField label="opacity" value={prop.opacity ?? 1} step={0.05} onChange={(opacity) => onUpdate({ opacity })} />
       <label className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/70">
         <input type="checkbox" checked={prop.enabled} onChange={(event) => onUpdate({ enabled: event.target.checked })} />
@@ -1725,12 +1728,13 @@ function NumberField({ label, value, step = 1, onChange }: { label: string; valu
   );
 }
 
-function SelectField({ label, value, options, onChange }: { label: string; value: string; options: readonly string[]; onChange: (value: string) => void }) {
+function SelectField({ label, value, options, onChange }: { label: string; value: string; options?: readonly string[]; onChange: (value: string) => void }) {
+  const safeOptions = options ?? [];
   return (
     <label className="rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/66">
       <span className="block text-[9px] uppercase tracking-[0.14em] text-white/36">{label}</span>
       <select value={value} onChange={(event) => onChange(event.target.value)} className="mt-1 w-full bg-black text-[12px] font-black text-white outline-none">
-        {options.map((option) => (
+        {safeOptions.map((option) => (
           <option key={option} value={option}>
             {option}
           </option>

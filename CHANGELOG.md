@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.2] - 2026-05-06
+
+### Fixed
+- Blindado el editor `?qa=adventure-map` para que los selects no rompan si una config exportada pierde opciones.
+- Restaurados los tipos/config de interaccion del cofre con llave tras exportar layout desde QA.
+- Anadidos controles `rotate x`, `rotate y` y `rotate z` para inclinar props del mapa en 3D sin perder el giro plano.
+- Reforzada la visibilidad del icono `adventure_key` en los previews de contenido de Shop.
+
+### Tested
+- `npm.cmd run typecheck`
+
 ## [0.24.1] - 2026-05-06
 
 ### Fixed
