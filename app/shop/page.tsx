@@ -34,7 +34,7 @@ import {
   SectionTitle,
 } from "@/components/game/screens/ScreenChrome";
 
-const INITIAL_SHOP_RESOURCES = { gold: 500, dust: 50, gems: 50, arenaTickets: 5 };
+const INITIAL_SHOP_RESOURCES = { gold: 500, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 };
 const INITIAL_SHOP_LEVEL = 1;
 const RESET_PLACEHOLDER = "--h --m --s";
 
@@ -64,6 +64,7 @@ const VALUE_TAG_SHOP_ICONS: Record<string, ShopIconName> = {
   balanced: "discount",
   training: "premium_pack",
   ladder: "bundle",
+  "map key": "daily_offer",
   tank: "bundle",
   striker: "bundle",
   healer: "bundle",
@@ -794,6 +795,7 @@ function buildRewardTokens(offer: ExtendedShopOffer, t: TranslateFn): RewardToke
     contents.xp ? { label: `${contents.xp}`, hint: t("shop.rewardHints.xp"), icon: "power", tone: "emerald" } : null,
     contents.accountXp ? { label: `${contents.accountXp}`, hint: t("shop.rewardHints.accountXp"), icon: "rewards", tone: "ember" } : null,
     contents.arenaTickets ? { label: `${contents.arenaTickets}`, hint: t("shop.rewardHints.tickets"), icon: "tickets", tone: "ember" } : null,
+    contents.adventureKeys ? { label: `${contents.adventureKeys}`, hint: t("shop.rewardHints.adventureKeys"), icon: "adventure_key", tone: "gold" } : null,
     contents.shards?.length
       ? {
           label: `${contents.shards.reduce((sum, shard) => sum + shard.amount, 0)}`,

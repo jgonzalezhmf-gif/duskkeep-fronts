@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import type { Rewards } from "@/lib/types";
 
 type RewardBurstEntry = {
-  icon: "gold" | "dust" | "gem" | "tickets" | "power" | "heroes";
+  icon: "gold" | "dust" | "gem" | "tickets" | "power" | "heroes" | "rewards" | "adventure_key";
   tone: "gold" | "violet" | "sky" | "ember" | "emerald";
   label: string;
   value: number;
@@ -19,6 +19,7 @@ function rewardEntries(rewards: Rewards, t: (key: string) => string): RewardBurs
   if (rewards.dust) entries.push({ icon: "dust", tone: "violet", label: t("resources.dust"), value: rewards.dust });
   if (rewards.gems) entries.push({ icon: "gem", tone: "sky", label: t("resources.gems"), value: rewards.gems });
   if (rewards.arenaTickets) entries.push({ icon: "tickets", tone: "ember", label: t("resources.tickets"), value: rewards.arenaTickets });
+  if (rewards.adventureKeys) entries.push({ icon: "adventure_key", tone: "gold", label: t("resources.adventureKeys"), value: rewards.adventureKeys });
   if (rewards.accountXp || rewards.xp) entries.push({ icon: "power", tone: "emerald", label: t("frontline.accountXp"), value: rewards.accountXp ?? rewards.xp ?? 0 });
   const shardTotal = rewards.shards?.reduce((sum, shard) => sum + shard.amount, 0) ?? 0;
   if (shardTotal) entries.push({ icon: "heroes", tone: "violet", label: t("shop.categoryShort.shards"), value: shardTotal });

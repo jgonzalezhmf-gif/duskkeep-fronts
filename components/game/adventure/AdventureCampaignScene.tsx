@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import type { AdventureLevel, Rewards } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { getScreenBackgroundAsset } from "@/lib/screenBackgroundAssets";
+import { getAdventureMapInteractionAsset } from "@/lib/adventureMapInteractionAssets";
 import {
   ADVENTURE_PROP_ASSET_IDS,
   getAdventureNodeAsset,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/adventureMapAssets";
 import {
   ADVENTURE_MAP_DESIGN,
+  ADVENTURE_MAP_INTERACTION_KINDS,
   ADVENTURE_MAP_NODE_STATUSES,
   ADVENTURE_MAP_NODE_TYPES,
   ADVENTURE_MAP_PROP_TYPES,
@@ -26,6 +28,7 @@ import {
   type AdventureMapRouteState,
   type AdventureNodeLayout,
 } from "./adventureMapLayout";
+import type { AdventureMapInteractionDefinition, AdventureMapInteractionStatus } from "@/features/adventure/mapInteractions";
 import { FRONTLINE_CARD_BY_ID } from "@/features/frontline/data";
 import { getFrontlineAdventureSquad, getFrontlinePresetForAdventure } from "@/features/frontline/adventure";
 import {
@@ -45,6 +48,8 @@ import GameIcon from "@/components/game/shared/GameIcon";
 import { GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { CombatIcon } from "@/components/game/shared/CombatIcon";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
+import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
+import { ResourceIcon } from "@/components/game/shared/ResourceIcon";
 import { frontlineCardName, frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import {
@@ -134,6 +139,9 @@ export function AdventureCampaignMap({
   chapter,
   selectedId,
   onSelect,
+  selectedInteractionId,
+  interactionStates,
+  onSelectInteraction,
   embedded = false,
   fullScreen = false,
 }: {
@@ -143,6 +151,9 @@ export function AdventureCampaignMap({
   chapter: number;
   selectedId: string;
   onSelect: (id: string) => void;
+  selectedInteractionId?: string | null;
+  interactionStates?: Record<string, AdventureMapInteractionStatus>;
+  onSelectInteraction?: (id: string) => void;
   embedded?: boolean;
   fullScreen?: boolean;
   showOverlayHeader?: boolean;
@@ -600,6 +611,9 @@ export function AdventureCampaignMap({
             prop={prop}
             qaEnabled={qaEnabled}
             selected={selectedEditor?.kind === "prop" && selectedEditor.id === prop.id}
+            interactionStatus={prop.interaction?.id ? interactionStates?.[prop.interaction.id] : undefined}
+            interactionSelected={Boolean(prop.interaction?.id && prop.interaction.id === selectedInteractionId)}
+            onInteractionSelect={onSelectInteraction}
             onSelect={() => setSelectedEditor({ kind: "prop", id: prop.id })}
             onDragStart={() => setDragging({ kind: "prop", id: prop.id })}
           />
@@ -1001,27 +1015,70 @@ function AdventureMapProp({
   prop,
   qaEnabled,
   selected,
+  interactionStatus,
+  interactionSelected,
+  onInteractionSelect,
   onSelect,
   onDragStart,
 }: {
   prop: AdventureMapPropLayout;
   qaEnabled: boolean;
   selected: boolean;
+  interactionStatus?: AdventureMapInteractionStatus;
+  interactionSelected: boolean;
+  onInteractionSelect?: (id: string) => void;
   onSelect: () => void;
   onDragStart: () => void;
 }) {
   if (!prop.enabled && !qaEnabled) return null;
   const content = getPropContent(prop);
-  const visualZIndex = qaEnabled ? prop.zIndex : Math.min(prop.zIndex, 14);
+  const interaction = prop.interaction?.enabled === false ? undefined : prop.interaction;
+  const visualZIndex = qaEnabled ? prop.zIndex : interaction ? Math.max(prop.zIndex, 32) : Math.min(prop.zIndex, 14);
+  const renderedContent = interaction ? (
+    <InteractionPropContent prop={prop} status={interactionStatus ?? "locked"} fallback={content} />
+  ) : (
+    content
+  );
   const style = {
     ...nodeStyle(prop.x, prop.y),
     zIndex: visualZIndex,
     width: getPropWidth(prop),
     height: getPropHeight(prop),
-    opacity: getPropVisualOpacity(prop),
+    opacity: interaction ? prop.opacity ?? 1 : getPropVisualOpacity(prop),
   };
 
   if (!qaEnabled) {
+    if (interaction?.id && onInteractionSelect) {
+      return (
+        <button
+          type="button"
+          className={cn(
+            "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition duration-200",
+            interactionStatus === "ready" && "hover:brightness-125",
+            interactionStatus === "locked" && "opacity-52",
+            interactionStatus === "claimed" && "opacity-45 saturate-75",
+            interactionSelected && "ring-2 ring-[#f5d498]/75 ring-offset-2 ring-offset-black",
+          )}
+          style={style}
+          data-adventure-prop={prop.id}
+          data-adventure-interaction={interaction.id}
+          data-interaction-status={interactionStatus}
+          aria-label={interaction.id}
+          onClick={(event) => {
+            event.stopPropagation();
+            onInteractionSelect(interaction.id);
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            onInteractionSelect(interaction.id);
+          }}
+          onFocus={() => onInteractionSelect(interaction.id)}
+        >
+          {renderedContent}
+          <InteractionPropState status={interactionStatus ?? "locked"} />
+        </button>
+      );
+    }
     return (
       <span
         className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -1059,7 +1116,7 @@ function AdventureMapProp({
         onDragStart();
       }}
     >
-      {content}
+      {renderedContent}
       <span className="pointer-events-none absolute inset-0 rounded-full border border-sky-200/70 bg-sky-200/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.7)]" />
       <span className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-black/82" />
       <span className="pointer-events-none absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-white/45" />
@@ -1106,6 +1163,50 @@ function RouteControlHandle({
         onDragStart();
       }}
     />
+  );
+}
+
+function InteractionPropState({ status }: { status: AdventureMapInteractionStatus }) {
+  if (status === "claimed") {
+    return <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-emerald-200/36 bg-emerald-950/86 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-100">OK</span>;
+  }
+  if (status === "locked") {
+    return <span className="pointer-events-none absolute inset-0 rounded-full border border-white/10 bg-black/10" />;
+  }
+  if (status === "needs_key") {
+    return <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-[#f5d498]/24 bg-black/78 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-[#f5d498]">KEY</span>;
+  }
+  return (
+    <>
+      <span className="pointer-events-none absolute -inset-1 rounded-full border border-[#f5d498]/32 bg-[#f5c451]/7 shadow-[0_0_14px_rgba(245,196,81,0.16)]" />
+      <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-[#f5d498]/34 bg-[#2a1606]/92 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-[#ffe6a8]">OPEN</span>
+    </>
+  );
+}
+
+function InteractionPropContent({
+  prop,
+  status,
+  fallback,
+}: {
+  prop: AdventureMapPropLayout;
+  status: AdventureMapInteractionStatus;
+  fallback: ReactNode;
+}) {
+  if (prop.interaction?.kind !== "keyChest") return <>{fallback}</>;
+  const src = getAdventureMapInteractionAsset(status);
+  return (
+    <span className="relative block h-full w-full">
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-contain drop-shadow-[0_12px_16px_rgba(0,0,0,0.52)]"
+      />
+    </span>
   );
 }
 
@@ -1409,6 +1510,7 @@ function NodeEditorFields({
 
 function PropEditorFields({ prop, onUpdate }: { prop: AdventureMapPropLayout; onUpdate: (patch: Partial<AdventureMapPropLayout>) => void }) {
   const effect = prop.effect;
+  const interaction = prop.interaction;
   return (
     <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
       <Readout label="id" value={prop.id} />
@@ -1466,6 +1568,83 @@ function PropEditorFields({ prop, onUpdate }: { prop: AdventureMapPropLayout; on
           <NumberField label="effect ms" value={effect.durationMs ?? getEffectDuration(effect.type)} onChange={(durationMs) => onUpdate({ effect: { ...effect, durationMs } })} />
         </>
       ) : null}
+      <div className="col-span-2 mt-1 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.16em] text-white/38">Map interaction</div>
+      <label className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/70">
+        <input
+          type="checkbox"
+          checked={interaction?.enabled ?? false}
+          onChange={(event) =>
+            onUpdate({
+              interaction: event.target.checked
+                ? {
+                    id: interaction?.id ?? "c1-lower-cache",
+                    kind: interaction?.kind ?? "keyChest",
+                    keyCost: interaction?.keyCost ?? 1,
+                    unlockAfter: interaction?.unlockAfter ?? ["c1l2"],
+                    rewardId: interaction?.rewardId ?? interaction?.id ?? "c1-lower-cache",
+                    enabled: true,
+                  }
+                : interaction
+                  ? { ...interaction, enabled: false }
+                  : undefined,
+            })
+          }
+        />
+        interaction enabled
+      </label>
+      <SelectField
+        label="kind"
+        value={interaction?.kind ?? "keyChest"}
+        options={ADVENTURE_MAP_INTERACTION_KINDS}
+        onChange={(kind) =>
+          onUpdate({
+            interaction: {
+              ...(interaction ?? { id: "c1-lower-cache", keyCost: 1, unlockAfter: ["c1l2"], enabled: true }),
+              kind: kind as "keyChest",
+            },
+          })
+        }
+      />
+      <TextField
+        label="interaction id"
+        value={interaction?.id ?? ""}
+        className="col-span-2"
+        placeholder="c1-lower-cache"
+        onChange={(id) =>
+          onUpdate({
+            interaction: {
+              ...(interaction ?? { kind: "keyChest", keyCost: 1, unlockAfter: ["c1l2"], enabled: true }),
+              id,
+              rewardId: interaction?.rewardId ?? id,
+            },
+          })
+        }
+      />
+      <NumberField
+        label="key cost"
+        value={interaction?.keyCost ?? 1}
+        onChange={(keyCost) =>
+          onUpdate({
+            interaction: {
+              ...(interaction ?? { id: "c1-lower-cache", kind: "keyChest", unlockAfter: ["c1l2"], enabled: true }),
+              keyCost,
+            },
+          })
+        }
+      />
+      <TextField
+        label="unlock after"
+        value={(interaction?.unlockAfter ?? []).join(", ")}
+        placeholder="c1l2"
+        onChange={(value) =>
+          onUpdate({
+            interaction: {
+              ...(interaction ?? { id: "c1-lower-cache", kind: "keyChest", keyCost: 1, enabled: true }),
+              unlockAfter: parseNodeIdList(value),
+            },
+          })
+        }
+      />
     </div>
   );
 }
@@ -1625,7 +1804,7 @@ export function AdventureMissionPanel({
   const showEnemyFormation = combatNode;
 
   return (
-    <ScreenPanel className="pointer-events-auto overflow-hidden border-[#f5d498]/14 bg-[linear-gradient(180deg,rgba(12,15,22,0.74),rgba(6,8,12,0.88))] p-0 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+    <ScreenPanel className="pointer-events-none overflow-hidden border-[#f5d498]/14 bg-[linear-gradient(180deg,rgba(12,15,22,0.74),rgba(6,8,12,0.88))] p-0 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl">
       <div className="relative">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(245,196,81,0.14),transparent_22%),radial-gradient(circle_at_88%_0%,rgba(143,213,255,0.1),transparent_20%)]" />
         <div className="relative p-2.5">
@@ -1659,13 +1838,13 @@ export function AdventureMissionPanel({
             </div>
 
             <div className="flex items-center gap-2">
-              <SceneButton onClick={onOpenBattle} disabled={cta.disabled} className="min-w-[10.5rem] px-4 py-2.5">
+              <SceneButton onClick={onOpenBattle} disabled={cta.disabled} className="pointer-events-auto min-w-[10.5rem] px-4 py-2.5">
                 {cta.label}
               </SceneButton>
               <button
                 type="button"
                 onClick={onToggleExpanded}
-                className="rounded-full border border-white/12 bg-white/[0.045] px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-white/68 transition hover:border-[#f5d498]/28 hover:text-[#f5d498]"
+                className="pointer-events-auto rounded-full border border-white/12 bg-white/[0.045] px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-white/68 transition hover:border-[#f5d498]/28 hover:text-[#f5d498]"
               >
                 {expanded ? t("options.close") : "Details"}
               </button>
@@ -1738,6 +1917,97 @@ export function AdventureMissionPanel({
   );
 }
 
+export function AdventureMapInteractionPanel({
+  interaction,
+  status,
+  resources,
+  claimedRewards,
+  expanded = false,
+  onToggleExpanded,
+  onClaim,
+}: {
+  interaction: AdventureMapInteractionDefinition;
+  status: AdventureMapInteractionStatus;
+  resources: { adventureKeys: number };
+  claimedRewards?: Rewards | null;
+  expanded?: boolean;
+  onToggleExpanded?: () => void;
+  onClaim: () => void;
+}) {
+  const { t } = useI18n();
+  const rewards = claimedRewards ?? interaction.rewards;
+  const rewardChips = buildRewardChipsFromRewards(rewards, false, t);
+  const primaryReward = rewardChips[0];
+  const statusLabel = getInteractionStatusLabel(status, t);
+  const cta = getInteractionCta(interaction, status, t);
+
+  return (
+    <ScreenPanel className="pointer-events-none overflow-hidden border-[#f5d498]/14 bg-[linear-gradient(180deg,rgba(20,15,8,0.76),rgba(6,8,12,0.88))] p-0 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+      <div className="relative p-2.5">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(245,196,81,0.2),transparent_28%),radial-gradient(circle_at_82%_12%,rgba(143,213,255,0.08),transparent_26%)]" />
+        <div className="relative grid items-center gap-2 md:grid-cols-[minmax(18rem,1fr)_auto_auto_auto]">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-[16px] border border-[#f5d498]/18 bg-[linear-gradient(180deg,rgba(245,196,81,0.18),rgba(11,8,5,0.82))] shadow-[0_10px_24px_rgba(0,0,0,0.32)]">
+              <ProgressionIcon name="reward_chest" size="lg" className="h-11 w-11" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <ScreenBadge tone={status === "ready" ? "gold" : status === "claimed" ? "emerald" : "neutral"}>{statusLabel}</ScreenBadge>
+                <ScreenBadge tone="sky">{t("adventure.mapCache")}</ScreenBadge>
+              </div>
+              <h2 className="mt-1 truncate text-[1.05rem] font-black leading-tight text-white md:text-[1.2rem]">{interaction.title}</h2>
+            </div>
+          </div>
+
+          <MissionFact
+            label={t("adventure.keyCost")}
+            value={`${interaction.keyCost} / ${resources.adventureKeys ?? 0}`}
+            icon="adventure_key"
+          />
+
+          <div className="min-w-0">
+            {primaryReward ? (
+              <RewardChip key={`${primaryReward.label}-${primaryReward.value}`} compact {...primaryReward} />
+            ) : (
+              <ScreenBadge tone="neutral">{t("adventure.rewardOutlook")}</ScreenBadge>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <SceneButton onClick={onClaim} disabled={cta.disabled} className="pointer-events-auto min-w-[10rem] px-4 py-2.5">
+              {cta.label}
+            </SceneButton>
+            <button
+              type="button"
+              onClick={onToggleExpanded}
+              className="pointer-events-auto rounded-full border border-white/12 bg-white/[0.045] px-3 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-white/68 transition hover:border-[#f5d498]/28 hover:text-[#f5d498]"
+            >
+              {expanded ? t("options.close") : "Details"}
+            </button>
+          </div>
+        </div>
+
+        {expanded ? (
+          <div className="relative mt-2 grid gap-2 border-t border-white/10 pt-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="rounded-[16px] border border-white/10 bg-black/18 p-2.5">
+              <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/44">{t("adventure.objective")}</div>
+              <p className="mt-1 text-[11px] leading-4 text-white/62">{interaction.description}</p>
+            </div>
+            <div className="rounded-[16px] border border-white/10 bg-black/18 p-2.5">
+              <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/44">{t("adventure.rewardOutlook")}</div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {rewardChips.map((chip) => (
+                  <RewardChip key={`${chip.label}-${chip.value}`} compact {...chip} />
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </ScreenPanel>
+  );
+}
+
 function getMissionStatusLabel(
   node: AdventureNodeState,
   definition: AdventureNodeDefinition,
@@ -1788,6 +2058,24 @@ function getMissionCta(
   return { label: node.pausedHere ? t("adventure.resumeMission") : t("adventure.startAdventure"), disabled: false };
 }
 
+function getInteractionStatusLabel(status: AdventureMapInteractionStatus, t: TranslateFn) {
+  if (status === "claimed") return t("adventure.claimedNode");
+  if (status === "locked") return t("adventure.routeSealed");
+  if (status === "needs_key") return t("adventure.needsKey");
+  return t("adventure.cacheReady");
+}
+
+function getInteractionCta(
+  interaction: AdventureMapInteractionDefinition,
+  status: AdventureMapInteractionStatus,
+  t: TranslateFn,
+) {
+  if (status === "claimed") return { label: t("adventure.claimedNode"), disabled: true };
+  if (status === "locked") return { label: t("adventure.lockedCta"), disabled: true };
+  if (status === "needs_key") return { label: t("adventure.needsKey"), disabled: true };
+  return { label: interaction.kind === "keyChest" ? t("adventure.openMapCache") : t("adventure.openChest"), disabled: false };
+}
+
 function getNodeTypeLabel(type: AdventureNodeDefinition["type"]) {
   const labels: Record<AdventureNodeDefinition["type"], string> = {
     battle: "Battle",
@@ -1813,12 +2101,14 @@ function getRepeatPolicyLabel(definition: AdventureNodeDefinition, clearedOrClai
   return clearedOrClaimed ? tr("adventure.completed") : tr("adventure.firstClear");
 }
 
-function MissionFact({ label, value, icon }: { label: string; value: string; icon: "adventure" | "battle" | "fortress" | "power" | "rewards" }) {
+function MissionFact({ label, value, icon }: { label: string; value: string; icon: "adventure" | "battle" | "fortress" | "power" | "rewards" | "adventure_key" }) {
   return (
     <div className="min-w-0 rounded-[15px] border border-white/10 bg-white/[0.035] px-2.5 py-1.5">
       <div className="flex items-center gap-1.5">
         {icon === "power" ? (
           <CombatIcon name="leader_power" size="sm" className="h-7 w-7 rounded-[10px]" />
+        ) : icon === "adventure_key" ? (
+          <ResourceIcon kind="adventure_key" size="small" className="h-7 w-7" />
         ) : (
           <GameIcon kind={icon} tone="steel" size="sm" className="h-7 w-7 rounded-[10px]" />
         )}
@@ -1919,7 +2209,7 @@ function RewardChip({
   tone,
   compact,
 }: {
-  icon: "gold" | "gem" | "dust" | "rewards" | "deck";
+  icon: "gold" | "gem" | "dust" | "rewards" | "deck" | "adventure_key";
   label: string;
   value: string;
   tone: "gold" | "sky" | "violet" | "emerald";
@@ -2257,7 +2547,7 @@ function getNodeRole(node: AdventureNodeState, index: number, totalNodes: number
 }
 
 function buildRewardChips(level: AdventureLevel, firstClearAvailable: boolean, t: TranslateFn) {
-  const chips: { icon: "gold" | "gem" | "dust" | "rewards" | "deck"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
+  const chips: { icon: "gold" | "gem" | "dust" | "rewards" | "deck" | "adventure_key"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
   if (level.rewards.gold) chips.push({ icon: "gold", label: t("adventure.reward.gold"), value: `${level.rewards.gold}`, tone: "gold" });
   if (level.rewards.dust) chips.push({ icon: "dust", label: t("adventure.reward.dust"), value: `${level.rewards.dust}`, tone: "violet" });
   if (level.rewards.gems) chips.push({ icon: "gem", label: t("adventure.reward.gems"), value: `${level.rewards.gems}`, tone: "sky" });
@@ -2271,12 +2561,13 @@ function buildRewardChips(level: AdventureLevel, firstClearAvailable: boolean, t
 }
 
 function buildRewardChipsFromRewards(rewards: Rewards, firstClearAvailable: boolean, t: TranslateFn) {
-  const chips: { icon: "gold" | "gem" | "dust" | "rewards" | "deck"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
+  const chips: { icon: "gold" | "gem" | "dust" | "rewards" | "deck" | "adventure_key"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
   if (rewards.gold) chips.push({ icon: "gold", label: t("adventure.reward.gold"), value: `${rewards.gold}`, tone: "gold" });
   if (rewards.dust) chips.push({ icon: "dust", label: t("adventure.reward.dust"), value: `${rewards.dust}`, tone: "violet" });
   if (rewards.gems) chips.push({ icon: "gem", label: t("adventure.reward.gems"), value: `${rewards.gems}`, tone: "sky" });
   if (rewards.accountXp) chips.push({ icon: "rewards", label: "Account XP", value: `${rewards.accountXp}`, tone: "emerald" });
   if (rewards.xp) chips.push({ icon: "rewards", label: "Hero XP", value: `${rewards.xp}`, tone: "emerald" });
+  if (rewards.adventureKeys) chips.push({ icon: "adventure_key", label: t("resources.adventureKeys"), value: `${rewards.adventureKeys}`, tone: "gold" });
   if (firstClearAvailable && (rewards.frontlineCards?.length || rewards.shards?.length)) {
     chips.push({ icon: "rewards", label: t("adventure.reward.firstClear"), value: t("adventure.reward.bonusCache"), tone: "emerald" });
   }

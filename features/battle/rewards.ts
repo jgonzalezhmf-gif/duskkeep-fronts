@@ -12,6 +12,7 @@ export function mergeRewards(...all: (Rewards | undefined)[]): Rewards {
     out.xp = (out.xp ?? 0) + (r.xp ?? 0);
     out.accountXp = (out.accountXp ?? 0) + (r.accountXp ?? 0);
     out.arenaTickets = (out.arenaTickets ?? 0) + (r.arenaTickets ?? 0);
+    out.adventureKeys = (out.adventureKeys ?? 0) + (r.adventureKeys ?? 0);
     for (const s of r.shards ?? []) {
       shardMap.set(s.heroId, (shardMap.get(s.heroId) ?? 0) + s.amount);
     }
@@ -28,6 +29,7 @@ export function mergeRewards(...all: (Rewards | undefined)[]): Rewards {
   if (!out.xp) delete out.xp;
   if (!out.accountXp) delete out.accountXp;
   if (!out.arenaTickets) delete out.arenaTickets;
+  if (!out.adventureKeys) delete out.adventureKeys;
   return out;
 }
 
@@ -36,6 +38,7 @@ export function describeRewards(r: Rewards): string {
   if (r.gold) parts.push(`${r.gold} gold`);
   if (r.dust) parts.push(`${r.dust} dust`);
   if (r.gems) parts.push(`${r.gems} gems`);
+  if (r.adventureKeys) parts.push(`${r.adventureKeys} adventure keys`);
   if (r.arenaTickets) parts.push(`${r.arenaTickets} 🎟 tickets`);
   if (r.xp) parts.push(`${r.xp} hero XP`);
   if (r.accountXp) parts.push(`${r.accountXp} account XP`);

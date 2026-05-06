@@ -7,6 +7,28 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.23.0] - 2026-05-06
+
+### Added
+- Anadido recurso persistente `adventureKeys` para abrir interactuables especiales del mapa de Adventure.
+- Creado sistema `AdventureMapInteraction` con estados `locked`, `needs_key`, `ready` y `claimed`.
+- Asociado el primer cofre interactuable del mapa (`c1-lower-cache`) a un prop editable de `?qa=adventure-map`.
+- Anadido panel compacto de cofre de mapa con coste de llave, recompensa, estado y CTA de apertura sin lanzar combate.
+- Ampliado el editor QA de Adventure para activar/desactivar interacciones en props y exportar `interaction` dentro del JSON.
+- Anadida oferta diaria de Shop `Eclipse Cache Key` para comprar una llave de Adventure.
+- Registrados assets visuales especificos para cofres con llave: locked, needs key, claimable y claimed, ademas de `adventure_key.png`.
+
+### Changed
+- Las primeras limpiezas de `c1l2`, `c1l5` y `c1l11` ahora entregan una llave de Adventure.
+- Los rewards, bursts, previews de batalla y Shop reconocen `adventureKeys` sin cambiar reglas del engine ni recompensas existentes fuera de esos nodos.
+- El cofre interactuable del mapa cambia de PNG segun estado y solo usa un realce localizado cuando esta listo para reclamar.
+- Inicializado el estado tipado de usos por carta en la creacion de mazos Frontline para mantener `typecheck` en verde sin alterar reglas de combate.
+
+### Tested
+- `npm.cmd run test -- tests/adventure.mapInteractions.test.ts tests/rewards.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.22.0] - 2026-05-06
 
 ### Changed

@@ -77,6 +77,10 @@ export type FrontlineCardDef = {
   target: "ally_front" | "enemy_front" | "any_front" | "none";
   effect: FrontlineCardEffect;
   level?: number;
+  /** If set, the card can only be played this many times per battle. Once
+   *  the limit is reached every copy still in deck/hand is removed (no
+   *  reshuffle). Designed for high-impact cards (summons, signatures). */
+  usesPerBattle?: number;
 };
 
 export type FrontlineCardProfileMap = Partial<Record<string, FrontlineCardDef>>;
@@ -144,6 +148,11 @@ export type FrontlineDeckState = {
   command: number;
   powerCooldown: number;
   usedLeaderPower: boolean;
+  /** Card ids that hit their usesPerBattle limit and are removed from the
+   *  draw pool for the rest of the battle. */
+  exhaustedCardIds: string[];
+  /** How many times each card id has been played this battle. */
+  cardUseCounts: Record<string, number>;
 };
 
 export type FrontlineEventKind =

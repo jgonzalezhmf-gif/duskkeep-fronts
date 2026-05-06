@@ -3,10 +3,11 @@ import { mergeRewards, describeRewards } from "@/features/battle/rewards";
 
 describe("rewards", () => {
   it("merges numeric resources", () => {
-    const r = mergeRewards({ gold: 100, dust: 20 }, { gold: 50, gems: 5 });
+    const r = mergeRewards({ gold: 100, dust: 20 }, { gold: 50, gems: 5, adventureKeys: 1 });
     expect(r.gold).toBe(150);
     expect(r.dust).toBe(20);
     expect(r.gems).toBe(5);
+    expect(r.adventureKeys).toBe(1);
   });
   it("merges shards by heroId", () => {
     const r = mergeRewards(

@@ -44,6 +44,11 @@ import {
 } from "@/features/frontline/fortress";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import {
+  ADVENTURE_MAP_INTERACTIONS_BY_ID,
+  getAdventureMapInteractionStatus,
+  type AdventureMapInteractionClaim,
+} from "@/features/adventure/mapInteractions";
+import {
   getAdventureChestClaimRewards,
   getAdventureNodeType,
   type AdventureProgressEntry,
@@ -97,6 +102,7 @@ export type GameState = {
   frontlineCardLevels: FrontlineCardLevels;
   frontlineFortress: FrontlineFortressState;
   adventureProgress: Record<string, AdventureProgressEntry>;
+  adventureMapClaims: Record<string, AdventureMapInteractionClaim>;
   missionsProgress: Record<string, MissionProgress>;
   arenaWins: number;
   arenaLosses: number;
@@ -161,7 +167,7 @@ export type GameActions = {
   setFrontlineGarrisonSlot: (slotIdx: number, heroId: string | null) => void;
   resolveFrontlineFortressRaid: () => ReturnType<typeof resolveFrontlineFortressRaid>["report"] | null;
   awardRewards: (r: Rewards, source?: string) => void;
-  spend: (cost: { gold?: number; gems?: number; dust?: number }) => boolean;
+  spend: (cost: { gold?: number; gems?: number; dust?: number; adventureKeys?: number }) => boolean;
   levelUpHero: (heroId: string) => boolean;
   starUpHero: (heroId: string) => boolean;
   skillUpHero: (heroId: string) => boolean;
@@ -172,6 +178,7 @@ export type GameActions = {
   ) => void;
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
   claimAdventureNode: (levelId: string) => Rewards | null;
+  claimAdventureMapInteraction: (interactionId: string) => Rewards | null;
   claimMission: (missionId: string) => Rewards | null;
   purchaseOffer: (offerId: string) => { ok: boolean; reason?: string };
   pushNotification: (kind: NotificationKind, message: string) => void;
@@ -313,7 +320,7 @@ function defaultInitial(): Omit<GameState, "hydrated" | "notifications"> {
   while (team.length < TEAM_SIZE) team.push(null);
   return {
     account: { name: "Commander", level: 1, xp: 0, createdAt: todayISO() },
-    resources: { gold: 500, dust: 50, gems: 50, arenaTickets: 5 },
+    resources: { gold: 500, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
     heroes,
     team,
     activeDeck: freshStarterDeck(),
@@ -325,6 +332,7 @@ function defaultInitial(): Omit<GameState, "hydrated" | "notifications"> {
     frontlineCardLevels: {},
     frontlineFortress: createDefaultFrontlineFortress(),
     adventureProgress: {},
+    adventureMapClaims: {},
     missionsProgress: {},
     arenaWins: 0,
     arenaLosses: 0,
@@ -595,6 +603,7 @@ export const useGameStore = create<GameState & GameActions>()(
           if (r.dust) resources.dust += r.dust;
           if (r.gems) resources.gems += r.gems;
           if (r.arenaTickets) resources.arenaTickets += r.arenaTickets;
+          if (r.adventureKeys) resources.adventureKeys = (resources.adventureKeys ?? 0) + r.adventureKeys;
           next.resources = resources;
 
           if (r.accountXp) {
@@ -667,12 +676,14 @@ export const useGameStore = create<GameState & GameActions>()(
         if (cost.gold && s.resources.gold < cost.gold) return false;
         if (cost.gems && s.resources.gems < cost.gems) return false;
         if (cost.dust && s.resources.dust < cost.dust) return false;
+        if (cost.adventureKeys && (s.resources.adventureKeys ?? 0) < cost.adventureKeys) return false;
         set((st) => ({
           resources: {
             ...st.resources,
             gold: st.resources.gold - (cost.gold ?? 0),
             gems: st.resources.gems - (cost.gems ?? 0),
             dust: st.resources.dust - (cost.dust ?? 0),
+            adventureKeys: (st.resources.adventureKeys ?? 0) - (cost.adventureKeys ?? 0),
           },
         }));
         return true;
@@ -812,6 +823,46 @@ export const useGameStore = create<GameState & GameActions>()(
         get().updateMissionProgress("adventure_levels_cleared", 1);
         get().awardRewards(rewards, level.name);
         return rewards;
+      },
+
+      claimAdventureMapInteraction: (interactionId) => {
+        const interaction = ADVENTURE_MAP_INTERACTIONS_BY_ID[interactionId];
+        if (!interaction) {
+          get().pushNotification("error", "Map interaction not found");
+          return null;
+        }
+        const s = get();
+        const claim = s.adventureMapClaims[interactionId];
+        const status = getAdventureMapInteractionStatus({
+          interaction,
+          progress: s.adventureProgress,
+          resources: s.resources,
+          claim,
+        });
+        if (status === "claimed") {
+          get().pushNotification("info", "Map cache already claimed");
+          return null;
+        }
+        if (status === "locked") {
+          get().pushNotification("error", "Map cache is still sealed");
+          return null;
+        }
+        if (status === "needs_key") {
+          get().pushNotification("error", "Adventure key required");
+          return null;
+        }
+        if (!get().spend({ adventureKeys: interaction.keyCost })) {
+          get().pushNotification("error", "Adventure key required");
+          return null;
+        }
+        set((st) => ({
+          adventureMapClaims: {
+            ...st.adventureMapClaims,
+            [interactionId]: { claimed: true, claimedAt: localDayKey() },
+          },
+        }));
+        get().awardRewards(interaction.rewards, interaction.title);
+        return interaction.rewards;
       },
 
       claimMission: (missionId) => {
@@ -1024,9 +1075,15 @@ export const useGameStore = create<GameState & GameActions>()(
         return {
           ...current,
           ...p,
+          resources: {
+            ...(current.resources ?? defaultInitial().resources),
+            ...(p.resources ?? {}),
+            adventureKeys: p.resources?.adventureKeys ?? current.resources?.adventureKeys ?? 0,
+          },
           dailyLogin: p.dailyLogin ?? current.dailyLogin ?? { streak: 0, lastClaim: null },
           roadmapClaimed: p.roadmapClaimed ?? current.roadmapClaimed ?? {},
           milestonesClaimed: p.milestonesClaimed ?? current.milestonesClaimed ?? {},
+          adventureMapClaims: p.adventureMapClaims ?? current.adventureMapClaims ?? {},
           activeDeck: mergedDeck,
           activeLeaderId: p.activeLeaderId ?? current.activeLeaderId ?? STARTER_LEADER_ID,
           knownSpellIds: (p.knownSpellIds ?? current.knownSpellIds ?? []).filter((id) => !!CARD_BY_ID[id]),

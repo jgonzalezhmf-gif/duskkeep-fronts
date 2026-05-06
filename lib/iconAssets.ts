@@ -3,7 +3,7 @@ import type { GlyphKind } from "@/components/ui/GameGlyph";
 export type GameAssetIconCategory = "resources" | "nav" | "combat" | "cards" | "fortress" | "progression" | "status" | "shop" | "modes" | "ui";
 export type GameAssetIconSize = "xs" | "sm" | "md" | "lg" | "xl";
 
-export type ResourceAssetIconName = "gold" | "gems" | "gem" | "dust" | "shards" | "tickets" | "command";
+export type ResourceAssetIconName = "gold" | "gems" | "gem" | "dust" | "shards" | "tickets" | "command" | "adventure_key";
 export type NavAssetIconName =
   | "adventure"
   | "deck"
@@ -123,6 +123,7 @@ export const GAME_ICON_ASSET_MANIFEST = {
     shards: `${RESOURCE_ROOT}/shards.png`,
     tickets: `${RESOURCE_ROOT}/tickets.png`,
     command: `${RESOURCE_ROOT}/command.png`,
+    adventure_key: `${RESOURCE_ROOT}/adventure_key.png`,
   },
   nav: {
     adventure: `${NAV_ROOT}/adventure.png`,
@@ -238,6 +239,7 @@ export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind
   shards: "heroes",
   tickets: "tickets",
   command: "power",
+  adventure_key: "rewards",
   adventure: "adventure",
   deck: "deck",
   heroes: "heroes",

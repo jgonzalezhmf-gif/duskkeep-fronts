@@ -86,6 +86,14 @@ export type AdventureMapPropLayout = {
   opacity?: number;
   enabled: boolean;
   effect?: AdventureMapPropEffectLayout;
+  interaction?: {
+    id: string;
+    kind: "keyChest";
+    keyCost?: number;
+    unlockAfter?: string[];
+    rewardId?: string;
+    enabled?: boolean;
+  };
 };
 
 export type AdventureMapPartyMarkerLayout = {
@@ -149,6 +157,8 @@ export const ADVENTURE_MAP_PROP_TYPES: AdventureMapPropType[] = [
   "chest_prop",
   "camp_prop",
 ];
+
+export const ADVENTURE_MAP_INTERACTION_KINDS = ["keyChest"] as const;
 
 export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLayout> = {
   "1": {
@@ -595,6 +605,14 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
           opacity: 0.5,
           durationMs: 820,
           enabled: false
+        },
+        interaction: {
+          id: "c1-lower-cache",
+          kind: "keyChest",
+          keyCost: 1,
+          unlockAfter: ["c1l2"],
+          rewardId: "c1-lower-cache",
+          enabled: true
         }
       }
     ],

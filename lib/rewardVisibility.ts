@@ -26,6 +26,7 @@ export function hasRewardEntries(rewards: Rewards | null | undefined) {
       rewards?.xp ||
       rewards?.accountXp ||
       rewards?.arenaTickets ||
+      rewards?.adventureKeys ||
       rewards?.shards?.length ||
       rewards?.frontlineCards?.length,
   );

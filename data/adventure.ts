@@ -28,7 +28,7 @@ export const ADVENTURE: AdventureLevel[] = [
       { heroId: "tovi", level: 1, stars: 1 },
     ],
     rewards: { gold: 100, xp: 40, accountXp: 12 },
-    firstClearRewards: { gems: 10, shards: [{ heroId: "vex", amount: 3 }] },
+    firstClearRewards: { gems: 10, adventureKeys: 1, shards: [{ heroId: "vex", amount: 3 }] },
   },
   {
     id: "c1l3", chapter: 1, index: 3, name: "Thistle Road",
@@ -66,7 +66,7 @@ export const ADVENTURE: AdventureLevel[] = [
       { heroId: "ren", level: 4, stars: 1 },
     ],
     rewards: { gold: 180, dust: 30, xp: 70, accountXp: 18 },
-    firstClearRewards: { gems: 20, shards: [{ heroId: "ursa", amount: 3 }] },
+    firstClearRewards: { gems: 20, adventureKeys: 1, shards: [{ heroId: "ursa", amount: 3 }] },
     obstacles: [o(0, 2), o(3, 2)],
   },
   {
@@ -143,7 +143,7 @@ export const ADVENTURE: AdventureLevel[] = [
       { heroId: "ursa", level: 9, stars: 2 },
     ],
     rewards: { gold: 360, dust: 70, xp: 150, accountXp: 34 },
-    firstClearRewards: { gems: 30, shards: [{ heroId: "grom", amount: 3 }] },
+    firstClearRewards: { gems: 30, adventureKeys: 1, shards: [{ heroId: "grom", amount: 3 }] },
     obstacles: [o(0, 2), o(2, 2)],
   },
   {

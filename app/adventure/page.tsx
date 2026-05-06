@@ -6,6 +6,11 @@ import { ADVENTURE } from "@/data/adventure";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 import {
+  getAdventureMapInteraction,
+  getAdventureMapInteractionStatus,
+  type AdventureMapInteractionStatus,
+} from "@/features/adventure/mapInteractions";
+import {
   getAdventureNodeDefinition,
   getAdventureNodeType,
   isAdventureClaimed,
@@ -16,6 +21,7 @@ import { getAdventureUnlockedLevelIds, isAdventureChapterDemoLocked } from "@/fe
 import {
   AdventureCampaignMap,
   AdventureMissionPanel,
+  AdventureMapInteractionPanel,
   type AdventureCampaignMeta,
   type AdventureNodeState,
 } from "@/components/game/adventure/AdventureCampaignScene";
@@ -107,8 +113,11 @@ function getLocalizedChapterMeta(chapter: number, t: TranslateFn): AdventureCamp
 export default function AdventureMapPage() {
   const { t } = useI18n();
   const progress = useGameStore((state) => state.adventureProgress);
+  const resources = useGameStore((state) => state.resources);
+  const adventureMapClaims = useGameStore((state) => state.adventureMapClaims);
   const accountLevel = useGameStore((state) => state.account.level);
   const claimAdventureNode = useGameStore((state) => state.claimAdventureNode);
+  const claimAdventureMapInteraction = useGameStore((state) => state.claimAdventureMapInteraction);
   const router = useRouter();
 
   const chapters = useMemo(() => {
@@ -157,10 +166,12 @@ export default function AdventureMapPage() {
       ? chapters.find((chapter) => chapter.chapter === activeChapter) ?? chapters[0]
       : chapters.find((chapter) => chapter.chapter === defaultChapter) ?? chapters[0];
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
   const [chaptersOpen, setChaptersOpen] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [qaMapEditor, setQaMapEditor] = useState(false);
   const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, ReturnType<typeof claimAdventureNode>>>({});
+  const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, ReturnType<typeof claimAdventureMapInteraction>>>({});
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -194,8 +205,35 @@ export default function AdventureMapPage() {
   const selectedDefinition = getAdventureNodeDefinition(selected.lvl);
   const selectedProgress = progress[selected.lvl.id] as AdventureProgressEntry | undefined;
   const claimedRewards = claimedRewardsByNode[selected.lvl.id] ?? null;
+  const interactionStates = (() => {
+    const states: Record<string, AdventureMapInteractionStatus> = {};
+    for (const prop of mapLayout.props ?? []) {
+      const interaction = getAdventureMapInteraction(prop.interaction?.id);
+      if (!interaction || prop.interaction?.enabled === false) continue;
+      states[interaction.id] = getAdventureMapInteractionStatus({
+        interaction,
+        progress,
+        resources,
+        claim: adventureMapClaims[interaction.id],
+      });
+    }
+    return states;
+  })();
+  const selectedInteraction = getAdventureMapInteraction(selectedInteractionId);
+  const selectedInteractionStatus =
+    selectedInteraction && selectedInteractionId
+      ? interactionStates[selectedInteractionId] ??
+        getAdventureMapInteractionStatus({
+          interaction: selectedInteraction,
+          progress,
+          resources,
+          claim: adventureMapClaims[selectedInteractionId],
+        })
+      : null;
+  const selectedInteractionRewards = selectedInteractionId ? claimedRewardsByInteraction[selectedInteractionId] ?? null : null;
 
   function resolveSelectedNode() {
+    setSelectedInteractionId(null);
     if (selected.locked || selectedDefinition.type === "locked") return;
     if (isAdventureClaimed(selectedDefinition.type, selectedProgress)) return;
     if (!isAdventureCombatNode(selectedDefinition.type)) {
@@ -208,6 +246,14 @@ export default function AdventureMapPage() {
     router.push(`/adventure/${selected.lvl.id}`);
   }
 
+  function resolveSelectedInteraction() {
+    if (!selectedInteractionId) return;
+    const rewards = claimAdventureMapInteraction(selectedInteractionId);
+    if (rewards) {
+      setClaimedRewardsByInteraction((current) => ({ ...current, [selectedInteractionId]: rewards }));
+    }
+  }
+
   return (
     <ScreenScaffold scene={meta.scene} dock={false}>
       <div className="relative box-border h-dvh overflow-hidden px-3 pb-4 pt-36 sm:pt-32 md:px-6 md:pt-24 xl:px-8">
@@ -217,7 +263,13 @@ export default function AdventureMapPage() {
           mapLayout={mapLayout}
           chapter={active.chapter}
           selectedId={selected.lvl.id}
-          onSelect={setSelectedId}
+          selectedInteractionId={selectedInteractionId}
+          interactionStates={interactionStates}
+          onSelect={(id) => {
+            setSelectedInteractionId(null);
+            setSelectedId(id);
+          }}
+          onSelectInteraction={setSelectedInteractionId}
           fullScreen
         />
         <div className="pointer-events-none absolute inset-0 z-[11] bg-[radial-gradient(circle_at_50%_42%,transparent_0%,rgba(4,7,13,0.06)_50%,rgba(4,7,13,0.62)_100%)]" />
@@ -297,21 +349,33 @@ export default function AdventureMapPage() {
           {!qaMapEditor ? (
             <div
               className={cn(
-                "pointer-events-auto absolute inset-x-0 mx-auto w-[min(62rem,calc(100vw-1.5rem))]",
+                "pointer-events-none absolute inset-x-0 mx-auto w-[min(62rem,calc(100vw-1.5rem))]",
                 detailsExpanded ? "top-[calc(100dvh-31rem)]" : "top-[calc(100dvh-19rem)]",
               )}
             >
-              <AdventureMissionPanel
-                meta={meta}
-                node={selected}
-                totalNodes={active.nodes.length}
-                nodeDefinition={selectedDefinition}
-                progress={selectedProgress}
-                claimedRewards={claimedRewards}
-                expanded={detailsExpanded}
-                onToggleExpanded={() => setDetailsExpanded((value) => !value)}
-                onOpenBattle={resolveSelectedNode}
-              />
+              {selectedInteraction && selectedInteractionStatus ? (
+                <AdventureMapInteractionPanel
+                  interaction={selectedInteraction}
+                  status={selectedInteractionStatus}
+                  resources={resources}
+                  claimedRewards={selectedInteractionRewards}
+                  expanded={detailsExpanded}
+                  onToggleExpanded={() => setDetailsExpanded((value) => !value)}
+                  onClaim={resolveSelectedInteraction}
+                />
+              ) : (
+                <AdventureMissionPanel
+                  meta={meta}
+                  node={selected}
+                  totalNodes={active.nodes.length}
+                  nodeDefinition={selectedDefinition}
+                  progress={selectedProgress}
+                  claimedRewards={claimedRewards}
+                  expanded={detailsExpanded}
+                  onToggleExpanded={() => setDetailsExpanded((value) => !value)}
+                  onOpenBattle={resolveSelectedNode}
+                />
+              )}
             </div>
           ) : null}
         </div>

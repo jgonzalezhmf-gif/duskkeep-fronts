@@ -106,6 +106,18 @@ export const SHOP_OFFERS: ExtendedShopOffer[] = [
     productLine: "arena",
     contents: { arenaTickets: 3 },
   },
+  {
+    id: "daily_eclipse_cache_key",
+    category: "daily",
+    name: "Eclipse Cache Key",
+    description: "A sealed map key for opening hidden Adventure caches on the Chapter I route.",
+    emoji: "rewards",
+    cost: { gems: 45 },
+    dailyLimit: 1,
+    valueTag: "MAP KEY",
+    productLine: "frontline",
+    contents: { adventureKeys: 1 },
+  },
 
   // ---------- Resources ----------
   {

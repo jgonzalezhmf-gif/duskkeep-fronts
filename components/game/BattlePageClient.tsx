@@ -65,7 +65,7 @@ type ResultContext = {
   rounds: number;
   allyCoreHp: number;
   enemyCoreHp: number;
-  rewards: { gold: number; dust: number; gems: number; accountXp: number; frontlineCards?: { cardId: string }[] };
+  rewards: { gold: number; dust: number; gems: number; accountXp: number; adventureKeys: number; frontlineCards?: { cardId: string }[] };
   resourcesBefore: { gold: number; dust: number; gems: number };
   resourcesAfter: { gold: number; dust: number; gems: number };
   accountBefore: { level: number; xp: number };
@@ -134,7 +134,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const [selectedEnemyPresetId, setSelectedEnemyPresetId] = useState(forcedPresetId ?? FRONTLINE_PRESETS[0].id);
   const [battleSeed, setBattleSeed] = useState(1);
   const [resultContext, setResultContext] = useState<ResultContext | null>(null);
-  const [rewardReveal, setRewardReveal] = useState({ gold: 0, dust: 0, gems: 0, accountXp: 0, progress: 0 });
+  const [rewardReveal, setRewardReveal] = useState({ gold: 0, dust: 0, gems: 0, accountXp: 0, adventureKeys: 0, progress: 0 });
 
   const selectedPreset = useMemo(
     () =>
@@ -195,7 +195,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     setBattleSeed(nextSeed());
     setPhase("battle");
     setResultContext(null);
-    setRewardReveal({ gold: 0, dust: 0, gems: 0, accountXp: 0, progress: 0 });
+    setRewardReveal({ gold: 0, dust: 0, gems: 0, accountXp: 0, adventureKeys: 0, progress: 0 });
   }, [deckReady, nextSeed, squadReady]);
 
   useEffect(() => {
@@ -216,6 +216,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
         dust: Math.round(resultContext.rewards.dust * ratio),
         gems: Math.round(resultContext.rewards.gems * ratio),
         accountXp: Math.round(resultContext.rewards.accountXp * ratio),
+        adventureKeys: Math.round(resultContext.rewards.adventureKeys * ratio),
         progress: ratio,
       });
       if (ratio >= 1) window.clearInterval(interval);
@@ -245,6 +246,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       dust: rewards.dust ?? 0,
       gems: rewards.gems ?? 0,
       accountXp: rewards.accountXp ?? 0,
+      adventureKeys: rewards.adventureKeys ?? 0,
       frontlineCards: rewards.frontlineCards ?? [],
     };
     const resourcesBefore = { gold: resources.gold, dust: resources.dust, gems: resources.gems };
@@ -270,7 +272,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       accountAfter,
     });
     recordBattleResult(won, adventureLevel ? "adventure" : "vsai");
-    if (rewards.gold || rewards.dust || rewards.gems || rewards.accountXp || rewards.xp || rewards.arenaTickets || rewards.shards?.length || rewards.frontlineCards?.length) {
+    if (rewards.gold || rewards.dust || rewards.gems || rewards.accountXp || rewards.xp || rewards.arenaTickets || rewards.adventureKeys || rewards.shards?.length || rewards.frontlineCards?.length) {
       awardRewards(rewards, won && adventureLevel ? adventureLevel.name : won ? t("frontline.victory") : winner === "draw" ? t("frontline.draw") : t("frontline.defeat"));
     }
     setPhase("result");
@@ -359,6 +361,9 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                   <RewardPreview label={t("resources.dust")} value={rewardPreview.dust ?? 0} icon="dust" tone="dust" />
                   <RewardPreview label={t("resources.gems")} value={rewardPreview.gems ?? 0} icon="gems" tone="gems" />
                   <RewardPreview label="XP" value={rewardPreview.accountXp ?? 0} progressionIcon="level_up" tone="xp" />
+                  {rewardPreview.adventureKeys ? (
+                    <RewardPreview label={t("resources.adventureKeys")} value={rewardPreview.adventureKeys} progressionIcon="reward_chest" tone="card" />
+                  ) : null}
                 </div>
                 <Link
                   href="/deck"
@@ -468,7 +473,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                 </div>
               </Panel>
 
-              {!adventureLevel || rewardPreview.frontlineCards?.length ? (
+              {!adventureLevel || rewardPreview.frontlineCards?.length || rewardPreview.adventureKeys ? (
                 <Panel title={t("frontline.rewards")}>
                   <div className="grid grid-cols-2 gap-2">
                     {!adventureLevel ? (
@@ -481,6 +486,9 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                     ) : null}
                     {rewardPreview.frontlineCards?.length ? (
                       <RewardPreview label={t("frontline.cardUnlocks")} value={rewardPreview.frontlineCards.length} progressionIcon="unlock" tone="card" />
+                    ) : null}
+                    {rewardPreview.adventureKeys ? (
+                      <RewardPreview label={t("resources.adventureKeys")} value={rewardPreview.adventureKeys} progressionIcon="reward_chest" tone="card" />
                     ) : null}
                   </div>
                 </Panel>
@@ -534,6 +542,9 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                       <ResultMetric label={t("resources.dust")} value={rewardReveal.dust} finalValue={resultContext.rewards.dust} />
                       <ResultMetric label={t("resources.gems")} value={rewardReveal.gems} finalValue={resultContext.rewards.gems} />
                       <ResultMetric label={t("frontline.accountXp")} value={rewardReveal.accountXp} finalValue={resultContext.rewards.accountXp} icon="level_up" />
+                      {resultContext.rewards.adventureKeys ? (
+                        <ResultMetric label={t("resources.adventureKeys")} value={rewardReveal.adventureKeys} finalValue={resultContext.rewards.adventureKeys} icon="reward_chest" />
+                      ) : null}
                     </div>
 
                     {resultContext.rewards.frontlineCards?.length ? (

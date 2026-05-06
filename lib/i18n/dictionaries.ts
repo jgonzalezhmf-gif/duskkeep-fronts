@@ -69,6 +69,7 @@ export const dictionaries = {
       dust: "Dust",
       gems: "Gems",
       tickets: "Tickets",
+      adventureKeys: "Keys",
     },
     home: {
       commanderGroup: "War Council",
@@ -143,6 +144,11 @@ export const dictionaries = {
       returnToMap: "Return to map",
       cacheAlreadyClaimed: "This cache has already been claimed.",
       cacheOpenHint: "Open this node on the map to resolve its reward without launching combat.",
+      mapCache: "Map cache",
+      keyCost: "Key cost",
+      needsKey: "Needs key",
+      cacheReady: "Cache ready",
+      openMapCache: "Open cache",
       sealedRoute: "Sealed route",
       activeBreach: "Active breach",
       decisiveStrike: "Decisive strike",
@@ -584,6 +590,7 @@ export const dictionaries = {
         xp: "xp",
         accountXp: "account xp",
         tickets: "tickets",
+        adventureKeys: "map key",
         shards: "shards",
       },
       notifications: {
@@ -618,6 +625,11 @@ export const dictionaries = {
         daily_arena_tickets: {
           name: "Arena Entry Writs",
           description: "Refill Arena entries for another ladder push.",
+        },
+        daily_eclipse_cache_key: {
+          name: "Eclipse Cache Key",
+          description: "A sealed map key for opening hidden Adventure caches on the Chapter I route.",
+          valueTag: "MAP KEY",
         },
         keep_construction_chest: {
           name: "Keep Construction Chest",
@@ -1253,6 +1265,7 @@ export const dictionaries = {
       dust: "Polvo",
       gems: "Gemas",
       tickets: "Tickets",
+      adventureKeys: "Llaves",
     },
     home: {
       commanderGroup: "Consejo de guerra",
@@ -1323,6 +1336,11 @@ export const dictionaries = {
       sealed: "Sellada",
       secured: "Asegurada",
       open: "Abierta",
+      mapCache: "Cofre del mapa",
+      keyCost: "Coste de llave",
+      needsKey: "Necesita llave",
+      cacheReady: "Cofre listo",
+      openMapCache: "Abrir cofre",
       routePaused: "Tus fuerzas ya están comprometidas aquí. Retoma y termina la brecha.",
       routeLocked: "Esta rama sigue sellada hasta cumplir los requisitos de ruta y cuenta.",
       routeCleared: "La ruta está asegurada. Repite para limpiar mejor, practicar e ingresar recursos base.",
@@ -1750,6 +1768,7 @@ export const dictionaries = {
         xp: "xp",
         accountXp: "xp cuenta",
         tickets: "tickets",
+        adventureKeys: "llave de mapa",
         shards: "fragmentos",
       },
       notifications: {
@@ -1784,6 +1803,11 @@ export const dictionaries = {
         daily_arena_tickets: {
           name: "Pases de entrada de Arena",
           description: "Recarga entradas de Arena para otro empuje de ladder.",
+        },
+        daily_eclipse_cache_key: {
+          name: "Llave de cofre del Eclipse",
+          description: "Llave sellada para abrir cofres ocultos de Aventura en la ruta del Capitulo I.",
+          valueTag: "LLAVE MAPA",
         },
         keep_construction_chest: {
           name: "Cofre de construccion del Keep",

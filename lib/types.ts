@@ -73,6 +73,7 @@ export type Resources = {
   dust: number;
   gems: number;
   arenaTickets: number;
+  adventureKeys: number;
 };
 
 export type AdventureLevel = {
@@ -106,6 +107,7 @@ export type Rewards = {
   xp?: number;
   accountXp?: number;
   arenaTickets?: number;
+  adventureKeys?: number;
   shards?: { heroId: string; amount: number }[];
   frontlineCards?: { cardId: string }[];
 };

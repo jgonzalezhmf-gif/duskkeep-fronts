@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { translate, useI18n } from "@/lib/i18n/useI18n";
 import type { Rewards } from "@/lib/types";
 
-type FlightKind = "gold" | "dust" | "gems" | "tickets" | "xp" | "shards" | "cards";
+type FlightKind = "gold" | "dust" | "gems" | "tickets" | "keys" | "xp" | "shards" | "cards";
 
 type FlightEntry = {
   kind: FlightKind;
@@ -29,6 +29,7 @@ const RESOURCE_TARGET: Partial<Record<FlightKind, ResourceIconKind>> = {
   dust: "dust",
   gems: "gems",
   tickets: "tickets",
+  keys: "adventure_key",
 };
 
 const FLIGHT_STYLE: Record<FlightKind, string> = {
@@ -36,6 +37,7 @@ const FLIGHT_STYLE: Record<FlightKind, string> = {
   dust: "border-[#efd4ff]/40 bg-[linear-gradient(180deg,rgba(232,204,255,0.98),rgba(96,55,148,0.92))] text-white",
   gems: "border-[#d9f7ff]/40 bg-[linear-gradient(180deg,rgba(212,247,255,0.98),rgba(37,112,166,0.92))] text-[#041923]",
   tickets: "border-[#ffd8b2]/40 bg-[linear-gradient(180deg,rgba(255,220,180,0.98),rgba(172,73,32,0.92))] text-[#2b1104]",
+  keys: "border-[#ffe4a3]/40 bg-[linear-gradient(180deg,rgba(255,233,168,0.98),rgba(118,76,28,0.92))] text-[#241204]",
   xp: "border-emerald-200/36 bg-[linear-gradient(180deg,rgba(172,255,216,0.95),rgba(24,100,72,0.92))] text-[#031611]",
   shards: "border-violet-200/36 bg-[linear-gradient(180deg,rgba(236,212,255,0.95),rgba(91,48,134,0.92))] text-white",
   cards: "border-[#f5d498]/36 bg-[linear-gradient(180deg,rgba(255,229,164,0.95),rgba(117,75,22,0.92))] text-[#241204]",
@@ -47,6 +49,7 @@ function buildFlightEntries(rewards: Rewards, t: (key: string) => string): Fligh
   if (rewards.dust) entries.push({ kind: "dust", label: t("resources.dust"), value: rewards.dust });
   if (rewards.gems) entries.push({ kind: "gems", label: t("resources.gems"), value: rewards.gems });
   if (rewards.arenaTickets) entries.push({ kind: "tickets", label: t("resources.tickets"), value: rewards.arenaTickets });
+  if (rewards.adventureKeys) entries.push({ kind: "keys", label: t("resources.adventureKeys"), value: rewards.adventureKeys });
   const xp = rewards.accountXp ?? rewards.xp ?? 0;
   if (xp) entries.push({ kind: "xp", label: t("frontline.accountXp"), value: xp });
   const shards = rewards.shards?.reduce((sum, shard) => sum + shard.amount, 0) ?? 0;
@@ -91,6 +94,7 @@ export function RewardFlightOverlay({
   const dust = rewards?.dust ?? 0;
   const gems = rewards?.gems ?? 0;
   const arenaTickets = rewards?.arenaTickets ?? 0;
+  const adventureKeys = rewards?.adventureKeys ?? 0;
   const xp = rewards?.accountXp ?? rewards?.xp ?? 0;
   const shards = rewards?.shards?.reduce((sum, shard) => sum + shard.amount, 0) ?? 0;
   const cardUnlocks = rewards?.frontlineCards?.length ?? 0;
@@ -102,13 +106,14 @@ export function RewardFlightOverlay({
           dust,
           gems,
           arenaTickets,
+          adventureKeys,
           accountXp: xp,
           shards: shards ? [{ heroId: "any", amount: shards }] : undefined,
           frontlineCards: cardUnlocks ? Array.from({ length: cardUnlocks }, (_, index) => ({ cardId: `card-${index}` })) : undefined,
         },
         (key) => translate(locale, key),
       ),
-    [arenaTickets, cardUnlocks, dust, gems, gold, locale, shards, xp],
+    [adventureKeys, arenaTickets, cardUnlocks, dust, gems, gold, locale, shards, xp],
   );
   const [items, setItems] = useState<FlightItem[]>([]);
 
@@ -179,6 +184,7 @@ export function RewardFlightOverlay({
 function FlightIcon({ kind }: { kind: FlightKind }) {
   const resourceKind = RESOURCE_TARGET[kind];
   if (resourceKind) return <ResourceIcon kind={resourceKind} size="small" className="h-7 w-7" />;
+  if (kind === "keys") return <ProgressionIcon name="reward_chest" size="sm" />;
   if (kind === "xp") return <ProgressionIcon name="level_up" size="sm" />;
   if (kind === "cards") return <ProgressionIcon name="unlock" size="sm" />;
   return <ProgressionIcon name="star" size="sm" />;
