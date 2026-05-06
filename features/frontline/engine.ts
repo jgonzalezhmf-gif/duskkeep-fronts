@@ -103,11 +103,14 @@ function initBossState(boss: FrontlineBossConfig | null): FrontlineBossState | n
 }
 
 function drawInto(deckState: FrontlineDeckState, amount: number, seed: number) {
+  const exhaustedSet = new Set(deckState.exhaustedCardIds);
   const next = {
     ...deckState,
-    deck: [...deckState.deck],
+    deck: deckState.deck.filter((id) => !exhaustedSet.has(id)),
     hand: [...deckState.hand],
-    discard: [...deckState.discard],
+    discard: deckState.discard.filter((id) => !exhaustedSet.has(id)),
+    exhaustedCardIds: [...deckState.exhaustedCardIds],
+    cardUseCounts: { ...deckState.cardUseCounts },
   };
   const rng = createRng(seed);
   for (let draw = 0; draw < amount && next.hand.length < HAND_MAX; draw += 1) {
@@ -890,16 +893,39 @@ export function playableCards(state: FrontlineBattleState, side: FrontlineSide) 
     .filter((card) => effectiveCardCost(state, side, card.cost) <= ownDeck(state, side).command);
 }
 
-function removeHandCard(deck: FrontlineDeckState, cardId: string) {
+function consumeHandCard(deck: FrontlineDeckState, card: FrontlineCardDef) {
+  const cardId = card.id;
   const handIndex = deck.hand.indexOf(cardId);
   if (handIndex === -1) return deck;
-  const next = {
+
+  const nextUseCounts = { ...deck.cardUseCounts, [cardId]: (deck.cardUseCounts[cardId] ?? 0) + 1 };
+  const reachedLimit = card.usesPerBattle != null && nextUseCounts[cardId] >= card.usesPerBattle;
+
+  const newHand = [...deck.hand];
+  newHand.splice(handIndex, 1);
+
+  if (reachedLimit) {
+    // Card hits its battle-wide limit. Remove every remaining copy from
+    // hand + deck + discard and add the id to exhaustedCardIds so reshuffles
+    // can never pull it again.
+    return {
+      ...deck,
+      hand: newHand.filter((id) => id !== cardId),
+      deck: deck.deck.filter((id) => id !== cardId),
+      discard: deck.discard.filter((id) => id !== cardId),
+      exhaustedCardIds: deck.exhaustedCardIds.includes(cardId)
+        ? deck.exhaustedCardIds
+        : [...deck.exhaustedCardIds, cardId],
+      cardUseCounts: nextUseCounts,
+    };
+  }
+
+  return {
     ...deck,
-    hand: [...deck.hand],
+    hand: newHand,
     discard: [...deck.discard, cardId],
+    cardUseCounts: nextUseCounts,
   };
-  next.hand.splice(handIndex, 1);
-  return next;
 }
 
 export function playCard(
@@ -985,7 +1011,7 @@ export function playCard(
     }
   }
 
-  const nextDeck = removeHandCard({ ...deck, command: deck.command - cost }, card.id);
+  const nextDeck = consumeHandCard({ ...deck, command: deck.command - cost }, card);
   setOwnDeck(next, side, nextDeck);
   return next;
 }

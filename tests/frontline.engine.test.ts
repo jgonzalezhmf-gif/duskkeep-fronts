@@ -127,6 +127,25 @@ describe("frontline engine", () => {
     expect(afterRound.round).toBe(2);
   });
 
+  it("exhausts limited-use cards: every copy disappears from deck/hand once the cap is reached", () => {
+    const state = makeState();
+    state.allyDeck.hand = ["summon_wolf", "summon_wolf", "tactic_battle_hymn"];
+    state.allyDeck.deck = ["summon_wolf", "tactic_battle_hymn"];
+    state.allyDeck.discard = ["summon_wolf"];
+    state.allyDeck.command = 5;
+    state.lanes.left.allySupport = null;
+
+    const next = playCard(state, "ally", "summon_wolf", "left");
+
+    expect(next.allyDeck.exhaustedCardIds).toContain("summon_wolf");
+    expect(next.allyDeck.hand).not.toContain("summon_wolf");
+    expect(next.allyDeck.deck).not.toContain("summon_wolf");
+    expect(next.allyDeck.discard).not.toContain("summon_wolf");
+    expect(next.allyDeck.cardUseCounts.summon_wolf).toBe(1);
+    // The non-limited card stays in deck/discard untouched.
+    expect(next.allyDeck.hand).toContain("tactic_battle_hymn");
+  });
+
   it("does not freeze the enemy turn when a heal-only hand has no valid target", () => {
     const state = makeState();
     state.enemyDeck.hand = ["enemy_tactic_blood_rite"];
