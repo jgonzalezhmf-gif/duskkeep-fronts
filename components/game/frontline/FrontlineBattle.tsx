@@ -1693,8 +1693,11 @@ function FrontlineBattleInner({
         <section className="relative overflow-visible rounded-[28px] border border-[#f5d498]/10 bg-[linear-gradient(180deg,rgba(255,236,185,0.026),rgba(0,0,0,0.055))] px-3 pb-3 pt-3 shadow-[inset_0_1px_0_rgba(245,212,152,0.035)] backdrop-blur-[1px] md:px-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("frontline.hand")}</div>
-            <div className="rounded-full bg-white/[0.055] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/62">
-              {t("frontline.handFooter", { deck: state.allyDeck.deck.length, discard: state.allyDeck.discard.length })}
+            <div className="flex items-center gap-2">
+              <ExhaustedPane allyDeck={state.allyDeck} enemyDeck={state.enemyDeck} />
+              <div className="rounded-full bg-white/[0.055] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/62">
+                {t("frontline.handFooter", { deck: state.allyDeck.deck.length, discard: state.allyDeck.discard.length })}
+              </div>
             </div>
           </div>
 
@@ -1827,6 +1830,16 @@ function FrontlineHandCard({
         <span>{cardFamilyLabel(t, card)}</span>
         <span>{cardName}</span>
       </div>
+
+      {card.usesPerBattle ? (
+        <div
+          className="absolute left-2 top-2 z-[3] inline-flex items-center gap-1 rounded-full border border-violet-300/70 bg-violet-500/30 px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-violet-50 shadow-[0_0_14px_rgba(180,120,255,0.36)] backdrop-blur-sm"
+          title={t("frontline.cardLimitedTimes", { count: card.usesPerBattle })}
+        >
+          <CombatIcon name="leader_power" size="xs" fallbackClassName="opacity-90" />
+          <span>{card.usesPerBattle}×</span>
+        </div>
+      ) : null}
       <div
         className={cn(
           "absolute right-2 top-2 z-[3] inline-flex h-9 min-w-12 shrink-0 items-center justify-center gap-1 rounded-full px-2 text-lg font-black shadow-[0_0_24px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
@@ -1869,6 +1882,62 @@ function FrontlineHandCard({
         </div>
       ) : null}
     </button>
+  );
+}
+
+function ExhaustedPane({
+  allyDeck,
+  enemyDeck,
+}: {
+  allyDeck: FrontlineBattleState["allyDeck"];
+  enemyDeck: FrontlineBattleState["enemyDeck"];
+}) {
+  const { t } = useI18n();
+  const ally = allyDeck.exhaustedCardIds;
+  const enemy = enemyDeck.exhaustedCardIds;
+  if (ally.length === 0 && enemy.length === 0) return null;
+  const cardName = (cardId: string) => {
+    const card = FRONTLINE_CARD_BY_ID[cardId];
+    return card ? frontlineCardName(t, card) : cardId;
+  };
+  return (
+    <details className="group/exhaust rounded-full border border-violet-300/40 bg-violet-500/14 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-violet-50 backdrop-blur-sm">
+      <summary className="flex cursor-pointer list-none items-center gap-1.5">
+        <CombatIcon name="leader_power" size="xs" fallbackClassName="opacity-90" />
+        <span>{t("frontline.exhaustedPaneTitle")}</span>
+        <span className="opacity-72">{ally.length + enemy.length}</span>
+      </summary>
+      <div className="mt-2 grid gap-2 pb-1 text-[9px] tracking-[0.14em]">
+        <div>
+          <div className="text-cyan-100/80">{t("frontline.exhaustedPaneAlly")}</div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {ally.length === 0 ? (
+              <span className="opacity-60">{t("frontline.exhaustedPaneEmpty")}</span>
+            ) : (
+              ally.map((id) => (
+                <span key={`ally-${id}`} className="rounded-full border border-cyan-200/30 bg-cyan-300/14 px-2 py-0.5 text-cyan-50">
+                  {cardName(id)}
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="text-rose-100/80">{t("frontline.exhaustedPaneEnemy")}</div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {enemy.length === 0 ? (
+              <span className="opacity-60">{t("frontline.exhaustedPaneEmpty")}</span>
+            ) : (
+              enemy.map((id) => (
+                <span key={`enemy-${id}`} className="rounded-full border border-rose-200/30 bg-rose-300/14 px-2 py-0.5 text-rose-50">
+                  {cardName(id)}
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </details>
   );
 }
 

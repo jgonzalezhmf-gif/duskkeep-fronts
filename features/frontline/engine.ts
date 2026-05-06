@@ -1013,6 +1013,18 @@ export function playCard(
 
   const nextDeck = consumeHandCard({ ...deck, command: deck.command - cost }, card);
   setOwnDeck(next, side, nextDeck);
+  const becameExhausted =
+    !deck.exhaustedCardIds.includes(card.id) && nextDeck.exhaustedCardIds.includes(card.id);
+  if (becameExhausted) {
+    pushEvent(next, {
+      kind: "card",
+      side,
+      label: `${card.name} exhausted`,
+      emphasis: "mid",
+      signature: "exhaust",
+      signatureId: card.id,
+    });
+  }
   return next;
 }
 

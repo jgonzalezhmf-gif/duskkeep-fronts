@@ -176,7 +176,7 @@ export type FrontlineEvent = {
   label: string;
   amount?: number;
   emphasis?: "high" | "mid" | "low";
-  signature?: "charge" | "cast";
+  signature?: "charge" | "cast" | "exhaust";
   signatureId?: string;
   subKind?: "hero" | "support";
 };
