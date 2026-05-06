@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.5] - 2026-05-06
+
+### Added
+- Registrado `gold_shine_loop.png` como efecto de interaccion de Adventure y aplicado solo al cofre listo para abrir, con ventana de frames fija y opacidad controlada.
+- Ampliados tests de cofres/llaves para cubrir fuentes first-clear, replay sin llaves y oferta diaria `adventure_key_ring`.
+
+### Changed
+- Renombrada la oferta de llave de Shop a `adventure_key_ring` manteniendo coste de 45 gems, limite diario 1 y recompensa `{ adventureKeys: 1 }`.
+- Reforzado el cofre claimable con brillo localizado sin particulas globales ni circulos genericos.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run test -- tests/adventure.mapInteractions.test.ts tests/rewards.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+- Validacion browser acotada en `/adventure`, `/shop` y `/?qa=adventure-map`.
+
 ## [0.24.4] - 2026-05-06
 
 ### Changed

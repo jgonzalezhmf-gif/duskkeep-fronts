@@ -644,7 +644,7 @@ export const dictionaries = {
           name: "Arena Entry Writs",
           description: "Refill Arena entries for another ladder push.",
         },
-        daily_eclipse_cache_key: {
+        adventure_key_ring: {
           name: "Eclipse Cache Key",
           description: "A sealed map key for opening hidden Adventure caches on the Chapter I route.",
           valueTag: "MAP KEY",
@@ -1840,7 +1840,7 @@ export const dictionaries = {
           name: "Pases de entrada de Arena",
           description: "Recarga entradas de Arena para otro empuje de ladder.",
         },
-        daily_eclipse_cache_key: {
+        adventure_key_ring: {
           name: "Llave de cofre del Eclipse",
           description: "Llave sellada para abrir cofres ocultos de Aventura en la ruta del Capitulo I.",
           valueTag: "LLAVE MAPA",

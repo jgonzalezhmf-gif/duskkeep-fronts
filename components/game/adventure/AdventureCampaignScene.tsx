@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type Keyboard
 import type { AdventureLevel, Rewards } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { getScreenBackgroundAsset } from "@/lib/screenBackgroundAssets";
-import { getAdventureMapInteractionAsset } from "@/lib/adventureMapInteractionAssets";
+import { getAdventureMapInteractionAsset, getAdventureMapInteractionEffectAsset } from "@/lib/adventureMapInteractionAssets";
 import {
   ADVENTURE_PROP_ASSET_IDS,
   getAdventureNodeAsset,
@@ -1224,6 +1224,7 @@ function InteractionPropContent({
 }) {
   if (prop.interaction?.kind !== "keyChest") return <>{fallback}</>;
   const src = getAdventureMapInteractionAsset(status);
+  const shine = getAdventureMapInteractionEffectAsset("gold_shine_loop");
   return (
     <span
       className={cn(
@@ -1231,6 +1232,17 @@ function InteractionPropContent({
         status === "ready" && "animate-[adventureKeyChestGlow_1.85s_ease-in-out_infinite]",
       )}
     >
+      {status === "ready" && shine ? (
+        <span className="pointer-events-none absolute left-[50%] top-[43%] z-[0] block h-[58%] w-[58%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[42%] opacity-55">
+          <span
+            className="absolute left-0 top-0 h-full bg-[image:var(--adventure-gold-shine)] bg-[length:100%_100%] bg-no-repeat motion-safe:animate-[adventureGoldShineLoop_1.05s_steps(6)_infinite] motion-reduce:hidden"
+            style={{
+              width: `${shine.frameCount * 100}%`,
+              ["--adventure-gold-shine" as string]: `url(${shine.src})`,
+            }}
+          />
+        </span>
+      ) : null}
       <img
         src={src}
         alt=""
@@ -2422,6 +2434,15 @@ function AdventureMapInteractionStyles() {
         }
         48% {
           filter: brightness(1.14) saturate(1.16);
+        }
+      }
+
+      @keyframes adventureGoldShineLoop {
+        from {
+          transform: translate3d(0, 0, 0);
+        }
+        to {
+          transform: translate3d(-83.333333%, 0, 0);
         }
       }
     `}</style>
