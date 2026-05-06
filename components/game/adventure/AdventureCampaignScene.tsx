@@ -28,7 +28,13 @@ import {
   type AdventureMapRouteState,
   type AdventureNodeLayout,
 } from "./adventureMapLayout";
-import type { AdventureMapInteractionDefinition, AdventureMapInteractionStatus } from "@/features/adventure/mapInteractions";
+import {
+  type AdventureMapInteractionClaim,
+  type AdventureMapInteractionDefinition,
+  type AdventureMapInteractionLootTier,
+  type AdventureMapInteractionOpenResult,
+  type AdventureMapInteractionStatus,
+} from "@/features/adventure/mapInteractions";
 import { FRONTLINE_CARD_BY_ID } from "@/features/frontline/data";
 import { getFrontlineAdventureSquad, getFrontlinePresetForAdventure } from "@/features/frontline/adventure";
 import {
@@ -1041,6 +1047,7 @@ function AdventureMapProp({
   );
   const style = {
     ...nodeStyle(prop.x, prop.y),
+    transform: `translate(-50%, -50%) rotate(${prop.rotation ?? 0}deg)`,
     zIndex: visualZIndex,
     width: getPropWidth(prop),
     height: getPropHeight(prop),
@@ -1069,6 +1076,14 @@ function AdventureMapProp({
             onInteractionSelect(interaction.id);
           }}
           onPointerDown={(event) => {
+            event.stopPropagation();
+            onInteractionSelect(interaction.id);
+          }}
+          onMouseDown={(event) => {
+            event.stopPropagation();
+            onInteractionSelect(interaction.id);
+          }}
+          onPointerUp={(event) => {
             event.stopPropagation();
             onInteractionSelect(interaction.id);
           }}
@@ -1520,6 +1535,7 @@ function PropEditorFields({ prop, onUpdate }: { prop: AdventureMapPropLayout; on
       <NumberField label="width" value={getPropWidth(prop)} onChange={(width) => onUpdate({ width, size: undefined })} />
       <NumberField label="height" value={getPropHeight(prop)} onChange={(height) => onUpdate({ height, size: undefined })} />
       <NumberField label="z" value={prop.zIndex} onChange={(zIndex) => onUpdate({ zIndex })} />
+      <NumberField label="rotation" value={prop.rotation ?? 0} step={1} onChange={(rotation) => onUpdate({ rotation })} />
       <NumberField label="opacity" value={prop.opacity ?? 1} step={0.05} onChange={(opacity) => onUpdate({ opacity })} />
       <label className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/70">
         <input type="checkbox" checked={prop.enabled} onChange={(event) => onUpdate({ enabled: event.target.checked })} />
@@ -1921,7 +1937,8 @@ export function AdventureMapInteractionPanel({
   interaction,
   status,
   resources,
-  claimedRewards,
+  claimedResult,
+  persistedClaim,
   expanded = false,
   onToggleExpanded,
   onClaim,
@@ -1929,15 +1946,17 @@ export function AdventureMapInteractionPanel({
   interaction: AdventureMapInteractionDefinition;
   status: AdventureMapInteractionStatus;
   resources: { adventureKeys: number };
-  claimedRewards?: Rewards | null;
+  claimedResult?: AdventureMapInteractionOpenResult | null;
+  persistedClaim?: AdventureMapInteractionClaim;
   expanded?: boolean;
   onToggleExpanded?: () => void;
   onClaim: () => void;
 }) {
   const { t } = useI18n();
-  const rewards = claimedRewards ?? interaction.rewards;
-  const rewardChips = buildRewardChipsFromRewards(rewards, false, t);
-  const primaryReward = rewardChips[0];
+  const revealedRewards = claimedResult?.rewards ?? persistedClaim?.rewards ?? null;
+  const rewardChips = revealedRewards ? buildRewardChipsFromRewards(revealedRewards, false, t) : [];
+  const lootTier = claimedResult?.lootTier ?? persistedClaim?.lootTier ?? null;
+  const lootTitle = claimedResult?.lootTitle ?? persistedClaim?.lootTitle ?? null;
   const statusLabel = getInteractionStatusLabel(status, t);
   const cta = getInteractionCta(interaction, status, t);
 
@@ -1955,7 +1974,7 @@ export function AdventureMapInteractionPanel({
                 <ScreenBadge tone={status === "ready" ? "gold" : status === "claimed" ? "emerald" : "neutral"}>{statusLabel}</ScreenBadge>
                 <ScreenBadge tone="sky">{t("adventure.mapCache")}</ScreenBadge>
               </div>
-              <h2 className="mt-1 truncate text-[1.05rem] font-black leading-tight text-white md:text-[1.2rem]">{interaction.title}</h2>
+              <h2 className="mt-1 truncate text-[1.05rem] font-black leading-tight text-white md:text-[1.2rem]">{lootTitle ?? interaction.title}</h2>
             </div>
           </div>
 
@@ -1966,10 +1985,13 @@ export function AdventureMapInteractionPanel({
           />
 
           <div className="min-w-0">
-            {primaryReward ? (
-              <RewardChip key={`${primaryReward.label}-${primaryReward.value}`} compact {...primaryReward} />
+            {revealedRewards && rewardChips[0] ? (
+              <RewardChip key={`${rewardChips[0].label}-${rewardChips[0].value}`} compact {...rewardChips[0]} />
             ) : (
-              <ScreenBadge tone="neutral">{t("adventure.rewardOutlook")}</ScreenBadge>
+              <div className="rounded-[15px] border border-[#f5d498]/16 bg-[#100c06]/54 px-3 py-2">
+                <div className="text-[8px] font-black uppercase tracking-[0.18em] text-[#f5d498]/58">{t("adventure.rewardOutlook")}</div>
+                <div className="mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#ffe6a8]">{t("adventure.mysteryCache")}</div>
+              </div>
             )}
           </div>
 
@@ -1994,17 +2016,71 @@ export function AdventureMapInteractionPanel({
               <p className="mt-1 text-[11px] leading-4 text-white/62">{interaction.description}</p>
             </div>
             <div className="rounded-[16px] border border-white/10 bg-black/18 p-2.5">
-              <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/44">{t("adventure.rewardOutlook")}</div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {rewardChips.map((chip) => (
-                  <RewardChip key={`${chip.label}-${chip.value}`} compact {...chip} />
-                ))}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/44">{t("adventure.rewardOutlook")}</div>
+                {lootTier ? <ScreenBadge tone={getLootTierTone(lootTier)}>{getLootTierLabel(lootTier, t)}</ScreenBadge> : null}
               </div>
+              {revealedRewards ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {rewardChips.map((chip) => (
+                    <RewardChip key={`${chip.label}-${chip.value}`} compact {...chip} />
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    <ScreenBadge tone="neutral">{t("adventure.lootCommon")}</ScreenBadge>
+                    <ScreenBadge tone="sky">{t("adventure.lootRare")}</ScreenBadge>
+                    <ScreenBadge tone="ember">{t("adventure.lootEpic")}</ScreenBadge>
+                    <ScreenBadge tone="gold">{t("adventure.lootLegendary")}</ScreenBadge>
+                  </div>
+                  <p className="text-[10px] leading-4 text-white/48">{t("adventure.cacheUnknownHint")}</p>
+                </div>
+              )}
             </div>
           </div>
         ) : null}
       </div>
     </ScreenPanel>
+  );
+}
+
+export function AdventureCacheRevealOverlay({
+  result,
+  onClose,
+}: {
+  result: AdventureMapInteractionOpenResult;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const rewardChips = buildRewardChipsFromRewards(result.rewards, false, t);
+  const tierTone = getLootTierTone(result.lootTier);
+
+  return (
+    <div className="pointer-events-auto fixed inset-0 z-[95] grid place-items-center bg-black/58 px-4 backdrop-blur-sm">
+      <div className="frontline-motion-reward relative w-[min(42rem,calc(100vw-2rem))] overflow-hidden rounded-[34px] border border-[#f5d498]/24 bg-[linear-gradient(180deg,rgba(53,35,13,0.94),rgba(7,8,13,0.96))] p-5 text-center shadow-[0_28px_90px_rgba(0,0,0,0.58)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(245,196,81,0.24),transparent_32%),radial-gradient(circle_at_50%_58%,rgba(255,231,164,0.1),transparent_46%)]" />
+        <div className="pointer-events-none absolute inset-x-10 top-3 h-px bg-[linear-gradient(90deg,transparent,rgba(255,232,170,0.58),transparent)]" />
+        <div className="relative">
+          <div className="mx-auto grid h-24 w-24 place-items-center rounded-[28px] border border-[#f5d498]/24 bg-[linear-gradient(180deg,rgba(245,196,81,0.18),rgba(9,8,12,0.84))] shadow-[0_16px_34px_rgba(0,0,0,0.42)]">
+            <ProgressionIcon name="reward_chest" size="xl" className="h-24 w-24" />
+          </div>
+          <div className="mt-4 flex justify-center">
+            <ScreenBadge tone={tierTone}>{getLootTierLabel(result.lootTier, t)}</ScreenBadge>
+          </div>
+          <h2 className="mt-2 text-2xl font-black text-white md:text-3xl">{result.lootTitle}</h2>
+          <p className="mx-auto mt-2 max-w-[34rem] text-sm leading-6 text-white/62">{t("adventure.cacheRevealBody")}</p>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            {rewardChips.map((chip) => (
+              <RewardChip key={`${chip.label}-${chip.value}`} {...chip} compact={false} />
+            ))}
+          </div>
+          <SceneButton onClick={onClose} className="mt-6 px-6 py-3">
+            {t("common.continue")}
+          </SceneButton>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2074,6 +2150,20 @@ function getInteractionCta(
   if (status === "locked") return { label: t("adventure.lockedCta"), disabled: true };
   if (status === "needs_key") return { label: t("adventure.needsKey"), disabled: true };
   return { label: interaction.kind === "keyChest" ? t("adventure.openMapCache") : t("adventure.openChest"), disabled: false };
+}
+
+function getLootTierLabel(tier: AdventureMapInteractionLootTier, t: TranslateFn) {
+  if (tier === "legendary") return t("adventure.lootLegendary").replace(" 5%", "");
+  if (tier === "epic") return t("adventure.lootEpic").replace(" 15%", "");
+  if (tier === "rare") return t("adventure.lootRare").replace(" 30%", "");
+  return t("adventure.lootCommon").replace(" 50%", "");
+}
+
+function getLootTierTone(tier: AdventureMapInteractionLootTier): "neutral" | "gold" | "emerald" | "sky" | "ember" {
+  if (tier === "legendary") return "gold";
+  if (tier === "epic") return "ember";
+  if (tier === "rare") return "sky";
+  return "neutral";
 }
 
 function getNodeTypeLabel(type: AdventureNodeDefinition["type"]) {

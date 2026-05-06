@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   ADVENTURE_MAP_INTERACTIONS_BY_ID,
   getAdventureMapInteractionStatus,
+  isAdventureKeySystemUnlocked,
   isAdventureMapInteractionUnlocked,
+  rollAdventureMapInteractionLoot,
 } from "@/features/adventure/mapInteractions";
 
 describe("Adventure map interactions", () => {
@@ -22,6 +24,7 @@ describe("Adventure map interactions", () => {
   it("requires an adventure key after the route unlocks", () => {
     const progress = { c1l2: { cleared: true, firstClearTaken: true } };
 
+    expect(isAdventureKeySystemUnlocked(progress)).toBe(true);
     expect(
       getAdventureMapInteractionStatus({
         interaction: cache,
@@ -47,5 +50,13 @@ describe("Adventure map interactions", () => {
         claim: { claimed: true, claimedAt: "2026-05-06" },
       }),
     ).toBe("claimed");
+  });
+
+  it("rolls a single hidden loot bundle instead of exposing fixed rewards", () => {
+    const result = rollAdventureMapInteractionLoot(cache, 42);
+
+    expect(result.interactionId).toBe(cache.id);
+    expect(cache.lootTable.some((entry) => entry.id === result.lootId)).toBe(true);
+    expect(result.rewards).toEqual(cache.lootTable.find((entry) => entry.id === result.lootId)?.rewards);
   });
 });

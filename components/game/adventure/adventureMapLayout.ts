@@ -82,6 +82,7 @@ export type AdventureMapPropLayout = {
   size?: number;
   width?: number;
   height?: number;
+  rotation?: number;
   zIndex: number;
   opacity?: number;
   enabled: boolean;
@@ -589,11 +590,12 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       {
         id: "hidden_glow-moo7kw8v",
         type: "hidden_glow",
-        x: 1416,
-        y: 705,
-        width: 52,
-        height: 52,
-        zIndex: 35,
+        x: 1698,
+        y: 962,
+        width: 118,
+        height: 84,
+        rotation: -4,
+        zIndex: 36,
         opacity: 1,
         enabled: true,
         effect: {

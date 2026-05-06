@@ -108,7 +108,7 @@ export const SHOP_OFFERS: ExtendedShopOffer[] = [
   },
   {
     id: "daily_eclipse_cache_key",
-    category: "daily",
+    category: "featured",
     name: "Eclipse Cache Key",
     description: "A sealed map key for opening hidden Adventure caches on the Chapter I route.",
     emoji: "rewards",

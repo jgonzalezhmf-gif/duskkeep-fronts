@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.0] - 2026-05-06
+
+### Added
+- Anadido loot ponderado para cofres de llave de Adventure con tiers `common` 50%, `rare` 30%, `epic` 15% y `legendary` 5%.
+- Anadido reveal central de apertura del cofre con resultado oculto hasta reclamarlo y persistencia del lote obtenido.
+- Anadida visualizacion condicional de `adventureKeys` en la barra de recursos solo en Adventure/Shop tras desbloquear la primera llave.
+- Anadido soporte de rotacion en props del editor `?qa=adventure-map` para encajar cofres/interactuables sobre el arte del mapa.
+
+### Changed
+- Reposicionado y redimensionado el cofre interactuable de Chapter I para cubrir el cofre pintado abajo a la derecha del mapa.
+- El panel del cofre ya no revela recompensas exactas antes de abrirlo; muestra probabilidades y el resultado despues de reclamar.
+- Shop oculta la oferta de llave hasta que el sistema de llaves se desbloquea con `c1l2`.
+- Limpiado `adventure_key.png` para eliminar el fondo gris del asset y usarlo como icono real de recurso/oferta.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run test -- tests/adventure.mapInteractions.test.ts tests/rewards.test.ts`
+
 ## [0.23.0] - 2026-05-06
 
 ### Added

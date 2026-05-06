@@ -24,6 +24,7 @@ import {
   type ShopCategory,
 } from "@/data/shop";
 import { isShopSectionUnlocked } from "@/data/unlocks";
+import { isAdventureKeySystemUnlocked } from "@/features/adventure/mapInteractions";
 import { describeRewards } from "@/features/battle/rewards";
 import { FRONTLINE_CARD_BY_ID, FRONTLINE_HERO_BY_ID } from "@/features/frontline/data";
 import { sfx } from "@/lib/audio";
@@ -205,6 +206,7 @@ export default function ShopPage() {
   const purchaseFxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const purchaseFxNonce = useRef(0);
   const resources = useGameStore((s) => s.resources);
+  const adventureProgress = useGameStore((s) => s.adventureProgress);
   const level = useGameStore((s) => s.account.level);
   const buy = useGameStore((s) => s.purchaseOffer);
   const pushNote = useGameStore((s) => s.pushNotification);
@@ -227,6 +229,7 @@ export default function ShopPage() {
   const offers = useMemo(() => SHOP_OFFERS.filter((offer) => offer.category === category), [category]);
   const displayLevel = clientReady ? level : INITIAL_SHOP_LEVEL;
   const displayResources = clientReady ? resources : INITIAL_SHOP_RESOURCES;
+  const adventureKeysUnlocked = clientReady && isAdventureKeySystemUnlocked(adventureProgress);
   const resetLabel = clientReady ? fmtMs(ms) : RESET_PLACEHOLDER;
   const getVisibleRemaining = (offer: ExtendedShopOffer) => (clientReady ? remaining(offer.id) : offer.dailyLimit ?? null);
   const getVisibleBought = (offer: ExtendedShopOffer) =>
@@ -236,6 +239,7 @@ export default function ShopPage() {
   const visibleOffers = offers.filter((offer) => {
     const isFeedbackOffer = purchaseFx?.offerId === offer.id;
     if (isFeedbackOffer) return true;
+    if (offer.contents.adventureKeys && !adventureKeysUnlocked) return false;
     return !isOfferConsumed(offer, getVisibleRemaining(offer), getVisibleBought(offer), clientReady);
   });
   const featured = visibleOffers[0] ?? null;
@@ -260,7 +264,7 @@ export default function ShopPage() {
 
   return (
     <ScreenScaffold scene="shop" dock={false} hud={false} homeNav={false}>
-      <MarketTopChrome resources={displayResources} />
+      <MarketTopChrome resources={displayResources} showAdventureKeys={adventureKeysUnlocked} />
       <RewardFlightOverlay rewards={purchaseFlightRewards} active={Boolean(purchaseFx && purchaseFlightRewards)} nonce={purchaseFx?.nonce} origin="center" />
       <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-3 pb-20 pt-40 sm:pt-32 md:px-6 md:pb-24 md:pt-24 xl:px-8">
         <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.74),rgba(39,24,24,0.86)_34%,rgba(11,12,18,0.94)_72%)] shadow-[0_30px_80px_rgba(0,0,0,0.34)]">
@@ -457,7 +461,7 @@ function EmptyShopStock({ category, resetLabel, t }: { category: ShopCategory; r
   );
 }
 
-function MarketTopChrome({ resources }: { resources: { gold: number; dust: number; gems: number } }) {
+function MarketTopChrome({ resources, showAdventureKeys }: { resources: { gold: number; dust: number; gems: number; adventureKeys?: number }; showAdventureKeys?: boolean }) {
   const { t } = useI18n();
 
   return (
@@ -465,7 +469,7 @@ function MarketTopChrome({ resources }: { resources: { gold: number; dust: numbe
       <div className="pointer-events-auto">
         <GameBackNav label={t("common.home")} eyebrow={t("nav.market")} icon="market" tone="emerald" placement="top-left" />
       </div>
-      <GameResourceBar resources={resources} size="md" className="pointer-events-auto max-w-[calc(100vw-9rem)] md:max-w-none" />
+      <GameResourceBar resources={resources} adventureKeys={showAdventureKeys ? resources.adventureKeys ?? 0 : undefined} size="md" className="pointer-events-auto max-w-[calc(100vw-9rem)] md:max-w-none" />
     </div>
   );
 }
@@ -513,7 +517,7 @@ function ShopOfferRewardBurst({
   return (
     <div className="pointer-events-none absolute inset-0 z-[5] grid place-items-center">
       <div className="frontline-reward-burst flex max-w-[88%] flex-col items-center gap-3 rounded-[30px] border border-[#ffe6a8]/26 bg-[radial-gradient(circle_at_50%_0%,rgba(255,236,178,0.28),transparent_44%),linear-gradient(180deg,rgba(22,16,9,0.88),rgba(7,9,14,0.72))] px-3 py-3 shadow-[0_24px_70px_rgba(0,0,0,0.42),0_0_34px_rgba(245,196,81,0.16)] backdrop-blur-md">
-        <ShopIcon name={offerShopIcon(offer)} size={compact ? "md" : "lg"} className={compact ? "h-10 w-10" : "h-14 w-14"} />
+        <OfferShopVisualIcon offer={offer} size={compact ? "md" : "lg"} className={compact ? "h-10 w-10" : "h-14 w-14"} />
         <div className="flex flex-wrap justify-center gap-2">
           {tokens.map((token) => (
             <RewardToken key={`burst-${offer.id}-${token.label}-${token.hint}`} {...token} compact />
@@ -564,7 +568,7 @@ function FeaturedOfferStage({
           </div>
 
           <div className="mt-3 flex items-start gap-4">
-            <ShopIcon name={offerShopIcon(offer)} size="lg" className="hidden h-16 w-16 shrink-0 md:inline-grid" />
+            <OfferShopVisualIcon offer={offer} size="lg" className="hidden h-16 w-16 shrink-0 md:inline-grid" />
             <div className="min-w-0">
               <div className="text-[1.8rem] font-black leading-[0.92] text-white md:text-[2.55rem]">{offerName(offer, t)}</div>
               <p className="mt-2 max-w-[36rem] text-[12px] leading-5 text-white/64 md:text-[13px]">{offerDescription(offer, t)}</p>
@@ -699,7 +703,7 @@ function SpotlightOfferCard({
           <div className="mt-2 text-lg font-black leading-tight text-white">{offerName(offer, t)}</div>
           <div className="mt-1 line-clamp-2 text-[12px] leading-5 text-white/60">{offerDescription(offer, t)}</div>
         </div>
-        <ShopIcon name={offerShopIcon(offer)} size="md" className="h-12 w-12 shrink-0" />
+        <OfferShopVisualIcon offer={offer} size="md" className="h-12 w-12 shrink-0" />
       </div>
 
       <div className="relative z-[1] mt-3 flex flex-wrap gap-2">
@@ -749,7 +753,7 @@ function ReserveOfferCard({
     <div className={cn("relative overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(9,11,17,0.84))] p-3 shadow-[0_16px_34px_rgba(0,0,0,0.16)]", feedbackActive && "frontline-reward-success")}>
       <ShopOfferRewardBurst key={`reserve-burst-${feedbackNonce}`} offer={offer} active={feedbackActive} t={t} compact />
       <div className="flex items-start gap-3">
-        <ShopIcon name={offerShopIcon(offer)} size="md" className="h-12 w-12 shrink-0" />
+        <OfferShopVisualIcon offer={offer} size="md" className="h-12 w-12 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap gap-2">
             {valueTag ? <ShopBadge icon={shopIconForValueTag(offer.valueTag)}>{valueTag}</ShopBadge> : null}
@@ -830,6 +834,26 @@ function RewardToken({
   );
 }
 
+function OfferShopVisualIcon({
+  offer,
+  size,
+  className,
+}: {
+  offer: ExtendedShopOffer;
+  size: "sm" | "md" | "lg";
+  className?: string;
+}) {
+  if (offer.contents.adventureKeys) {
+    return (
+      <span className={cn("relative inline-grid shrink-0 place-items-center overflow-visible", className)}>
+        <span className="pointer-events-none absolute -inset-2 rounded-[24px] border border-[#f5d498]/16 bg-[linear-gradient(180deg,rgba(245,196,81,0.14),rgba(8,8,12,0.76))] shadow-[0_12px_24px_rgba(0,0,0,0.34)]" />
+        <ResourceIcon kind="adventure_key" size={size === "lg" ? "large" : "medium"} className="relative z-[1] h-[118%] w-[118%]" />
+      </span>
+    );
+  }
+  return <ShopIcon name={offerShopIcon(offer)} size={size} className={className} />;
+}
+
 function BundleShowcase({
   icon,
   offer,
@@ -867,7 +891,13 @@ function BundleShowcase({
       ) : (
         <>
           <div className="absolute left-[10%] top-[34%]">
-            <StoreGlyph icon={icon} tone="from-[#fff3c7] via-[#f5c451] to-[#c77716]" className="h-20 w-20" />
+            {offer.contents.adventureKeys ? (
+              <span className="grid h-24 w-24 place-items-center rounded-[28px] border border-[#f5d498]/18 bg-[linear-gradient(180deg,rgba(245,196,81,0.12),rgba(8,8,12,0.72))]">
+                <ResourceIcon kind="adventure_key" size="large" className="h-24 w-24" />
+              </span>
+            ) : (
+              <StoreGlyph icon={icon} tone="from-[#fff3c7] via-[#f5c451] to-[#c77716]" className="h-20 w-20" />
+            )}
           </div>
 
           {tokenIcons.map((token, index) => (

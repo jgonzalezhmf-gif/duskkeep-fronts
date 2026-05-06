@@ -11,6 +11,7 @@ import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
 import FantasyCommanderBadge from "@/components/ui/fantasy/FantasyCommanderBadge";
 import FantasyNavButton from "@/components/ui/fantasy/FantasyNavButton";
 import { getLeader } from "@/data/leaders";
+import { isAdventureKeySystemUnlocked } from "@/features/adventure/mapInteractions";
 import { teamPower } from "@/features/tactical/engine";
 import { getLeaderPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
@@ -43,6 +44,7 @@ export default function ImmersiveHud({
   const { t } = useI18n();
   const pathname = usePathname();
   const resources = useGameStore((s) => s.resources);
+  const adventureProgress = useGameStore((s) => s.adventureProgress);
   const account = useGameStore((s) => s.account);
   const heroes = useGameStore((s) => s.heroes);
   const team = useGameStore((s) => s.team);
@@ -50,6 +52,7 @@ export default function ImmersiveHud({
   const leader = getLeader(activeLeaderId);
   const leaderPortrait = getLeaderPortrait(activeLeaderId);
   const progress = Math.min(100, Math.max(12, account.xp % 100 || 12));
+  const showAdventureKeys = (pathname.startsWith("/adventure") || pathname === "/shop") && isAdventureKeySystemUnlocked(adventureProgress);
   const rosterPower = useMemo(() => {
     const squad = team.flatMap((heroId) => {
       const hero = heroes.find((item) => item.heroId === heroId);
@@ -77,7 +80,7 @@ export default function ImmersiveHud({
       </div>
 
       <div className="pointer-events-auto absolute right-3 top-3 flex max-w-[calc(100vw-9rem)] items-start gap-2 md:right-5 md:top-4 md:max-w-none md:gap-2.5">
-        <GameResourceBar resources={resources} size="sm" />
+        <GameResourceBar resources={resources} adventureKeys={showAdventureKeys ? resources.adventureKeys ?? 0 : undefined} size="sm" />
         <div className="pt-0.5">
           <div className="flex gap-1.5">
             <GameOptionsButton />

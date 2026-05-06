@@ -46,7 +46,10 @@ import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile"
 import {
   ADVENTURE_MAP_INTERACTIONS_BY_ID,
   getAdventureMapInteractionStatus,
+  isAdventureKeySystemUnlocked,
+  rollAdventureMapInteractionLoot,
   type AdventureMapInteractionClaim,
+  type AdventureMapInteractionOpenResult,
 } from "@/features/adventure/mapInteractions";
 import {
   getAdventureChestClaimRewards,
@@ -178,7 +181,7 @@ export type GameActions = {
   ) => void;
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
   claimAdventureNode: (levelId: string) => Rewards | null;
-  claimAdventureMapInteraction: (interactionId: string) => Rewards | null;
+  claimAdventureMapInteraction: (interactionId: string) => AdventureMapInteractionOpenResult | null;
   claimMission: (missionId: string) => Rewards | null;
   purchaseOffer: (offerId: string) => { ok: boolean; reason?: string };
   pushNotification: (kind: NotificationKind, message: string) => void;
@@ -855,14 +858,22 @@ export const useGameStore = create<GameState & GameActions>()(
           get().pushNotification("error", "Adventure key required");
           return null;
         }
+        const result = rollAdventureMapInteractionLoot(interaction);
         set((st) => ({
           adventureMapClaims: {
             ...st.adventureMapClaims,
-            [interactionId]: { claimed: true, claimedAt: localDayKey() },
+            [interactionId]: {
+              claimed: true,
+              claimedAt: localDayKey(),
+              lootId: result.lootId,
+              lootTier: result.lootTier,
+              lootTitle: result.lootTitle,
+              rewards: result.rewards,
+            },
           },
         }));
-        get().awardRewards(interaction.rewards, interaction.title);
-        return interaction.rewards;
+        get().awardRewards(result.rewards, interaction.title);
+        return result;
       },
 
       claimMission: (missionId) => {
@@ -884,6 +895,9 @@ export const useGameStore = create<GameState & GameActions>()(
         const s = get();
         const offer = SHOP_OFFERS_BY_ID[offerId];
         if (!offer) return { ok: false, reason: "Offer not found" };
+        if (offer.contents.adventureKeys && !isAdventureKeySystemUnlocked(s.adventureProgress)) {
+          return { ok: false, reason: "Adventure keys are not unlocked yet" };
+        }
         if (offer.oneTime && (s.shopPurchases[offerId] ?? 0) > 0)
           return { ok: false, reason: "Already purchased" };
         if (offer.dailyLimit && (s.dailyShopPurchases[offerId] ?? 0) >= offer.dailyLimit)

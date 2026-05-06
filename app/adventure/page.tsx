@@ -20,6 +20,7 @@ import {
 import { getAdventureUnlockedLevelIds, isAdventureChapterDemoLocked } from "@/features/adventure/progression";
 import {
   AdventureCampaignMap,
+  AdventureCacheRevealOverlay,
   AdventureMissionPanel,
   AdventureMapInteractionPanel,
   type AdventureCampaignMeta,
@@ -172,6 +173,7 @@ export default function AdventureMapPage() {
   const [qaMapEditor, setQaMapEditor] = useState(false);
   const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, ReturnType<typeof claimAdventureNode>>>({});
   const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, ReturnType<typeof claimAdventureMapInteraction>>>({});
+  const [cacheReveal, setCacheReveal] = useState<NonNullable<ReturnType<typeof claimAdventureMapInteraction>> | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -231,6 +233,7 @@ export default function AdventureMapPage() {
         })
       : null;
   const selectedInteractionRewards = selectedInteractionId ? claimedRewardsByInteraction[selectedInteractionId] ?? null : null;
+  const selectedInteractionClaim = selectedInteractionId ? adventureMapClaims[selectedInteractionId] : undefined;
 
   function resolveSelectedNode() {
     setSelectedInteractionId(null);
@@ -248,9 +251,10 @@ export default function AdventureMapPage() {
 
   function resolveSelectedInteraction() {
     if (!selectedInteractionId) return;
-    const rewards = claimAdventureMapInteraction(selectedInteractionId);
-    if (rewards) {
-      setClaimedRewardsByInteraction((current) => ({ ...current, [selectedInteractionId]: rewards }));
+    const result = claimAdventureMapInteraction(selectedInteractionId);
+    if (result) {
+      setClaimedRewardsByInteraction((current) => ({ ...current, [selectedInteractionId]: result }));
+      setCacheReveal(result);
     }
   }
 
@@ -358,7 +362,8 @@ export default function AdventureMapPage() {
                   interaction={selectedInteraction}
                   status={selectedInteractionStatus}
                   resources={resources}
-                  claimedRewards={selectedInteractionRewards}
+                  claimedResult={selectedInteractionRewards}
+                  persistedClaim={selectedInteractionClaim}
                   expanded={detailsExpanded}
                   onToggleExpanded={() => setDetailsExpanded((value) => !value)}
                   onClaim={resolveSelectedInteraction}
@@ -379,6 +384,7 @@ export default function AdventureMapPage() {
             </div>
           ) : null}
         </div>
+        {cacheReveal ? <AdventureCacheRevealOverlay result={cacheReveal} onClose={() => setCacheReveal(null)} /> : null}
       </div>
     </ScreenScaffold>
   );

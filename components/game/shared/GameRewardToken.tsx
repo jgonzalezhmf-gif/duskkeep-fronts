@@ -12,7 +12,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 
 type RewardTone = GameIconTone;
 type RewardIconKind = GlyphKind | ResourceIconKind;
-type ResourceBarIcon = Extract<ResourceIconKind, "gold" | "dust" | "gem" | "gems" | "tickets">;
+type ResourceBarIcon = Extract<ResourceIconKind, "gold" | "dust" | "gem" | "gems" | "tickets" | "adventure_key">;
 
 const DEFAULT_TONE: Partial<Record<RewardIconKind, RewardTone>> = {
   gold: "gold",
@@ -75,6 +75,7 @@ const resourceAura: Record<ResourceBarIcon, string> = {
   gem: "from-[#dcf8ff]/50 via-[#67caff]/18 to-transparent",
   gems: "from-[#dcf8ff]/50 via-[#67caff]/18 to-transparent",
   tickets: "from-[#ffe3c4]/44 via-[#ff9c5f]/18 to-transparent",
+  adventure_key: "from-[#fff3b8]/48 via-[#f5c451]/20 to-transparent",
 };
 
 const resourceText: Record<ResourceBarIcon, string> = {
@@ -83,6 +84,7 @@ const resourceText: Record<ResourceBarIcon, string> = {
   gem: "text-[#d9f7ff]",
   gems: "text-[#d9f7ff]",
   tickets: "text-[#ffd5a8]",
+  adventure_key: "text-[#ffe9a8]",
 };
 
 function easeOutQuart(value: number) {
@@ -294,21 +296,27 @@ export function GameResourceChip({
 export function GameResourceBar({
   resources,
   arenaTickets,
+  adventureKeys,
   size = "sm",
   className,
 }: {
-  resources: { gold: ReactNode; dust: ReactNode; gems: ReactNode };
+  resources: { gold: ReactNode; dust: ReactNode; gems: ReactNode; adventureKeys?: ReactNode };
   arenaTickets?: number;
+  adventureKeys?: ReactNode;
   size?: keyof typeof resourceSizeClasses;
   className?: string;
 }) {
   const { t } = useI18n();
+  const visibleAdventureKeys = adventureKeys;
 
   return (
     <div className={cn("flex min-w-0 flex-wrap items-start justify-end gap-2 md:gap-2.5", className)}>
       <GameResourceChip icon="gold" tone="gold" label={t("resources.gold")} value={resources.gold} size={size} href="/shop" />
       <GameResourceChip icon="dust" tone="violet" label={t("resources.dust")} value={resources.dust} size={size} href="/shop" />
       <GameResourceChip icon="gems" tone="sky" label={t("resources.gems")} value={resources.gems} size={size} href="/shop" />
+      {typeof visibleAdventureKeys !== "undefined" && visibleAdventureKeys !== null ? (
+        <GameResourceChip icon="adventure_key" tone="gold" label={t("resources.adventureKeys")} value={visibleAdventureKeys} size={size} href="/shop" />
+      ) : null}
       {typeof arenaTickets === "number" ? (
         <GameResourceChip icon="tickets" tone="gold" label={t("resources.tickets")} value={arenaTickets} size={size} className="hidden sm:inline-flex" href="/shop" />
       ) : null}

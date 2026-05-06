@@ -1,8 +1,21 @@
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
+import { mergeRewards } from "@/features/battle/rewards";
+import { hashSeed, createRng } from "@/lib/rng";
 import type { Resources, Rewards } from "@/lib/types";
 
 export type AdventureMapInteractionKind = "keyChest";
 export type AdventureMapInteractionStatus = "locked" | "needs_key" | "ready" | "claimed";
+export type AdventureMapInteractionLootTier = "common" | "rare" | "epic" | "legendary";
+
+export const ADVENTURE_KEY_UNLOCK_LEVEL_ID = "c1l2";
+
+export type AdventureMapInteractionLootEntry = {
+  id: string;
+  tier: AdventureMapInteractionLootTier;
+  title: string;
+  weight: number;
+  rewards: Rewards;
+};
 
 export type AdventureMapInteractionDefinition = {
   id: string;
@@ -12,12 +25,24 @@ export type AdventureMapInteractionDefinition = {
   description: string;
   keyCost: number;
   unlockAfter: string[];
-  rewards: Rewards;
+  lootTable: AdventureMapInteractionLootEntry[];
 };
 
 export type AdventureMapInteractionClaim = {
   claimed: boolean;
   claimedAt?: string;
+  lootId?: string;
+  lootTier?: AdventureMapInteractionLootTier;
+  lootTitle?: string;
+  rewards?: Rewards;
+};
+
+export type AdventureMapInteractionOpenResult = {
+  interactionId: string;
+  lootId: string;
+  lootTier: AdventureMapInteractionLootTier;
+  lootTitle: string;
+  rewards: Rewards;
 };
 
 export const ADVENTURE_MAP_INTERACTIONS: AdventureMapInteractionDefinition[] = [
@@ -29,7 +54,36 @@ export const ADVENTURE_MAP_INTERACTIONS: AdventureMapInteractionDefinition[] = [
     description: "A sealed roadside cache. Clear the broken mill route, spend a map key, and claim the supplies inside.",
     keyCost: 1,
     unlockAfter: ["c1l2"],
-    rewards: { gold: 300, dust: 40, accountXp: 12 },
+    lootTable: [
+      {
+        id: "road-cache-common-supplies",
+        tier: "common",
+        title: "Roadside Supplies",
+        weight: 50,
+        rewards: { gold: 220, dust: 25, accountXp: 8 },
+      },
+      {
+        id: "road-cache-rare-gem-purse",
+        tier: "rare",
+        title: "Gem-Sealed Purse",
+        weight: 30,
+        rewards: { gems: 18, accountXp: 10 },
+      },
+      {
+        id: "road-cache-epic-war-cache",
+        tier: "epic",
+        title: "War Cache",
+        weight: 15,
+        rewards: { gold: 420, dust: 70, shards: [{ heroId: "vex", amount: 4 }], accountXp: 16 },
+      },
+      {
+        id: "road-cache-legendary-frontline-vault",
+        tier: "legendary",
+        title: "Frontline Vault",
+        weight: 5,
+        rewards: { gems: 35, dust: 95, frontlineCards: [{ cardId: "war_drums" }], accountXp: 24 },
+      },
+    ],
   },
 ];
 
@@ -52,6 +106,11 @@ export function isAdventureMapInteractionUnlocked(
   });
 }
 
+export function isAdventureKeySystemUnlocked(progress: Record<string, AdventureProgressEntry | undefined>) {
+  const entry = progress[ADVENTURE_KEY_UNLOCK_LEVEL_ID];
+  return Boolean(entry?.cleared || entry?.claimed || entry?.firstClearTaken);
+}
+
 export function getAdventureMapInteractionStatus({
   interaction,
   progress,
@@ -71,4 +130,44 @@ export function getAdventureMapInteractionStatus({
 
 export function canClaimAdventureMapInteraction(args: Parameters<typeof getAdventureMapInteractionStatus>[0]) {
   return getAdventureMapInteractionStatus(args) === "ready";
+}
+
+export function rollAdventureMapInteractionLoot(
+  interaction: AdventureMapInteractionDefinition,
+  seed = hashSeed(`${interaction.id}:${Date.now()}:${Math.random()}`),
+): AdventureMapInteractionOpenResult {
+  const table = interaction.lootTable.filter((entry) => entry.weight > 0);
+  if (!table.length) {
+    return {
+      interactionId: interaction.id,
+      lootId: `${interaction.id}-empty`,
+      lootTier: "common",
+      lootTitle: interaction.title,
+      rewards: {},
+    };
+  }
+  const rng = createRng(seed);
+  const totalWeight = table.reduce((sum, entry) => sum + entry.weight, 0);
+  let roll = rng.next() * totalWeight;
+  for (const entry of table) {
+    roll -= entry.weight;
+    if (roll <= 0) {
+      return toOpenResult(interaction.id, entry);
+    }
+  }
+  return toOpenResult(interaction.id, table[table.length - 1]);
+}
+
+export function getAdventureMapInteractionRewardPreview(interaction: AdventureMapInteractionDefinition): Rewards {
+  return mergeRewards(...interaction.lootTable.map((entry) => entry.rewards));
+}
+
+function toOpenResult(interactionId: string, entry: AdventureMapInteractionLootEntry): AdventureMapInteractionOpenResult {
+  return {
+    interactionId,
+    lootId: entry.id,
+    lootTier: entry.tier,
+    lootTitle: entry.title,
+    rewards: entry.rewards,
+  };
 }
