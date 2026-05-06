@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.6] - 2026-05-06
+
+### Changed
+- Ampliado el brillo del cofre claimable para que salga por los bordes del PNG en vez de quedar tapado por el cofre.
+- Eliminado el marco de seleccion del cofre en Adventure normal.
+- Anadida respiracion sutil de escala/brillo al cofre claimable para hacerlo mas accionable sin animar el mapa completo.
+
+### Tested
+- `npm.cmd run typecheck`
+
 ## [0.24.5] - 2026-05-06
 
 ### Added

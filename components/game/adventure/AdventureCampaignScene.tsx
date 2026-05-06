@@ -1078,7 +1078,6 @@ function AdventureMapProp({
             interactionStatus === "ready" && "hover:brightness-125",
             interactionStatus === "locked" && "opacity-52",
             interactionStatus === "claimed" && "opacity-45 saturate-75",
-            interactionSelected && "ring-2 ring-[#f5d498]/75 ring-offset-2 ring-offset-black",
           )}
           style={style}
           data-adventure-prop={prop.id}
@@ -1104,7 +1103,7 @@ function AdventureMapProp({
           onFocus={() => onInteractionSelect(interaction.id)}
         >
           {renderedContent}
-          <InteractionPropState status={interactionStatus ?? "locked"} />
+          <InteractionPropState status={interactionStatus ?? "locked"} selected={interactionSelected} />
         </button>
       );
     }
@@ -1195,7 +1194,7 @@ function RouteControlHandle({
   );
 }
 
-function InteractionPropState({ status }: { status: AdventureMapInteractionStatus }) {
+function InteractionPropState({ status, selected }: { status: AdventureMapInteractionStatus; selected?: boolean }) {
   if (status === "claimed") {
     return <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-emerald-200/36 bg-emerald-950/86 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-100">OK</span>;
   }
@@ -1207,7 +1206,10 @@ function InteractionPropState({ status }: { status: AdventureMapInteractionStatu
   }
   return (
     <>
-      <span className="pointer-events-none absolute left-[18%] top-[14%] h-[36%] w-[52%] rounded-[45%] bg-[#ffd978]/18 blur-[5px] shadow-[0_0_18px_rgba(245,196,81,0.28)]" />
+      <span className={cn(
+        "pointer-events-none absolute left-1/2 top-[48%] h-[82%] w-[112%] -translate-x-1/2 -translate-y-1/2 rounded-[42%] bg-[#ffd978]/18 blur-[8px] shadow-[0_0_26px_rgba(245,196,81,0.26)]",
+        selected && "opacity-90",
+      )} />
       <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-[#f5d498]/34 bg-[#2a1606]/92 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-[#ffe6a8]">OPEN</span>
     </>
   );
@@ -1229,11 +1231,11 @@ function InteractionPropContent({
     <span
       className={cn(
         "relative block h-full w-full",
-        status === "ready" && "animate-[adventureKeyChestGlow_1.85s_ease-in-out_infinite]",
+        status === "ready" && "motion-safe:animate-[adventureKeyChestPulse_1.95s_ease-in-out_infinite]",
       )}
     >
       {status === "ready" && shine ? (
-        <span className="pointer-events-none absolute left-[50%] top-[43%] z-[0] block h-[58%] w-[58%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[42%] opacity-55">
+        <span className="pointer-events-none absolute left-1/2 top-[47%] z-[0] block h-[124%] w-[142%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[44%] opacity-60">
           <span
             className="absolute left-0 top-0 h-full bg-[image:var(--adventure-gold-shine)] bg-[length:100%_100%] bg-no-repeat motion-safe:animate-[adventureGoldShineLoop_1.05s_steps(6)_infinite] motion-reduce:hidden"
             style={{
@@ -1255,7 +1257,7 @@ function InteractionPropContent({
           status === "ready" && "brightness-110 saturate-[1.12] drop-shadow-[0_12px_18px_rgba(0,0,0,0.56)]",
         )}
       />
-      {status === "ready" ? <span className="pointer-events-none absolute left-[21%] top-[20%] h-[18%] w-[46%] rounded-[45%] bg-[#fff0a8]/22 blur-[4px]" /> : null}
+      {status === "ready" ? <span className="pointer-events-none absolute left-[9%] top-[5%] h-[42%] w-[82%] rounded-[45%] bg-[#fff0a8]/18 blur-[6px]" /> : null}
     </span>
   );
 }
@@ -2427,13 +2429,15 @@ function editorButtonClass(active: boolean) {
 function AdventureMapInteractionStyles() {
   return (
     <style jsx global>{`
-      @keyframes adventureKeyChestGlow {
+      @keyframes adventureKeyChestPulse {
         0%,
         100% {
           filter: brightness(1) saturate(1);
+          transform: scale(1);
         }
         48% {
-          filter: brightness(1.14) saturate(1.16);
+          filter: brightness(1.13) saturate(1.14);
+          transform: scale(1.035);
         }
       }
 
