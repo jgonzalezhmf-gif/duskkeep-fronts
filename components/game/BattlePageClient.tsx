@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
 import {
   FRONTLINE_CARD_BY_ID,
-  FRONTLINE_LEADER_BY_ID,
   FRONTLINE_PRESETS,
   FRONTLINE_UNIT_BY_ID,
 } from "@/features/frontline/data";
@@ -25,7 +24,6 @@ import {
   frontlineCardKindLabel,
   frontlineCardName,
   frontlineHeroName,
-  frontlineLeaderName,
   frontlinePresetName,
 } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -33,7 +31,12 @@ import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState, FrontlineHeroDef } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
 import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
-import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
+import {
+  getFrontlineBattleBackgroundSrc,
+  getFrontlineHeroVisualAsset,
+  type FrontlineBattleBackgroundKey,
+} from "@/components/game/frontline/frontlineVisualAssets";
+import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import { ProgressionIcon, type ProgressionIconName } from "@/components/game/shared/ProgressionIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
@@ -58,6 +61,7 @@ type BattlePhase = "setup" | "battle" | "result";
 type ResultContext = {
   winner: "ally" | "enemy" | "draw";
   enemyName: string;
+  enemyPortraitSrc: string;
   rounds: number;
   allyCoreHp: number;
   enemyCoreHp: number;
@@ -79,6 +83,18 @@ function encounterModifiers(badge: FrontlineEncounterBadgeKind | null): Frontlin
   if (badge === "boss") return { enemyCoreBonus: 5, enemyStartingCommandBonus: 1 };
   if (badge === "elite") return { enemyCoreBonus: 2 };
   return undefined;
+}
+
+function resolveBattleBackgroundKey(
+  adventureLevel: ReturnType<typeof getAdventureLevelForFrontline>,
+  encounterKind: FrontlineEncounterBadgeKind | null,
+  enemyBossId: string | undefined,
+): FrontlineBattleBackgroundKey | null {
+  const chapter = adventureLevel?.chapter ?? 1;
+  if (chapter !== 1 && enemyBossId !== "the_eclipse") return null;
+  if (enemyBossId === "the_eclipse" || encounterKind === "boss") return "ch1_boss_eclipse_gate";
+  if (encounterKind === "elite" || encounterKind === "danger") return "ch1_battle_ruins";
+  return "ch1_battle_road";
 }
 
 function projectAccount(level: number, xp: number, gain: number) {
@@ -160,7 +176,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
 
   useEffect(() => {
     if (phase === "battle") {
-      audio.setTheme("battle");
+      audio.setTheme(selectedPreset.bossId ? "boss" : "battle");
       return;
     }
     if (phase === "result") {
@@ -172,7 +188,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       return;
     }
     audio.setTheme("prebattle");
-  }, [adventureLevel, phase]);
+  }, [adventureLevel, phase, selectedPreset.bossId]);
 
   const startBattle = useCallback(() => {
     if (!squadReady || !deckReady) return;
@@ -243,6 +259,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     setResultContext({
       winner,
       enemyName: selectedPresetName,
+      enemyPortraitSrc: getFrontlineEnemyLeaderPortraitForPreset(selectedPreset),
       rounds: battleState.round,
       allyCoreHp: battleState.allyCoreHp,
       enemyCoreHp: battleState.enemyCoreHp,
@@ -262,8 +279,11 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   if (phase === "battle") {
     const encounterKind = deriveEncounterBadge(adventureLevel);
     const modifiers = encounterModifiers(encounterKind);
+    const battleBackgroundSrc = getFrontlineBattleBackgroundSrc(
+      resolveBattleBackgroundKey(adventureLevel, encounterKind, selectedPreset.bossId),
+    );
     return (
-      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
+      <div className="mx-auto flex w-full max-w-[1840px] flex-col gap-3 px-2 pb-3 pt-2 md:px-3 md:pb-4 md:pt-3 xl:px-4">
         <FrontlineBattle
           seed={battleSeed}
           loadout={frontlineLoadout}
@@ -274,6 +294,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
           modifiers={modifiers}
           encounterKind={encounterKind}
           encounterTitle={adventureLevel?.name ?? null}
+          battleBackgroundSrc={battleBackgroundSrc}
           onFinished={(winner, battleState) => finishBattle(winner, battleState)}
         />
       </div>
@@ -392,28 +413,42 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
               {!adventureLevel ? (
                 <Panel title={t("frontline.chooseEnemy")} variant="enemy">
                   <div className="grid gap-3">
-                    {FRONTLINE_PRESETS.map((preset) => (
-                      <button
-                        key={preset.id}
-                        className={cn(
-                          "rounded-[24px] border px-4 py-3 text-left transition hover:-translate-y-0.5",
-                          preset.id === selectedPreset.id
-                            ? "border-[#f5c451]/28 bg-[linear-gradient(180deg,rgba(245,196,81,0.14),rgba(20,16,18,0.9))] shadow-[0_14px_32px_rgba(245,196,81,0.08)]"
-                            : "border-white/10 bg-white/[0.035]",
-                        )}
-                        onClick={() => setSelectedEnemyPresetId(preset.id)}
-                      >
-                        <div className="text-base font-black text-white">{frontlinePresetName(t, preset)}</div>
-                        <div className="mt-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#f5d498]/72">
-                          {frontlineLeaderName(t, FRONTLINE_LEADER_BY_ID[preset.leaderId]) || t("frontline.unknownLeader")}
-                        </div>
-                        <div className="mt-3 flex -space-x-3">
-                          {preset.squad.map((combatantId, index) => (
-                            <EnemyMini key={`${preset.id}-${combatantId}-${index}`} combatantId={combatantId} />
-                          ))}
-                        </div>
-                      </button>
-                    ))}
+                    {FRONTLINE_PRESETS.map((preset) => {
+                      const leaderPortrait = getFrontlineEnemyLeaderPortraitForPreset(preset);
+                      return (
+                        <button
+                          key={preset.id}
+                          className={cn(
+                            "rounded-[24px] border px-4 py-3 text-left transition hover:-translate-y-0.5",
+                            preset.id === selectedPreset.id
+                              ? "border-[#f5c451]/28 bg-[linear-gradient(180deg,rgba(245,196,81,0.14),rgba(20,16,18,0.9))] shadow-[0_14px_32px_rgba(245,196,81,0.08)]"
+                              : "border-white/10 bg-white/[0.035]",
+                          )}
+                          onClick={() => setSelectedEnemyPresetId(preset.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={leaderPortrait}
+                              alt=""
+                              className="h-12 w-10 shrink-0 rounded-[14px] border border-rose-200/16 bg-black/24 object-cover shadow-[0_10px_22px_rgba(0,0,0,0.24)]"
+                              loading="lazy"
+                              aria-hidden
+                            />
+                            <div className="min-w-0">
+                              <div className="truncate text-base font-black text-white">{frontlinePresetName(t, preset)}</div>
+                              <div className="mt-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#f5d498]/72">
+                                {t("frontline.enemy")}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex -space-x-3">
+                            {preset.squad.map((combatantId, index) => (
+                              <EnemyMini key={`${preset.id}-${combatantId}-${index}`} combatantId={combatantId} />
+                            ))}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </Panel>
               ) : null}
@@ -466,6 +501,13 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                     <RewardBurstOverlay rewards={resultContext.rewards} />
                     <RewardFlightOverlay rewards={resultContext.rewards} active nonce={`${resultContext.winner}-${resultContext.rounds}`} origin="lower" />
                     <div className="flex items-start gap-3">
+                      <img
+                        src={resultContext.enemyPortraitSrc}
+                        alt=""
+                        className="h-14 w-12 shrink-0 rounded-[16px] border border-rose-200/16 bg-black/24 object-cover shadow-[0_12px_28px_rgba(0,0,0,0.28)]"
+                        loading="lazy"
+                        aria-hidden
+                      />
                       <ProgressionIcon name={resultContext.winner === "ally" ? "reward_chest" : "claim"} size="xl" />
                       <div className="min-w-0">
                         <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">{t("frontline.resultPulse")}</div>

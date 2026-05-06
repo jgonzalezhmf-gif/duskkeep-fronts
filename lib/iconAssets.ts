@@ -1,6 +1,6 @@
 import type { GlyphKind } from "@/components/ui/GameGlyph";
 
-export type GameAssetIconCategory = "resources" | "nav" | "combat" | "cards" | "fortress" | "progression" | "status" | "shop" | "modes";
+export type GameAssetIconCategory = "resources" | "nav" | "combat" | "cards" | "fortress" | "progression" | "status" | "shop" | "modes" | "ui";
 export type GameAssetIconSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export type ResourceAssetIconName = "gold" | "gems" | "gem" | "dust" | "shards" | "tickets" | "command";
@@ -15,15 +15,18 @@ export type NavAssetIconName =
   | "events"
   | "quests"
   | "missions"
+  | "team"
   | "battle_pass"
   | "pass";
 export type CombatAssetIconName =
   | "core"
   | "breach"
   | "clash"
+  | "move"
   | "attack"
   | "shield"
   | "heal"
+  | "skill"
   | "stun"
   | "summon"
   | "target"
@@ -86,6 +89,7 @@ export type ModeAssetIconName =
   | "challenge"
   | "dungeon_run"
   | "boss_rush";
+export type UiAssetIconName = "settings" | "sound_on" | "sound_off";
 
 export type GameAssetIconName =
   | ResourceAssetIconName
@@ -96,7 +100,8 @@ export type GameAssetIconName =
   | ProgressionAssetIconName
   | StatusAssetIconName
   | ShopAssetIconName
-  | ModeAssetIconName;
+  | ModeAssetIconName
+  | UiAssetIconName;
 
 const RESOURCE_ROOT = "/assets/icons/resources";
 const NAV_ROOT = "/assets/icons/nav";
@@ -106,6 +111,7 @@ const FORTRESS_ROOT = "/assets/icons/fortress";
 const PROGRESSION_ROOT = "/assets/icons/progression";
 const STATUS_ROOT = "/assets/icons/status";
 const MODE_ROOT = "/assets/icons/modes";
+const UI_ROOT = "/assets/icons/ui";
 
 // Explicit manifest. Only assets registered here are requested by the browser.
 export const GAME_ICON_ASSET_MANIFEST = {
@@ -129,16 +135,19 @@ export const GAME_ICON_ASSET_MANIFEST = {
     events: `${NAV_ROOT}/events.png`,
     quests: `${NAV_ROOT}/quests.png`,
     missions: `${NAV_ROOT}/quests.png`,
+    team: `${NAV_ROOT}/team.png`,
     battle_pass: `${NAV_ROOT}/battle_pass.png`,
     pass: `${NAV_ROOT}/battle_pass.png`,
   },
   combat: {
     core: `${COMBAT_ROOT}/core.png`,
     breach: `${COMBAT_ROOT}/breach.png`,
-    // clash.png is not present yet; it intentionally falls back to GameGlyph.
+    clash: `${COMBAT_ROOT}/clash.png`,
+    move: `${COMBAT_ROOT}/move.png`,
     attack: `${COMBAT_ROOT}/attack.png`,
     shield: `${COMBAT_ROOT}/shield.png`,
     heal: `${COMBAT_ROOT}/heal.png`,
+    skill: `${COMBAT_ROOT}/skill.png`,
     stun: `${COMBAT_ROOT}/stun.png`,
     summon: `${COMBAT_ROOT}/summon.png`,
     target: `${COMBAT_ROOT}/target.png`,
@@ -167,7 +176,7 @@ export const GAME_ICON_ASSET_MANIFEST = {
   },
   progression: {
     upgrade: `${PROGRESSION_ROOT}/upgrade.png`,
-    // evolve.png is not present yet; it intentionally falls back to GameGlyph.
+    evolve: `${PROGRESSION_ROOT}/evolve.png`,
     star: `${PROGRESSION_ROOT}/star.png`,
     unlock: `${PROGRESSION_ROOT}/unlock.png`,
     claim: `${PROGRESSION_ROOT}/claim.png`,
@@ -214,6 +223,11 @@ export const GAME_ICON_ASSET_MANIFEST = {
     dungeon_run: `${MODE_ROOT}/dungeon_run.png`,
     boss_rush: `${MODE_ROOT}/boss_rush.png`,
   },
+  ui: {
+    settings: `${UI_ROOT}/settings.png`,
+    sound_on: `${UI_ROOT}/sound_on.png`,
+    sound_off: `${UI_ROOT}/sound_off.png`,
+  },
 } as const satisfies Record<GameAssetIconCategory, Partial<Record<GameAssetIconName, string>>>;
 
 export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind> = {
@@ -234,14 +248,17 @@ export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind
   events: "events",
   quests: "quests",
   missions: "quests",
+  team: "team",
   battle_pass: "pass",
   pass: "pass",
   core: "battle",
   breach: "attack",
   clash: "battle",
+  move: "move",
   attack: "attack",
   shield: "shield",
   heal: "heal",
+  skill: "skill",
   stun: "power",
   summon: "heroes",
   target: "skill",
@@ -303,6 +320,9 @@ export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind
   challenge: "skill",
   dungeon_run: "adventure",
   boss_rush: "battle",
+  settings: "cfg",
+  sound_on: "sound-on",
+  sound_off: "sound-off",
 };
 
 export function getGameAssetIconSrc(category: GameAssetIconCategory, name: GameAssetIconName) {
@@ -326,6 +346,7 @@ export function isNavAssetIconName(name: string): name is NavAssetIconName {
     name === "events" ||
     name === "quests" ||
     name === "missions" ||
+    name === "team" ||
     name === "battle_pass" ||
     name === "pass"
   );
@@ -336,9 +357,11 @@ export function isCombatAssetIconName(name: string): name is CombatAssetIconName
     name === "core" ||
     name === "breach" ||
     name === "clash" ||
+    name === "move" ||
     name === "attack" ||
     name === "shield" ||
     name === "heal" ||
+    name === "skill" ||
     name === "stun" ||
     name === "summon" ||
     name === "target" ||
@@ -346,6 +369,10 @@ export function isCombatAssetIconName(name: string): name is CombatAssetIconName
     name === "danger" ||
     name === "advantage"
   );
+}
+
+export function isUiAssetIconName(name: string): name is UiAssetIconName {
+  return name === "settings" || name === "sound_on" || name === "sound_off";
 }
 
 export function isCardAssetIconName(name: string): name is CardAssetIconName {
@@ -428,6 +455,12 @@ export function isModeAssetIconName(name: string): name is ModeAssetIconName {
 }
 
 export function resolveGlyphAssetIcon(kind: GlyphKind): { category: GameAssetIconCategory; name: GameAssetIconName } | null {
+  if (kind === "battle") return { category: "combat", name: "clash" };
+  if (kind === "attack" || kind === "shield" || kind === "heal" || kind === "move" || kind === "skill") return { category: "combat", name: kind };
+  if (kind === "rewards") return { category: "progression", name: "reward_chest" };
+  if (kind === "cfg") return { category: "ui", name: "settings" };
+  if (kind === "sound-on") return { category: "ui", name: "sound_on" };
+  if (kind === "sound-off") return { category: "ui", name: "sound_off" };
   if (isResourceAssetIconName(kind)) return { category: "resources", name: kind };
   if (isNavAssetIconName(kind)) return { category: "nav", name: kind };
   return null;

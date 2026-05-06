@@ -162,17 +162,6 @@ function combatIconForCard(card: FrontlineCardDef): CombatAssetIconName {
   return "attack";
 }
 
-function statusIconForCard(card: FrontlineCardDef): StatusIconName | null {
-  if (card.effect.type === "hero_strike") {
-    if (card.effect.shield) return "guard";
-    if (card.effect.strikeFirst) return "rush";
-  }
-  if (card.effect.type === "rally") return "buff";
-  if (card.effect.type === "heal_front") return "regen";
-  if (card.effect.type === "stun_front") return "debuff";
-  return null;
-}
-
 type HeroVisualState = {
   idle?: boolean;
   selected?: boolean;
@@ -1299,14 +1288,14 @@ function FrontlineBattleInner({
             <CoreShockOverlay shock={coreShock} side="enemy" />
           </div>
 
-          <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.045),rgba(255,255,255,0.014)_42%,rgba(0,0,0,0.1))] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_30px_rgba(0,0,0,0.16)] backdrop-blur-[2px] md:px-4">
-            <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.55),transparent)]" />
+          <div className="relative self-start overflow-hidden rounded-[24px] border border-[#f5d498]/10 bg-[linear-gradient(135deg,rgba(255,236,185,0.026),rgba(255,255,255,0.006)_45%,rgba(0,0,0,0.055))] px-3 py-2 shadow-[inset_0_1px_0_rgba(245,212,152,0.04),0_10px_26px_rgba(0,0,0,0.1)] backdrop-blur-[1px] md:px-4">
+            <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.24),transparent)]" />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CompactPill tone={resolutionFx ? "neutral" : "ally"}>
-                  {resolutionFx ? t("frontline.clashLabel") : t("frontline.playerPhase")}
-                </CompactPill>
-                <CompactPill tone="neutral">{t("frontline.roundLabel", { round: state.round })}</CompactPill>
+                <span className="sr-only">{resolutionFx ? t("frontline.clashLabel") : t("frontline.playerPhase")}</span>
+                <span className="rounded-full bg-black/24 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/55">
+                  {t("frontline.roundLabel", { round: state.round })}
+                </span>
                 <CommandPips value={state.allyDeck.command} />
               </div>
               {latestImpact ? (
@@ -1327,33 +1316,14 @@ function FrontlineBattleInner({
               ) : null}
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="sr-only">
-                  <CombatIcon name={state.turn === "enemy" ? "danger" : state.allyDeck.command <= 0 ? "clash" : selectedCard || state.selectedLeaderPower ? "target" : "skill"} size="md" fallbackClassName="h-6 w-6" />
-                </div>
-                <div className="min-w-0">
-                  <div className="truncate text-xl font-black leading-none text-white md:text-2xl">{actionState.title}</div>
-                  <div className="mt-1 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/46">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#f5c451]/70" />
-                    <span className="truncate">{actionState.subtitle}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <FlowStep icon="target" label={t("frontline.card")} active={state.turn === "ally" && !selectedCard && !state.selectedLeaderPower} done={Boolean(selectedCard || state.selectedLeaderPower)} />
-                <FlowStep icon="target" label={t("frontline.front")} active={Boolean(selectedCard || state.selectedLeaderPower)} done={false} />
-                <FlowStep icon="clash" label={t("frontline.clashReady")} active={state.turn === "ally" && state.allyDeck.command <= 0 && !selectedCard && !state.selectedLeaderPower} done={false} />
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
+            <span className="sr-only">{actionState.title} - {actionState.subtitle}</span>
+            <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
               <button
                 className={cn(
-                  "rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition",
+                  "relative isolate min-h-14 overflow-hidden rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition",
                   state.selectedLeaderPower
-                    ? "bg-[#f5c451]/16 text-[#f5d498] shadow-[0_0_26px_rgba(245,196,81,0.18)]"
-                    : "bg-white/[0.055] text-white/72 hover:bg-white/[0.09]",
+                    ? "border-[#ffe5a4]/70 bg-[radial-gradient(circle_at_28%_20%,rgba(255,248,214,0.9),rgba(245,196,81,0.78)_32%,rgba(86,45,17,0.94)_100%)] text-[#180c05] shadow-[0_0_38px_rgba(245,196,81,0.42)]"
+                    : "border-[#f5c451]/42 bg-[radial-gradient(circle_at_26%_20%,rgba(255,248,214,0.36),rgba(245,196,81,0.2)_38%,rgba(44,24,12,0.88)_100%)] text-[#fff3c7] shadow-[0_12px_30px_rgba(245,196,81,0.24)] hover:-translate-y-0.5 hover:border-[#ffe5a4]/68 hover:shadow-[0_16px_38px_rgba(245,196,81,0.32)]",
                 )}
                 disabled={
                   actionsLocked ||
@@ -1364,10 +1334,13 @@ function FrontlineBattleInner({
                 onClick={handleLeaderPowerClick}
                 title={allyLeaderPowerDescription}
               >
-                <span className="inline-flex items-center gap-1.5">
-                  <CombatIcon name="leader_power" size="xs" fallbackClassName="opacity-90" />
-                  {allyLeaderPowerName}
-                  <ResourceIcon kind="command" size="small" className="h-4 w-4" />
+                <span className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.32),transparent_36%)]" />
+                <span className="inline-flex items-center gap-2.5">
+                  <span className="grid h-10 w-10 place-items-center rounded-full border border-[#ffe5a4]/48 bg-black/28 shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_0_24px_rgba(245,196,81,0.24)]">
+                    <CombatIcon name="leader_power" size="lg" className="h-8 w-8" fallbackClassName="opacity-95" />
+                  </span>
+                  <span className="hidden max-w-[10rem] truncate sm:inline">{allyLeaderPowerName}</span>
+                  <ResourceIcon kind="command" size="small" className="h-5 w-5" />
                   {allyLeader.power.cost}
                 </span>
               </button>
@@ -1386,12 +1359,12 @@ function FrontlineBattleInner({
               ) : null}
               <button
                 data-resolve-clash
-                className="frontline-resolve-cta-fx rounded-full bg-[linear-gradient(180deg,rgba(74,166,111,0.98),rgba(14,59,38,0.98))] px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_10px_26px_rgba(49,170,107,0.22)] transition hover:-translate-y-0.5 disabled:opacity-40 disabled:[animation:none]"
+                className="frontline-resolve-cta-fx rounded-full bg-[linear-gradient(180deg,rgba(74,166,111,0.98),rgba(14,59,38,0.98))] px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_10px_26px_rgba(49,170,107,0.22)] transition hover:-translate-y-0.5 disabled:opacity-40 disabled:[animation:none]"
                 disabled={actionsLocked}
                 onClick={handleResolveClick}
               >
                 <span className="inline-flex items-center gap-1.5">
-                  <CombatIcon name="clash" size="xs" fallbackClassName="opacity-95" />
+                  <CombatIcon name="clash" size="md" className="h-7 w-7" fallbackClassName="opacity-95" />
                   {t("frontline.resolveClash")}
                 </span>
               </button>
@@ -1515,15 +1488,15 @@ function FrontlineBattleInner({
                           )}
                           title={bossSegmentByLane[lane]?.weakpoint ? t("frontline.bossSegmentWeakpoint") : t("frontline.bossSegmentTitle")}
                         >
-                          <CombatIcon name={bossSegmentByLane[lane]?.weakpoint ? "danger" : "leader_power"} size="xs" fallbackClassName="opacity-90" />
+                          <CombatIcon name={bossSegmentByLane[lane]?.weakpoint ? "danger" : "leader_power"} size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
                           <span>{t(bossSegmentByLane[lane]!.titleKey)}</span>
                         </span>
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2">
                       {insight.breachSide ? (
-                        <div className="inline-flex items-center gap-1 rounded-full bg-black/24 px-2 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white/72">
-                          <CombatIcon name={insight.breachSide === "ally" ? "breach" : "danger"} size="xs" fallbackClassName="opacity-90" />
+                        <div className="inline-flex items-center gap-1.5 rounded-full bg-black/24 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/72">
+                          <CombatIcon name={insight.breachSide === "ally" ? "breach" : "danger"} size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
                           <span>{laneBreachValue(lane)}</span>
                         </div>
                       ) : null}
@@ -1561,7 +1534,7 @@ function FrontlineBattleInner({
                     <div className="h-px flex-1 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.28))]" />
                     <div
                       className={cn(
-                        "inline-flex h-9 w-9 items-center justify-center rounded-full text-[9px] font-black uppercase tracking-[0.18em]",
+                        "inline-flex h-11 w-11 items-center justify-center rounded-full text-[9px] font-black uppercase tracking-[0.18em]",
                         active
                           ? "bg-[#f5c451]/16 text-[#f5d498] shadow-[0_0_26px_rgba(245,196,81,0.22)]"
                           : insight.breachSide === "ally"
@@ -1573,7 +1546,8 @@ function FrontlineBattleInner({
                     >
                           <CombatIcon
                             name={active ? "target" : insight.breachSide === "ally" ? "breach" : insight.breachSide === "enemy" ? "danger" : "clash"}
-                        size="sm"
+                        size="md"
+                        className="h-7 w-7"
                         fallbackClassName="opacity-90"
                       />
                       <span className="sr-only">
@@ -1607,11 +1581,11 @@ function FrontlineBattleInner({
           </div>
 
           <aside className="grid gap-3">
-            <section className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.012)_44%,rgba(0,0,0,0.1))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[2px]">
-              <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.5),transparent)]" />
+            <section className="relative overflow-hidden rounded-[26px] border border-[#f5d498]/10 bg-[linear-gradient(180deg,rgba(255,236,185,0.026),rgba(255,255,255,0.006)_44%,rgba(0,0,0,0.055))] p-3 shadow-[inset_0_1px_0_rgba(245,212,152,0.035)] backdrop-blur-[1px]">
+              <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.22),transparent)]" />
               <div className="flex items-center justify-between gap-2">
                 <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
-                  <CombatIcon name="target" size="xs" fallbackClassName="opacity-90" />
+                  <CombatIcon name="target" size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
                   <span>{t("frontline.focus")}</span>
                 </div>
                 {focusedLane ? <CompactPill tone="neutral">{laneLabel(t, focusedLane)}</CompactPill> : null}
@@ -1644,12 +1618,12 @@ function FrontlineBattleInner({
                 {!selectedCard && !state.selectedLeaderPower ? (
                   <div className="mt-3 flex items-center justify-between rounded-[16px] bg-black/10 px-2.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/58">
                     <span className="inline-flex items-center gap-1">
-                      <CombatIcon name="attack" size="xs" fallbackClassName="opacity-80" />
+                      <CombatIcon name="attack" size="sm" className="h-5 w-5" fallbackClassName="opacity-85" />
                       {displayInsight.allyScore}
                     </span>
                     <span className="h-px flex-1 mx-2 bg-[linear-gradient(90deg,rgba(101,210,200,0.4),rgba(240,95,114,0.4))]" />
                     <span className="inline-flex items-center gap-1">
-                      <CombatIcon name="danger" size="xs" fallbackClassName="opacity-80" />
+                      <CombatIcon name="danger" size="sm" className="h-5 w-5" fallbackClassName="opacity-85" />
                       {displayInsight.enemyScore}
                     </span>
                   </div>
@@ -1662,7 +1636,7 @@ function FrontlineBattleInner({
                         key={`target-${lane}`}
                         className="inline-flex items-center gap-1 rounded-full bg-[#f5c451]/12 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#f5d498]"
                       >
-                        <CombatIcon name="target" size="xs" fallbackClassName="opacity-90" />
+                        <CombatIcon name="target" size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
                         <span>{laneLabel(t, lane)}</span>
                       </div>
                     ))}
@@ -1678,9 +1652,9 @@ function FrontlineBattleInner({
                         key={entry.id}
                         className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/44"
                       >
-                        <span className="h-px flex-1 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.18))]" />
-                        <span className="rounded-full border border-white/14 bg-black/30 px-2 py-0.5">{entry.label}</span>
-                        <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(255,255,255,0.18),transparent)]" />
+                        <span className="h-px flex-1 bg-[linear-gradient(90deg,transparent,rgba(245,212,152,0.1))]" />
+                        <span className="rounded-full border border-[#f5d498]/12 bg-black/24 px-2 py-0.5">{entry.label}</span>
+                        <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(245,212,152,0.1),transparent)]" />
                       </div>
                     );
                   }
@@ -1693,13 +1667,13 @@ function FrontlineBattleInner({
                         "rounded-[14px] border px-3 py-1.5 transition",
                         high
                           ? "border-[#f5c451]/30 bg-[#f5c451]/12 text-[#f5d498]"
-                          : "border-white/8 bg-white/[0.045] text-white/72",
+                          : "border-[#f5d498]/8 bg-white/[0.025] text-white/72",
                         isTop && high && "shadow-[0_0_18px_rgba(245,196,81,0.22)] ring-1 ring-[#f5c451]/45",
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className={cn("flex min-w-0 items-center gap-2 font-black", isTop ? "text-[12px]" : "text-[11px]")}>
-                          <CombatIcon name={combatIconForEvent(entry)} size="sm" fallbackClassName="opacity-90 h-4 w-4" className="h-4 w-4" />
+                          <CombatIcon name={combatIconForEvent(entry)} size="md" fallbackClassName="opacity-90 h-6 w-6" className="h-6 w-6" />
                           <span className="truncate">{entry.label}</span>
                         </div>
                         {typeof entry.amount === "number" ? (
@@ -1716,7 +1690,7 @@ function FrontlineBattleInner({
           </aside>
         </div>
 
-        <section className="relative overflow-visible rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.08))] px-3 pb-3 pt-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[1px] md:px-4">
+        <section className="relative overflow-visible rounded-[28px] border border-[#f5d498]/10 bg-[linear-gradient(180deg,rgba(255,236,185,0.026),rgba(0,0,0,0.055))] px-3 pb-3 pt-3 shadow-[inset_0_1px_0_rgba(245,212,152,0.035)] backdrop-blur-[1px] md:px-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("frontline.hand")}</div>
             <div className="rounded-full bg-white/[0.055] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/62">
@@ -1724,7 +1698,7 @@ function FrontlineBattleInner({
             </div>
           </div>
 
-          <div className="-mx-1 mt-3 flex gap-3 overflow-x-auto px-1 pb-1 xl:mx-0 xl:grid xl:grid-cols-5 xl:overflow-visible xl:px-0 xl:pb-0">
+          <div className="-mx-1 mt-3 flex gap-3 overflow-x-auto px-1 pb-1 xl:mx-0 xl:justify-center xl:overflow-visible xl:px-0 xl:pb-0">
             {state.allyDeck.hand.map((cardId) => {
               const card = state.allyCardProfiles?.[cardId] ?? FRONTLINE_CARD_BY_ID[cardId];
               const selected = state.selectedCardId === card.id;
@@ -1800,7 +1774,6 @@ function FrontlineHandCard({
   const { t } = useI18n();
   const visual = getFrontlineCardVisualAsset(card);
   const combatIcon = combatIconForCard(card);
-  const statusIcon = statusIconForCard(card);
   const cardName = frontlineCardName(t, card);
   const cardDescription = frontlineCardDescription(t, card);
   const insufficientCommand = card.cost > command;
@@ -1812,7 +1785,7 @@ function FrontlineHandCard({
       title={cardDescription}
       disabled={!playable}
       className={cn(
-        "group relative h-[14.25rem] w-[10.25rem] shrink-0 overflow-hidden rounded-[24px] p-2.5 text-left shadow-[0_18px_38px_rgba(0,0,0,0.3)] transition duration-300 xl:h-[14.75rem] xl:w-auto",
+        "group relative h-[15.15rem] w-[11.35rem] shrink-0 overflow-hidden rounded-[24px] p-2 text-left shadow-[0_18px_38px_rgba(0,0,0,0.3)] transition duration-300 xl:h-[15.35rem] xl:w-[11.55rem]",
         cardSurfaceClass(frameTone, selected, playable),
         playable
           ? "frontline-card-ready-fx hover:-translate-y-1 hover:shadow-[0_24px_46px_rgba(0,0,0,0.38)]"
@@ -1821,13 +1794,17 @@ function FrontlineHandCard({
       )}
       onClick={onClick}
     >
-      <div className="absolute inset-[4px] z-0 overflow-hidden rounded-[20px] bg-black/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <div
+        className="absolute inset-[5px] z-0 overflow-hidden rounded-[19px] bg-cover bg-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+        style={visual.cardArtSrc ? { backgroundImage: `url('${visual.cardArtSrc}')` } : undefined}
+      >
+        <div className="absolute inset-0 bg-black/20" />
         <VisualAssetImage
           src={visual.cardArtSrc}
           fallbackSrc={visual.fallbackPortraitSrc}
           alt={`${cardName} art`}
           className="absolute inset-0 h-full w-full"
-          imgClassName="h-full w-full object-contain object-center opacity-98 saturate-[1.12] contrast-[1.04] transition duration-300 group-hover:scale-[1.025] group-hover:opacity-100"
+          imgClassName="h-full w-full object-contain object-center opacity-100 saturate-[1.12] contrast-[1.04] transition duration-300 group-hover:scale-[1.018]"
           fallback={
             <div className="grid h-full w-full place-items-center">
               <CombatIcon name={combatIcon} size="xl" fallbackClassName="opacity-95 drop-shadow-[0_12px_18px_rgba(0,0,0,0.36)] transition duration-300 group-hover:scale-110" />
@@ -1845,57 +1822,38 @@ function FrontlineHandCard({
         <div className="pointer-events-none absolute inset-x-4 bottom-3 h-px bg-[linear-gradient(90deg,transparent,rgba(245,212,152,0.42),transparent)] opacity-70" />
       ) : null}
 
-      <div className="relative z-[1] flex items-start justify-between gap-2">
-        <div className="sr-only">
-          <CardTypeIcon type={card.kind} size="sm" className="h-7 w-7" />
-          <span className="sr-only">{cardFamilyLabel(t, card)}</span>
-          <span className="sr-only">{cardName}</span>
-        </div>
-        <div
-          className={cn(
-            "grid h-12 w-12 shrink-0 place-items-center rounded-full text-lg font-black shadow-[0_0_24px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
-            insufficientCommand
-              ? "bg-[radial-gradient(circle_at_35%_28%,rgba(255,200,200,0.55),rgba(220,80,90,0.42)_44%,rgba(40,0,0,0.5)_100%)] ring-2 ring-rose-300/60 text-rose-50"
-              : "bg-[radial-gradient(circle_at_35%_28%,rgba(255,247,213,0.6),rgba(245,196,81,0.34)_44%,rgba(0,0,0,0.36)_100%)] text-[#ffe7a2]",
-          )}
-        >
-          <span className="relative grid place-items-center">
-            <ResourceIcon kind="command" size="small" className={cn("h-7 w-7 opacity-90", insufficientCommand && "opacity-70")} />
-            <span className="absolute text-sm font-black text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">{card.cost}</span>
-          </span>
-        </div>
+      <div className="sr-only">
+        <CardTypeIcon type={card.kind} size="sm" className="h-7 w-7" />
+        <span>{cardFamilyLabel(t, card)}</span>
+        <span>{cardName}</span>
+      </div>
+      <div
+        className={cn(
+          "absolute right-2 top-2 z-[3] inline-flex h-9 min-w-12 shrink-0 items-center justify-center gap-1 rounded-full px-2 text-lg font-black shadow-[0_0_24px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
+          insufficientCommand
+            ? "bg-[radial-gradient(circle_at_35%_28%,rgba(255,200,200,0.55),rgba(220,80,90,0.42)_44%,rgba(40,0,0,0.5)_100%)] ring-2 ring-rose-300/60 text-rose-50"
+            : "bg-[radial-gradient(circle_at_35%_28%,rgba(255,247,213,0.6),rgba(245,196,81,0.34)_44%,rgba(0,0,0,0.36)_100%)] text-[#ffe7a2]",
+        )}
+      >
+        <ResourceIcon kind="command" size="small" className={cn("h-5 w-5 opacity-90", insufficientCommand && "opacity-70")} />
+        <span className="text-base font-black leading-none text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">{card.cost}</span>
       </div>
 
       <div className="absolute inset-x-3 bottom-3 z-[1]">
-        <div className="flex items-center gap-2 truncate rounded-[16px] bg-black/34 px-2.5 py-2 text-[12px] font-black leading-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[1px]">
-          {statusIcon ? (
-            <StatusIcon name={statusIcon} size="md" className="h-9 w-9 shrink-0" fallbackClassName="opacity-90" />
-          ) : (
-            <CombatIcon name={combatIcon} size="md" className="h-8 w-8 shrink-0" fallbackClassName="opacity-85" />
-          )}
+        <div className="flex items-center gap-2 truncate rounded-[16px] bg-black/38 px-2.5 py-2 text-[12px] font-black leading-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[1px]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-black/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <CombatIcon name={combatIcon} size="lg" className="h-10 w-10 scale-[1.18]" fallbackClassName="opacity-88" />
+          </span>
           <span className="truncate">{cardEffectSummary(t, card)}</span>
         </div>
 
-        <div className="hidden">
-          <CompactPill tone="neutral">
-            <span className="inline-flex items-center gap-1">
-              <CombatIcon name="target" size="xs" fallbackClassName="opacity-80" />
-              <span className="sr-only">{cardTargetLabel(t, card)}</span>
-            </span>
-          </CompactPill>
-          {recommendedLane ? <CompactPill tone="ally">{laneLabel(t, recommendedLane)}</CompactPill> : null}
-          {selected ? (
-            <CompactPill tone="ally">
-              <span className="inline-flex items-center gap-1">
-                <CombatIcon name="target" size="xs" fallbackClassName="opacity-90" />
-                {t("frontline.targeting")}
-              </span>
-            </CompactPill>
-          ) : null}
+        <div className="sr-only">
+          {cardTargetLabel(t, card)}
+          {recommendedLane ? ` ${laneLabel(t, recommendedLane)}` : ""}
+          {selected ? ` ${t("frontline.targeting")}` : ""}
         </div>
 
         <div className="hidden">
-          <CombatIcon name={playable ? "advantage" : "danger"} size="xs" fallbackClassName="opacity-90" />
           <span className={cn(playable ? "text-emerald-200" : "text-rose-200")}>
             {playable ? t("frontline.ready") : t("frontline.needCommand", { amount: Math.max(0, card.cost - command) })}
           </span>
@@ -2358,23 +2316,23 @@ function VisualAssetImage({
 
 function laneSurfaceClass(tone: "ally" | "enemy" | "neutral", active: boolean, focused: boolean) {
   if (active) {
-    return "border border-[#f5c451]/24 bg-[radial-gradient(circle_at_50%_46%,rgba(245,196,81,0.15),transparent_48%),linear-gradient(180deg,rgba(111,83,37,0.14),rgba(24,18,13,0.38))] shadow-[0_0_38px_rgba(245,196,81,0.15),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[1px]";
+    return "border border-[#f5d498]/5 bg-[radial-gradient(circle_at_50%_46%,rgba(245,196,81,0.08),transparent_48%),linear-gradient(180deg,rgba(111,83,37,0.08),rgba(24,18,13,0.2))] shadow-[0_0_24px_rgba(245,196,81,0.08),inset_0_1px_0_rgba(245,212,152,0.025)] backdrop-blur-[1px]";
   }
   if (tone === "ally") {
     return cn(
-      "border border-cyan-200/10 bg-[radial-gradient(circle_at_50%_50%,rgba(101,210,200,0.08),transparent_57%),linear-gradient(180deg,rgba(53,128,112,0.09),rgba(8,15,15,0.34))] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-[1px]",
-      focused && "shadow-[0_0_30px_rgba(94,197,142,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]",
+      "border border-[#f5d498]/5 bg-[radial-gradient(circle_at_50%_50%,rgba(101,210,200,0.045),transparent_57%),linear-gradient(180deg,rgba(53,128,112,0.05),rgba(8,15,15,0.2))] shadow-[inset_0_1px_0_rgba(245,212,152,0.02)] backdrop-blur-[1px]",
+      focused && "shadow-[0_0_20px_rgba(94,197,142,0.08),inset_0_1px_0_rgba(245,212,152,0.035)]",
     );
   }
   if (tone === "enemy") {
     return cn(
-      "border border-rose-200/10 bg-[radial-gradient(circle_at_50%_50%,rgba(240,95,114,0.08),transparent_57%),linear-gradient(180deg,rgba(121,49,58,0.09),rgba(17,10,14,0.36))] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-[1px]",
-      focused && "shadow-[0_0_30px_rgba(214,96,104,0.15),inset_0_1px_0_rgba(255,255,255,0.08)]",
+      "border border-[#f5d498]/5 bg-[radial-gradient(circle_at_50%_50%,rgba(240,95,114,0.045),transparent_57%),linear-gradient(180deg,rgba(121,49,58,0.05),rgba(17,10,14,0.2))] shadow-[inset_0_1px_0_rgba(245,212,152,0.02)] backdrop-blur-[1px]",
+      focused && "shadow-[0_0_20px_rgba(214,96,104,0.08),inset_0_1px_0_rgba(245,212,152,0.035)]",
     );
   }
   return cn(
-    "border border-white/8 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_58%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(7,9,12,0.34))] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-[1px]",
-    focused && "shadow-[0_0_28px_rgba(255,255,255,0.07),inset_0_1px_0_rgba(255,255,255,0.08)]",
+    "border border-[#f5d498]/5 bg-[radial-gradient(circle_at_50%_50%,rgba(255,236,185,0.022),transparent_58%),linear-gradient(180deg,rgba(255,255,255,0.008),rgba(7,9,12,0.2))] shadow-[inset_0_1px_0_rgba(245,212,152,0.02)] backdrop-blur-[1px]",
+    focused && "shadow-[0_0_20px_rgba(245,212,152,0.045),inset_0_1px_0_rgba(245,212,152,0.035)]",
   );
 }
 
@@ -2433,14 +2391,14 @@ function CoreTotem({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[26px] border px-3 py-2.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_14px_34px_rgba(0,0,0,0.18)] backdrop-blur-[1px]",
+        "relative overflow-hidden rounded-[26px] border px-3 py-2.5 text-center shadow-[inset_0_1px_0_rgba(245,212,152,0.035),0_14px_34px_rgba(0,0,0,0.14)] backdrop-blur-[1px]",
         accent === "ally"
-          ? "border-cyan-200/10 bg-[linear-gradient(180deg,rgba(35,83,112,0.22),rgba(8,12,17,0.42))]"
-          : "border-rose-200/10 bg-[linear-gradient(180deg,rgba(110,44,55,0.22),rgba(14,8,13,0.42))]",
+          ? "border-[#f5d498]/5 bg-[linear-gradient(180deg,rgba(35,83,112,0.11),rgba(8,12,17,0.24))]"
+          : "border-[#f5d498]/5 bg-[linear-gradient(180deg,rgba(110,44,55,0.11),rgba(14,8,13,0.24))]",
         flash && "frontline-core-hit-fx ring-2 ring-[#f5c451]/24 shadow-[0_0_34px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.08)]",
       )}
     >
-      <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.42),transparent)]" />
+      <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,212,152,0.18),transparent)]" />
       <span className="sr-only">{title}</span>
       <div className="relative">
         <div className="truncate text-sm font-black leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)]">{leaderName}</div>
@@ -2477,7 +2435,7 @@ function CoreTotem({
         <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-white/62">
           <span>{hp}/{maxHp}</span>
           <span className="inline-flex items-center gap-1" title={powerLabel}>
-            <CombatIcon name="leader_power" size="xs" fallbackClassName="opacity-75" />
+            <CombatIcon name="leader_power" size="sm" className="h-5 w-5" fallbackClassName="opacity-75" />
             {cooldownRemaining > 0 ? cooldownRemaining : null}
             <span className="sr-only">{powerLabel}</span>
           </span>
@@ -2618,7 +2576,7 @@ function BossSegmentReadout({
                 : "border-[#f5c451]/52 bg-[#f5c451]/12 text-[#fff0bd]",
             )}
           >
-            <CombatIcon name={segment.weakpoint ? "danger" : "leader_power"} size="xs" fallbackClassName="opacity-90" />
+            <CombatIcon name={segment.weakpoint ? "danger" : "leader_power"} size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
             <span>{t(segment.titleKey)}</span>
           </span>
           {traitInfo ? (
@@ -2626,23 +2584,23 @@ function BossSegmentReadout({
               title={`${traitInfo.label} — ${traitInfo.description}`}
               className="inline-flex items-center gap-1 rounded-full border border-rose-200/30 bg-rose-300/12 px-1.5 py-0.5 text-rose-100/82"
             >
-              <StatusIcon name={traitInfo.icon} size="sm" className="h-4 w-4" fallbackClassName="opacity-90" />
+              <StatusIcon name={traitInfo.icon} size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
               <span className="truncate max-w-[5.6rem]">{traitInfo.label}</span>
             </span>
           ) : null}
         </div>
         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-rose-100/82">
-          <CombatIcon name="attack" size="xs" fallbackClassName="opacity-80" />
+          <CombatIcon name="attack" size="sm" className="h-5 w-5" fallbackClassName="opacity-80" />
           <span>{hero.atk + hero.tempAtk}</span>
           {hero.shield > 0 ? (
             <span className="inline-flex items-center gap-0.5">
-              <StatusIcon name="guard" size="sm" className="h-4 w-4" fallbackClassName="opacity-80" />
+              <StatusIcon name="guard" size="sm" className="h-5 w-5" fallbackClassName="opacity-80" />
               {hero.shield}
             </span>
           ) : null}
           {hero.stun > 0 ? (
             <span className="inline-flex items-center gap-0.5">
-              <StatusIcon name="debuff" size="sm" className="h-4 w-4" fallbackClassName="opacity-80" />
+              <StatusIcon name="debuff" size="sm" className="h-5 w-5" fallbackClassName="opacity-80" />
               {hero.stun}
             </span>
           ) : null}
@@ -2658,7 +2616,7 @@ function BossSegmentReadout({
         <span>{hero.hp}/{hero.maxHp}</span>
         {scorch > 0 ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-rose-400/22 px-1.5 py-0.5 text-rose-100">
-            <StatusIcon name="poison" size="sm" className="h-4 w-4" fallbackClassName="opacity-80" />
+            <StatusIcon name="poison" size="sm" className="h-5 w-5" fallbackClassName="opacity-80" />
             {scorch}
           </span>
         ) : null}
@@ -2666,14 +2624,14 @@ function BossSegmentReadout({
       {support ? (
         <div className="mt-2 flex items-center justify-between gap-2 rounded-[14px] border border-emerald-200/30 bg-emerald-300/12 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-100/82">
           <span className="inline-flex items-center gap-1 truncate">
-            <CombatIcon name="summon" size="xs" fallbackClassName="opacity-80" />
+            <CombatIcon name="summon" size="sm" className="h-5 w-5" fallbackClassName="opacity-80" />
             <span className="truncate max-w-[6rem]">{supportName}</span>
           </span>
           <span className="inline-flex items-center gap-2">
             <span>{support.hp}/{support.maxHp}</span>
             {support.atk > 0 ? (
               <span className="inline-flex items-center gap-0.5">
-                <CombatIcon name="attack" size="xs" fallbackClassName="opacity-80" />
+                <CombatIcon name="attack" size="sm" className="h-5 w-5" fallbackClassName="opacity-80" />
                 {support.atk}
               </span>
             ) : null}
@@ -2833,16 +2791,16 @@ function CoreShockOverlay({
 
 function CommandPips({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-full bg-white/[0.055] px-2.5 py-1.5">
+    <div className="flex items-center gap-1.5 rounded-full bg-white/[0.055] px-3 py-1.5">
       {[0, 1, 2].map((index) => (
         <span
           key={index}
           className={cn(
-            "grid h-6 w-6 place-items-center rounded-full transition",
+            "grid h-8 w-8 place-items-center rounded-full transition",
             index < value ? "opacity-100 drop-shadow-[0_0_12px_rgba(245,212,152,0.55)]" : "opacity-28 grayscale",
           )}
         >
-          <ResourceIcon kind="command" size="small" className="h-5 w-5" />
+          <ResourceIcon kind="command" size="small" className="h-7 w-7" />
         </span>
       ))}
     </div>
@@ -2944,7 +2902,7 @@ function FrontlineHeroPiece({
               accent === "ally" ? "border-cyan-200/28 text-cyan-100" : "border-rose-200/28 text-rose-100",
             )}
           >
-            <StatusIcon name={traitInfo.icon} size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
+            <StatusIcon name={traitInfo.icon} size="md" className="h-8 w-8" fallbackClassName="opacity-90" />
           </div>
         ) : null}
       </div>
@@ -3001,8 +2959,8 @@ function FrontlineHeroPiece({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/58">
                 <span className="inline-flex items-center gap-1">
-                  <CombatIcon name="attack" size="sm" fallbackClassName="opacity-75" />
-                  <span>{actor.atk + actor.tempAtk}</span>
+                  <CombatIcon name="attack" size="lg" className="h-8 w-8" fallbackClassName="opacity-85" />
+                  <span className="text-[12px] text-white/78">{actor.atk + actor.tempAtk}</span>
                 </span>
                 {traitInfo ? (
                   <span
@@ -3014,7 +2972,7 @@ function FrontlineHeroPiece({
                         : "border-rose-200/30 bg-rose-300/12 text-rose-100/82",
                     )}
                   >
-                    <StatusIcon name={traitInfo.icon} size="sm" className="h-4 w-4" fallbackClassName="opacity-90" />
+                    <StatusIcon name={traitInfo.icon} size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
                     <span className="truncate max-w-[5.2rem]">{traitInfo.label}</span>
                   </span>
                 ) : null}
@@ -3025,7 +2983,7 @@ function FrontlineHeroPiece({
               {actor.stun > 0 ? (
                 <CompactPill tone="enemy">
                   <span className="inline-flex items-center gap-1">
-                    <StatusIcon name="debuff" size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
+                    <StatusIcon name="debuff" size="md" className="h-7 w-7" fallbackClassName="opacity-90" />
                     {actor.stun}
                   </span>
                 </CompactPill>
@@ -3033,7 +2991,7 @@ function FrontlineHeroPiece({
               {scorch && scorch > 0 ? (
                 <CompactPill tone="enemy">
                   <span className="inline-flex items-center gap-1">
-                    <StatusIcon name="poison" size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
+                    <StatusIcon name="poison" size="md" className="h-7 w-7" fallbackClassName="opacity-90" />
                     {scorch}
                   </span>
                 </CompactPill>
@@ -3041,7 +2999,7 @@ function FrontlineHeroPiece({
               {pressured ? (
                 <CompactPill tone="enemy">
                   <span className="inline-flex items-center gap-1">
-                    <CombatIcon name="danger" size="xs" fallbackClassName="opacity-85" />
+                    <CombatIcon name="danger" size="md" className="h-6 w-6" fallbackClassName="opacity-85" />
                     {t("frontline.low")}
                   </span>
                 </CompactPill>
@@ -3058,7 +3016,7 @@ function FrontlineHeroPiece({
             <span className="sr-only">{actor.hp}/{actor.maxHp}</span>
             {actor.shield > 0 ? (
               <span className="inline-flex items-center gap-1">
-                <StatusIcon name="guard" size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
+                <StatusIcon name="guard" size="md" className="h-7 w-7" fallbackClassName="opacity-90" />
                 {actor.shield}
               </span>
             ) : null}
@@ -3132,29 +3090,10 @@ function SupportToken({ support, active }: { support: FrontlineBattleState["lane
         active && "frontline-support-pop-fx ring-2 ring-[#f5c451]/28",
       )}
     >
-      <CombatIcon name={icon} size="sm" fallbackClassName="opacity-95" />
+      <CombatIcon name={icon} size="md" className="h-7 w-7" fallbackClassName="opacity-95" />
       <div className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-[#f5c451] text-[9px] font-black text-[#221509] shadow-[0_0_12px_rgba(245,196,81,0.35)]">
         {support.duration}
       </div>
-    </div>
-  );
-}
-
-function FlowStep({ icon, label, active, done }: { icon: CombatAssetIconName; label: string; active?: boolean; done?: boolean }) {
-  return (
-    <div
-      title={label}
-      className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-black uppercase tracking-[0.16em] md:h-10 md:w-10",
-        active
-          ? "bg-[#f5c451]/12 text-[#f5d498] shadow-[0_0_18px_rgba(245,196,81,0.12)]"
-          : done
-            ? "bg-emerald-300/10 text-emerald-100"
-            : "bg-white/[0.045] text-white/48",
-      )}
-    >
-      <CombatIcon name={icon} size="sm" fallbackClassName="opacity-85" />
-      <span className="sr-only">{label}</span>
     </div>
   );
 }
@@ -3181,7 +3120,7 @@ function StatusTag({
             : "bg-white/[0.055] text-white/62",
       )}
     >
-      {icon ? <CombatIcon name={icon} size="xs" fallbackClassName="opacity-85" /> : null}
+      {icon ? <CombatIcon name={icon} size="sm" className="h-5 w-5" fallbackClassName="opacity-85" /> : null}
       <span>
         {label}
         {detail ? ` ${detail}` : ""}

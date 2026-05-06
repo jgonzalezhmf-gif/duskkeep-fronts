@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
+import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { isResourceIconKind, ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
+import GameAssetIcon from "@/components/ui/GameAssetIcon";
 import type { GlyphKind } from "@/components/ui/GameGlyph";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -179,6 +181,26 @@ export function GameRewardToken({
         <span className={cn("relative z-[1] grid shrink-0 place-items-center transition duration-300 group-hover/reward:scale-110", classes.icon)}>
           <ResourceIcon kind={icon} size="large" className="h-[112%] w-[112%]" />
         </span>
+      ) : icon === "power" ? (
+        <ProgressionIcon
+          name="level_up"
+          size="lg"
+          className={cn("relative z-[1] shrink-0 transition duration-300 group-hover/reward:scale-105", classes.icon)}
+        />
+      ) : icon === "rewards" ? (
+        <ProgressionIcon
+          name="reward_chest"
+          size="lg"
+          className={cn("relative z-[1] shrink-0 transition duration-300 group-hover/reward:scale-105", classes.icon)}
+        />
+      ) : icon === "deck" ? (
+        <GameAssetIcon
+          category="nav"
+          name="deck"
+          size="lg"
+          className={cn("relative z-[1] shrink-0 transition duration-300 group-hover/reward:scale-105", classes.icon)}
+          imgClassName="scale-[1.22] drop-shadow-[0_8px_14px_rgba(0,0,0,0.44)]"
+        />
       ) : (
         <GameIcon
           kind={icon}

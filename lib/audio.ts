@@ -391,6 +391,39 @@ class AudioManager {
     this.fadeHtmlAudio(channel, this.getMusicAssetVolume(channel.theme), fadeSeconds);
   }
 
+  private getMusicElementRegistry() {
+    if (typeof window === "undefined") return null;
+    const audioGlobal = globalThis as DuskkeepAudioGlobal;
+    audioGlobal.__duskkeepMusicElements ??= new Set<HTMLAudioElement>();
+    return audioGlobal.__duskkeepMusicElements;
+  }
+
+  private registerMusicElement(audio: HTMLAudioElement) {
+    this.getMusicElementRegistry()?.add(audio);
+  }
+
+  private disposeMusicElement(audio: HTMLAudioElement) {
+    this.getMusicElementRegistry()?.delete(audio);
+    audio.pause();
+    audio.src = "";
+    audio.load();
+  }
+
+  private stopUntrackedMusicElements(except?: HTMLAudioElement) {
+    const registry = this.getMusicElementRegistry();
+    if (!registry) return;
+    for (const audio of Array.from(registry)) {
+      if (audio === except) continue;
+      this.disposeMusicElement(audio);
+    }
+  }
+
+  private stopActiveProceduralTheme(fadeSeconds = 0.45) {
+    if (!this.activeThemeChannel) return;
+    this.stopThemeChannel(this.activeThemeChannel, fadeSeconds);
+    this.activeThemeChannel = null;
+  }
+
   private fadeHtmlAudio(channel: MusicAssetChannel, targetVolume: number, seconds: number, onDone?: () => void) {
     if (typeof window === "undefined") return;
     if (channel.timer !== null) {
@@ -422,14 +455,11 @@ class AudioManager {
         channel.timer = null;
       }
       channel.audio.pause();
-      channel.audio.src = "";
-      channel.audio.load();
+      this.disposeMusicElement(channel.audio);
       return;
     }
     this.fadeHtmlAudio(channel, 0, fadeSeconds, () => {
-      channel.audio.pause();
-      channel.audio.src = "";
-      channel.audio.load();
+      this.disposeMusicElement(channel.audio);
     });
   }
 
@@ -438,26 +468,34 @@ class AudioManager {
     const asset = getAudioMusicAsset(theme);
     if (!asset) return false;
     if (this.activeMusicAssetChannel?.theme === theme) {
+      this.stopActiveProceduralTheme(0.22);
+      this.stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
       this.applyMusicAssetVolume(0.18);
       return true;
     }
     if (this.activeMusicAssetChannel?.audio.currentSrc.endsWith(asset.src)) {
+      this.stopActiveProceduralTheme(0.22);
+      this.stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
       this.activeMusicAssetChannel.theme = theme;
       this.applyMusicAssetVolume(0.18);
       return true;
     }
 
+    this.stopActiveProceduralTheme(0.22);
     this.stopMusicAssetChannel(0);
+    this.stopUntrackedMusicElements();
     const audio = new Audio(asset.src);
     audio.loop = asset.loop ?? true;
     audio.preload = "auto";
     audio.volume = 0;
     const channel: MusicAssetChannel = { theme, audio, timer: null };
     this.activeMusicAssetChannel = channel;
+    this.registerMusicElement(audio);
     audio.play().then(
       () => this.fadeHtmlAudio(channel, this.getMusicAssetVolume(theme), 0.75),
       () => {
         if (this.activeMusicAssetChannel === channel) this.activeMusicAssetChannel = null;
+        this.disposeMusicElement(audio);
         this.crossfadeProceduralTheme(theme);
       },
     );
@@ -935,31 +973,25 @@ class AudioManager {
   private crossfadeTheme(theme: ThemeName) {
     if (typeof window === "undefined") return;
     if (!this.primed || this.muted) {
-      if (this.activeThemeChannel) {
-        this.stopThemeChannel(this.activeThemeChannel, 0.35);
-        this.activeThemeChannel = null;
-      }
+      this.stopActiveProceduralTheme(0.35);
       this.stopMusicAssetChannel(0.35);
+      this.stopUntrackedMusicElements();
       return;
     }
 
     if (!theme) {
-      if (this.activeThemeChannel) {
-        this.stopThemeChannel(this.activeThemeChannel, 0.58);
-        this.activeThemeChannel = null;
-      }
+      this.stopActiveProceduralTheme(0.58);
       this.stopMusicAssetChannel(0.58);
+      this.stopUntrackedMusicElements();
       return;
     }
 
     if (getAudioMusicAsset(theme)) {
-      if (this.activeThemeChannel) {
-        this.stopThemeChannel(this.activeThemeChannel, 0.45);
-        this.activeThemeChannel = null;
-      }
+      this.stopActiveProceduralTheme(0.45);
       if (this.playMusicAsset(theme)) return;
     } else {
       this.stopMusicAssetChannel(0.45);
+      this.stopUntrackedMusicElements();
     }
 
     this.crossfadeProceduralTheme(theme);
@@ -1127,6 +1159,7 @@ class AudioManager {
 
 type DuskkeepAudioGlobal = typeof globalThis & {
   __duskkeepAudioManager?: AudioManager;
+  __duskkeepMusicElements?: Set<HTMLAudioElement>;
 };
 
 const audioGlobal = globalThis as DuskkeepAudioGlobal;

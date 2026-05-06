@@ -368,14 +368,17 @@ function HeroRosterButton({
     >
       <div className="flex items-center gap-2">
         <div className="grid h-16 w-14 shrink-0 place-items-end overflow-hidden rounded-[16px] border border-white/10 bg-black/22">
-          {visual.standeeSrc ? (
+          {visual.standeeSrc || visual.portraitFallbackSrc ? (
             <img
-              src={visual.standeeSrc}
+              src={visual.standeeSrc ?? visual.portraitFallbackSrc ?? undefined}
               alt=""
               aria-hidden="true"
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-contain object-bottom drop-shadow-[0_10px_14px_rgba(0,0,0,0.44)]"
+              className={cn(
+                "h-full w-full object-bottom drop-shadow-[0_10px_14px_rgba(0,0,0,0.44)]",
+                visual.standeeSrc ? "object-contain" : "object-cover",
+              )}
             />
           ) : (
             <GameGlyph kind="heroes" shell="none" className="h-8 w-8 text-white/60" />

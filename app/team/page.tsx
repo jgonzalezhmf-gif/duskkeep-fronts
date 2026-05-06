@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
+import { CombatIcon } from "@/components/game/shared/CombatIcon";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
@@ -231,7 +232,7 @@ function TeamMetric({
 }) {
   return (
     <div className={cn("flex items-center gap-2 rounded-[20px] border px-3 py-2.5", active ? "border-cyan-200/22 bg-cyan-300/10" : "border-white/10 bg-white/[0.045]")}>
-      <GameIcon kind={icon} tone={tone} size="sm" />
+      {icon === "power" ? <CombatIcon name="leader_power" size="sm" className="h-10 w-10" /> : <GameIcon kind={icon} tone={tone} size="sm" />}
       <div className="min-w-0">
         <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
         <div className="mt-0.5 truncate text-base font-black text-white">{value}</div>
@@ -248,7 +249,7 @@ function BuildStat({ label, value, tone, icon }: { label: string; value: number;
           <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
           <div className="mt-1 text-2xl font-black text-white">{value}</div>
         </div>
-        <GameIcon kind={icon} tone={tone} size="sm" />
+        {icon === "power" ? <CombatIcon name="leader_power" size="sm" className="h-10 w-10" /> : <GameIcon kind={icon} tone={tone} size="sm" />}
       </div>
     </div>
   );

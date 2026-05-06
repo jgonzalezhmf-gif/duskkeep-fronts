@@ -20,6 +20,7 @@ export const ADVENTURE: AdventureLevel[] = [
   {
     id: "c1l2", chapter: 1, index: 2, name: "Broken Mill",
     recommendedPower: 40,
+    unlocks: ["c1l3", "c1l7"],
     frontlinePresetId: "bonewood_raiders",
     enemyTeam: [
       { heroId: "ren", level: 2, stars: 1 },
@@ -92,7 +93,6 @@ export const ADVENTURE: AdventureLevel[] = [
     ],
     rewards: { gold: 220, dust: 40, xp: 90, accountXp: 22 },
     firstClearRewards: { gems: 25, frontlineCards: [{ cardId: "tactic_core_burst" }] },
-    unlockAccountLevel: 3,
     obstacles: [o(2, 2)],
   },
   {

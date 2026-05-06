@@ -1,65 +1,78 @@
 "use client";
 
+import Link from "next/link";
 import ArtPortrait from "@/components/ui/ArtPortrait";
 import GameGlyph from "@/components/ui/GameGlyph";
-import FantasyMedallion from "@/components/ui/fantasy/FantasyMedallion";
+import { sfx } from "@/lib/audio";
 
 export default function FantasyCommanderBadge({
   name,
   level,
   xpWidth,
   portrait,
+  power,
+  leaderTitle = "Warden of Dawnkeep",
+  groupLabel = "War Council",
+  levelLabel = "Lv",
+  powerLabel = "Power",
 }: {
   name: string;
   level: number;
   xpWidth: number;
   portrait: string;
+  power?: string;
+  leaderTitle?: string;
+  groupLabel?: string;
+  levelLabel?: string;
+  powerLabel?: string;
 }) {
   return (
-    <div className="relative isolate min-w-[14rem]">
-      <div
-        aria-hidden
-        className="absolute inset-0 border border-[#f5c451]/20 bg-[radial-gradient(circle_at_20%_0%,rgba(245,196,81,0.16),transparent_36%),linear-gradient(180deg,rgba(11,15,21,0.8),rgba(8,11,17,0.98))] shadow-[0_24px_48px_rgba(0,0,0,0.36)]"
-        style={{ clipPath: "polygon(10% 0%, 90% 0%, 100% 22%, 100% 100%, 0% 100%, 0% 22%)" }}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-x-[7%] top-[7%] h-6 bg-[linear-gradient(180deg,rgba(255,245,212,0.24),transparent)] blur-[6px]"
-      />
-      <div className="relative flex items-center gap-3 px-3 py-3.5 md:px-4">
-        <div className="relative shrink-0">
-          <FantasyMedallion tone="gold" size="xl" active>
-            <ArtPortrait
-              src={portrait}
-              alt={name}
-              className="h-full w-full rounded-[22%] object-cover"
-              fallback={<GameGlyph kind="fortress" className="h-full w-full" shell="none" />}
-            />
-          </FantasyMedallion>
-          <div
-            className="absolute -bottom-1 left-1/2 min-w-[3rem] -translate-x-1/2 border border-[#f5c451]/28 bg-[linear-gradient(180deg,#3d250c,#160b05)] px-2 py-0.5 text-center text-[9px] font-black uppercase tracking-[0.18em] text-[#f5dda0] shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
-            style={{ clipPath: "polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%)" }}
-          >
-            Lv {level}
-          </div>
-        </div>
-        <div className="min-w-0 flex-1 pt-1">
-          <div className="text-[9px] font-black uppercase tracking-[0.34em] text-white/44">War Council</div>
-          <div className="mt-1 truncate text-base font-black tracking-[0.03em] text-[#f5deb0] md:text-lg">{name}</div>
-          <div className="mt-2 flex items-center gap-2">
-            <div
-              className="relative h-3 flex-1 overflow-hidden border border-[#f5c451]/18 bg-black/38 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]"
-              style={{ clipPath: "polygon(2% 0%, 98% 0%, 100% 50%, 98% 100%, 2% 100%, 0% 50%)" }}
-            >
-              <div
-                className="absolute inset-y-0 left-0 bg-[linear-gradient(90deg,#f5c451,#ffe8a8)] shadow-[0_0_12px_rgba(245,196,81,0.38)]"
-                style={{ width: `${xpWidth}%`, clipPath: "polygon(0 0, 98% 0, 100% 50%, 98% 100%, 0 100%)" }}
-              />
-            </div>
-            <span className="text-[9px] font-black uppercase tracking-[0.18em] text-white/52">Realm</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Link
+      href="/roster"
+      onMouseEnter={() => sfx.hover()}
+      onPointerDown={() => sfx.tap()}
+      className="group relative flex w-[17.4rem] items-center gap-3 rounded-[28px] border border-[#f1c96c]/20 bg-[linear-gradient(180deg,rgba(19,16,15,0.66),rgba(8,10,16,0.94))] px-3 py-2.5 shadow-[0_20px_40px_rgba(0,0,0,0.32)] backdrop-blur-xl"
+    >
+      <span className="absolute inset-x-[12%] top-0 h-[38%] rounded-full bg-white/10 opacity-70 blur-md" />
+      <span className="absolute bottom-[-10px] left-10 h-5 w-16 rounded-full bg-black/34 blur-xl" />
+      <span className="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center">
+        <span className="absolute inset-0 rounded-[26px] border border-[#f0c75a]/34 bg-[linear-gradient(180deg,rgba(58,34,17,0.92),rgba(18,13,12,0.98))] shadow-[0_14px_28px_rgba(0,0,0,0.34)]" />
+        <span className="absolute inset-[8%] rounded-[22px] bg-[radial-gradient(circle_at_50%_28%,rgba(255,213,122,0.46),transparent_62%)] blur-md" />
+        <ArtPortrait
+          src={portrait}
+          alt={name}
+          className="relative z-[1] h-[3.7rem] w-[3.7rem] rounded-[18px] object-cover object-top brightness-[1.04] contrast-[1.06]"
+          fallback={
+            <span className="relative z-[1] h-[3.3rem] w-[3.3rem]">
+              <GameGlyph kind="heroes" className="h-full w-full" shell="none" />
+            </span>
+          }
+        />
+        <span className="absolute -bottom-1 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-[#f0c75a]/26 bg-[linear-gradient(180deg,rgba(32,22,12,0.94),rgba(14,10,8,0.98))] px-2 py-[0.18rem] text-[9px] font-black uppercase tracking-[0.18em] text-[#f8de9e]">
+          {levelLabel} {level}
+        </span>
+      </span>
+
+      <span className="relative min-w-0 flex-1">
+        <span className="block text-[8px] font-black uppercase tracking-[0.28em] text-white/54">{groupLabel}</span>
+        <span className="mt-0.5 block truncate text-[1.2rem] font-black leading-none text-[#fff0cf]">{name}</span>
+        <span className="mt-1 flex flex-wrap items-center gap-1.5">
+          <span className="rounded-full border border-[#f0c75a]/22 bg-[linear-gradient(180deg,rgba(49,33,18,0.88),rgba(16,11,8,0.98))] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
+            {leaderTitle}
+          </span>
+          {power ? (
+            <span className="rounded-full border border-sky-200/16 bg-[linear-gradient(180deg,rgba(10,20,31,0.82),rgba(7,10,17,0.98))] px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-white/74">
+              {powerLabel} {power}
+            </span>
+          ) : null}
+        </span>
+        <span className="mt-2 block h-2.5 overflow-hidden rounded-full border border-white/10 bg-black/34">
+          <span
+            className="block h-full rounded-full bg-[linear-gradient(90deg,#f6cf67,#f0a85a,#7ad8ff)] shadow-[0_0_18px_rgba(255,205,111,0.42)]"
+            style={{ width: `${xpWidth}%` }}
+          />
+        </span>
+      </span>
+    </Link>
   );
 }

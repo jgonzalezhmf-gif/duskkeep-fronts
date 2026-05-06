@@ -64,7 +64,7 @@ const ADVENTURE_NODE_OVERRIDES: Record<string, AdventureNodeOverride> = {
   c1l7: { type: "chest", repeatPolicy: "never", rewardId: "eclipse-breach-cache" },
   c1l9: { type: "elite", nodeRule: eliteRule("Shadow flank") },
   c1l11: { type: "elite", nodeRule: eliteRule("Ember vanguard") },
-  c1l12: { type: "boss", repeatPolicy: "free_no_reward", nodeRule: bossRule("Eclipse command cell"), unlocks: ["chapter-2"] },
+  c1l12: { type: "boss", repeatPolicy: "free_no_reward", nodeRule: bossRule("Eclipse command cell") },
   c2l3: { type: "chest", repeatPolicy: "never", rewardId: "ashen-ember-vault" },
   c2l4: { type: "elite", nodeRule: eliteRule("Sunken choir guard") },
   c2l6: { type: "elite", nodeRule: eliteRule("Mire brute wall") },
@@ -92,7 +92,7 @@ export function getAdventureNodeDefinition(level: AdventureLevel): AdventureNode
     firstClearReward: getAdventureFirstClearReward(level),
     repeatReward: getAdventureRepeatReward(level, type, repeatPolicy),
     repeatPolicy,
-    unlocks: override.unlocks,
+    unlocks: override.unlocks ?? level.unlocks,
     nodeRule: override.nodeRule ?? getDefaultNodeRule(type),
   };
 }

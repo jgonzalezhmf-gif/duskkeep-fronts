@@ -10,6 +10,7 @@ import { ProgressionIcon, type ProgressionIconName } from "@/components/game/sha
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import type { GlyphKind } from "@/components/ui/GameGlyph";
+import ScreenBackground from "@/components/ui/ScreenBackground";
 import { DAILY_MISSIONS, WEEKLY_MISSIONS } from "@/data/missions";
 import { cn } from "@/lib/cn";
 import { sfx } from "@/lib/audio";
@@ -112,27 +113,31 @@ export default function MissionsPage() {
   };
 
   return (
-    <div className="relative isolate min-h-dvh overflow-hidden px-3 pb-24 pt-56 sm:pt-40 md:px-6 md:pb-28 md:pt-28">
-      <SceneBackdrop scene="missions" />
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_18%_12%,rgba(93,211,158,0.08),transparent_24%),radial-gradient(circle_at_82%_13%,rgba(245,196,81,0.08),transparent_22%),linear-gradient(180deg,rgba(5,8,12,0.04),rgba(5,8,12,0.32)_58%,rgba(5,8,12,0.74))]" />
+    <div className="relative isolate min-h-dvh overflow-hidden bg-[#04070d] px-3 pb-20 pt-28 sm:pt-28 md:px-6 md:pb-24 md:pt-24">
+      <ScreenBackground screen="missions" overlayIntensity="medium" fallback={<SceneBackdrop scene="missions" className="opacity-55" />} />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_16%_12%,rgba(93,211,158,0.08),transparent_20%),radial-gradient(circle_at_82%_16%,rgba(245,196,81,0.08),transparent_20%),linear-gradient(180deg,rgba(3,7,12,0.2),rgba(4,8,12,0.4)_46%,rgba(4,7,11,0.72))]" />
+      <div className="pointer-events-none absolute inset-0 z-[1] opacity-[0.028] [background-image:linear-gradient(90deg,rgba(245,212,152,0.8)_1px,transparent_1px),linear-gradient(180deg,rgba(245,212,152,0.45)_1px,transparent_1px)] [background-size:72px_72px]" />
       <GameBackNav />
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />
       <RewardFlightOverlay rewards={claimFx?.rewards} active={Boolean(claimFx)} nonce={claimFx?.nonce} origin="center" />
-      <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-5">
-        <section className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(135deg,rgba(18,38,30,0.86),rgba(12,16,24,0.96)_48%,rgba(7,9,14,0.99)_100%)] p-4 shadow-[0_30px_86px_rgba(0,0,0,0.42)] md:rounded-[38px] md:p-6">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(93,211,158,0.16),transparent_24%),radial-gradient(circle_at_82%_10%,rgba(245,196,81,0.14),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_42%)]" />
-          <div className="relative z-[1] grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_25rem]">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-4">
+        <section className="relative overflow-hidden rounded-[28px] border border-[#f5d498]/12 bg-[linear-gradient(135deg,rgba(18,30,27,0.76),rgba(10,13,19,0.94)_48%,rgba(5,7,12,0.98)_100%)] p-3 shadow-[0_28px_74px_rgba(0,0,0,0.42)] md:rounded-[34px] md:p-4">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(93,211,158,0.13),transparent_22%),radial-gradient(circle_at_82%_10%,rgba(245,196,81,0.12),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.018),transparent_42%)]" />
+          <div className="relative z-[1] grid gap-3 xl:grid-cols-[minmax(0,0.88fr)_minmax(25rem,1.12fr)]">
             <div>
-              <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
-                {t("missionsScreen.commandLog")}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
+                  {t("missionsScreen.commandLog")}
+                </div>
+                <MiniBadge tone={stats.ready > 0 ? "gold" : "neutral"}>{t("missionsScreen.progress.readyCount", { count: stats.ready })}</MiniBadge>
               </div>
-              <h1 className="mt-4 max-w-[56rem] text-[2.05rem] font-black leading-[0.92] tracking-[-0.045em] text-white sm:text-[2.5rem] md:text-[4.1rem]">
+              <h1 className="mt-3 max-w-[44rem] text-[1.85rem] font-black leading-[0.92] tracking-[-0.045em] text-white sm:text-[2.25rem] md:text-[2.8rem]">
                 {t("missionsScreen.title")}
               </h1>
-              <p className="mt-3 max-w-[42rem] text-[12px] leading-6 text-white/64 md:mt-4 md:text-[15px] md:leading-7">
+              <p className="mt-2 max-w-[38rem] text-[12px] leading-5 text-white/58 md:text-[13px]">
                 {t("missionsScreen.copy")}
               </p>
-              <div className="mt-4 grid grid-cols-3 gap-2 md:mt-5">
+              <div className="mt-3 grid grid-cols-3 gap-2">
                 <LogMetric progressionIcon="claim" label={t("missionsScreen.metrics.ready")} value={String(stats.ready)} tone="gold" active={stats.ready > 0} />
                 <LogMetric icon="missions" label={t("missionsScreen.metrics.active")} value={String(stats.active)} tone="emerald" />
                 <LogMetric icon="events" label={t("missionsScreen.metrics.reset")} value={nextReset} tone="sky" />
@@ -167,10 +172,10 @@ function NextContract({
 }) {
   if (!mission) {
     return (
-      <div className="rounded-[30px] border border-emerald-300/18 bg-[linear-gradient(180deg,rgba(93,211,158,0.12),rgba(8,12,18,0.92))] p-4">
-        <ProgressionIcon name="reward_chest" size="xl" />
-        <div className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-200/72">{t("missionsScreen.next.allClear")}</div>
-        <div className="mt-2 text-2xl font-black leading-tight text-white">{t("missionsScreen.next.noUrgent")}</div>
+      <div className="rounded-[26px] border border-emerald-300/18 bg-[linear-gradient(180deg,rgba(93,211,158,0.12),rgba(8,12,18,0.92))] p-4">
+        <ProgressionIcon name="reward_chest" size="lg" />
+        <div className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-200/72">{t("missionsScreen.next.allClear")}</div>
+        <div className="mt-1 text-xl font-black leading-tight text-white">{t("missionsScreen.next.noUrgent")}</div>
       </div>
     );
   }
@@ -184,7 +189,7 @@ function NextContract({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[30px] border p-4 shadow-[0_20px_52px_rgba(0,0,0,0.3)]",
+        "relative overflow-hidden rounded-[26px] border p-3 shadow-[0_20px_52px_rgba(0,0,0,0.3)] md:p-4",
         ready
           ? "border-[#f5c451]/28 bg-[radial-gradient(circle_at_78%_8%,rgba(245,196,81,0.18),transparent_34%),linear-gradient(180deg,rgba(50,35,18,0.68),rgba(8,11,16,0.96))]"
             : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(8,11,16,0.94))]",
@@ -194,22 +199,22 @@ function NextContract({
       <RewardBurstOverlay key={`next-claim-${activeClaim?.nonce ?? 0}`} rewards={activeClaim?.rewards} active={Boolean(activeClaim)} />
       <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
       <div className="relative z-[1] flex items-start justify-between gap-3">
-        <GameIcon kind={meta.icon} tone={meta.tone} size="lg" />
-        <StatusSeal ready={ready} claimed={p.claimed} t={t} />
+        <GameIcon kind={meta.icon} tone={meta.tone} size="md" className="h-12 w-12" />
+        <StatusSeal ready={ready} claimed={p.claimed} compact t={t} />
       </div>
-      <div className="relative z-[1] mt-4">
+      <div className="relative z-[1] mt-3">
         <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">{t("missionsScreen.next.priority")}</div>
-        <div className="mt-2 text-2xl font-black leading-tight text-white">{missionName(mission, t)}</div>
-        <div className="mt-2 text-[12px] leading-5 text-white/58">{missionDescription(mission, t)}</div>
+        <div className="mt-1 text-2xl font-black leading-tight text-white">{missionName(mission, t)}</div>
+        <div className="mt-1 text-[12px] leading-5 text-white/58">{missionDescription(mission, t)}</div>
         <div className="mt-2 text-[12px] font-black uppercase tracking-[0.14em] text-white/44">{metricText(mission.metric, "short", t)}</div>
         <ProgressRail progress={pct} ready={ready} value={`${p.progress}/${mission.goal}`} t={t} />
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2 rounded-[18px] border border-white/10 bg-black/18 p-2">
           <RewardChips rewards={mission.rewards} t={t} />
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <Link
             href={meta.route}
-            className="frontline-motion-action rounded-[18px] border border-white/10 bg-white/[0.06] px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.16em] text-white/76 transition hover:border-white/18 hover:bg-white/[0.09]"
+            className="frontline-motion-action rounded-[18px] border border-white/10 bg-white/[0.06] px-4 py-2.5 text-center text-[11px] font-black uppercase tracking-[0.16em] text-white/76 transition hover:border-white/18 hover:bg-white/[0.09]"
           >
             {metricText(mission.metric, "cta", t)}
           </Link>
@@ -218,7 +223,7 @@ function NextContract({
             onClick={() => claim(mission.id)}
             disabled={!ready}
             className={cn(
-              "rounded-[18px] px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] transition",
+              "rounded-[18px] px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] transition",
               ready ? "bg-[#f5c451] text-black shadow-[0_16px_34px_rgba(245,196,81,0.2)]" : "bg-white/8 text-white/42",
               ready && "frontline-motion-action frontline-feedback-claim",
             )}
@@ -259,24 +264,24 @@ function MissionColumn({
   const resetLabel = formatResetLabel(missions.map((mission) => progress[mission.id]?.resetAt).find(Boolean), t);
 
   return (
-    <section className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(7,10,15,0.95))] p-4 shadow-[0_24px_58px_rgba(0,0,0,0.28)]">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.052),rgba(7,10,15,0.92))] p-3 shadow-[0_22px_52px_rgba(0,0,0,0.28)] md:p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{cadence}</div>
-          <div className="mt-1 text-2xl font-black text-white">{title}</div>
+          <div className="mt-1 text-xl font-black text-white md:text-2xl">{title}</div>
         </div>
         <div className="flex items-center gap-2">
           <MiniBadge tone={ready > 0 ? "gold" : "neutral"}>{t("missionsScreen.progress.readyCount", { count: ready })}</MiniBadge>
           <MiniBadge>{resetLabel}</MiniBadge>
         </div>
       </div>
-      <div className="grid gap-3">
+      <div className="grid gap-2.5">
         {openMissions.length ? (
           openMissions.map((mission) => (
             <MissionContract key={mission.id} mission={mission} progress={progress[mission.id] ?? freshProgress()} claim={claim} claimFx={claimFx} t={t} />
           ))
         ) : (
-          <div className="rounded-[26px] border border-emerald-300/14 bg-emerald-300/[0.045] px-4 py-8 text-center">
+          <div className="rounded-[24px] border border-emerald-300/14 bg-emerald-300/[0.045] px-4 py-6 text-center">
             <ProgressionIcon name="claim" size="lg" />
             <div className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200/70">{t("missionsScreen.emptyColumn.eyebrow")}</div>
             <div className="mt-2 text-xl font-black text-white">{t("missionsScreen.emptyColumn.title")}</div>
@@ -310,7 +315,7 @@ function MissionContract({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-[26px] border p-3 transition duration-300 hover:-translate-y-0.5",
+        "group relative overflow-hidden rounded-[22px] border p-2.5 transition duration-300 hover:-translate-y-0.5 md:p-3",
         ready
           ? "border-[#f5c451]/28 bg-[radial-gradient(circle_at_82%_12%,rgba(245,196,81,0.16),transparent_30%),linear-gradient(180deg,rgba(245,196,81,0.08),rgba(8,11,16,0.92))]"
           : claimed
@@ -320,30 +325,30 @@ function MissionContract({
       )}
     >
       <RewardBurstOverlay key={`mission-claim-${activeClaim?.nonce ?? 0}`} rewards={activeClaim?.rewards} active={Boolean(activeClaim)} compact />
-      <div className="flex gap-3">
-        <GameIcon kind={meta.icon} tone={meta.tone} size="md" className="mt-0.5" />
+      <div className="flex gap-2.5">
+        <GameIcon kind={meta.icon} tone={meta.tone} size="sm" className="mt-0.5 h-10 w-10 rounded-[13px]" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="text-lg font-black leading-tight text-white">{missionName(mission, t)}</div>
+                <div className="text-base font-black leading-tight text-white md:text-lg">{missionName(mission, t)}</div>
                 <MiniBadge>{metricText(mission.metric, "source", t)}</MiniBadge>
               </div>
-              <div className="mt-1 text-[12px] leading-5 text-white/54">{missionDescription(mission, t)}</div>
-              <div className="mt-1 text-[11px] font-black uppercase tracking-[0.13em] text-white/42">{metricText(mission.metric, "short", t)}</div>
+              <div className="mt-1 text-[11px] leading-4 text-white/52 md:text-[12px]">{missionDescription(mission, t)}</div>
+              <div className="mt-1 text-[10px] font-black uppercase tracking-[0.13em] text-white/40">{metricText(mission.metric, "short", t)}</div>
             </div>
             <StatusSeal ready={ready} claimed={claimed} compact t={t} />
           </div>
 
           <ProgressRail progress={pct} ready={ready} value={`${progress.progress}/${mission.goal}`} t={t} />
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex flex-wrap gap-2">
               <RewardChips rewards={mission.rewards} t={t} />
             </div>
             <div className="flex shrink-0 gap-2">
               <Link
                 href={meta.route}
-                className="frontline-motion-action rounded-full border border-white/10 bg-white/[0.055] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/66 transition hover:border-white/18"
+                className="frontline-motion-action rounded-full border border-white/10 bg-white/[0.055] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/66 transition hover:border-white/18"
               >
                 {metricText(mission.metric, "cta", t)}
               </Link>
@@ -352,7 +357,7 @@ function MissionContract({
                 onClick={() => claim(mission.id)}
                 disabled={!ready}
                 className={cn(
-                  "rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] transition",
+                  "rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] transition",
                   ready ? "bg-[#f5c451] text-black" : "bg-white/8 text-white/38",
                   ready && "frontline-motion-action frontline-feedback-claim",
                 )}
@@ -388,14 +393,14 @@ function LogMetric({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-[18px] border px-2 py-2 md:gap-3 md:rounded-[24px] md:px-3 md:py-3",
+        "flex items-center gap-2 rounded-[16px] border px-2 py-2 md:gap-2.5 md:rounded-[20px] md:px-3 md:py-2.5",
         active ? "border-[#f5c451]/24 bg-[#f5c451]/10" : "border-white/10 bg-white/[0.045]",
       )}
     >
       {progressionIcon ? (
         <ProgressionIcon name={progressionIcon} size="lg" />
       ) : (
-        <GameIcon kind={icon ?? "rewards"} tone={tone} size="md" className="h-10 w-10 md:h-12 md:w-12" />
+        <GameIcon kind={icon ?? "rewards"} tone={tone} size="sm" className="h-10 w-10 md:h-11 md:w-11" />
       )}
       <div>
         <div className="text-[8px] font-black uppercase tracking-[0.14em] text-white/42 md:text-[9px] md:tracking-[0.18em]">{label}</div>
@@ -407,12 +412,12 @@ function LogMetric({
 
 function ProgressRail({ progress, ready, value, t }: { progress: number; ready: boolean; value: string; t: TranslateFn }) {
   return (
-    <div className="mt-3">
+    <div className="mt-2.5">
       <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.14em] text-white/46">
         <span>{ready ? t("missionsScreen.progress.readyToClaim") : t("missionsScreen.progress.progress")}</span>
         <span>{value}</span>
       </div>
-      <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/34 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-black/34 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",

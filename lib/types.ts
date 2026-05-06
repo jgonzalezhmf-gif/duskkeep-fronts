@@ -86,6 +86,8 @@ export type AdventureLevel = {
   rewards: Rewards;
   firstClearRewards?: Rewards;
   unlockAccountLevel?: number;
+  /** Optional graph targets unlocked when this level is completed. */
+  unlocks?: string[];
   recommendedPower: number;
   /** Optional obstacles on the tactical grid (6x8, y goes top→bottom). */
   obstacles?: { x: number; y: number }[];

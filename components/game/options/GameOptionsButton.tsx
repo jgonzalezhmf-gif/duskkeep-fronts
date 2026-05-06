@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import GameGlyph from "@/components/ui/GameGlyph";
+import { UiIcon } from "@/components/game/shared/UiIcon";
 import { SUPPORTED_LOCALES, type LocaleCode } from "@/lib/i18n/locales";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { audio, sfx } from "@/lib/audio";
@@ -43,11 +43,11 @@ export default function GameOptionsButton({ className }: { className?: string })
         }}
         onMouseEnter={() => sfx.hover()}
         className={cn(
-          "frontline-motion-action grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(10,14,22,0.78),rgba(9,12,18,0.98))] p-2 shadow-[0_14px_28px_rgba(0,0,0,0.24)] transition hover:border-[#f5c451]/28",
+          "frontline-motion-action grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(10,14,22,0.78),rgba(9,12,18,0.98))] p-1 shadow-[0_14px_28px_rgba(0,0,0,0.24)] transition hover:border-[#f5c451]/28",
           className,
         )}
       >
-        <GameGlyph kind="cfg" shell="none" />
+        <UiIcon name="settings" size="lg" className="h-9 w-9" imgClassName="scale-110" />
       </button>
 
       {open && typeof document !== "undefined"

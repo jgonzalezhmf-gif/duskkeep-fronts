@@ -25,6 +25,8 @@ const TONE_OVERLAYS: Record<ScreenBackgroundId, string> = {
     "bg-[radial-gradient(circle_at_50%_20%,rgba(255,139,82,0.16),transparent_28%),radial-gradient(circle_at_26%_34%,rgba(245,196,81,0.1),transparent_24%)]",
   adventure:
     "bg-[radial-gradient(circle_at_54%_18%,rgba(142,197,255,0.12),transparent_28%),radial-gradient(circle_at_22%_32%,rgba(245,196,81,0.08),transparent_24%)]",
+  missions:
+    "bg-[radial-gradient(circle_at_22%_18%,rgba(93,211,158,0.12),transparent_28%),radial-gradient(circle_at_78%_22%,rgba(245,196,81,0.1),transparent_24%)]",
 };
 
 const OVERLAY_STRENGTH: Record<NonNullable<ScreenBackgroundProps["overlayIntensity"]>, string> = {

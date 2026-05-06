@@ -48,6 +48,7 @@ import {
   getAdventureNodeType,
   type AdventureProgressEntry,
 } from "@/features/adventure/nodeResolution";
+import { isAdventureLevelUnlocked } from "@/features/adventure/progression";
 import {
   ACCOUNT_XP_PER_LEVEL,
   DAILY_ARENA_TICKETS,
@@ -1104,7 +1105,9 @@ export function findAdventureLevel(id: string): AdventureLevel | undefined {
 }
 export function nextUnlockedLevel(state: GameState): AdventureLevel | undefined {
   for (const lvl of ADVENTURE) {
-    if (!state.adventureProgress[lvl.id]?.cleared) return lvl;
+    const progress = state.adventureProgress[lvl.id];
+    if (progress?.cleared || progress?.claimed) continue;
+    if (isAdventureLevelUnlocked(lvl, state.adventureProgress, state.account.level)) return lvl;
   }
   return undefined;
 }

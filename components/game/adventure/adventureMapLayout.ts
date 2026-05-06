@@ -17,7 +17,7 @@ export type AdventureMapNodeType =
   | "hidden"
   | "danger";
 
-export type AdventureMapNodeStatus = "locked" | "available" | "cleared" | "current" | "hidden" | "completed" | "claimed";
+export type AdventureMapNodeStatus = "locked" | "available" | "cleared" | "current" | "completed" | "claimed" | "hidden";
 
 export type AdventureMapRouteState = "cleared" | "available" | "locked" | "boss";
 
@@ -117,7 +117,15 @@ export const ADVENTURE_MAP_NODE_TYPES: AdventureMapNodeType[] = [
   "danger",
 ];
 
-export const ADVENTURE_MAP_NODE_STATUSES: AdventureMapNodeStatus[] = ["locked", "available", "cleared", "current", "hidden", "completed", "claimed"];
+export const ADVENTURE_MAP_NODE_STATUSES: AdventureMapNodeStatus[] = [
+  "locked",
+  "available",
+  "cleared",
+  "current",
+  "completed",
+  "claimed",
+  "hidden",
+];
 
 export const ADVENTURE_MAP_PROP_TYPES: AdventureMapPropType[] = [
   "campfire",
@@ -159,7 +167,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         y: 669,
         type: "battle",
         size: 46,
-        zIndex: 20
+        zIndex: 20,
+        connectsTo: ["c1l3", "c1l7"]
       },
       {
         id: "c1l3",
@@ -214,6 +223,7 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         x: 1223,
         y: 462,
         type: "elite",
+        status: "cleared",
         size: 50,
         zIndex: 20
       },
@@ -222,6 +232,7 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         x: 1104,
         y: 412,
         type: "battle",
+        status: "cleared",
         size: 46,
         zIndex: 20
       },
@@ -230,6 +241,7 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         x: 1256,
         y: 407,
         type: "elite",
+        status: "cleared",
         size: 50,
         zIndex: 20
       },
@@ -238,6 +250,7 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         x: 1443,
         y: 305,
         type: "boss",
+        status: "current",
         size: 66,
         zIndex: 22
       }
@@ -248,12 +261,12 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         from: "c1l1",
         to: "c1l2",
         control1: {
-          x: 833,
-          y: 756
+          x: 910,
+          y: 732
         },
         control2: {
-          x: 1039,
-          y: 764
+          x: 1035,
+          y: 765
         }
       },
       {
@@ -267,6 +280,19 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         control2: {
           x: 755,
           y: 635
+        }
+      },
+      {
+        id: "c1l2-c1l7",
+        from: "c1l2",
+        to: "c1l7",
+        control1: {
+          x: 958,
+          y: 656
+        },
+        control2: {
+          x: 1011,
+          y: 658
         }
       },
       {
@@ -306,19 +332,6 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
         control2: {
           x: 848,
           y: 501
-        }
-      },
-      {
-        id: "c1l6-c1l7",
-        from: "c1l6",
-        to: "c1l7",
-        control1: {
-          x: 1000,
-          y: 496
-        },
-        control2: {
-          x: 1013,
-          y: 632
         }
       },
       {
@@ -382,8 +395,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
           y: 367
         },
         control2: {
-          x: 1372,
-          y: 345
+          x: 1380,
+          y: 337
         }
       }
     ],
@@ -482,8 +495,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       {
         id: "ruin_marker-monhdmm6",
         type: "lantern_warm_loop",
-        x: 1721,
-        y: 853,
+        x: 1723,
+        y: 854,
         size: 150,
         zIndex: 35,
         opacity: 1,
@@ -513,8 +526,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       {
         id: "small_camp-monl3wxg",
         type: "small_camp",
-        x: 937,
-        y: 895,
+        x: 961,
+        y: 857,
         width: 150,
         height: 150,
         zIndex: 35,
@@ -586,8 +599,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       }
     ],
     partyMarker: {
-      x: 931,
-      y: 460,
+      x: 1102,
+      y: 487,
       size: 80,
       zIndex: 40,
       anchorNodeId: "c1l1",

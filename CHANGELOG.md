@@ -7,6 +7,161 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.22.0] - 2026-05-06
+
+### Changed
+- Bloqueado Chapter II de Adventure como contenido de demo: aparece en el selector de capitulos, pero no se puede seleccionar ni abrir por ruta directa.
+- Cambiada la progresion visual de Adventure a desbloqueo por grafo de nodos, permitiendo que un nodo habilite varias ramas.
+- Configurado `c1l2` para desbloquear tanto `c1l3` como `c1l7`, con ruta visible entre ambos caminos.
+- Ampliado `?qa=adventure-map` con campo `connectsTo` para editar/exportar varios nodos destino desde un nodo.
+- Documentado backlog de interactuables futuros del mapa: cofres, llaves, recompensas temporales, nodos ocultos, lore y combates especiales.
+
+## [0.21.37] - 2026-05-06
+
+### Changed
+- Reajustada la composicion de cartas en Combat con arte completo en primer plano y fondo del mismo arte a sangre para llenar el marco sin perder imagen.
+- Ensanchado el marco de cartas para aproximarlo mejor al ratio real de los PNG de cartas Frontline.
+- Suavizados los bordes blancos de paneles, lanes, core, Focus e historial para que el fondo de batalla tenga mas protagonismo.
+- Reducida la opacidad de fondos de secciones de Combat manteniendo legibilidad de acciones, vida, Command y estados.
+
+## [0.21.36] - 2026-05-06
+
+### Changed
+- Ensanchadas ligeramente las cartas de mano en Combat para reducir recortes laterales manteniendo arte a sangre.
+- Unificada la escala visual de iconos de cartas con una capsula fija y un unico icono de combate principal.
+- Aumentada la presencia de iconos de escena en Combat: Command, ataque, estados/tipologia, centro de lane, Focus e historial.
+- Reforzada la lectura numerica de ataque y recursos junto a iconos mas grandes sin tocar reglas de combate.
+
+## [0.21.35] - 2026-05-06
+
+### Changed
+- Ajustadas las cartas de mano de Combat para que el arte cubra todo el marco y deje solo un borde estrecho de tipologia.
+- Aumentado ligeramente el tamano de las cartas y de sus iconos de efecto/coste para mejorar lectura visual.
+- Cambiado el boton de habilidad de lider a un tratamiento circular/medallon mas accionable y menos romboidal.
+- Reforzada la visibilidad de iconos clave de Combat en Command, habilidad de lider, Resolve Clash y stats de combatiente.
+
+## [0.21.34] - 2026-05-06
+
+### Changed
+- Reposicionado el coste de cartas en Combat al nivel raiz de cada carta para que quede realmente anclado arriba a la derecha.
+- Reducido el ancho fijo de las cartas de mano y eliminado el estiramiento por columnas iguales para acercarlas a un formato mas vertical.
+- Compactado el panel central superior de Combat, ocultando textos guia redundantes y dando mas presencia al boton de habilidad de lider.
+- Evitado que el panel central se estire con la altura de los nucleos laterales para dejar mas escenario visible.
+
+## [0.21.33] - 2026-05-06
+
+### Changed
+- Centrado y ampliado el layout visual de heroes/enemigos en Combat para que los standees ocupen mejor cada lane.
+- Ajustadas las cartas de mano a un formato mas vertical, con coste arriba a la derecha y sin icono superior redundante.
+- Cambiado el arte de cartas y retratos de nucleos a `object-contain` para evitar recortes fuertes y mostrar mejor la imagen completa.
+- Cerradas sesiones de `agent-browser` tras la validacion para no dejar procesos Chrome consumiendo recursos.
+
+## [0.21.32] - 2026-05-06
+
+### Changed
+- Redisenadas las cartas de mano en Combat como piezas full-art: coste e icono/efecto pasan a ser la lectura principal y se ocultan nombre, nivel y target redundante.
+- Replanteados heroes y enemigos en lanes para dar mas protagonismo al standee, con nombre arriba, trait en esquina y vida bajo el personaje.
+- Simplificados los nucleos de lider a retrato grande con nombre y vida debajo, eliminando labels redundantes de "nucleo".
+- Aligerado el panel lateral Focus para mostrar menos ficha tecnica y dejar mas peso visual al campo de batalla.
+
+## [0.21.31] - 2026-05-06
+
+### Changed
+- Eliminado el banner superior redundante en combates de boss para evitar duplicidad con el estado propio del boss.
+- Compactado el banner de boss en una fila de senales visuales con iconos, contadores y tooltips en lugar de bloques largos de texto.
+- Reducido texto visible en el flujo de accion, separadores de lane, panel Focus y cartas de mano, manteniendo informacion accesible mediante iconos, estados y textos ocultos/tooltip.
+
+## [0.21.30] - 2026-05-06
+
+### Changed
+- Ampliado el contenedor de Combat para que use mas ancho y alto del viewport, acercandolo al tratamiento de pantallas inmersivas.
+- Cambiado el fondo de batalla a una composicion de doble capa `cover` + `contain` para mantener visible la imagen completa sin bandas vacias duras.
+- Reducido el padding exterior de la fase de batalla para que el escenario tenga mas protagonismo sin cambiar reglas ni datos.
+
+## [0.21.29] - 2026-05-06
+
+### Changed
+- Reducida la densidad visual de overlays, lanes, core panels y hand container en Combat para dejar ver mejor los nuevos fondos de batalla.
+- Suavizadas las bases, marcos y sombras de combatientes para que heroes y enemigos se integren mas con el escenario.
+- Mantenida la legibilidad de lanes, core, hand y CTA sin tocar reglas de combate, economia ni rewards.
+
+## [0.21.28] - 2026-05-06
+
+### Changed
+- Registrados fondos PNG de batalla Frontline por tipo de encuentro de Chapter 1 mediante manifest seguro.
+- Integrado fondo de camino para combates normales, ruinas para elite/danger y Eclipse Gate para boss `the_eclipse`.
+- Mantenido fallback al fondo legacy por seed cuando no exista mapping especifico de fondo.
+
+## [0.21.27] - 2026-05-06
+
+### Fixed
+- Evitado que las batallas de boss arranquen primero el tema normal de Battle antes de cambiar al tema de Boss.
+- Reforzado el gestor de audio para detener canales musicales HTML/procedurales residuales antes de reproducir una nueva pista MP3.
+- Anadido registro interno de elementos de musica para limpiar pistas antiguas que pudieran quedar vivas tras cambios de pantalla o HMR.
+
+## [0.21.26] - 2026-05-05
+
+### Changed
+- Registrados nuevos standees PNG para heroes de reserva Frontline en el manifest visual compartido.
+- Mapeados los assets de Lyria, Morr, Ursa, Fenra, Sol y Noct a sus hero ids existentes sin cambiar stats, roles, desbloqueos ni progresion.
+- Sustituidos placeholders visuales en vistas basadas en `FrontlineHeroStandee` cuando estos heroes aparecen en Roster o detalle.
+
+## [0.21.25] - 2026-05-05
+
+### Changed
+- Registradas 12 nuevas card arts PNG de Frontline en el manifest visual compartido de cartas.
+- Dejadas preparadas las artes `guard_break`, `quick_step`, `holy_ward`, `blood_pact`, `dark_bolt`, `iron_skin`, `piercing_shot`, `war_drums`, `soul_chain`, `frost_trap`, `rending_blow` y `last_stand` sin anadirlas al pool jugable.
+- Verificado que Deck, Shop, Adventure y Battle siguen resolviendo las cartas existentes mediante el sistema de fallback seguro.
+
+## [0.21.24] - 2026-05-05
+
+### Changed
+- Registrado `missions_bg.png` en el manifest compartido de fondos de pantalla.
+- Integrado el nuevo fondo PNG en Missions/Rewards como base visual principal, manteniendo fallback al `SceneBackdrop` anterior.
+- Ajustadas las capas de overlay de Missions para dejar visible el nuevo fondo sin perder legibilidad de contratos y recompensas.
+
+## [0.21.23] - 2026-05-05
+
+### Changed
+- Oscurecido y limpiado el fondo de Missions/Rewards para reducir la sensacion de pantalla rota y acercarlo al tono dark fantasy del resto del juego.
+- Compactado el hero de Command Log y priorizado el contrato principal para que recompensa, progreso y CTA entren antes en desktop.
+- Reducida la altura de cards, métricas, rails y acciones de misiones diarias/semanales sin cambiar recompensas, progreso ni economia.
+- Reforzada la presentacion visual de recompensas de Missions usando los tokens compartidos existentes y manteniendo el feedback de claim.
+
+## [0.21.22] - 2026-05-05
+
+### Changed
+- Compactado el layout inicial de Events para que las operaciones activas aparezcan en el primer viewport junto al estado de escuadra.
+- Reforzada la identidad de Events como tablero de operaciones Frontline con cards de operacion mas visibles y enemy lineup mas compacto.
+- Compactado el layout inicial de Arena para que el selector de rivales aparezca antes y el gate de entrada no empuje la ladder hacia abajo.
+- Anadida una placa compacta de rango/progreso en Arena sin tocar reglas, tickets ni rewards.
+
+## [0.21.21] - 2026-05-04
+
+### Changed
+- Aumentado el tamano visual de los iconos de opciones y audio en el HUD para mejorar lectura en desktop.
+- Oscurecido el badge de comandante del HUD inmersivo para evitar el fondo dorado fuerte en Adventure y acercarlo al tratamiento de Home.
+- Actualizado el acceso rapido de Deck en pantallas sin dock para usar un marco dorado y un asset de cartas mas grande, evitando el formato azul anterior.
+- Ajustado el chip de recompensa de cartas en Adventure para usar el asset directo de Deck en lugar de un marco generico.
+- Unificado el badge de comandante de pantallas inmersivas con la composicion visual de Home.
+- Redisenado el acceso rapido de Deck y el icono principal del mission card de Adventure para eliminar medallones legacy coloreados cuando ya existen PNGs especificos.
+
+## [0.21.20] - 2026-05-04
+
+### Changed
+- Registrados los nuevos iconos PNG de Combat, UI, Team y progression en el manifest central sin rutas especulativas.
+- Sustituidos los glyphs visibles de opciones, audio, team, clash/rewards y varios chips de progreso por wrappers/PNGs específicos.
+- Anadido placeholder PNG de unidad Frontline para evitar glyphs genericos cuando falte standee o portrait.
+- Ampliado el resolver de glyphs para reutilizar assets existentes en iconos genericos visibles sin provocar 404.
+
+## [0.21.19] - 2026-05-04
+
+### Changed
+- Integrados portraits PNG dark medieval fantasy para Aurora Valeborn, Morrow Blackveil, comandantes enemigos y Crown of Ashes mediante un manifest seguro de líderes Frontline.
+- Actualizados Home y Deck para resolver los portraits aliados nuevos desde el fallback compartido de líderes.
+- Actualizados Adventure briefing, selección pre-combate y paneles de core de Combat para usar portraits enemigos por preset/boss sin reutilizar portraits aliados.
+- Mantenidos fallbacks existentes para líderes legacy y mapeos inferidos para presets enemigos no registrados explícitamente.
+
 ## [0.21.18] - 2026-05-04
 
 ### Fixed

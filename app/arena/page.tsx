@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
 import { FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
+import { CombatIcon } from "@/components/game/shared/CombatIcon";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
@@ -210,20 +211,22 @@ export default function ArenaPage() {
     <ScreenScaffold scene="arena" dock={false} homeNav={false} hud={false}>
       <ArenaTopChrome resources={resources} t={t} />
       <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-24">
-        <div className="mx-auto flex max-w-[88rem] flex-col gap-4 pb-6">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_25rem]">
-            <ScreenPanel className="overflow-hidden p-4 md:p-5">
+        <div className="mx-auto flex max-w-[88rem] flex-col gap-3 pb-6">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_19rem]">
+            <ScreenPanel className="overflow-hidden p-3 md:p-4">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,151,92,0.18),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(245,196,81,0.13),transparent_22%)]" />
               <div className="relative z-[1]">
-                <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
-                  {t("arenaScreen.hero.badge")}
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
+                      {t("arenaScreen.hero.badge")}
+                    </div>
+                    <h1 className="mt-2 max-w-[45rem] text-[1.75rem] font-black leading-[0.92] tracking-[-0.045em] text-white md:text-[2.3rem]">
+                      {t("arenaScreen.hero.title")}
+                    </h1>
+                  </div>
+                  <ArenaRankPlate wins={wins} losses={losses} winRate={winRate} t={t} />
                 </div>
-                <h1 className="mt-4 max-w-[54rem] text-[1.9rem] font-black leading-[0.92] tracking-[-0.045em] text-white md:text-[2.75rem]">
-                  {t("arenaScreen.hero.title")}
-                </h1>
-                <p className="mt-3 max-w-[43rem] text-[13px] leading-6 text-white/64 md:text-[14px]">
-                  {t("arenaScreen.hero.copy")}
-                </p>
                 <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
                   <ArenaMetric icon="tickets" label={t("arenaScreen.metrics.tickets")} value={tickets} tone="gold" active={tickets > 0} />
                   <ArenaMetric icon="rewards" modeIcon="ladder" label={t("arenaScreen.metrics.wins")} value={wins} tone="emerald" />
@@ -233,9 +236,15 @@ export default function ArenaPage() {
               </div>
             </ScreenPanel>
 
-            <ScreenPanel className="p-4">
-              <SectionTitle eyebrow={t("arenaScreen.gate.eyebrow")} title={t("arenaScreen.gate.title")} aside={<ScreenBadge tone={loadoutReady ? "gold" : "ember"}>{loadoutReady ? t("arenaScreen.gate.ready") : t("arenaScreen.gate.deckNeeded")}</ScreenBadge>} />
-              <div className="mt-4 grid gap-2">
+            <ScreenPanel className="p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("arenaScreen.gate.eyebrow")}</div>
+                  <div className="mt-1 text-lg font-black text-white">{t("arenaScreen.gate.title")}</div>
+                </div>
+                <ScreenBadge tone={loadoutReady ? "gold" : "ember"}>{loadoutReady ? t("arenaScreen.gate.ready") : t("arenaScreen.gate.deckNeeded")}</ScreenBadge>
+              </div>
+              <div className="mt-3 grid gap-1.5">
                 <GateLine label={t("arenaScreen.gate.squad")} value={`${frontlineLoadout.squad.filter(Boolean).length}/3`} ok={squadReady} />
                 <GateLine label={t("arenaScreen.gate.cards")} value={`${frontlineLoadout.deck.filter(Boolean).length}/8`} ok={deckReady} />
                 <GateLine label={t("arenaScreen.gate.ticket")} value={`${tickets}`} ok={tickets > 0} />
@@ -248,7 +257,7 @@ export default function ArenaPage() {
             </ScreenPanel>
           </div>
 
-          <ScreenPanel className="p-4 md:p-5">
+          <ScreenPanel className="p-3 md:p-4">
             <SectionTitle
               eyebrow={t("arenaScreen.floor.eyebrow")}
               title={t("arenaScreen.floor.title")}
@@ -303,7 +312,7 @@ function ArenaRivalCard({
   return (
     <article
       className={cn(
-        "relative overflow-hidden rounded-[30px] border p-4 shadow-[0_22px_52px_rgba(0,0,0,0.28)]",
+        "relative overflow-hidden rounded-[28px] border p-3 shadow-[0_22px_52px_rgba(0,0,0,0.28)]",
         featured
           ? "border-[#f5c451]/28 bg-[radial-gradient(circle_at_50%_0%,rgba(245,196,81,0.18),transparent_32%),linear-gradient(180deg,rgba(54,34,17,0.58),rgba(8,10,16,0.96))]"
           : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(8,10,16,0.94))]",
@@ -317,10 +326,12 @@ function ArenaRivalCard({
             <div className="mt-1 text-2xl font-black text-white">{rival.ownerName}</div>
             <div className="mt-1 text-[12px] font-black uppercase tracking-[0.13em] text-[#f5d498]">{rivalText(t, rival, "style")}</div>
           </div>
-          <ModeIcon name="arena_draft" size="lg" />
+          <div className="rounded-[18px] border border-[#f5c451]/16 bg-[#f5c451]/8 p-1.5">
+            <ModeIcon name="arena_draft" size="md" />
+          </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
           {preset?.squad.map((unitId, index) => {
             const unit = FRONTLINE_UNIT_BY_ID[unitId] ?? null;
             return (
@@ -330,13 +341,13 @@ function ArenaRivalCard({
                 compact
                 side="enemy"
                 label={index === 0 ? t("arenaScreen.card.left") : index === 1 ? t("arenaScreen.card.center") : t("arenaScreen.card.right")}
-                className="min-h-[12.5rem] rounded-[22px] p-2"
+                className="min-h-[9.25rem] rounded-[20px] p-1.5"
               />
             );
           })}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <SmallStat label={t("arenaScreen.card.power")} value={rival.power} />
           <SmallStat label={t("arenaScreen.card.leader")} value={frontlineLeaderName(t, leader)} />
         </div>
@@ -345,11 +356,35 @@ function ArenaRivalCard({
           <RewardChips rewards={rival.rewards} t={t} />
         </div>
 
-        <SceneButton onClick={onChallenge} disabled={disabled} className="mt-5 w-full">
+        <SceneButton onClick={onChallenge} disabled={disabled} className="mt-4 w-full">
           {t("arenaScreen.card.challenge")}
         </SceneButton>
       </div>
     </article>
+  );
+}
+
+function ArenaRankPlate({ wins, losses, winRate, t }: { wins: number; losses: number; winRate: number; t: TranslateFn }) {
+  const progress = Math.min(100, Math.max(8, winRate || wins * 12));
+  const rank = tx(t, "arenaScreen.rivals.arena_bonewood.rank", "Bronze II");
+  return (
+    <div className="hidden min-w-[18rem] rounded-[20px] border border-[#f5c451]/16 bg-[linear-gradient(180deg,rgba(55,35,18,0.34),rgba(8,10,16,0.78))] px-3 py-2.5 shadow-[0_14px_30px_rgba(0,0,0,0.22)] lg:block">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[9px] font-black uppercase tracking-[0.18em] text-[#f5d498]/70">{t("arenaScreen.floor.eyebrow")}</div>
+          <div className="mt-0.5 text-base font-black text-white">{rank}</div>
+        </div>
+        <div className="text-right text-[10px] font-black uppercase tracking-[0.12em] text-white/58">
+          {wins}W / {losses}L
+        </div>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full border border-white/10 bg-black/36">
+        <div
+          className="h-full rounded-full bg-[linear-gradient(90deg,#a36d29,#f5c451,#ffe3a1)] shadow-[0_0_16px_rgba(245,196,81,0.34)]"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -370,7 +405,13 @@ function ArenaMetric({
 }) {
   return (
     <div className={cn("flex items-center gap-2 rounded-[20px] border px-3 py-2.5", active ? "border-[#f5c451]/24 bg-[#f5c451]/10" : "border-white/10 bg-white/[0.045]")}>
-      {modeIcon ? <ModeIcon name={modeIcon} size="lg" /> : <GameIcon kind={icon} tone={tone} size="md" />}
+      {modeIcon ? (
+        <ModeIcon name={modeIcon} size="lg" />
+      ) : icon === "power" ? (
+        <CombatIcon name="advantage" size="md" className="h-12 w-12" />
+      ) : (
+        <GameIcon kind={icon} tone={tone} size="md" />
+      )}
       <div>
         <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
         <div className="mt-0.5 text-base font-black text-white">{value}</div>

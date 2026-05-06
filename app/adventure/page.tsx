@@ -12,6 +12,7 @@ import {
   isAdventureCombatNode,
   type AdventureProgressEntry,
 } from "@/features/adventure/nodeResolution";
+import { getAdventureUnlockedLevelIds, isAdventureChapterDemoLocked } from "@/features/adventure/progression";
 import {
   AdventureCampaignMap,
   AdventureMissionPanel,
@@ -118,18 +119,18 @@ export default function AdventureMapPage() {
     }
 
     const out: { chapter: number; nodes: AdventureNodeState[] }[] = [];
-    let previousLevelCleared = true;
+    const unlockedLevelIds = getAdventureUnlockedLevelIds(progress, accountLevel);
     for (const chapter of Array.from(byChapter.keys()).sort((a, b) => a - b)) {
+      const demoLocked = isAdventureChapterDemoLocked(chapter);
       const nodes = byChapter.get(chapter)!.map((lvl) => {
         const levelProgress = progress[lvl.id];
         const nodeType = getAdventureNodeType(lvl);
         const claimed = isAdventureClaimed(nodeType, levelProgress as AdventureProgressEntry | undefined);
         const cleared = levelProgress?.cleared ?? false;
         const accountLocked = (lvl.unlockAccountLevel ?? 0) > accountLevel;
-        const progressLocked = !previousLevelCleared && !cleared;
-        const locked = accountLocked || progressLocked;
-        const current = !cleared && !locked;
-        previousLevelCleared = cleared;
+        const progressLocked = !unlockedLevelIds.has(lvl.id) && !cleared && !claimed;
+        const locked = demoLocked || accountLocked || progressLocked;
+        const current = !cleared && !claimed && !locked;
         return {
           lvl,
           cleared,
@@ -146,9 +147,15 @@ export default function AdventureMapPage() {
   }, [accountLevel, progress]);
 
   const nextLevel = nextUnlockedLevel(useGameStore.getState());
-  const defaultChapter = nextLevel?.chapter ?? chapters[0]?.chapter ?? 1;
+  const defaultChapter =
+    nextLevel && !isAdventureChapterDemoLocked(nextLevel.chapter)
+      ? nextLevel.chapter
+      : chapters.find((chapter) => !isAdventureChapterDemoLocked(chapter.chapter))?.chapter ?? chapters[0]?.chapter ?? 1;
   const [activeChapter, setActiveChapter] = useState(defaultChapter);
-  const active = chapters.find((chapter) => chapter.chapter === activeChapter) ?? chapters[0];
+  const active =
+    !isAdventureChapterDemoLocked(activeChapter)
+      ? chapters.find((chapter) => chapter.chapter === activeChapter) ?? chapters[0]
+      : chapters.find((chapter) => chapter.chapter === defaultChapter) ?? chapters[0];
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chaptersOpen, setChaptersOpen] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
@@ -159,6 +166,12 @@ export default function AdventureMapPage() {
     const params = new URLSearchParams(window.location.search);
     setQaMapEditor(params.get("qa") === "adventure-map" || params.get("qa") === "map-editor");
   }, []);
+
+  useEffect(() => {
+    if (activeChapter !== defaultChapter && isAdventureChapterDemoLocked(activeChapter)) {
+      setActiveChapter(defaultChapter);
+    }
+  }, [activeChapter, defaultChapter]);
 
   useEffect(() => {
     if (!active) return;
@@ -215,7 +228,7 @@ export default function AdventureMapPage() {
           <div className="pointer-events-auto absolute left-0 top-0 w-[min(28rem,calc(100vw-1.5rem))]">
             <div className="rounded-[18px] border border-[#f5d498]/12 bg-[linear-gradient(180deg,rgba(10,13,20,0.34),rgba(7,9,14,0.58))] px-2.5 py-2 shadow-[0_12px_28px_rgba(0,0,0,0.2)] backdrop-blur-xl">
               <div className="flex items-center gap-2">
-                <ModeIcon name="campaign" size="xs" />
+                <ModeIcon name="campaign" size="sm" withGlow={false} className="h-8 w-8 opacity-90" />
                 <div className="min-w-0 flex-1">
                   <div className="text-[8px] uppercase tracking-[0.18em]" style={{ color: meta.accent }}>{meta.subtitle}</div>
                   <div className="truncate text-[12px] font-black leading-tight text-white">{meta.name}</div>
@@ -238,13 +251,18 @@ export default function AdventureMapPage() {
                 {chapters.map((chapter) => {
                   const chapterMeta = getLocalizedChapterMeta(chapter.chapter, t);
                   const selectedTab = chapter.chapter === active.chapter;
-                  const fullyLocked = chapter.nodes.every((node) => node.locked && !node.cleared);
+                  const demoLocked = isAdventureChapterDemoLocked(chapter.chapter);
+                  const fullyLocked = demoLocked || chapter.nodes.every((node) => node.locked && !node.cleared);
                   const cleared = chapter.nodes.filter((node) => node.cleared).length;
                   return (
                     <button
                       key={chapter.chapter}
                       type="button"
+                      disabled={demoLocked}
+                      aria-disabled={demoLocked}
+                      title={demoLocked ? "Demo locked" : undefined}
                       onClick={() => {
+                        if (demoLocked) return;
                         setActiveChapter(chapter.chapter);
                         setChaptersOpen(false);
                       }}
@@ -254,10 +272,11 @@ export default function AdventureMapPage() {
                           ? "border-[#f5d498]/28 bg-[linear-gradient(180deg,rgba(44,28,15,0.72),rgba(9,11,17,0.9))]"
                           : "border-white/8 bg-[linear-gradient(180deg,rgba(14,18,28,0.44),rgba(8,10,16,0.76))]",
                         fullyLocked && !selectedTab && "opacity-60",
+                        demoLocked && "cursor-not-allowed",
                       )}
                     >
                       <div className="flex items-center gap-2">
-                        <ModeIcon name={chapter.chapter === 3 ? "dungeon_run" : "campaign"} size="xs" />
+                        <ModeIcon name={chapter.chapter === 3 ? "dungeon_run" : "campaign"} size="sm" withGlow={false} className="h-8 w-8 opacity-90" />
                         <div className="min-w-0 flex-1">
                           <div className="text-[8px] uppercase tracking-[0.16em]" style={{ color: chapterMeta.accent }}>
                             {chapterMeta.subtitle}

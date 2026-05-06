@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import GameGlyph from "@/components/ui/GameGlyph";
+import { UiIcon } from "@/components/game/shared/UiIcon";
 import { audio, sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -47,10 +47,10 @@ export default function MuteButton() {
           setOpen((value) => !value);
         }}
         onMouseEnter={() => sfx.hover()}
-        className="ml-1 grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(10,14,22,0.78),rgba(9,12,18,0.98))] p-2 shadow-[0_14px_28px_rgba(0,0,0,0.24)] transition hover:border-white/20 hover:scale-[1.03]"
+        className="ml-1 grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(10,14,22,0.78),rgba(9,12,18,0.98))] p-1 shadow-[0_14px_28px_rgba(0,0,0,0.24)] transition hover:border-white/20 hover:scale-[1.03]"
         title={muted ? t("audio.soundOff") : t("audio.openMixer")}
       >
-        <GameGlyph kind={muted ? "sound-off" : "sound-on"} shell="none" />
+        <UiIcon name={muted ? "sound_off" : "sound_on"} size="lg" className="h-9 w-9" imgClassName="scale-110" />
       </button>
 
       {open ? (

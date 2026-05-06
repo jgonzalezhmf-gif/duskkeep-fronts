@@ -27,26 +27,28 @@ import {
   type AdventureNodeLayout,
 } from "./adventureMapLayout";
 import { FRONTLINE_CARD_BY_ID } from "@/features/frontline/data";
-import { getFrontlineAdventureSquad } from "@/features/frontline/adventure";
+import { getFrontlineAdventureSquad, getFrontlinePresetForAdventure } from "@/features/frontline/adventure";
 import {
   getAdventureNodeDefinition,
   getAdventureNodeRewardPreview,
   isAdventureClaimed,
   isAdventureCombatNode,
   type AdventureNodeDefinition,
+  type AdventureNodeType,
   type AdventureProgressEntry,
 } from "@/features/adventure/nodeResolution";
 import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
+import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import { AdventureSkyAtmosphere } from "@/components/game/adventure/AdventureSkyAtmosphere";
 import { HomeEffectSprite, HomeEffectSpriteStyles } from "@/components/game/home/HomeEffectSprite";
 import GameIcon from "@/components/game/shared/GameIcon";
 import { GameRewardToken } from "@/components/game/shared/GameRewardToken";
+import { CombatIcon } from "@/components/game/shared/CombatIcon";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
-import { frontlineCardName } from "@/lib/i18n/frontlineText";
+import { frontlineCardName, frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import {
   SceneButton,
-  SceneMedallion,
   ScreenBadge,
   ScreenPanel,
 } from "@/components/game/screens/ScreenChrome";
@@ -1394,6 +1396,13 @@ function NodeEditorFields({
       <NumberField label="z" value={layout.zIndex ?? node.zIndex ?? 20} onChange={(zIndex) => onUpdate({ zIndex })} />
       <SelectField label="type" value={layout.type ?? node.type} options={ADVENTURE_MAP_NODE_TYPES} onChange={(type) => onUpdate({ type: type as AdventureMapNodeType })} />
       <SelectField label="status" value={layout.status ?? node.status} options={ADVENTURE_MAP_NODE_STATUSES} onChange={(status) => onUpdate({ status: status as AdventureMapNodeStatus })} />
+      <TextField
+        label="connects to"
+        value={(layout.connectsTo ?? node.connectsTo ?? []).join(", ")}
+        className="col-span-2"
+        placeholder="c1l3, c1l7"
+        onChange={(value) => onUpdate({ connectsTo: parseNodeIdList(value) })}
+      />
     </div>
   );
 }
@@ -1524,6 +1533,32 @@ function SelectField({ label, value, options, onChange }: { label: string; value
   );
 }
 
+function TextField({
+  label,
+  value,
+  placeholder,
+  className,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  className?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className={cn("rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/66", className)}>
+      <span className="block text-[9px] uppercase tracking-[0.14em] text-white/36">{label}</span>
+      <input
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-1 w-full bg-transparent text-[12px] font-black text-white outline-none placeholder:text-white/24"
+      />
+    </label>
+  );
+}
+
 function Readout({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[10px] border border-white/10 bg-black/28 px-2 py-1 text-white/66">
@@ -1531,6 +1566,13 @@ function Readout({ label, value }: { label: string; value: string }) {
       <span className="mt-1 block truncate text-[12px] font-black text-white">{value}</span>
     </div>
   );
+}
+
+function parseNodeIdList(value: string) {
+  return value
+    .split(/[,\s]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 export function AdventureMissionPanel({
@@ -1572,6 +1614,8 @@ export function AdventureMissionPanel({
             : "gold";
   const statusLabel = getMissionStatusLabel(node, definition, progress, firstClearAvailable, t);
   const frontlineSquad = getFrontlineAdventureSquad(node.lvl);
+  const frontlinePreset = combatNode ? getFrontlinePresetForAdventure(node.lvl) : null;
+  const enemyLeaderPortrait = getFrontlineEnemyLeaderPortraitForPreset(frontlinePreset);
   const enemyTotal = frontlineSquad.reduce((sum, enemy) => sum + enemy.maxHp + enemy.atk * 2 + enemy.def * 2 + enemy.tier * 6, 0);
   const objective = getMissionObjective(node, definition, t);
   const rewardPreview = claimedRewards ?? getAdventureNodeRewardPreview(node.lvl, progress);
@@ -1587,11 +1631,7 @@ export function AdventureMissionPanel({
         <div className="relative p-2.5">
           <div className="grid items-center gap-2 md:grid-cols-[minmax(17rem,1fr)_auto_auto_auto]">
             <div className="flex min-w-0 items-center gap-2.5">
-              <SceneMedallion
-                icon={node.locked || nodeType === "locked" ? "shield" : nodeType === "boss" || nodeType === "elite" || nodeType === "danger" ? "battle" : nodeClaimed || node.cleared || nodeType === "chest" ? "rewards" : "adventure"}
-                tone={node.locked || nodeType === "locked" ? "violet" : nodeType === "boss" ? "ember" : nodeClaimed || node.cleared ? "emerald" : "gold"}
-                className="h-11 w-11 shrink-0 rounded-[15px]"
-              />
+              <MissionNodeAssetBadge nodeType={nodeType} locked={node.locked || nodeType === "locked"} claimed={nodeClaimed || node.cleared} />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <ScreenBadge tone={tone}>{statusLabel}</ScreenBadge>
@@ -1665,6 +1705,13 @@ export function AdventureMissionPanel({
                   <ScreenBadge tone={tone}>{showEnemyFormation ? `${frontlineSquad.length} ${t("adventure.units")}` : getRepeatPolicyLabel(definition, nodeClaimed || node.cleared, t)}</ScreenBadge>
                 </div>
                 {showEnemyFormation ? <div className="mt-2 grid gap-1.5">
+                  {frontlinePreset ? (
+                    <EnemyCommanderRow
+                      portrait={enemyLeaderPortrait}
+                      label={t("frontline.enemy")}
+                      name={frontlinePresetName(t, frontlinePreset)}
+                    />
+                  ) : null}
                   {frontlineSquad.map((enemy, index) => {
                     const visual = getFrontlineHeroVisualAsset(enemy.heroId);
                     return (
@@ -1770,11 +1817,77 @@ function MissionFact({ label, value, icon }: { label: string; value: string; ico
   return (
     <div className="min-w-0 rounded-[15px] border border-white/10 bg-white/[0.035] px-2.5 py-1.5">
       <div className="flex items-center gap-1.5">
-        <GameIcon kind={icon} tone="steel" size="sm" className="h-7 w-7 rounded-[10px]" />
+        {icon === "power" ? (
+          <CombatIcon name="leader_power" size="sm" className="h-7 w-7 rounded-[10px]" />
+        ) : (
+          <GameIcon kind={icon} tone="steel" size="sm" className="h-7 w-7 rounded-[10px]" />
+        )}
         <div className="min-w-0">
           <div className="text-[8px] font-black uppercase tracking-[0.12em] text-white/42">{label}</div>
           <div className="mt-0.5 truncate text-[11px] font-black text-white">{value}</div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MissionNodeAssetBadge({
+  nodeType,
+  locked,
+  claimed,
+}: {
+  nodeType: AdventureNodeType;
+  locked: boolean;
+  claimed: boolean;
+}) {
+  const assetId = getMissionNodeAssetId(nodeType, locked, claimed);
+  const asset = getAdventureNodeAsset(assetId);
+
+  return (
+    <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-[16px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,14,22,0.36),rgba(5,7,12,0.72))] shadow-[0_10px_22px_rgba(0,0,0,0.28)]">
+      <span className="pointer-events-none absolute inset-[12%] rounded-full bg-black/18 blur-sm" />
+      {asset ? (
+        <img
+          src={asset.src}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          className={cn(
+            "relative z-[1] h-[118%] w-[118%] object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.44)]",
+            locked ? "opacity-70 grayscale-[0.25]" : "",
+            claimed ? "opacity-86" : "",
+            nodeType === "boss" ? "scale-[1.1]" : "",
+          )}
+        />
+      ) : (
+        <GameIcon kind={locked ? "shield" : nodeType === "boss" || nodeType === "elite" || nodeType === "danger" ? "battle" : claimed || nodeType === "chest" ? "rewards" : "adventure"} tone="steel" size="sm" className="relative z-[1] h-8 w-8 rounded-[10px] bg-transparent" />
+      )}
+    </span>
+  );
+}
+
+function getMissionNodeAssetId(nodeType: AdventureNodeType, locked: boolean, claimed: boolean): AdventureNodeAssetId {
+  if (locked) return "locked";
+  if (claimed) return "cleared";
+  if (nodeType === "locked") return "locked";
+  return nodeType;
+}
+
+function EnemyCommanderRow({ name, portrait, label }: { name: string; portrait?: string | null; label: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-[14px] border border-[#f5d498]/14 bg-[#f5c451]/8 px-2 py-1.5">
+      {portrait ? (
+        <img
+          src={portrait}
+          alt=""
+          className="h-10 w-9 shrink-0 rounded-[12px] border border-[#f5d498]/18 bg-black/24 object-cover shadow-[0_8px_18px_rgba(0,0,0,0.24)]"
+          loading="lazy"
+          aria-hidden
+        />
+      ) : null}
+      <div className="min-w-0">
+        <div className="text-[8px] font-black uppercase tracking-[0.16em] text-[#f5d498]/62">{label}</div>
+        <div className="truncate text-[11px] font-black text-white">{name}</div>
       </div>
     </div>
   );
@@ -1806,7 +1919,7 @@ function RewardChip({
   tone,
   compact,
 }: {
-  icon: "gold" | "gem" | "dust" | "rewards";
+  icon: "gold" | "gem" | "dust" | "rewards" | "deck";
   label: string;
   value: string;
   tone: "gold" | "sky" | "violet" | "emerald";
@@ -2144,7 +2257,7 @@ function getNodeRole(node: AdventureNodeState, index: number, totalNodes: number
 }
 
 function buildRewardChips(level: AdventureLevel, firstClearAvailable: boolean, t: TranslateFn) {
-  const chips: { icon: "gold" | "gem" | "dust" | "rewards"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
+  const chips: { icon: "gold" | "gem" | "dust" | "rewards" | "deck"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
   if (level.rewards.gold) chips.push({ icon: "gold", label: t("adventure.reward.gold"), value: `${level.rewards.gold}`, tone: "gold" });
   if (level.rewards.dust) chips.push({ icon: "dust", label: t("adventure.reward.dust"), value: `${level.rewards.dust}`, tone: "violet" });
   if (level.rewards.gems) chips.push({ icon: "gem", label: t("adventure.reward.gems"), value: `${level.rewards.gems}`, tone: "sky" });
@@ -2152,13 +2265,13 @@ function buildRewardChips(level: AdventureLevel, firstClearAvailable: boolean, t
   for (const unlock of firstClearAvailable ? level.firstClearRewards?.frontlineCards ?? [] : []) {
     const card = FRONTLINE_CARD_BY_ID[unlock.cardId];
     if (!card) continue;
-    chips.push({ icon: "rewards", label: t("frontline.cardUnlocks"), value: frontlineCardName(t, card), tone: "emerald" });
+    chips.push({ icon: "deck", label: t("frontline.cardUnlocks"), value: frontlineCardName(t, card), tone: "sky" });
   }
   return chips;
 }
 
 function buildRewardChipsFromRewards(rewards: Rewards, firstClearAvailable: boolean, t: TranslateFn) {
-  const chips: { icon: "gold" | "gem" | "dust" | "rewards"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
+  const chips: { icon: "gold" | "gem" | "dust" | "rewards" | "deck"; label: string; value: string; tone: "gold" | "sky" | "violet" | "emerald" }[] = [];
   if (rewards.gold) chips.push({ icon: "gold", label: t("adventure.reward.gold"), value: `${rewards.gold}`, tone: "gold" });
   if (rewards.dust) chips.push({ icon: "dust", label: t("adventure.reward.dust"), value: `${rewards.dust}`, tone: "violet" });
   if (rewards.gems) chips.push({ icon: "gem", label: t("adventure.reward.gems"), value: `${rewards.gems}`, tone: "sky" });
@@ -2170,7 +2283,7 @@ function buildRewardChipsFromRewards(rewards: Rewards, firstClearAvailable: bool
   for (const unlock of rewards.frontlineCards ?? []) {
     const card = FRONTLINE_CARD_BY_ID[unlock.cardId];
     if (!card) continue;
-    chips.push({ icon: "rewards", label: t("frontline.cardUnlocks"), value: frontlineCardName(t, card), tone: "emerald" });
+    chips.push({ icon: "deck", label: t("frontline.cardUnlocks"), value: frontlineCardName(t, card), tone: "sky" });
   }
   return chips;
 }

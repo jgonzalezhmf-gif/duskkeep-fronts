@@ -60,6 +60,17 @@ const FRONTLINE_EFFECT_ASSETS: FrontlineAssetManifest = {
   // breach: `${FRONTLINE_ASSET_ROOT}/effects/breach.png`,
 };
 
+export type FrontlineBattleBackgroundKey =
+  | "ch1_battle_road"
+  | "ch1_battle_ruins"
+  | "ch1_boss_eclipse_gate";
+
+const FRONTLINE_BATTLE_BACKGROUND_ASSETS: Record<FrontlineBattleBackgroundKey, string> = {
+  ch1_battle_road: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_road.png`,
+  ch1_battle_ruins: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_ruins.png`,
+  ch1_boss_eclipse_gate: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_boss_eclipse_gate.png`,
+};
+
 const FRONTLINE_BOSS_ASSETS: FrontlineAssetManifest = {
   // The PNG was originally added under crown_of_ashes.png but is the art for The Eclipse (c1l12).
   the_eclipse: `${FRONTLINE_ASSET_ROOT}/bosses/crown_of_ashes.png`,
@@ -71,6 +82,11 @@ const FRONTLINE_UNIT_PLACEHOLDER_ASSET = `${FRONTLINE_ASSET_ROOT}/unit_placehold
 export function getFrontlineBossAssetSrc(assetKey: string | null | undefined): string | null {
   if (!assetKey) return null;
   return FRONTLINE_BOSS_ASSETS[assetKey] ?? null;
+}
+
+export function getFrontlineBattleBackgroundSrc(key: FrontlineBattleBackgroundKey | null | undefined): string | null {
+  if (!key) return null;
+  return FRONTLINE_BATTLE_BACKGROUND_ASSETS[key] ?? null;
 }
 
 export function getFrontlineUnitPlaceholderSrc() {

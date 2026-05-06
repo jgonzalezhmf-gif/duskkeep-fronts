@@ -7,6 +7,7 @@ import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameResourceBar, GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { ModeIcon, type ModeIconName } from "@/components/game/shared/ModeIcon";
+import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import {
@@ -14,7 +15,6 @@ import {
   ScreenBadge,
   ScreenPanel,
   ScreenScaffold,
-  SectionTitle,
 } from "@/components/game/screens/ScreenChrome";
 import { EVENTS } from "@/data/events";
 import { TD_EVENTS } from "@/data/towerDefense";
@@ -271,20 +271,24 @@ export default function EventsPage() {
     <ScreenScaffold scene="events" dock={false} homeNav={false} hud={false}>
       <EventsTopChrome resources={resources} t={t} />
       <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-[5.5rem]">
-        <div className="mx-auto flex max-w-[88rem] flex-col gap-3 pb-5">
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_21rem]">
-            <ScreenPanel className="overflow-hidden p-3 md:p-4">
+        <div className="mx-auto flex max-w-[88rem] flex-col gap-2.5 pb-5">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_19rem]">
+            <ScreenPanel className="overflow-hidden p-3">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_12%,rgba(217,165,255,0.18),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(245,196,81,0.14),transparent_24%)]" />
               <div className="relative z-[1]">
-                <div className="inline-flex rounded-full border border-violet-200/20 bg-violet-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-violet-100">
-                  {t("eventsScreen.hero.badge")}
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <div className="inline-flex rounded-full border border-violet-200/20 bg-violet-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-violet-100">
+                      {t("eventsScreen.hero.badge")}
+                    </div>
+                    <h1 className="mt-2 max-w-[42rem] text-[1.65rem] font-black leading-[0.94] tracking-[-0.04em] text-white md:text-[2.2rem]">
+                      {t("eventsScreen.hero.title")}
+                    </h1>
+                  </div>
+                  <div className="hidden max-w-[22rem] rounded-[18px] border border-violet-200/14 bg-black/22 px-3 py-2 text-[11px] leading-4 text-violet-50/62 lg:block">
+                    {t("eventsScreen.hero.copy")}
+                  </div>
                 </div>
-                <h1 className="mt-2 max-w-[52rem] text-[1.65rem] font-black leading-[0.94] tracking-[-0.04em] text-white md:text-[2.35rem]">
-                  {t("nav.events")}
-                </h1>
-                <p className="mt-2 hidden max-w-[45rem] text-[12px] leading-5 text-white/58 lg:block">
-                  {t("eventsScreen.hero.copy")}
-                </p>
                 <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
                   <EventMetric icon="events" modeIcon="daily_event" label={t("eventsScreen.metrics.live")} value={operations.length} tone="violet" active />
                   <EventMetric icon="rewards" label={t("eventsScreen.metrics.cleared")} value={`${clearedToday}/${operations.length}`} tone="emerald" />
@@ -295,12 +299,14 @@ export default function EventsPage() {
             </ScreenPanel>
 
             <ScreenPanel className="p-3">
-              <SectionTitle
-                eyebrow={t("eventsScreen.entry.eyebrow")}
-                title={t("eventsScreen.entry.title")}
-                aside={<ScreenBadge tone={loadoutReady ? "gold" : "ember"}>{loadoutReady ? t("eventsScreen.entry.ready") : t("eventsScreen.entry.deckNeeded")}</ScreenBadge>}
-              />
-              <div className="mt-3 grid gap-2">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("eventsScreen.entry.eyebrow")}</div>
+                  <div className="mt-1 text-lg font-black text-white">{t("eventsScreen.entry.title")}</div>
+                </div>
+                <ScreenBadge tone={loadoutReady ? "gold" : "ember"}>{loadoutReady ? t("eventsScreen.entry.ready") : t("eventsScreen.entry.deckNeeded")}</ScreenBadge>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-1.5 lg:grid-cols-1 lg:gap-2">
                 {frontlineLoadout.squad.map((heroId, index) => {
                   const hero = heroId ? FRONTLINE_UNIT_BY_ID[heroId] : null;
                   return (
@@ -310,6 +316,7 @@ export default function EventsPage() {
                       label={index === 0 ? t("eventsScreen.entry.left") : index === 1 ? t("eventsScreen.entry.center") : t("eventsScreen.entry.right")}
                       emptyLabel={t("eventsScreen.entry.deckNeeded")}
                       t={t}
+                      compact
                     />
                   );
                 })}
@@ -463,7 +470,13 @@ function EventMetric({
 }) {
   return (
     <div className={cn("flex items-center gap-2 rounded-[16px] border px-2.5 py-2", active ? "border-violet-200/22 bg-violet-300/10" : "border-white/10 bg-white/[0.045]")}>
-      {modeIcon ? <ModeIcon name={modeIcon} size="md" /> : <GameIcon kind={icon} tone={tone} size="sm" />}
+      {modeIcon ? (
+        <ModeIcon name={modeIcon} size="md" />
+      ) : icon === "power" ? (
+        <ProgressionIcon name="level_up" size="sm" className="h-10 w-10" />
+      ) : (
+        <GameIcon kind={icon} tone={tone} size="sm" />
+      )}
       <div>
         <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
         <div className="mt-0.5 text-sm font-black text-white">{value}</div>
@@ -476,16 +489,18 @@ function EventSquadChip({
   hero,
   label,
   emptyLabel,
+  compact,
   t,
 }: {
   hero: FrontlineHeroDef | null;
   label: string;
   emptyLabel: string;
+  compact?: boolean;
   t: TranslateFn;
 }) {
   return (
-    <div className={cn("flex items-center gap-2 rounded-[16px] border px-2 py-2", hero ? "border-violet-200/14 bg-violet-300/8" : "border-dashed border-white/10 bg-white/[0.025]")}>
-      <UnitThumb hero={hero} />
+    <div className={cn("flex items-center gap-2 rounded-[16px] border px-2 py-2", compact && "flex-col items-center text-center lg:flex-row lg:text-left", hero ? "border-violet-200/14 bg-violet-300/8" : "border-dashed border-white/10 bg-white/[0.025]")}>
+      <UnitThumb hero={hero} compact={compact} />
       <div className="min-w-0">
         <div className="text-[9px] font-black uppercase tracking-[0.14em] text-violet-100/58">{label}</div>
         <div className="mt-0.5 truncate text-[12px] font-black text-white">{hero ? frontlineHeroName(t, hero) : emptyLabel}</div>
@@ -498,20 +513,24 @@ function EventSquadChip({
 function EnemyLineup({ operationId, preset, t }: { operationId: string; preset: FrontlinePreset | undefined; t: TranslateFn }) {
   if (!preset) return null;
   return (
-    <div className="mt-3 grid gap-2">
+    <div className="mt-3 grid grid-cols-3 gap-1.5">
       {preset.squad.map((unitId, index) => {
         const unit = FRONTLINE_UNIT_BY_ID[unitId] ?? null;
         return (
-          <div key={`${operationId}-${unitId}-${index}`} className="flex items-center gap-2 rounded-[16px] border border-white/10 bg-black/18 px-2 py-2">
-            <UnitThumb hero={unit} enemy />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[12px] font-black text-white">{frontlineHeroName(t, unit)}</div>
-              <div className="mt-0.5 flex gap-2 text-[9px] font-black uppercase tracking-[0.08em] text-white/46">
-                <span>{index === 0 ? t("eventsScreen.entry.left") : index === 1 ? t("eventsScreen.entry.center") : t("eventsScreen.entry.right")}</span>
-                {unit ? <span>{frontlineHeroRole(t, unit)}</span> : null}
+          <div key={`${operationId}-${unitId}-${index}`} className="min-w-0 rounded-[16px] border border-white/10 bg-black/18 px-2 py-2">
+            <div className="flex items-center gap-2">
+              <UnitThumb hero={unit} enemy compact />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[11px] font-black text-white">{frontlineHeroName(t, unit)}</div>
+                <div className="mt-0.5 truncate text-[8px] font-black uppercase tracking-[0.08em] text-white/42">
+                  {index === 0 ? t("eventsScreen.entry.left") : index === 1 ? t("eventsScreen.entry.center") : t("eventsScreen.entry.right")}
+                </div>
               </div>
             </div>
-            {unit ? <div className="text-[9px] font-black uppercase tracking-[0.08em] text-rose-100/58">ATK {unit.atk}</div> : null}
+            <div className="mt-1.5 flex items-center justify-between gap-2 text-[8px] font-black uppercase tracking-[0.08em] text-white/46">
+              <span className="truncate">{unit ? frontlineHeroRole(t, unit) : t("eventsScreen.card.unknown")}</span>
+              {unit ? <span className="text-rose-100/62">ATK {unit.atk}</span> : null}
+            </div>
           </div>
         );
       })}
@@ -519,10 +538,10 @@ function EnemyLineup({ operationId, preset, t }: { operationId: string; preset: 
   );
 }
 
-function UnitThumb({ hero, enemy }: { hero: FrontlineHeroDef | null; enemy?: boolean }) {
+function UnitThumb({ hero, enemy, compact }: { hero: FrontlineHeroDef | null; enemy?: boolean; compact?: boolean }) {
   const visual = hero ? getFrontlineHeroVisualAsset(hero.heroId) : null;
   return (
-    <div className={cn("grid h-12 w-11 shrink-0 place-items-end overflow-hidden rounded-[13px] border bg-black/24", enemy ? "border-rose-200/14" : "border-white/10")}>
+    <div className={cn("grid shrink-0 place-items-end overflow-hidden rounded-[13px] border bg-black/24", compact ? "h-10 w-9" : "h-12 w-11", enemy ? "border-rose-200/14" : "border-white/10")}>
       {visual?.standeeSrc ? (
         <img
           src={visual.standeeSrc}
