@@ -34,24 +34,22 @@ describe("frontline boss — Crown of Ashes", () => {
     expect(boss.bossState?.infernoCountdown).toBe(3);
   });
 
-  it("decrements Inferno countdown each enemy turn and emits a charge telegraph", () => {
+  it("decrements Inferno countdown each round and emits a charge telegraph", () => {
     const turn1 = makeBossState();
-    const enemyTurn = resolveTurn(turn1);
-    expect(enemyTurn.turn).toBe("enemy");
-    expect(enemyTurn.bossState?.infernoCountdown).toBe(2);
-    const charge = enemyTurn.events.find((e) => e.kind === "boss_signature" && e.signature === "charge");
+    const afterRound = resolveTurn(turn1);
+    expect(afterRound.turn).toBe("ally");
+    expect(afterRound.bossState?.infernoCountdown).toBe(2);
+    const charge = afterRound.events.find((e) => e.kind === "boss_signature" && e.signature === "charge");
     expect(charge).toBeTruthy();
     expect(charge?.amount).toBe(2);
   });
 
-  it("fires Inferno Wave on the third enemy turn and damages every living ally", () => {
+  it("fires Inferno Wave on the third round and damages every living ally", () => {
     let state = makeBossState();
-    state = resolveTurn(state); // ally → enemy turn 1 (countdown 3 → 2)
-    state = resolveTurn(state); // enemy → ally turn 2
-    state = resolveTurn(state); // ally → enemy turn 2 (countdown 2 → 1)
-    state = resolveTurn(state); // enemy → ally turn 3
+    state = resolveTurn(state); // round 1 → countdown 3→2 (charge)
+    state = resolveTurn(state); // round 2 → countdown 2→1 (charge)
     const beforeHps = (["left", "center", "right"] as const).map((lane) => state.lanes[lane].allyHero?.hp ?? 0);
-    state = resolveTurn(state); // ally → enemy turn 3 (countdown 1 → 0 → CAST)
+    state = resolveTurn(state); // round 3 → countdown 1→0 → CAST + reset to 3
     const cast = state.events.find((e) => e.kind === "boss_signature" && e.signature === "cast");
     expect(cast).toBeTruthy();
     const afterHps = (["left", "center", "right"] as const).map((lane) => state.lanes[lane].allyHero?.hp ?? 0);
@@ -192,13 +190,12 @@ describe("frontline boss — The Eclipse", () => {
     expect(cast).toBeTruthy();
   });
 
-  it("clears the Twilight Veil card cost penalty after the player turn", () => {
+  it("clears the Twilight Veil card cost penalty after one player round", () => {
     let state = makeEclipseState();
     state.bossState!.twilightCountdown = 1;
-    state = resolveTurn(state); // cast happens at end of ally turn → enemy turn
+    state = resolveTurn(state); // round 1 → cast Twilight Veil + prepareTurn(ally) decrements once. Mod still active.
     expect(state.playerCardCostMod).toBeGreaterThan(0);
-    state = resolveTurn(state); // enemy turn ends → ally turn (penalty active)
-    state = resolveTurn(state); // ally turn ends → decrement, penalty consumed
+    state = resolveTurn(state); // round 2 → mod was active during play, prepareTurn(ally) decrements again → cleared.
     expect(state.playerCardCostMod).toBe(0);
     expect(state.playerCardCostModTurnsLeft).toBe(0);
   });

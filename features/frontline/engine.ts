@@ -215,7 +215,9 @@ function pushEvent(state: FrontlineBattleState, event: Omit<FrontlineEvent, "id"
   state.eventSeq = nextSeq;
   const fullEvent: FrontlineEvent = { ...event, id: `${state.round}:${state.turn}:${nextSeq}` };
   state.events.unshift(fullEvent);
-  state.events = state.events.slice(0, 12);
+  // Keep enough headroom for a full round of events (cards + clash + signatures + aftermath).
+  // The UI slices to a smaller window for display; tests need the full history.
+  state.events = state.events.slice(0, 64);
   if (state._trace && isVisibleEventKind(fullEvent)) {
     const snapshot = cloneState(state);
     delete (snapshot as { _trace?: FrontlineSnapshot[] })._trace;
@@ -620,6 +622,10 @@ function prepareTurn(state: FrontlineBattleState, side: FrontlineSide) {
   else next.enemyLeaderUsed = false;
   pushEvent(next, { kind: "round", side, label: `${side === "ally" ? "Player" : "Enemy"} turn ${next.round}`, emphasis: "low" });
   if (side === "ally") consumeCinderMark(next);
+  if (side === "ally" && next.playerCardCostModTurnsLeft > 0) {
+    next.playerCardCostModTurnsLeft -= 1;
+    if (next.playerCardCostModTurnsLeft === 0) next.playerCardCostMod = 0;
+  }
   if (side === "enemy") tickBossSignatures(next);
   return next;
 }
@@ -696,7 +702,8 @@ function castInfernoWave(state: FrontlineBattleState, damagePerHero: number) {
 
 function castTwilightVeil(state: FrontlineBattleState, cardCostBonus: number, durationTurns: number) {
   state.playerCardCostMod = cardCostBonus;
-  state.playerCardCostModTurnsLeft = durationTurns;
+  // +1 so the effect survives the decrement that happens at the next prepareTurn(ally).
+  state.playerCardCostModTurnsLeft = durationTurns + 1;
   pushEvent(state, {
     kind: "boss_signature",
     side: "enemy",
@@ -766,17 +773,9 @@ function applySoulDrain(state: FrontlineBattleState, attacker: FrontlineHeroStat
   if (!drain || drain.type !== "soul_drain") return;
   const isSegmentLane = boss.segments.some((seg) => seg.lane === lane);
   if (!isSegmentLane) return;
-  const healed = healHero(attacker, drain.healPerHit);
-  if (healed > 0) {
-    pushEvent(state, {
-      kind: "heal",
-      side: "enemy",
-      lane,
-      label: `${attacker.name} drains soul`,
-      amount: healed,
-      emphasis: "low",
-    });
-  }
+  // Silent heal: the segment recovers HP but no separate event is emitted; the
+  // change is reflected in the snapshot of the strike that triggered it.
+  healHero(attacker, drain.healPerHit);
 }
 
 export function createFrontlineBattleState(input: {
@@ -1020,8 +1019,44 @@ export function activateLeaderPower(state: FrontlineBattleState, side: Frontline
   return next;
 }
 
-export function resolveTurn(state: FrontlineBattleState) {
+function setupEnemyPhase(state: FrontlineBattleState): FrontlineBattleState {
   const next = cloneState(state);
+  next.turn = "enemy";
+  next.selectedCardId = null;
+  next.selectedLeaderPower = false;
+  const deck = drawInto(ownDeck(next, "enemy"), DRAW_PER_TURN, next.seed + next.round * 47);
+  deck.command = COMMAND_PER_TURN;
+  if (next.enemyStartCommandBonus > 0) {
+    deck.command += next.enemyStartCommandBonus;
+    next.enemyStartCommandBonus = 0;
+  }
+  deck.usedLeaderPower = false;
+  deck.powerCooldown = Math.max(0, deck.powerCooldown - 1);
+  setOwnDeck(next, "enemy", deck);
+  next.enemyLeaderUsed = false;
+  pushEvent(next, { kind: "round", side: "enemy", label: `Enemy turn ${next.round}`, emphasis: "low" });
+  return next;
+}
+
+export function resolveTurn(state: FrontlineBattleState) {
+  // 1. Switch to enemy phase + setup enemy deck (draw, command, cooldown).
+  let next = setupEnemyPhase(state);
+
+  // 2. Tick boss signatures (Inferno / Twilight cooldowns and possible cast).
+  tickBossSignatures(next);
+  if (battleResolved(next)) {
+    next.winner = determineWinner(next) ?? next.winner;
+    return next;
+  }
+
+  // 3. Enemy plays cards & leader power (silent visually — no snapshots from card events).
+  next = runEnemyTurn(next);
+  if (battleResolved(next)) {
+    next.winner = determineWinner(next) ?? next.winner;
+    return next;
+  }
+
+  // 4. Clash: every alive actor of every lane strikes once, in initiative order.
   for (const lane of ["center", "left", "right"] as const) {
     if (battleResolved(next)) break;
     applySupportEffectsForLane(next, "ally", lane);
@@ -1037,29 +1072,22 @@ export function resolveTurn(state: FrontlineBattleState) {
     cleanupExpiredSupport(next, "enemy", lane);
   }
 
-  const isEndOfRound = next.turn === "enemy";
-  if (isEndOfRound && !battleResolved(next)) {
+  // 5. End-of-round aftermath + breach.
+  if (!battleResolved(next)) {
     applyHeroAftermath(next, "ally");
     applyHeroAftermath(next, "enemy");
     applyBreach(next);
   }
   clearClashTemps(next);
 
-  if (next.turn === "ally" && next.playerCardCostModTurnsLeft > 0) {
-    next.playerCardCostModTurnsLeft -= 1;
-    if (next.playerCardCostModTurnsLeft === 0) next.playerCardCostMod = 0;
-  }
-
+  // 6. Winner check.
   const winner = determineWinner(next);
   if (winner) {
     next.winner = winner;
     return next;
   }
 
-  if (next.turn === "ally") {
-    return prepareTurn(next, "enemy");
-  }
-
+  // 7. Advance round and prepare next ally turn.
   next.round += 1;
   const roundWinner = determineWinner(next);
   if (roundWinner) {
@@ -1149,7 +1177,7 @@ export function runEnemyTurn(state: FrontlineBattleState) {
   if (powerLane) {
     next = activateLeaderPower(next, "enemy", powerLane);
   }
-  return resolveTurn(next);
+  return next;
 }
 
 function withTrace<T>(state: FrontlineBattleState, runner: (traced: FrontlineBattleState) => T): { final: T; snapshots: FrontlineSnapshot[] } {

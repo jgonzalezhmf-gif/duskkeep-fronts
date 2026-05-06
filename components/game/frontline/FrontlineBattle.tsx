@@ -80,6 +80,7 @@ type Props = {
   modifiers?: FrontlineBattleModifiers;
   encounterKind?: FrontlineEncounterBadgeKind | null;
   encounterTitle?: string | null;
+  battleBackgroundSrc?: string | null;
   onFinished: (winner: "ally" | "enemy" | "draw", state: FrontlineBattleState) => void;
 };
 
@@ -621,10 +622,11 @@ function cardEffectSummary(t: TranslateFn, card: FrontlineCardDef) {
   return frontlineCardEffectSummary(t, card);
 }
 
-function cardTone(card: FrontlineCardDef) {
-  if (card.kind === "order") return "order";
-  if (card.kind === "tactic") return "tactic";
-  return "summon";
+function cardFrameTone(card: FrontlineCardDef) {
+  if (card.cost >= 4 || (card.level ?? 1) >= 4) return "legendary";
+  if (card.kind === "summon") return "epic";
+  if (card.kind === "order") return "rare";
+  return "common";
 }
 
 function shouldCoreFlash(event: FrontlineEvent | null | undefined, attackerSide: FrontlineSide) {
@@ -656,6 +658,7 @@ function FrontlineBattleInner({
   modifiers,
   encounterKind,
   encounterTitle,
+  battleBackgroundSrc,
   onFinished,
 }: Props) {
   const { t } = useI18n();
@@ -689,7 +692,7 @@ function FrontlineBattleInner({
   const prevCoreRef = useRef({ ally: 0, enemy: 0 });
   const coreShockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const coreShockIdRef = useRef(0);
-  const backdrop = useMemo(() => getBattleBackdrop(seed), [seed]);
+  const backdrop = useMemo(() => battleBackgroundSrc ?? getBattleBackdrop(seed), [battleBackgroundSrc, seed]);
 
   useEffect(() => {
     finishedRef.current = false;
@@ -789,23 +792,8 @@ function FrontlineBattleInner({
     audio.setTheme("boss");
   }, [state.bossState, state.winner]);
 
-  useEffect(() => {
-    if (state.turn !== "enemy" || state.winner || pendingResolution) return;
-    const previous = state;
-    const timeout = setTimeout(() => {
-      const { final, snapshots } = runEnemyTurnTraced(previous);
-      const truncated = truncateAtWinner(final, snapshots);
-      const newEvents = collectNewEvents(previous, final).filter((event) => truncated.allowedEventIds.has(event.id));
-      setDeathGhosts(collectDeathGhosts(previous, newEvents));
-      finishDelayRef.current = final.winner ? 900 : 1800;
-      setPendingResolution({ finalState: final, snapshots: truncated.snapshots });
-      showResolutionFx(newEvents);
-      if (!final.winner && final.turn === "ally") {
-        window.setTimeout(() => sfx.turnStart(), Math.max(380, resolutionSequenceDuration(newEvents) - 420));
-      }
-    }, 700);
-    return () => clearTimeout(timeout);
-  }, [state, pendingResolution]);
+  // The full round (enemy plays + clash) now runs synchronously inside
+  // handleResolveClick — no reactive enemy-turn effect needed.
 
   useEffect(() => {
     if (!state.winner || finishedRef.current) return;
@@ -850,7 +838,7 @@ function FrontlineBattleInner({
   const displayLane = focusedLane ?? priorityLane.lane;
   const displayInsight = laneInsights.find((entry) => entry.lane === displayLane) ?? priorityLane;
   const latestImpact = state.events[0] ?? null;
-  const latestFeed = state.events.slice(0, 8);
+  const latestFeed = state.events.slice(0, 4);
   const bossConfig = useMemo(() => getFrontlineBoss(state.bossState?.id), [state.bossState?.id]);
   const bossSegmentByLane = useMemo(() => {
     const map: Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> = {};
@@ -989,6 +977,9 @@ function FrontlineBattleInner({
     finishDelayRef.current = final.winner ? 900 : 1800;
     setPendingResolution({ finalState: final, snapshots: truncated.snapshots });
     showResolutionFx(newEvents);
+    if (!final.winner && final.turn === "ally") {
+      window.setTimeout(() => sfx.turnStart(), Math.max(380, resolutionSequenceDuration(newEvents) - 420));
+    }
   }
 
   const selectedContextTitle = state.selectedLeaderPower
@@ -1009,10 +1000,10 @@ function FrontlineBattleInner({
   return (
     <section
       className={cn(
-        "relative isolate overflow-hidden rounded-[30px] bg-[#080a0d] shadow-[0_34px_95px_rgba(0,0,0,0.5)]",
+        "relative isolate min-h-[calc(100svh-1rem)] overflow-hidden rounded-[30px] bg-[#080a0d] shadow-[0_34px_95px_rgba(0,0,0,0.5)]",
         infernoCasting && "frontline-inferno-cast-fx",
       )}
-      style={{ backgroundImage: `url('${backdrop}')`, backgroundSize: "cover", backgroundPosition: "center" }}
+      data-frontline-battle-background={battleBackgroundSrc ? backdrop : "fallback"}
     >
       <style>{`
         @keyframes frontline-hit {
@@ -1269,10 +1260,20 @@ function FrontlineBattleInner({
           animation: none !important;
         }
       `}</style>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(245,196,81,0.14),transparent_32%),linear-gradient(180deg,rgba(7,9,12,0.25),rgba(7,9,12,0.58)_42%,rgba(7,9,12,0.9)_100%)]" />
-      <div className="absolute inset-x-0 top-0 h-32 bg-[linear-gradient(180deg,rgba(255,213,128,0.16),transparent)]" />
-      <div className="absolute inset-x-5 top-[37%] h-28 -skew-y-3 rounded-[999px] bg-[linear-gradient(90deg,rgba(101,210,200,0.08),rgba(245,196,81,0.17),rgba(240,95,114,0.08))] blur-xl" />
-      <div className="absolute inset-x-10 bottom-[13rem] h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.26),transparent)]" />
+      <div
+        className="absolute inset-0 scale-[1.03] bg-cover bg-center opacity-55"
+        style={{ backgroundImage: `url('${backdrop}')` }}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-95"
+        style={{ backgroundImage: `url('${backdrop}')` }}
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(245,196,81,0.07),transparent_34%),linear-gradient(180deg,rgba(7,9,12,0.08),rgba(7,9,12,0.26)_45%,rgba(7,9,12,0.52)_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,213,128,0.1),transparent)]" />
+      <div className="absolute inset-x-8 top-[39%] h-24 -skew-y-3 rounded-[999px] bg-[linear-gradient(90deg,rgba(101,210,200,0.04),rgba(245,196,81,0.1),rgba(240,95,114,0.04))] blur-xl" />
+      <div className="absolute inset-x-10 bottom-[13rem] h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.16),transparent)]" />
       <ClashSpotlight event={activeResolutionEvent} index={resolutionFx?.activeIndex ?? 0} total={resolutionFx?.events.length ?? 0} />
       {!activeResolutionEvent && !cardPlayFx && !finishFx ? (
         <PreviewSpotlight preview={previewOutcome} cardName={selectedCard ? frontlineCardName(t, selectedCard) : null} />
@@ -1281,7 +1282,7 @@ function FrontlineBattleInner({
       {finishFx ? <BattleEndOverlay winner={finishFx.winner} /> : null}
 
       <div className="relative z-[1] flex flex-col gap-4 p-4 md:p-5">
-        {encounterKind ? <EncounterBanner kind={encounterKind} title={encounterTitle ?? null} /> : null}
+        {encounterKind && encounterKind !== "boss" ? <EncounterBanner kind={encounterKind} title={encounterTitle ?? null} /> : null}
         <header className="grid gap-3 lg:grid-cols-[13rem_minmax(0,1fr)_13rem] xl:grid-cols-[15rem_minmax(0,1fr)_15rem]">
           <div className="relative">
             <CoreTotem
@@ -1298,18 +1299,12 @@ function FrontlineBattleInner({
             <CoreShockOverlay shock={coreShock} side="enemy" />
           </div>
 
-          <div className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(135deg,rgba(255,255,255,0.09),rgba(255,255,255,0.025)_42%,rgba(0,0,0,0.22))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_42px_rgba(0,0,0,0.24)]">
+          <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.045),rgba(255,255,255,0.014)_42%,rgba(0,0,0,0.1))] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_30px_rgba(0,0,0,0.16)] backdrop-blur-[2px] md:px-4">
             <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.55),transparent)]" />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CompactPill tone={state.turn === "ally" ? "ally" : "enemy"}>
-                  {resolutionFx
-                    ? state.turn === "ally"
-                      ? t("frontline.playerClash")
-                      : t("frontline.enemyClash")
-                    : state.turn === "ally"
-                      ? t("frontline.playerPhase")
-                      : t("frontline.enemyPhase")}
+                <CompactPill tone={resolutionFx ? "neutral" : "ally"}>
+                  {resolutionFx ? t("frontline.clashLabel") : t("frontline.playerPhase")}
                 </CompactPill>
                 <CompactPill tone="neutral">{t("frontline.roundLabel", { round: state.round })}</CompactPill>
                 <CommandPips value={state.allyDeck.command} />
@@ -1332,11 +1327,18 @@ function FrontlineBattleInner({
               ) : null}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]/70">{t("frontline.next")}</div>
-                <div className="mt-1 text-2xl font-black leading-none text-white">{actionState.title}</div>
-                <div className="mt-1 text-[11px] text-white/52">{actionState.subtitle}</div>
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="sr-only">
+                  <CombatIcon name={state.turn === "enemy" ? "danger" : state.allyDeck.command <= 0 ? "clash" : selectedCard || state.selectedLeaderPower ? "target" : "skill"} size="md" fallbackClassName="h-6 w-6" />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-xl font-black leading-none text-white md:text-2xl">{actionState.title}</div>
+                  <div className="mt-1 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/46">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#f5c451]/70" />
+                    <span className="truncate">{actionState.subtitle}</span>
+                  </div>
+                </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <FlowStep icon="target" label={t("frontline.card")} active={state.turn === "ally" && !selectedCard && !state.selectedLeaderPower} done={Boolean(selectedCard || state.selectedLeaderPower)} />
@@ -1421,7 +1423,7 @@ function FrontlineBattleInner({
           />
         ) : null}
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_14.5rem]">
           <div className="relative grid gap-3 lg:grid-cols-3">
             {bossConfig ? <BossColossusOverlay assetKey={bossConfig.assetKey} /> : null}
             {FRONTLINE_LANES.map((lane) => {
@@ -1478,9 +1480,9 @@ function FrontlineBattleInner({
                   )}
                   title={laneStatusSubtitle(t, insight.lane, insight.status)}
                 >
-                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),transparent_28%,rgba(0,0,0,0.28))]" />
-                  <div className="pointer-events-none absolute inset-x-6 top-11 h-24 rounded-[999px] bg-[radial-gradient(circle,rgba(245,196,81,0.13),transparent_67%)] blur-lg" />
-                  <div className="pointer-events-none absolute inset-x-8 top-[46%] h-16 rounded-[999px] bg-[radial-gradient(ellipse,rgba(245,196,81,0.16),transparent_70%)] blur-md" />
+                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.028),transparent_30%,rgba(0,0,0,0.14))]" />
+                  <div className="pointer-events-none absolute inset-x-6 top-11 h-24 rounded-[999px] bg-[radial-gradient(circle,rgba(245,196,81,0.08),transparent_67%)] blur-lg" />
+                  <div className="pointer-events-none absolute inset-x-8 top-[46%] h-14 rounded-[999px] bg-[radial-gradient(ellipse,rgba(245,196,81,0.1),transparent_70%)] blur-md" />
                   <div
                     className={cn(
                       "pointer-events-none absolute inset-0 opacity-0 transition duration-300",
@@ -1490,7 +1492,7 @@ function FrontlineBattleInner({
                       insight.breachSide === "enemy" && !active && "opacity-100 bg-[radial-gradient(circle_at_50%_52%,rgba(240,95,114,0.14),transparent_62%)]",
                     )}
                   />
-                  <div className="pointer-events-none absolute inset-x-7 top-[49%] h-1 rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,236,185,0.26),transparent)]" />
+                  <div className="pointer-events-none absolute inset-x-7 top-[49%] h-px rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,236,185,0.2),transparent)]" />
                   {breachFx ? (
                     <div className="frontline-breach-fx pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 rounded-full border-2 border-[#f5c451]/70 bg-[#f5c451]/14 shadow-[0_0_48px_rgba(245,196,81,0.42)]" />
                   ) : null}
@@ -1559,7 +1561,7 @@ function FrontlineBattleInner({
                     <div className="h-px flex-1 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.28))]" />
                     <div
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em]",
+                        "inline-flex h-9 w-9 items-center justify-center rounded-full text-[9px] font-black uppercase tracking-[0.18em]",
                         active
                           ? "bg-[#f5c451]/16 text-[#f5d498] shadow-[0_0_26px_rgba(245,196,81,0.22)]"
                           : insight.breachSide === "ally"
@@ -1569,12 +1571,12 @@ function FrontlineBattleInner({
                             : "bg-black/24 text-white/44",
                       )}
                     >
-                      <CombatIcon
-                        name={active ? "target" : insight.breachSide === "ally" ? "breach" : insight.breachSide === "enemy" ? "danger" : "clash"}
-                        size="xs"
+                          <CombatIcon
+                            name={active ? "target" : insight.breachSide === "ally" ? "breach" : insight.breachSide === "enemy" ? "danger" : "clash"}
+                        size="sm"
                         fallbackClassName="opacity-90"
                       />
-                      <span>
+                      <span className="sr-only">
                         {active
                           ? t("frontline.target")
                           : insight.breachSide === "ally"
@@ -1605,14 +1607,17 @@ function FrontlineBattleInner({
           </div>
 
           <aside className="grid gap-3">
-            <section className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025)_44%,rgba(0,0,0,0.22))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <section className="relative overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.012)_44%,rgba(0,0,0,0.1))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[2px]">
               <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.5),transparent)]" />
               <div className="flex items-center justify-between gap-2">
-                <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("frontline.focus")}</div>
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
+                  <CombatIcon name="target" size="xs" fallbackClassName="opacity-90" />
+                  <span>{t("frontline.focus")}</span>
+                </div>
                 {focusedLane ? <CompactPill tone="neutral">{laneLabel(t, focusedLane)}</CompactPill> : null}
               </div>
 
-              <div className="mt-3 rounded-[20px] bg-black/16 p-3">
+              <div className="mt-2 rounded-[20px] bg-black/8 p-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2 text-sm font-black text-white">
                     {selectedCard ? <CardTypeIcon type={selectedCard.kind} size="sm" className="h-7 w-7" /> : null}
@@ -1632,13 +1637,21 @@ function FrontlineBattleInner({
                     })()
                   ) : null}
                 </div>
-                <div className="mt-2 text-[12px] leading-5 text-white/58">{selectedContextBody}</div>
+                {(selectedCard || state.selectedLeaderPower) ? (
+                  <div className="mt-2 text-[12px] leading-5 text-white/58">{selectedContextBody}</div>
+                ) : null}
 
                 {!selectedCard && !state.selectedLeaderPower ? (
-                  <div className="mt-3 space-y-2">
-                    <MiniActorLine actor={displayState.lanes[displayLane].allyHero} support={displayState.lanes[displayLane].allySupport} side="ally" />
-                    <MiniActorLine actor={displayState.lanes[displayLane].enemyHero} support={displayState.lanes[displayLane].enemySupport} side="enemy" />
-                    <LaneInitiativeReadout state={state} lane={displayLane} />
+                  <div className="mt-3 flex items-center justify-between rounded-[16px] bg-black/10 px-2.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/58">
+                    <span className="inline-flex items-center gap-1">
+                      <CombatIcon name="attack" size="xs" fallbackClassName="opacity-80" />
+                      {displayInsight.allyScore}
+                    </span>
+                    <span className="h-px flex-1 mx-2 bg-[linear-gradient(90deg,rgba(101,210,200,0.4),rgba(240,95,114,0.4))]" />
+                    <span className="inline-flex items-center gap-1">
+                      <CombatIcon name="danger" size="xs" fallbackClassName="opacity-80" />
+                      {displayInsight.enemyScore}
+                    </span>
                   </div>
                 ) : null}
 
@@ -1703,7 +1716,7 @@ function FrontlineBattleInner({
           </aside>
         </div>
 
-        <section className="relative overflow-visible rounded-[28px] bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(0,0,0,0.12))] px-3 pb-3 pt-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:px-4">
+        <section className="relative overflow-visible rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.08))] px-3 pb-3 pt-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[1px] md:px-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("frontline.hand")}</div>
             <div className="rounded-full bg-white/[0.055] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/62">
@@ -1791,6 +1804,7 @@ function FrontlineHandCard({
   const cardName = frontlineCardName(t, card);
   const cardDescription = frontlineCardDescription(t, card);
   const insufficientCommand = card.cost > command;
+  const frameTone = cardFrameTone(card);
   return (
     <button
       type="button"
@@ -1798,8 +1812,8 @@ function FrontlineHandCard({
       title={cardDescription}
       disabled={!playable}
       className={cn(
-        "group relative h-[12.75rem] w-[11rem] shrink-0 overflow-hidden rounded-[24px] p-3 text-left shadow-[0_18px_38px_rgba(0,0,0,0.3)] transition duration-300 xl:h-[13.25rem] xl:w-auto",
-        cardSurfaceClass(cardTone(card), selected, playable),
+        "group relative h-[14.25rem] w-[10.25rem] shrink-0 overflow-hidden rounded-[24px] p-2.5 text-left shadow-[0_18px_38px_rgba(0,0,0,0.3)] transition duration-300 xl:h-[14.75rem] xl:w-auto",
+        cardSurfaceClass(frameTone, selected, playable),
         playable
           ? "frontline-card-ready-fx hover:-translate-y-1 hover:shadow-[0_24px_46px_rgba(0,0,0,0.38)]"
           : "opacity-65 grayscale-[0.5] saturate-[0.7]",
@@ -1807,22 +1821,22 @@ function FrontlineHandCard({
       )}
       onClick={onClick}
     >
-      <div className="absolute inset-2 z-0 overflow-hidden rounded-[21px] bg-[radial-gradient(circle_at_50%_42%,rgba(255,255,255,0.16),transparent_52%),linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.36))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <div className="absolute inset-[4px] z-0 overflow-hidden rounded-[20px] bg-black/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         <VisualAssetImage
           src={visual.cardArtSrc}
           fallbackSrc={visual.fallbackPortraitSrc}
           alt={`${cardName} art`}
           className="absolute inset-0 h-full w-full"
-          imgClassName="h-full w-full object-contain object-center p-1 opacity-95 saturate-[1.12] contrast-[1.04] drop-shadow-[0_14px_18px_rgba(0,0,0,0.34)] transition duration-300 group-hover:scale-[1.025] group-hover:opacity-100"
+          imgClassName="h-full w-full object-contain object-center opacity-98 saturate-[1.12] contrast-[1.04] transition duration-300 group-hover:scale-[1.025] group-hover:opacity-100"
           fallback={
             <div className="grid h-full w-full place-items-center">
               <CombatIcon name={combatIcon} size="xl" fallbackClassName="opacity-95 drop-shadow-[0_12px_18px_rgba(0,0,0,0.36)] transition duration-300 group-hover:scale-110" />
             </div>
           }
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.62),rgba(0,0,0,0.08)_31%,rgba(0,0,0,0.04)_58%,rgba(0,0,0,0.78))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1),rgba(0,0,0,0.02)_36%,rgba(0,0,0,0.06)_58%,rgba(0,0,0,0.82))]" />
       </div>
-      <div className="absolute inset-x-0 top-0 h-1.5 bg-current opacity-70" />
+      <div className="absolute inset-x-3 top-2 h-1.5 rounded-full bg-current opacity-80" />
       <div className="absolute -right-10 -top-12 h-28 w-28 rounded-full bg-white/10 blur-xl transition duration-300 group-hover:bg-white/16" />
       {selected ? (
         <div className="frontline-target-pulse-fx pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(245,196,81,0.28),transparent_54%)]" />
@@ -1832,17 +1846,14 @@ function FrontlineHandCard({
       ) : null}
 
       <div className="relative z-[1] flex items-start justify-between gap-2">
-        <div>
-          <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.16em] opacity-80">
-            <CardTypeIcon type={card.kind} size="sm" className="h-6 w-6" />
-            <span>{cardFamilyLabel(t, card)}</span>
-            {card.level && card.level > 1 ? <span className="rounded-full bg-[#f5c451]/18 px-1.5 py-0.5 text-[#ffe5a4]">Lv {card.level}</span> : null}
-          </div>
-          <div className="mt-1 max-w-[7rem] truncate text-base font-black leading-tight text-white">{cardName}</div>
+        <div className="sr-only">
+          <CardTypeIcon type={card.kind} size="sm" className="h-7 w-7" />
+          <span className="sr-only">{cardFamilyLabel(t, card)}</span>
+          <span className="sr-only">{cardName}</span>
         </div>
         <div
           className={cn(
-            "grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg font-black shadow-[0_0_24px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
+            "grid h-12 w-12 shrink-0 place-items-center rounded-full text-lg font-black shadow-[0_0_24px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
             insufficientCommand
               ? "bg-[radial-gradient(circle_at_35%_28%,rgba(255,200,200,0.55),rgba(220,80,90,0.42)_44%,rgba(40,0,0,0.5)_100%)] ring-2 ring-rose-300/60 text-rose-50"
               : "bg-[radial-gradient(circle_at_35%_28%,rgba(255,247,213,0.6),rgba(245,196,81,0.34)_44%,rgba(0,0,0,0.36)_100%)] text-[#ffe7a2]",
@@ -1855,21 +1866,21 @@ function FrontlineHandCard({
         </div>
       </div>
 
-      <div className="relative z-[1] mt-[7.2rem]">
-        <div className="flex items-center gap-2 truncate rounded-[16px] bg-black/18 px-3 py-2 text-[12px] font-black leading-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+      <div className="absolute inset-x-3 bottom-3 z-[1]">
+        <div className="flex items-center gap-2 truncate rounded-[16px] bg-black/34 px-2.5 py-2 text-[12px] font-black leading-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[1px]">
           {statusIcon ? (
-            <StatusIcon name={statusIcon} size="sm" className="h-7 w-7" fallbackClassName="opacity-90" />
+            <StatusIcon name={statusIcon} size="md" className="h-9 w-9 shrink-0" fallbackClassName="opacity-90" />
           ) : (
-            <CombatIcon name={combatIcon} size="xs" fallbackClassName="opacity-85" />
+            <CombatIcon name={combatIcon} size="md" className="h-8 w-8 shrink-0" fallbackClassName="opacity-85" />
           )}
           <span className="truncate">{cardEffectSummary(t, card)}</span>
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="hidden">
           <CompactPill tone="neutral">
             <span className="inline-flex items-center gap-1">
               <CombatIcon name="target" size="xs" fallbackClassName="opacity-80" />
-              {cardTargetLabel(t, card)}
+              <span className="sr-only">{cardTargetLabel(t, card)}</span>
             </span>
           </CompactPill>
           {recommendedLane ? <CompactPill tone="ally">{laneLabel(t, recommendedLane)}</CompactPill> : null}
@@ -1883,7 +1894,8 @@ function FrontlineHandCard({
           ) : null}
         </div>
 
-        <div className="mt-2 text-[10px] font-black uppercase tracking-[0.14em]">
+        <div className="hidden">
+          <CombatIcon name={playable ? "advantage" : "danger"} size="xs" fallbackClassName="opacity-90" />
           <span className={cn(playable ? "text-emerald-200" : "text-rose-200")}>
             {playable ? t("frontline.ready") : t("frontline.needCommand", { amount: Math.max(0, card.cost - command) })}
           </span>
@@ -2346,23 +2358,23 @@ function VisualAssetImage({
 
 function laneSurfaceClass(tone: "ally" | "enemy" | "neutral", active: boolean, focused: boolean) {
   if (active) {
-    return "bg-[radial-gradient(circle_at_50%_46%,rgba(245,196,81,0.22),transparent_46%),linear-gradient(180deg,rgba(111,83,37,0.24),rgba(24,18,13,0.64))] shadow-[0_0_44px_rgba(245,196,81,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]";
+    return "border border-[#f5c451]/24 bg-[radial-gradient(circle_at_50%_46%,rgba(245,196,81,0.15),transparent_48%),linear-gradient(180deg,rgba(111,83,37,0.14),rgba(24,18,13,0.38))] shadow-[0_0_38px_rgba(245,196,81,0.15),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[1px]";
   }
   if (tone === "ally") {
     return cn(
-      "bg-[radial-gradient(circle_at_50%_50%,rgba(101,210,200,0.12),transparent_55%),linear-gradient(180deg,rgba(53,128,112,0.16),rgba(8,15,15,0.58))] shadow-[inset_0_1px_0_rgba(255,255,255,0.065)]",
-      focused && "shadow-[0_0_36px_rgba(94,197,142,0.18),inset_0_1px_0_rgba(255,255,255,0.1)]",
+      "border border-cyan-200/10 bg-[radial-gradient(circle_at_50%_50%,rgba(101,210,200,0.08),transparent_57%),linear-gradient(180deg,rgba(53,128,112,0.09),rgba(8,15,15,0.34))] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-[1px]",
+      focused && "shadow-[0_0_30px_rgba(94,197,142,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]",
     );
   }
   if (tone === "enemy") {
     return cn(
-      "bg-[radial-gradient(circle_at_50%_50%,rgba(240,95,114,0.12),transparent_55%),linear-gradient(180deg,rgba(121,49,58,0.16),rgba(17,10,14,0.6))] shadow-[inset_0_1px_0_rgba(255,255,255,0.065)]",
-      focused && "shadow-[0_0_36px_rgba(214,96,104,0.19),inset_0_1px_0_rgba(255,255,255,0.1)]",
+      "border border-rose-200/10 bg-[radial-gradient(circle_at_50%_50%,rgba(240,95,114,0.08),transparent_57%),linear-gradient(180deg,rgba(121,49,58,0.09),rgba(17,10,14,0.36))] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-[1px]",
+      focused && "shadow-[0_0_30px_rgba(214,96,104,0.15),inset_0_1px_0_rgba(255,255,255,0.08)]",
     );
   }
   return cn(
-    "bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.075),transparent_56%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(7,9,12,0.58))] shadow-[inset_0_1px_0_rgba(255,255,255,0.065)]",
-    focused && "shadow-[0_0_32px_rgba(255,255,255,0.09),inset_0_1px_0_rgba(255,255,255,0.1)]",
+    "border border-white/8 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_58%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(7,9,12,0.34))] shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-[1px]",
+    focused && "shadow-[0_0_28px_rgba(255,255,255,0.07),inset_0_1px_0_rgba(255,255,255,0.08)]",
   );
 }
 
@@ -2370,15 +2382,18 @@ function cardSurfaceClass(tone: string, selected: boolean, playable: boolean) {
   const selectedGlow = selected
     ? "-translate-y-1 ring-2 ring-[#f5c451]/34 shadow-[0_0_40px_rgba(245,196,81,0.24),0_22px_48px_rgba(0,0,0,0.42)]"
     : "";
-  const base = playable ? "" : "bg-[linear-gradient(180deg,rgba(45,45,48,0.9),rgba(15,15,18,0.96))] text-white/60";
+  const base = playable ? "" : "border border-white/10 bg-[linear-gradient(180deg,rgba(45,45,48,0.86),rgba(15,15,18,0.92))] text-white/60";
   if (!playable) return cn(base, selectedGlow);
-  if (tone === "order") {
-    return cn("bg-[radial-gradient(circle_at_72%_30%,rgba(160,222,255,0.22),transparent_35%),linear-gradient(180deg,rgba(50,108,134,0.98),rgba(10,22,32,0.99))] text-sky-100", selectedGlow);
+  if (tone === "rare") {
+    return cn("border border-sky-300/60 bg-[radial-gradient(circle_at_72%_30%,rgba(160,222,255,0.2),transparent_35%),linear-gradient(180deg,rgba(40,93,126,0.94),rgba(8,18,30,0.98))] text-sky-100 ring-1 ring-sky-200/22", selectedGlow);
   }
-  if (tone === "tactic") {
-    return cn("bg-[radial-gradient(circle_at_72%_30%,rgba(255,188,127,0.22),transparent_35%),linear-gradient(180deg,rgba(145,86,55,0.98),rgba(35,18,12,0.99))] text-orange-100", selectedGlow);
+  if (tone === "epic") {
+    return cn("border border-violet-300/62 bg-[radial-gradient(circle_at_72%_30%,rgba(210,158,255,0.22),transparent_35%),linear-gradient(180deg,rgba(88,54,128,0.94),rgba(24,12,40,0.98))] text-violet-100 ring-1 ring-violet-200/24", selectedGlow);
   }
-  return cn("bg-[radial-gradient(circle_at_72%_30%,rgba(149,242,173,0.2),transparent_35%),linear-gradient(180deg,rgba(77,126,85,0.98),rgba(12,30,18,0.99))] text-emerald-100", selectedGlow);
+  if (tone === "legendary") {
+    return cn("border border-[#ffe48a]/74 bg-[radial-gradient(circle_at_70%_26%,rgba(255,232,141,0.3),transparent_35%),linear-gradient(180deg,rgba(178,123,43,0.96),rgba(42,24,8,0.99))] text-[#fff0bd] ring-1 ring-[#ffe48a]/34", selectedGlow);
+  }
+  return cn("border border-[#b98255]/60 bg-[radial-gradient(circle_at_72%_30%,rgba(255,188,127,0.18),transparent_35%),linear-gradient(180deg,rgba(107,70,48,0.94),rgba(28,17,12,0.98))] text-orange-100 ring-1 ring-orange-200/16", selectedGlow);
 }
 
 function CoreTotem({
@@ -2418,20 +2433,22 @@ function CoreTotem({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[26px] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_42px_rgba(0,0,0,0.28)]",
+        "relative overflow-hidden rounded-[26px] border px-3 py-2.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_14px_34px_rgba(0,0,0,0.18)] backdrop-blur-[1px]",
         accent === "ally"
-          ? "bg-[linear-gradient(180deg,rgba(35,83,112,0.58),rgba(8,12,17,0.86))]"
-          : "bg-[linear-gradient(180deg,rgba(110,44,55,0.58),rgba(14,8,13,0.86))]",
+          ? "border-cyan-200/10 bg-[linear-gradient(180deg,rgba(35,83,112,0.22),rgba(8,12,17,0.42))]"
+          : "border-rose-200/10 bg-[linear-gradient(180deg,rgba(110,44,55,0.22),rgba(14,8,13,0.42))]",
         flash && "frontline-core-hit-fx ring-2 ring-[#f5c451]/24 shadow-[0_0_34px_rgba(245,196,81,0.22),inset_0_1px_0_rgba(255,255,255,0.08)]",
       )}
     >
       <div className="absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.42),transparent)]" />
-      <div className="flex items-start gap-3">
-        <div className="relative h-16 w-14 shrink-0">
+      <span className="sr-only">{title}</span>
+      <div className="relative">
+        <div className="truncate text-sm font-black leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)]">{leaderName}</div>
+        <div className="relative mx-auto mt-2 h-24 w-20">
           {showRing ? (
             <div
               className={cn(
-                "pointer-events-none absolute -inset-1 rounded-[20px]",
+                "pointer-events-none absolute -inset-1 rounded-[24px]",
                 powerReady && "frontline-power-ready-ring-fx",
               )}
               style={{
@@ -2450,26 +2467,20 @@ function CoreTotem({
           <ArtPortrait
             src={portraitSrc ?? getLeaderPortrait(leaderId)}
             alt={leaderName}
-            className="h-16 w-14 rounded-[18px] bg-black/20 object-cover shadow-[0_12px_28px_rgba(0,0,0,0.28)]"
+            className="h-24 w-20 rounded-[22px] bg-black/10 object-contain p-0.5 shadow-[0_16px_30px_rgba(0,0,0,0.24)]"
             fallback={<GameGlyph kind="battle" shell="none" className="h-6 w-6" />}
           />
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-white/42">
-            <CombatIcon name="core" size="xs" fallbackClassName="opacity-80" />
-            <span>{title}</span>
-          </div>
-          <div className="mt-1 truncate text-lg font-black text-white">{leaderName}</div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/24">
-            <div className="h-full rounded-full bg-[linear-gradient(90deg,#ff8a5b,#f5d498)]" style={{ width: `${width}%` }} />
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/54">
-            <span>{hp}/{maxHp}</span>
-            <span className="inline-flex items-center gap-1">
-              <CombatIcon name="leader_power" size="xs" fallbackClassName="opacity-75" />
-              {powerLabel}
-            </span>
-          </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/26">
+          <div className="h-full rounded-full bg-[linear-gradient(90deg,#ff8a5b,#f5d498)]" style={{ width: `${width}%` }} />
+        </div>
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-white/62">
+          <span>{hp}/{maxHp}</span>
+          <span className="inline-flex items-center gap-1" title={powerLabel}>
+            <CombatIcon name="leader_power" size="xs" fallbackClassName="opacity-75" />
+            {cooldownRemaining > 0 ? cooldownRemaining : null}
+            <span className="sr-only">{powerLabel}</span>
+          </span>
         </div>
       </div>
     </div>
@@ -2501,7 +2512,7 @@ function EncounterBanner({ kind, title }: { kind: FrontlineEncounterBadgeKind; t
   const tone = meta.tone;
   const icon = meta.icon;
   return (
-    <div className={cn("flex items-center justify-center gap-3 rounded-[20px] border px-4 py-2 backdrop-blur-md", tone)}>
+    <div data-encounter-banner={kind} className={cn("flex items-center justify-center gap-3 rounded-[20px] border px-4 py-2 backdrop-blur-md", tone)}>
       <CombatIcon name={icon} size="md" className="h-7 w-7" fallbackClassName="h-7 w-7" />
       <div className="flex flex-col items-center sm:flex-row sm:items-baseline sm:gap-3">
         <span className="text-[10px] font-black uppercase tracking-[0.32em]">{label}</span>
@@ -2689,6 +2700,10 @@ function BossBanner({
   const inferno = boss.signatures.find((sig) => sig.type === "inferno_wave");
   const veil = boss.signatures.find((sig) => sig.type === "twilight_veil");
   const bossName = t(boss.nameKey);
+  const modifierLabels = [
+    modifiers?.enemyCoreBonus ? t("frontline.modifierEnemyCore", { amount: modifiers.enemyCoreBonus }) : null,
+    modifiers?.enemyStartingCommandBonus ? t("frontline.modifierEnemyCommand", { amount: modifiers.enemyStartingCommandBonus }) : null,
+  ].filter(Boolean);
 
   const infernoBadge =
     inferno && inferno.type === "inferno_wave"
@@ -2714,62 +2729,58 @@ function BossBanner({
       : null;
 
   return (
-    <div className="relative overflow-hidden rounded-[20px] border border-[#f5c451]/56 bg-[linear-gradient(180deg,rgba(245,140,80,0.22),rgba(40,12,8,0.86))] px-4 py-3 text-[#fff0bd] shadow-[0_18px_48px_rgba(245,196,81,0.22)] backdrop-blur-md">
+    <div
+      data-boss-status-banner={boss.id}
+      className="relative overflow-hidden rounded-[18px] border border-[#f5c451]/30 bg-[linear-gradient(180deg,rgba(245,140,80,0.1),rgba(40,12,8,0.34))] px-3 py-1.5 text-[#fff0bd] shadow-[0_10px_26px_rgba(245,196,81,0.1)] backdrop-blur-[1px]"
+      title={[bossName, ...modifierLabels].join(" | ")}
+    >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(255,255,255,0.16),transparent_36%)]" />
-      <div className="relative flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <CombatIcon name="leader_power" size="md" className="h-7 w-7" fallbackClassName="h-7 w-7" />
-          <div>
-            <div className="text-[10px] font-black uppercase tracking-[0.32em] text-[#fff0bd]/80">{t("frontline.encounterBoss")}</div>
-            <div className="text-base font-black uppercase tracking-[0.16em]">{bossName}</div>
+      <div className="relative flex flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <CombatIcon name="leader_power" size="sm" className="h-6 w-6" fallbackClassName="h-6 w-6" />
+          <div className="min-w-0 truncate text-[12px] font-black uppercase tracking-[0.18em] md:text-sm">
+            {bossName}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {infernoBadge ? (
             <div
               className={cn(
-                "rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em]",
+                "inline-flex h-8 min-w-8 items-center justify-center rounded-full border px-2 text-[10px] font-black uppercase tracking-[0.12em]",
                 infernoBadge.ready
                   ? "frontline-power-ready-ring-fx border-rose-200/72 bg-rose-400/24 text-rose-50"
                   : "border-[#f5c451]/56 bg-[#1a0a08]/72 text-[#fff0bd]",
               )}
+              title={infernoBadge.label}
             >
-              {infernoBadge.label}
+              <CombatIcon name="danger" size="xs" fallbackClassName="opacity-90" />
+              <span className="ml-1">{infernoBadge.ready ? "!" : bossState.infernoCountdown}</span>
             </div>
           ) : null}
           {twilightBadge ? (
             <div
               className={cn(
-                "rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em]",
+                "inline-flex h-8 min-w-8 items-center justify-center rounded-full border px-2 text-[10px] font-black uppercase tracking-[0.12em]",
                 twilightBadge.ready
                   ? "frontline-power-ready-ring-fx border-violet-200/72 bg-violet-400/24 text-violet-50"
                   : "border-violet-300/56 bg-[#160a1f]/72 text-violet-100",
               )}
+              title={twilightBadge.label}
             >
-              {twilightBadge.label}
+              <CombatIcon name="skill" size="xs" fallbackClassName="opacity-90" />
+              <span className="ml-1">{twilightBadge.ready ? "!" : bossState.twilightCountdown}</span>
             </div>
           ) : null}
           {cardCostMod > 0 ? (
-            <div className="rounded-full border border-violet-300/72 bg-violet-500/24 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-violet-50">
-              {t("frontline.twilightActive", { amount: cardCostMod })}
+            <div
+              className="inline-flex h-8 items-center justify-center rounded-full border border-violet-300/72 bg-violet-500/24 px-2 text-[10px] font-black uppercase tracking-[0.12em] text-violet-50"
+              title={t("frontline.twilightActive", { amount: cardCostMod })}
+            >
+              +{cardCostMod}
             </div>
           ) : null}
         </div>
       </div>
-      {modifiers && (modifiers.enemyCoreBonus || modifiers.enemyStartingCommandBonus) ? (
-        <div className="relative mt-2 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#fff0bd]/82">
-          {modifiers.enemyCoreBonus ? (
-            <span className="rounded-full border border-[#f5c451]/40 bg-black/30 px-2 py-0.5">
-              {t("frontline.modifierEnemyCore", { amount: modifiers.enemyCoreBonus })}
-            </span>
-          ) : null}
-          {modifiers.enemyStartingCommandBonus ? (
-            <span className="rounded-full border border-[#f5c451]/40 bg-black/30 px-2 py-0.5">
-              {t("frontline.modifierEnemyCommand", { amount: modifiers.enemyStartingCommandBonus })}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -2872,7 +2883,7 @@ function FrontlineHeroPiece({
   const { t } = useI18n();
   if (!actor) {
     return (
-      <div className="grid h-[9.25rem] place-items-center rounded-[26px] bg-[radial-gradient(circle_at_50%_55%,rgba(255,255,255,0.07),transparent_58%)] text-[10px] font-black uppercase tracking-[0.16em] text-white/36">
+      <div className="grid h-[9.25rem] place-items-center rounded-[26px] border border-white/6 bg-[radial-gradient(circle_at_50%_55%,rgba(255,255,255,0.04),transparent_60%)] text-[10px] font-black uppercase tracking-[0.16em] text-white/32">
         <span className="inline-flex items-center gap-1.5">
           <CombatIcon name="breach" size="sm" fallbackClassName="opacity-55" />
           {t("frontline.openFront")}
@@ -2897,32 +2908,48 @@ function FrontlineHeroPiece({
     <div
       title={`${actorName} - ${actorRole}${supportName ? ` - support ${supportName}` : ""}`}
       className={cn(
-        "relative min-h-[9.25rem] overflow-visible px-2 pb-2 pt-1",
+        "relative min-h-[11.5rem] overflow-visible px-2 pb-4 pt-5",
         pressured && "ring-2 ring-rose-300/24 shadow-[0_0_34px_rgba(244,99,112,0.2)]",
         fx.hit && "frontline-hit-fx",
         fx.ko && "frontline-ko-fx",
       )}
     >
-      <div className={cn("absolute left-2 top-0 h-28 w-28 blur-xl", sideGlow)} />
+      <div className={cn("absolute left-1/2 top-4 h-32 w-32 -translate-x-1/2 blur-xl opacity-80", sideGlow)} />
       {fx.selected || fx.targeted ? (
         <div
           className={cn(
-            "frontline-target-pulse-fx pointer-events-none absolute left-1 top-0 h-32 w-32 rounded-full blur-md",
+            "frontline-target-pulse-fx pointer-events-none absolute left-1/2 top-4 h-36 w-36 -translate-x-1/2 rounded-full blur-md",
             accent === "ally" ? "bg-cyan-300/15" : "bg-rose-300/15",
           )}
         />
       ) : null}
-      <div className="absolute left-4 bottom-4 h-4 w-28 rounded-full bg-black/42 blur-sm" />
+      <div className="absolute left-1/2 bottom-6 h-4 w-36 -translate-x-1/2 rounded-full bg-black/32 blur-sm" />
       <div
         className={cn(
-          "absolute bottom-3 left-2 h-7 w-[8.8rem] rounded-[999px] border shadow-[0_10px_24px_rgba(0,0,0,0.32)]",
+          "absolute bottom-5 left-1/2 h-7 w-[10rem] -translate-x-1/2 rounded-[999px] border shadow-[0_8px_20px_rgba(0,0,0,0.24)]",
           accent === "ally"
-            ? "border-cyan-200/18 bg-[linear-gradient(90deg,rgba(12,55,62,0.72),rgba(91,221,206,0.2),rgba(10,26,30,0.68))]"
-            : "border-rose-200/18 bg-[linear-gradient(90deg,rgba(62,13,23,0.72),rgba(240,95,114,0.2),rgba(25,8,12,0.68))]",
+            ? "border-cyan-200/12 bg-[linear-gradient(90deg,rgba(12,55,62,0.42),rgba(91,221,206,0.14),rgba(10,26,30,0.36))]"
+            : "border-rose-200/12 bg-[linear-gradient(90deg,rgba(62,13,23,0.42),rgba(240,95,114,0.14),rgba(25,8,12,0.36))]",
         )}
       />
-      <div className="relative z-[1] flex items-end gap-2">
-        <div className="relative shrink-0">
+      <div className="pointer-events-none absolute inset-x-3 top-0 z-[3] flex items-center justify-center gap-2">
+        <div className="max-w-[11rem] truncate rounded-full border border-white/10 bg-black/30 px-3 py-1 text-center text-[12px] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.22)] backdrop-blur-[1px]">
+          {actorName}
+        </div>
+        {traitInfo ? (
+          <div
+            title={`${traitInfo.label} - ${traitInfo.description}`}
+            className={cn(
+              "absolute right-0 top-0 grid h-8 w-8 shrink-0 place-items-center rounded-full border bg-black/30 backdrop-blur-[1px]",
+              accent === "ally" ? "border-cyan-200/28 text-cyan-100" : "border-rose-200/28 text-rose-100",
+            )}
+          >
+            <StatusIcon name={traitInfo.icon} size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
+          </div>
+        ) : null}
+      </div>
+      <div className="relative z-[1] grid min-h-[10.8rem] place-items-center pt-3">
+        <div className="relative mx-auto shrink-0">
           <div
             className={cn(
               "absolute -inset-1 rounded-[26px] blur-sm",
@@ -2942,8 +2969,8 @@ function FrontlineHeroPiece({
             fallbackSrc={visual.portraitFallbackSrc}
             alt={actorName}
             className={cn(
-              "relative h-32 w-24 rounded-t-[34px] rounded-b-[22px] bg-black/20 shadow-[0_22px_44px_rgba(0,0,0,0.46)] transition duration-300 group-hover:scale-[1.045]",
-              accent === "ally" ? "ring-2 ring-cyan-200/16" : "ring-2 ring-rose-200/16",
+              "relative h-44 w-32 rounded-t-[34px] rounded-b-[22px] bg-black/6 shadow-[0_18px_38px_rgba(0,0,0,0.34)] transition duration-300 group-hover:scale-[1.045]",
+              accent === "ally" ? "ring-1 ring-cyan-200/10" : "ring-1 ring-rose-200/10",
               fx.idle && !fx.attacking && !fx.hit && !fx.ko && "frontline-idle-fx",
               fx.attacking && (accent === "ally" ? "frontline-attack-ally-fx" : "frontline-attack-enemy-fx"),
               fx.selected && "ring-[#f5c451]/40 shadow-[0_0_34px_rgba(245,196,81,0.22),0_22px_44px_rgba(0,0,0,0.46)]",
@@ -2958,22 +2985,30 @@ function FrontlineHeroPiece({
               </div>
             }
           />
-          <div className="absolute -bottom-1 left-1/2 h-3 w-20 -translate-x-1/2 rounded-full bg-[#f5d498]/22 blur-sm" />
+          <div className="absolute -bottom-1 left-1/2 h-3 w-20 -translate-x-1/2 rounded-full bg-[#f5d498]/16 blur-sm" />
+          <div className="absolute -bottom-5 left-1/2 w-36 -translate-x-1/2">
+            <div className="h-3 overflow-hidden rounded-full bg-black/42 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#ff6d69,#ffd86f)] shadow-[0_0_16px_rgba(255,216,111,0.24)]"
+                style={{ width: `${hpWidth}%` }}
+              />
+            </div>
+            <div className="mt-1 text-center text-[10px] font-black uppercase tracking-[0.12em] text-white/72">{actor.hp}/{actor.maxHp}</div>
+          </div>
         </div>
-        <div className="min-w-0 flex-1 pb-4">
+        <div className="absolute bottom-6 left-4 z-[3] inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/64 backdrop-blur-[1px]">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="truncate text-lg font-black leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]">{actorName}</div>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/52">
+              <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/58">
                 <span className="inline-flex items-center gap-1">
-                  <CombatIcon name="attack" size="xs" fallbackClassName="opacity-75" />
+                  <CombatIcon name="attack" size="sm" fallbackClassName="opacity-75" />
                   <span>{actor.atk + actor.tempAtk}</span>
                 </span>
                 {traitInfo ? (
                   <span
                     title={`${traitInfo.label} — ${traitInfo.description}`}
                     className={cn(
-                      "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5",
+                      "hidden",
                       accent === "ally"
                         ? "border-cyan-200/30 bg-cyan-300/12 text-cyan-100/82"
                         : "border-rose-200/30 bg-rose-300/12 text-rose-100/82",
@@ -3013,14 +3048,14 @@ function FrontlineHeroPiece({
               ) : null}
             </div>
           </div>
-          <div className="mt-3 h-3 overflow-hidden rounded-full bg-black/38 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <div className="hidden">
             <div
               className="h-full rounded-full bg-[linear-gradient(90deg,#ff6d69,#ffd86f)] shadow-[0_0_16px_rgba(255,216,111,0.24)]"
               style={{ width: `${hpWidth}%` }}
             />
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/72">
-            <span>{actor.hp}/{actor.maxHp}</span>
+            <span className="sr-only">{actor.hp}/{actor.maxHp}</span>
             {actor.shield > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <StatusIcon name="guard" size="sm" className="h-6 w-6" fallbackClassName="opacity-90" />
@@ -3108,8 +3143,9 @@ function SupportToken({ support, active }: { support: FrontlineBattleState["lane
 function FlowStep({ icon, label, active, done }: { icon: CombatAssetIconName; label: string; active?: boolean; done?: boolean }) {
   return (
     <div
+      title={label}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em]",
+        "inline-flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-black uppercase tracking-[0.16em] md:h-10 md:w-10",
         active
           ? "bg-[#f5c451]/12 text-[#f5d498] shadow-[0_0_18px_rgba(245,196,81,0.12)]"
           : done
@@ -3117,8 +3153,8 @@ function FlowStep({ icon, label, active, done }: { icon: CombatAssetIconName; la
             : "bg-white/[0.045] text-white/48",
       )}
     >
-      <CombatIcon name={icon} size="xs" fallbackClassName="opacity-85" />
-      <span>{label}</span>
+      <CombatIcon name={icon} size="sm" fallbackClassName="opacity-85" />
+      <span className="sr-only">{label}</span>
     </div>
   );
 }

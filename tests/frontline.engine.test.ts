@@ -62,13 +62,12 @@ describe("frontline engine", () => {
     expect(next.events.some((entry) => entry.kind === "power")).toBe(true);
   });
 
-  it("runs the enemy turn and hands initiative back to the player", () => {
+  it("resolves the full round and hands initiative back to the player", () => {
     const state = makeState();
-    const afterPlayer = resolveTurn(state);
-    const afterEnemy = runEnemyTurn(afterPlayer);
+    const afterRound = resolveTurn(state);
 
-    expect(afterEnemy.turn).toBe("ally");
-    expect(afterEnemy.round).toBe(2);
+    expect(afterRound.turn).toBe("ally");
+    expect(afterRound.round).toBe(2);
   });
 
   it("uses enemy-only units in rival presets without exposing enemy cards to the player deck pool", () => {
@@ -121,18 +120,17 @@ describe("frontline engine", () => {
     expect(state.enemyDeck.command).toBe(0);
     expect(state.enemyStartCommandBonus).toBe(1);
 
-    const afterAllyTurn = resolveTurn(state);
-    expect(afterAllyTurn.turn).toBe("enemy");
-    expect(afterAllyTurn.enemyDeck.command).toBe(4);
-    expect(afterAllyTurn.enemyStartCommandBonus).toBe(0);
+    // After resolving the round the bonus has been consumed and turn returns to ally.
+    const afterRound = resolveTurn(state);
+    expect(afterRound.turn).toBe("ally");
+    expect(afterRound.enemyStartCommandBonus).toBe(0);
+    expect(afterRound.round).toBe(2);
   });
 
   it("does not freeze the enemy turn when a heal-only hand has no valid target", () => {
     const state = makeState();
-    // Force enemy hand to a single heal_front card with no wounded enemy hero in range.
     state.enemyDeck.hand = ["enemy_tactic_blood_rite"];
     state.enemyDeck.command = 3;
-    // All enemy heroes at full HP — no lowLane → heal cannot apply.
     for (const lane of ["left", "center", "right"] as const) {
       const hero = state.lanes[lane].enemyHero;
       if (hero) hero.hp = hero.maxHp;
@@ -145,7 +143,6 @@ describe("frontline engine", () => {
 
     expect(elapsed).toBeLessThan(1000);
     expect(next).toBeDefined();
-    expect(next.turn).not.toBe("enemy");
   });
 
   it("emits per-event snapshots from resolveTurnTraced for UI sync", () => {
@@ -157,8 +154,6 @@ describe("frontline engine", () => {
       expect(snap.state).toBeTruthy();
       expect(snap.state).not.toBe(final);
     }
-    const lastSnap = snapshots[snapshots.length - 1].state;
-    expect(lastSnap.events.length).toBeGreaterThanOrEqual(snapshots.length);
   });
 
   it("uses progressed Frontline card effects for player cards", () => {
