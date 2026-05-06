@@ -569,6 +569,7 @@ export function AdventureCampaignMap({
       data-design-height={DESIGN_HEIGHT}
     >
       <HomeEffectSpriteStyles />
+      <AdventureMapInteractionStyles />
       <div
         ref={stageRef}
         className={cn("absolute", fullScreen ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" : "inset-0")}
@@ -1073,7 +1074,7 @@ function AdventureMapProp({
         <button
           type="button"
           className={cn(
-            "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition duration-200",
+            "absolute -translate-x-1/2 -translate-y-1/2 transition duration-200",
             interactionStatus === "ready" && "hover:brightness-125",
             interactionStatus === "locked" && "opacity-52",
             interactionStatus === "claimed" && "opacity-45 saturate-75",
@@ -1199,14 +1200,14 @@ function InteractionPropState({ status }: { status: AdventureMapInteractionStatu
     return <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-emerald-200/36 bg-emerald-950/86 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-emerald-100">OK</span>;
   }
   if (status === "locked") {
-    return <span className="pointer-events-none absolute inset-0 rounded-full border border-white/10 bg-black/10" />;
+    return null;
   }
   if (status === "needs_key") {
     return <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-[#f5d498]/24 bg-black/78 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-[#f5d498]">KEY</span>;
   }
   return (
     <>
-      <span className="pointer-events-none absolute -inset-1 rounded-full border border-[#f5d498]/32 bg-[#f5c451]/7 shadow-[0_0_14px_rgba(245,196,81,0.16)]" />
+      <span className="pointer-events-none absolute left-[18%] top-[14%] h-[36%] w-[52%] rounded-[45%] bg-[#ffd978]/18 blur-[5px] shadow-[0_0_18px_rgba(245,196,81,0.28)]" />
       <span className="pointer-events-none absolute -right-1 -top-1 rounded-full border border-[#f5d498]/34 bg-[#2a1606]/92 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-[#ffe6a8]">OPEN</span>
     </>
   );
@@ -1224,7 +1225,12 @@ function InteractionPropContent({
   if (prop.interaction?.kind !== "keyChest") return <>{fallback}</>;
   const src = getAdventureMapInteractionAsset(status);
   return (
-    <span className="relative block h-full w-full">
+    <span
+      className={cn(
+        "relative block h-full w-full",
+        status === "ready" && "animate-[adventureKeyChestGlow_1.85s_ease-in-out_infinite]",
+      )}
+    >
       <img
         src={src}
         alt=""
@@ -1232,8 +1238,12 @@ function InteractionPropContent({
         draggable={false}
         loading="lazy"
         decoding="async"
-        className="h-full w-full object-contain drop-shadow-[0_12px_16px_rgba(0,0,0,0.52)]"
+        className={cn(
+          "h-full w-full object-contain drop-shadow-[0_12px_16px_rgba(0,0,0,0.52)]",
+          status === "ready" && "brightness-110 saturate-[1.12] drop-shadow-[0_12px_18px_rgba(0,0,0,0.56)]",
+        )}
       />
+      {status === "ready" ? <span className="pointer-events-none absolute left-[21%] top-[20%] h-[18%] w-[46%] rounded-[45%] bg-[#fff0a8]/22 blur-[4px]" /> : null}
     </span>
   );
 }
@@ -2399,6 +2409,22 @@ function editorButtonClass(active: boolean) {
   return cn(
     "rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] transition",
     active ? "border-sky-200/36 bg-sky-300/18 text-sky-100" : "border-white/10 bg-white/[0.06] text-white/64 hover:bg-white/10",
+  );
+}
+
+function AdventureMapInteractionStyles() {
+  return (
+    <style jsx global>{`
+      @keyframes adventureKeyChestGlow {
+        0%,
+        100% {
+          filter: brightness(1) saturate(1);
+        }
+        48% {
+          filter: brightness(1.14) saturate(1.16);
+        }
+      }
+    `}</style>
   );
 }
 

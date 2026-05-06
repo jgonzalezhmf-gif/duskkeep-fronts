@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.4] - 2026-05-06
+
+### Changed
+- Eliminado el aro circular generico del cofre interactuable de Adventure en modo normal.
+- Anadido realce localizado y pulso sutil al cofre cuando esta listo para abrirse, sin usar glow circular grande.
+
+### Tested
+- `npm.cmd run typecheck`
+
 ## [0.24.3] - 2026-05-06
 
 ### Fixed

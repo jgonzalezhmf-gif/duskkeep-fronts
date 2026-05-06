@@ -541,8 +541,8 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       {
         id: "small_camp-monl3wxg",
         type: "small_camp",
-        x: 961,
-        y: 857,
+        x: 953,
+        y: 860,
         width: 150,
         height: 150,
         zIndex: 35,
@@ -615,13 +615,13 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
       {
         id: "key_chest-mouenvk8",
         type: "key_chest",
-        x: 1659,
-        y: 959,
+        x: 1671,
+        y: 964,
         width: 219,
         height: 204,
-        rotation: 0,
+        rotation: 5,
         rotationX: 0,
-        rotationY: 0,
+        rotationY: -16,
         zIndex: 20,
         opacity: 1,
         enabled: true,
@@ -629,7 +629,9 @@ export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLa
           id: "c1-lower-cache",
           kind: "keyChest",
           keyCost: 1,
-          unlockAfter: ["c1l2"],
+          unlockAfter: [
+            "c1l2"
+          ],
           rewardId: "c1-lower-cache",
           enabled: true
         }
