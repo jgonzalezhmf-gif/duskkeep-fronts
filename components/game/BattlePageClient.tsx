@@ -741,10 +741,8 @@ function EnemyStagePiece({ hero, index }: { hero: FrontlineHeroDef | null; index
 function LaneMatchupForecast({ ally, enemy }: { ally: FrontlineHeroDef | null; enemy: FrontlineHeroDef | null }) {
   const { t } = useI18n();
   if (!ally || !enemy) return null;
-  const allyAtk = ally.atk;
-  const enemyAtk = enemy.atk;
-  const allyEffectiveDmg = Math.max(1, allyAtk - Math.floor(enemy.def / 2));
-  const enemyEffectiveDmg = Math.max(1, enemyAtk - Math.floor(ally.def / 2));
+  const allyEffectiveDmg = Math.max(1, ally.atk - Math.floor(enemy.def / 2));
+  const enemyEffectiveDmg = Math.max(1, enemy.atk - Math.floor(ally.def / 2));
   const turnsAllyKills = Math.ceil(enemy.maxHp / allyEffectiveDmg);
   const turnsEnemyKills = Math.ceil(ally.maxHp / enemyEffectiveDmg);
   const verdict =
@@ -765,26 +763,36 @@ function LaneMatchupForecast({ ally, enemy }: { ally: FrontlineHeroDef | null; e
       : verdict === "enemy"
         ? t("frontline.matchupRisk")
         : t("frontline.matchupEven");
+  const allyName = frontlineHeroName(t, ally);
+  const enemyName = frontlineHeroName(t, enemy);
   const allyTraitInfo = ally.trait.type !== "none" ? t(`frontlineData.traits.${ally.trait.type}.label`) : null;
   const enemyTraitInfo = enemy.trait.type !== "none" ? t(`frontlineData.traits.${enemy.trait.type}.label`) : null;
   return (
-    <div className="relative z-[1] mt-2 rounded-[14px] border border-white/8 bg-black/20 px-2.5 py-1.5">
-      <div className="flex items-center justify-between gap-2">
+    <details className="group/matchup relative z-[1] mt-2 rounded-[14px] border border-white/8 bg-black/20 px-2.5 py-1.5">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2">
         <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em]", verdictTone)}>
           {verdictLabel}
         </span>
-        <span className="text-[9px] font-black uppercase tracking-[0.14em] text-white/52">
-          {t("frontline.matchupTurns", { ally: turnsAllyKills, enemy: turnsEnemyKills })}
+        <span className="text-[9px] font-black uppercase tracking-[0.14em] text-white/40 transition group-open/matchup:text-white/64">
+          ▾
         </span>
-      </div>
-      {(allyTraitInfo || enemyTraitInfo) ? (
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[9px] font-black uppercase tracking-[0.14em] text-white/56">
-          <span className="text-cyan-100/82">{allyTraitInfo ?? "—"}</span>
-          <span className="opacity-60">vs</span>
-          <span className="text-rose-100/82">{enemyTraitInfo ?? "—"}</span>
+      </summary>
+      <div className="mt-2 space-y-1 text-[10px] font-black uppercase tracking-[0.14em]">
+        <div className="flex items-center justify-between gap-2 text-white/72">
+          <span className="text-cyan-100/82 truncate">{t("frontline.matchupKills", { name: allyName, turns: turnsAllyKills })}</span>
         </div>
-      ) : null}
-    </div>
+        <div className="flex items-center justify-between gap-2 text-white/72">
+          <span className="text-rose-100/82 truncate">{t("frontline.matchupKills", { name: enemyName, turns: turnsEnemyKills })}</span>
+        </div>
+        {(allyTraitInfo || enemyTraitInfo) ? (
+          <div className="flex items-center justify-between gap-1 pt-1 text-[9px] text-white/56">
+            <span className="text-cyan-100/82">{allyTraitInfo ?? "—"}</span>
+            <span className="opacity-60">vs</span>
+            <span className="text-rose-100/82">{enemyTraitInfo ?? "—"}</span>
+          </div>
+        ) : null}
+      </div>
+    </details>
   );
 }
 
