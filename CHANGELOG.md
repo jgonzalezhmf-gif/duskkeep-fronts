@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.7] - 2026-05-06
+
+### Fixed
+- Normalizado `gold_shine_loop` para que el brillo del cofre use frames centrados y no baile lateralmente.
+- Corregido el `frameCount` real del brillo de cofre a 5 frames visibles y ajustado el desplazamiento interno del spritesheet.
+
+### Tested
+- `npm.cmd run typecheck`
+
 ## [0.24.6] - 2026-05-06
 
 ### Changed

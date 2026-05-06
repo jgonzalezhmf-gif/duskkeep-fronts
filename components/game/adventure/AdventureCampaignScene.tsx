@@ -1241,6 +1241,7 @@ function InteractionPropContent({
             style={{
               width: `${shine.frameCount * 100}%`,
               ["--adventure-gold-shine" as string]: `url(${shine.src})`,
+              ["--adventure-gold-shine-end" as string]: `${-((shine.frameCount - 1) / shine.frameCount) * 100}%`,
             }}
           />
         </span>
@@ -2446,7 +2447,7 @@ function AdventureMapInteractionStyles() {
           transform: translate3d(0, 0, 0);
         }
         to {
-          transform: translate3d(-83.333333%, 0, 0);
+          transform: translate3d(var(--adventure-gold-shine-end), 0, 0);
         }
       }
     `}</style>
