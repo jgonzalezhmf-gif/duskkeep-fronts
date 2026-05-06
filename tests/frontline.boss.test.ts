@@ -6,8 +6,10 @@ import {
   resolveTurn,
 } from "@/features/frontline/engine";
 
-const CROWN = FRONTLINE_PRESET_BY_ID["crown_of_ashes"];
 const NORMAL = FRONTLINE_PRESETS[0];
+// Crown of Ashes preset is used only for engine tests of inferno/ember/cinder mechanics.
+// In production the c2l8 preset has no bossId; we re-attach it locally here.
+const CROWN = { ...FRONTLINE_PRESET_BY_ID["crown_of_ashes"], bossId: "crown_of_ashes" };
 
 function makeBossState(overrides: { modifiers?: { enemyCoreBonus?: number } } = {}) {
   return createFrontlineBattleState({

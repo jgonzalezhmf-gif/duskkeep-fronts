@@ -15,6 +15,12 @@ const FRONTLINE_HERO_STANDEE_ASSETS: FrontlineAssetManifest = {
   vex: `${FRONTLINE_ASSET_ROOT}/heroes/vex.png`,
   drak: `${FRONTLINE_ASSET_ROOT}/heroes/drak.png`,
   tovi: `${FRONTLINE_ASSET_ROOT}/heroes/tovi.png`,
+  lyria: `${FRONTLINE_ASSET_ROOT}/heroes/lyria_spellweaver.png`,
+  morr: `${FRONTLINE_ASSET_ROOT}/heroes/morth_the_cursed.png`,
+  ursa: `${FRONTLINE_ASSET_ROOT}/heroes/ursa_stoneheart.png`,
+  fenra: `${FRONTLINE_ASSET_ROOT}/heroes/fenra_wolfcaller.png`,
+  sol: `${FRONTLINE_ASSET_ROOT}/heroes/sol_the_radiant.png`,
+  noct: `${FRONTLINE_ASSET_ROOT}/heroes/noct_the_eclipse.png`,
   enemy_bone_archer: `${FRONTLINE_ASSET_ROOT}/heroes/Enemy1.png`,
   enemy_plague_troll: `${FRONTLINE_ASSET_ROOT}/heroes/Enemy2.png`,
   enemy_ember_ogre: `${FRONTLINE_ASSET_ROOT}/heroes/Enemy3.png`,
@@ -28,6 +34,18 @@ const FRONTLINE_CARD_ART_ASSETS: FrontlineAssetManifest = {
   order_twin_slash: `${FRONTLINE_ASSET_ROOT}/cards/order_twin_slash.png`,
   order_shadow_dive: `${FRONTLINE_ASSET_ROOT}/cards/order_shadow_dive.png`,
   order_focus_fire: `${FRONTLINE_ASSET_ROOT}/cards/order_focus_fire.png`,
+  guard_break: `${FRONTLINE_ASSET_ROOT}/cards/guard_break.png`,
+  quick_step: `${FRONTLINE_ASSET_ROOT}/cards/quick_step.png`,
+  holy_ward: `${FRONTLINE_ASSET_ROOT}/cards/holy_ward.png`,
+  blood_pact: `${FRONTLINE_ASSET_ROOT}/cards/blood_pact.png`,
+  dark_bolt: `${FRONTLINE_ASSET_ROOT}/cards/dark_bolt.png`,
+  iron_skin: `${FRONTLINE_ASSET_ROOT}/cards/iron_skin.png`,
+  piercing_shot: `${FRONTLINE_ASSET_ROOT}/cards/piercing_shot.png`,
+  war_drums: `${FRONTLINE_ASSET_ROOT}/cards/war_drums.png`,
+  soul_chain: `${FRONTLINE_ASSET_ROOT}/cards/soul_chain.png`,
+  frost_trap: `${FRONTLINE_ASSET_ROOT}/cards/frost_trap.png`,
+  rending_blow: `${FRONTLINE_ASSET_ROOT}/cards/rending_blow.png`,
+  last_stand: `${FRONTLINE_ASSET_ROOT}/cards/last_stand.png`,
   tactic_battle_hymn: `${FRONTLINE_ASSET_ROOT}/cards/tactic_battle_hymn.png`,
   tactic_sanctuary: `${FRONTLINE_ASSET_ROOT}/cards/tactic_sanctuary.png`,
   tactic_smokescreen: `${FRONTLINE_ASSET_ROOT}/cards/tactic_smokescreen.png`,
@@ -43,8 +61,9 @@ const FRONTLINE_EFFECT_ASSETS: FrontlineAssetManifest = {
 };
 
 const FRONTLINE_BOSS_ASSETS: FrontlineAssetManifest = {
-  crown_of_ashes: `${FRONTLINE_ASSET_ROOT}/bosses/crown_of_ashes.png`,
-  // the_eclipse: optional PNG. When unavailable the UI falls back to per-segment standees.
+  // The PNG was originally added under crown_of_ashes.png but is the art for The Eclipse (c1l12).
+  the_eclipse: `${FRONTLINE_ASSET_ROOT}/bosses/crown_of_ashes.png`,
+  // crown_of_ashes (c2l8) currently has no boss art and falls back to per-segment readouts.
 };
 
 const FRONTLINE_UNIT_PLACEHOLDER_ASSET = `${FRONTLINE_ASSET_ROOT}/unit_placeholder.png`;

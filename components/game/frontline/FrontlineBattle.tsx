@@ -399,12 +399,12 @@ function collectNewEvents(previous: FrontlineBattleState, next: FrontlineBattleS
 }
 
 function eventDuration(event: FrontlineEvent) {
-  if (event.kind === "breach") return 1900;
-  if (event.kind === "ko") return 1750;
-  if (event.kind === "summon") return 1450;
-  if (event.kind === "boss_signature" && event.signature === "cast") return 1850;
-  if (event.kind === "heal" || event.kind === "shield" || event.kind === "stun") return 1350;
-  return 1500;
+  if (event.kind === "breach") return 1100;
+  if (event.kind === "ko") return 950;
+  if (event.kind === "summon") return 850;
+  if (event.kind === "boss_signature" && event.signature === "cast") return 1100;
+  if (event.kind === "heal" || event.kind === "shield" || event.kind === "stun") return 720;
+  return 700;
 }
 
 function resolutionSequenceDuration(events: FrontlineEvent[]) {
@@ -1303,7 +1303,13 @@ function FrontlineBattleInner({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CompactPill tone={state.turn === "ally" ? "ally" : "enemy"}>
-                  {state.turn === "ally" ? t("frontline.playerPhase") : t("frontline.enemyPhase")}
+                  {resolutionFx
+                    ? state.turn === "ally"
+                      ? t("frontline.playerClash")
+                      : t("frontline.enemyClash")
+                    : state.turn === "ally"
+                      ? t("frontline.playerPhase")
+                      : t("frontline.enemyPhase")}
                 </CompactPill>
                 <CompactPill tone="neutral">{t("frontline.roundLabel", { round: state.round })}</CompactPill>
                 <CommandPips value={state.allyDeck.command} />
@@ -1523,11 +1529,12 @@ function FrontlineBattleInner({
                     </div>
                   </div>
 
-                  <div className="relative z-[2] mt-3">
+                  <div className={cn("relative z-[2]", bossConfig ? "mt-[10rem]" : "mt-3")}>
                     {bossConfig && bossSegmentByLane[lane] ? (
                       <BossSegmentReadout
                         segment={bossSegmentByLane[lane]!}
                         hero={laneState.enemyHero}
+                        support={laneState.enemySupport}
                         scorch={displayState.bossState?.scorch[lane] ?? 0}
                         active={active}
                         focused={focused}
@@ -2508,18 +2515,18 @@ function BossColossusOverlay({ assetKey }: { assetKey: string }) {
   const src = getFrontlineBossAssetSrc(assetKey);
   if (!src) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 -top-4 bottom-[42%] z-[1] flex items-start justify-center overflow-visible">
-      <div className="relative flex h-full w-full max-w-[64rem] items-start justify-center">
-        <div className="absolute inset-x-[8%] -top-2 bottom-[-6%] rounded-[60px] bg-[radial-gradient(ellipse_at_50%_42%,rgba(245,140,80,0.42),rgba(80,16,12,0.32)_44%,transparent_76%)] blur-lg" />
+    <div className="pointer-events-none absolute inset-x-0 -top-2 bottom-[60%] z-[1] flex items-start justify-center overflow-visible">
+      <div className="relative flex h-full w-full max-w-[60rem] items-start justify-center">
+        <div className="absolute inset-x-[10%] -top-2 bottom-[-4%] rounded-[60px] bg-[radial-gradient(ellipse_at_50%_42%,rgba(245,140,80,0.4),rgba(80,16,12,0.28)_46%,transparent_78%)] blur-lg" />
         <img
           src={src}
           alt=""
           aria-hidden
-          className="frontline-boss-breath-fx relative z-[1] h-full w-auto max-w-full object-contain object-top drop-shadow-[0_38px_64px_rgba(180,70,40,0.55)]"
+          className="frontline-boss-breath-fx relative z-[1] h-full w-auto max-w-full object-contain object-top drop-shadow-[0_36px_60px_rgba(180,70,40,0.52)]"
           loading="eager"
           decoding="async"
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] h-20 bg-[linear-gradient(180deg,transparent,rgba(8,6,12,0.95))]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] h-12 bg-[linear-gradient(180deg,transparent,rgba(8,6,12,0.85))]" />
       </div>
     </div>
   );
@@ -2528,6 +2535,7 @@ function BossColossusOverlay({ assetKey }: { assetKey: string }) {
 function BossSegmentReadout({
   segment,
   hero,
+  support,
   scorch,
   active,
   focused,
@@ -2539,6 +2547,7 @@ function BossSegmentReadout({
 }: {
   segment: FrontlineBossSegmentConfig;
   hero: FrontlineBattleState["lanes"]["left"]["enemyHero"];
+  support: FrontlineBattleState["lanes"]["left"]["enemySupport"];
   scorch: number;
   active: boolean;
   focused: boolean;
@@ -2549,13 +2558,23 @@ function BossSegmentReadout({
   ko: boolean;
 }) {
   const { t } = useI18n();
+  const supportName = support ? frontlineSupportName(t, support) : "";
   if (!hero) {
     return (
-      <div className="grid h-[7.4rem] place-items-center rounded-[20px] border border-rose-200/24 bg-[radial-gradient(circle_at_50%_46%,rgba(240,95,114,0.18),rgba(20,8,12,0.92))] text-[10px] font-black uppercase tracking-[0.18em] text-rose-100/72">
-        <span className="inline-flex items-center gap-1.5">
-          <CombatIcon name="breach" size="sm" fallbackClassName="opacity-80" />
-          {t(segment.titleKey)} · {t("frontline.openFront")}
-        </span>
+      <div className="rounded-[20px] border border-rose-200/24 bg-[radial-gradient(circle_at_50%_46%,rgba(240,95,114,0.18),rgba(20,8,12,0.92))] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-rose-100/72">
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5">
+            <CombatIcon name="breach" size="sm" fallbackClassName="opacity-80" />
+            {t(segment.titleKey)} · {t("frontline.openFront")}
+          </span>
+          {support ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/30 bg-emerald-300/14 px-2 py-0.5 text-emerald-100/80">
+              <CombatIcon name="summon" size="xs" fallbackClassName="opacity-80" />
+              <span className="truncate max-w-[5.6rem]">{supportName}</span>
+              <span>{support.hp}/{support.maxHp}</span>
+            </span>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -2633,6 +2652,24 @@ function BossSegmentReadout({
           </span>
         ) : null}
       </div>
+      {support ? (
+        <div className="mt-2 flex items-center justify-between gap-2 rounded-[14px] border border-emerald-200/30 bg-emerald-300/12 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-100/82">
+          <span className="inline-flex items-center gap-1 truncate">
+            <CombatIcon name="summon" size="xs" fallbackClassName="opacity-80" />
+            <span className="truncate max-w-[6rem]">{supportName}</span>
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span>{support.hp}/{support.maxHp}</span>
+            {support.atk > 0 ? (
+              <span className="inline-flex items-center gap-0.5">
+                <CombatIcon name="attack" size="xs" fallbackClassName="opacity-80" />
+                {support.atk}
+              </span>
+            ) : null}
+            <span className="opacity-72">T{support.duration}</span>
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

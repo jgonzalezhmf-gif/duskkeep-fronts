@@ -702,7 +702,6 @@ export const FRONTLINE_PRESETS: FrontlinePreset[] = [
       "enemy_summon_void_eye",
     ],
     rewardSeed: { gold: 260, dust: 32, gems: 8, accountXp: 16 },
-    bossId: "crown_of_ashes",
   },
 ];
 
