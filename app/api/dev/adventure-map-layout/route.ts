@@ -25,6 +25,7 @@ const VALID_PROP_TYPES = new Set<AdventureMapPropType>(ADVENTURE_MAP_PROP_TYPES)
 const VALID_HOME_EFFECTS = new Set<HomeEffectId>(HOME_EFFECT_IDS);
 const VALID_ROUTE_STATES = new Set<AdventureMapRouteState>(["cleared", "available", "locked", "boss"]);
 const VALID_PARTY_STYLES = new Set(["banner", "token", "camp"]);
+const VALID_INTERACTION_KINDS = new Set(["keyChest"]);
 const TARGET_FILE = path.join(process.cwd(), "components", "game", "adventure", "adventureMapLayout.ts");
 
 function isFiniteNumber(value: unknown): value is number {
@@ -100,10 +101,32 @@ function normalizeProp(value: unknown) {
     x: round(prop.x),
     y: round(prop.y),
     ...(isFiniteNumber(prop.size) && !isFiniteNumber(prop.width) && !isFiniteNumber(prop.height) ? { size: fallbackSize } : { width, height }),
+    ...(isFiniteNumber(prop.rotation) ? { rotation: round(prop.rotation) } : {}),
+    ...(isFiniteNumber(prop.rotationX) ? { rotationX: round(prop.rotationX) } : {}),
+    ...(isFiniteNumber(prop.rotationY) ? { rotationY: round(prop.rotationY) } : {}),
     zIndex: isFiniteNumber(prop.zIndex) ? Math.round(prop.zIndex) : 20,
     ...(isFiniteNumber(prop.opacity) ? { opacity: Math.round(Math.min(1, Math.max(0, prop.opacity)) * 100) / 100 } : {}),
     enabled: typeof prop.enabled === "boolean" ? prop.enabled : true,
     ...(effect ? { effect } : {}),
+    ...(normalizeInteraction(prop.interaction) ? { interaction: normalizeInteraction(prop.interaction) } : {}),
+  };
+}
+
+function normalizeInteraction(value: unknown) {
+  if (!value || typeof value !== "object") return undefined;
+  const interaction = value as Record<string, unknown>;
+  const id = cleanString(interaction.id);
+  const kind = cleanString(interaction.kind);
+  if (!id || !kind || !VALID_INTERACTION_KINDS.has(kind)) return undefined;
+  const unlockAfter = Array.isArray(interaction.unlockAfter) ? interaction.unlockAfter.map(cleanString).filter((item): item is string => Boolean(item)) : undefined;
+  const rewardId = cleanString(interaction.rewardId);
+  return {
+    id,
+    kind: "keyChest" as const,
+    ...(isFiniteNumber(interaction.keyCost) ? { keyCost: Math.max(0, Math.round(interaction.keyCost)) } : {}),
+    ...(unlockAfter?.length ? { unlockAfter } : {}),
+    ...(rewardId ? { rewardId } : {}),
+    ...(typeof interaction.enabled === "boolean" ? { enabled: interaction.enabled } : {}),
   };
 }
 
@@ -206,7 +229,7 @@ export type AdventureMapNodeType =
   | "hidden"
   | "danger";
 
-export type AdventureMapNodeStatus = "locked" | "available" | "cleared" | "current" | "hidden";
+export type AdventureMapNodeStatus = "locked" | "available" | "cleared" | "current" | "completed" | "claimed" | "hidden";
 
 export type AdventureMapRouteState = "cleared" | "available" | "locked" | "boss";
 
@@ -231,6 +254,7 @@ export type AdventureMapRouteLayout = {
 };
 
 export type AdventureMapPropType =
+  | "key_chest"
   | "campfire"
   | "small_camp"
   | "road_lantern"
@@ -271,10 +295,21 @@ export type AdventureMapPropLayout = {
   size?: number;
   width?: number;
   height?: number;
+  rotation?: number;
+  rotationX?: number;
+  rotationY?: number;
   zIndex: number;
   opacity?: number;
   enabled: boolean;
   effect?: AdventureMapPropEffectLayout;
+  interaction?: {
+    id: string;
+    kind: "keyChest";
+    keyCost?: number;
+    unlockAfter?: string[];
+    rewardId?: string;
+    enabled?: boolean;
+  };
 };
 
 export type AdventureMapPartyMarkerLayout = {
@@ -306,9 +341,18 @@ export const ADVENTURE_MAP_NODE_TYPES: AdventureMapNodeType[] = [
   "danger",
 ];
 
-export const ADVENTURE_MAP_NODE_STATUSES: AdventureMapNodeStatus[] = ["locked", "available", "cleared", "current", "hidden"];
+export const ADVENTURE_MAP_NODE_STATUSES: AdventureMapNodeStatus[] = [
+  "locked",
+  "available",
+  "cleared",
+  "current",
+  "completed",
+  "claimed",
+  "hidden",
+];
 
 export const ADVENTURE_MAP_PROP_TYPES: AdventureMapPropType[] = [
+  "key_chest",
   "campfire",
   "small_camp",
   "road_lantern",
@@ -330,6 +374,8 @@ export const ADVENTURE_MAP_PROP_TYPES: AdventureMapPropType[] = [
   "chest_prop",
   "camp_prop",
 ];
+
+export const ADVENTURE_MAP_INTERACTION_KINDS = ["keyChest"] as const;
 
 export const ADVENTURE_MAP_CHAPTER_LAYOUTS: Record<number, AdventureMapChapterLayout> = ${serialize(layouts, 0)};
 `;

@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.24.3] - 2026-05-06
+
+### Fixed
+- Corregida la plantilla del endpoint `Save to code` de `?qa=adventure-map` para no borrar `key_chest`, `interaction`, `rotationX/rotationY` ni `ADVENTURE_MAP_INTERACTION_KINDS`.
+- Restaurada la config generada de Adventure tras un guardado incompleto del editor QA.
+
+### Tested
+- `npm.cmd run typecheck`
+
 ## [0.24.2] - 2026-05-06
 
 ### Fixed
