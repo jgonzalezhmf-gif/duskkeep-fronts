@@ -495,19 +495,28 @@ function resolveActorStrike(state: FrontlineBattleState, actor: Actor) {
     if (enemyHero) {
       let dealt = Math.max(1, damage - Math.floor(enemyHero.def / 2));
       const trait = heroDefinition(hero).trait;
-      if (trait.type === "ambush" && enemyHero.hp < enemyHero.maxHp) dealt += trait.bonusVsWounded;
+      const ambushTriggered = trait.type === "ambush" && enemyHero.hp < enemyHero.maxHp;
+      if (ambushTriggered) dealt += trait.bonusVsWounded;
       dealt = applyHeroDamageWithVeilArmor(state, enemyHero, dealt);
-      pushEvent(state, { kind: "damage", side: actor.side, lane: actor.lane, label: `${hero.name} hits ${enemyHero.name}`, amount: dealt, emphasis: "mid" });
+      pushEvent(state, {
+        kind: "damage",
+        side: actor.side,
+        lane: actor.lane,
+        label: `${hero.name} hits ${enemyHero.name}`,
+        amount: dealt,
+        emphasis: "mid",
+        ...(ambushTriggered ? { trait: "ambush" as const } : {}),
+      });
       if (dealt > 0) applyCinderMarkOnHit(state, actor.side, actor.lane);
       if (dealt > 0 && trait.type === "lifesteal") {
         const healed = healHero(hero, trait.heal);
         if (healed > 0) {
-          pushEvent(state, { kind: "heal", side: actor.side, lane: actor.lane, label: `${hero.name} drains life`, amount: healed, emphasis: "low" });
+          pushEvent(state, { kind: "heal", side: actor.side, lane: actor.lane, label: `${hero.name} drains life`, amount: healed, emphasis: "low", trait: "lifesteal" });
         }
       }
       if (dealt > 0 && trait.type === "venom" && enemyHero.alive) {
         const venomDealt = applyHeroDamageWithVeilArmor(state, enemyHero, trait.damage);
-        pushEvent(state, { kind: "damage", side: actor.side, lane: actor.lane, label: `${hero.name} venom burns`, amount: venomDealt, emphasis: "mid" });
+        pushEvent(state, { kind: "damage", side: actor.side, lane: actor.lane, label: `${hero.name} venom burns`, amount: venomDealt, emphasis: "mid", trait: "venom" });
       }
       if (dealt > 0 && actor.side === "enemy") applySoulDrain(state, hero, actor.lane);
       if (!enemyHero.alive) {
@@ -530,7 +539,7 @@ function applyHeroAftermath(state: FrontlineBattleState, side: FrontlineSide) {
     const trait = heroDefinition(hero).trait;
     if (trait.type === "bulwark") {
       addShield(hero, trait.shield);
-      pushEvent(state, { kind: "shield", side, lane, label: `${hero.name} braces`, amount: trait.shield, emphasis: "low" });
+      pushEvent(state, { kind: "shield", side, lane, label: `${hero.name} braces`, amount: trait.shield, emphasis: "low", trait: "bulwark" });
     }
     if (trait.type === "mend") {
       let healed = 0;
@@ -544,7 +553,7 @@ function applyHeroAftermath(state: FrontlineBattleState, side: FrontlineSide) {
       }
       if (targetHero) healed = healHero(targetHero, trait.heal);
       if (healed > 0) {
-        pushEvent(state, { kind: "heal", side, lane, label: `${hero.name} mends ${targetHero?.name}`, amount: healed, emphasis: "low" });
+        pushEvent(state, { kind: "heal", side, lane, label: `${hero.name} mends ${targetHero?.name}`, amount: healed, emphasis: "low", trait: "mend" });
       }
     }
   }

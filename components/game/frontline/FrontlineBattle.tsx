@@ -176,6 +176,7 @@ type HeroVisualState = {
   summoned?: boolean;
   floatLabel?: string;
   floatTone?: VisualFxTone;
+  trait?: NonNullable<FrontlineEvent["trait"]>;
 };
 
 function laneEntityScore(
@@ -466,6 +467,9 @@ function heroVisualState(input: {
         ? cardEvent
         : null;
 
+  // The trait badge fires for the side that "owns" the trait procced.
+  // bulwark/mend/lifesteal/ambush/venom procean en el lado del actor (eventSourcesSide).
+  const traitOwnsSide = activeEvent?.trait && eventSourcesSide(activeEvent, side);
   return {
     idle: true,
     selected: focused,
@@ -480,6 +484,7 @@ function heroVisualState(input: {
     summoned,
     floatLabel: floatEvent ? eventFloatLabel(floatEvent) : undefined,
     floatTone: floatEvent ? visualToneFromEvent(floatEvent) : cardTone ?? undefined,
+    trait: traitOwnsSide ? activeEvent!.trait : undefined,
   } satisfies HeroVisualState;
 }
 
@@ -1105,6 +1110,13 @@ function FrontlineBattleInner({
           75% { filter: drop-shadow(0 0 14px rgba(245,196,81,0.48)) saturate(0.7); transform: rotate(1.2deg); }
         }
         .frontline-stun-pulse-fx { animation: frontline-stun-pulse 1.2s ease-in-out infinite; }
+        @keyframes frontline-trait-proc {
+          0% { opacity: 0; transform: translate(-50%, 8px) scale(0.78); }
+          18% { opacity: 1; transform: translate(-50%, -2px) scale(1.06); }
+          70% { opacity: 1; transform: translate(-50%, -10px) scale(1.0); }
+          100% { opacity: 0; transform: translate(-50%, -22px) scale(0.92); }
+        }
+        .frontline-trait-proc-fx { animation: frontline-trait-proc 1.4s ease-out forwards; }
         @keyframes frontline-inferno-cast {
           0% { box-shadow: inset 0 0 0 rgba(255,150,80,0); filter: brightness(1) saturate(1); }
           18% { box-shadow: inset 0 0 220px rgba(255,150,80,0.62); filter: brightness(1.18) saturate(1.16); }
@@ -1120,6 +1132,7 @@ function FrontlineBattleInner({
         html[data-motion="reduced"] .frontline-core-shock-fx,
         html[data-motion="reduced"] .frontline-core-shock-flash-fx { animation-duration: 180ms !important; }
         html[data-motion="reduced"] .frontline-power-ready-ring-fx,
+        html[data-motion="reduced"] .frontline-trait-proc-fx,
         html[data-motion="reduced"] .frontline-stun-pulse-fx,
         html[data-motion="reduced"] .frontline-inferno-cast-fx,
         html[data-motion="reduced"] .frontline-boss-breath-fx { animation: none !important; opacity: 1; transform: none !important; filter: none !important; }
@@ -2991,6 +3004,7 @@ function FrontlineHeroPiece({
             <div className="frontline-heal-fx pointer-events-none absolute -inset-4 z-[2] rounded-[34px] border border-emerald-200/36 bg-emerald-200/10 shadow-[0_0_30px_rgba(75,224,141,0.28)]" />
           ) : null}
           {fx.floatLabel ? <HeroFxBadge tone={fx.floatTone ?? "damage"}>{fx.floatLabel}</HeroFxBadge> : null}
+          {fx.trait ? <TraitProcBadge trait={fx.trait} side={accent} /> : null}
           <VisualAssetImage
             src={visual.standeeSrc}
             fallbackSrc={visual.portraitFallbackSrc}
@@ -3118,6 +3132,37 @@ function MiniActorLine({
         {!actor ? <CombatIcon name="breach" size="xs" fallbackClassName="opacity-70" /> : null}
         <span>{actor ? `${actor.hp}/${actor.maxHp}${supportName ? ` - ${supportName}` : ""}` : t("frontline.breach")}</span>
       </div>
+    </div>
+  );
+}
+
+function TraitProcBadge({ trait, side }: { trait: NonNullable<FrontlineEvent["trait"]>; side: "ally" | "enemy" }) {
+  const { t } = useI18n();
+  const label = t(`frontlineData.traits.${trait}.label`);
+  const traitMeta: Record<typeof trait, { icon: StatusIconName }> = {
+    bulwark: { icon: "guard" },
+    flurry: { icon: "rush" },
+    breach: { icon: "armor_break" },
+    mend: { icon: "regen" },
+    ambush: { icon: "rush" },
+    chant: { icon: "buff" },
+    lifesteal: { icon: "bleed" },
+    venom: { icon: "poison" },
+  };
+  const icon = traitMeta[trait].icon;
+  const tone = side === "ally"
+    ? "border-cyan-200/72 bg-cyan-300/26 text-cyan-50"
+    : "border-rose-200/72 bg-rose-300/26 text-rose-50";
+  return (
+    <div
+      key={`trait-${trait}-${Date.now()}`}
+      className={cn(
+        "frontline-trait-proc-fx pointer-events-none absolute left-1/2 top-[-1.6rem] z-[5] inline-flex -translate-x-1/2 items-center gap-1 rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] shadow-[0_0_18px_rgba(255,255,255,0.18)] backdrop-blur-sm",
+        tone,
+      )}
+    >
+      <StatusIcon name={icon} size="sm" className="h-4 w-4" fallbackClassName="opacity-95 h-4 w-4" />
+      <span>{label}</span>
     </div>
   );
 }

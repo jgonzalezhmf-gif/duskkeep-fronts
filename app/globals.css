@@ -561,6 +561,20 @@ button { touch-action: manipulation; }
   position: relative;
 }
 
+@keyframes frontline-first-clear-banner {
+  0% { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  35% { opacity: 1; transform: translateY(0) scale(1.03); }
+  60% { transform: translateY(0) scale(1); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.frontline-first-clear-banner {
+  animation: frontline-first-clear-banner 980ms cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+html[data-motion="reduced"] .frontline-first-clear-banner {
+  animation: none;
+  opacity: 1;
+}
+
 .frontline-reward-success::before {
   content: "";
   position: absolute;

@@ -179,6 +179,10 @@ export type FrontlineEvent = {
   signature?: "charge" | "cast" | "exhaust";
   signatureId?: string;
   subKind?: "hero" | "support";
+  /** Hero trait that triggered this event, if any (bulwark, flurry, breach,
+   *  mend, ambush, chant, lifesteal, venom). UI uses it to show a trait
+   *  activation badge on the actor. */
+  trait?: Exclude<FrontlineHeroTrait["type"], "none">;
 };
 
 export type FrontlineBattleModifiers = {

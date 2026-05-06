@@ -15,8 +15,10 @@ import {
   getFrontlinePresetForAdventure,
 } from "@/features/frontline/adventure";
 import { getAdventureNodeType } from "@/features/adventure/nodeResolution";
+import { getFrontlineBoss } from "@/features/frontline/bosses";
+import { summarizeBattleStats, type FrontlineBattleStats } from "@/lib/frontlineBattleStats";
 import type { FrontlineEncounterBadgeKind } from "@/components/game/frontline/FrontlineBattle";
-import type { FrontlineBattleModifiers } from "@/features/frontline/types";
+import type { FrontlineBattleModifiers, FrontlineBossSignature } from "@/features/frontline/types";
 import { ACCOUNT_XP_PER_LEVEL } from "@/lib/constants";
 import { audio } from "@/lib/audio";
 import { cn } from "@/lib/cn";
@@ -70,6 +72,9 @@ type ResultContext = {
   resourcesAfter: { gold: number; dust: number; gems: number };
   accountBefore: { level: number; xp: number };
   accountAfter: { level: number; xp: number };
+  stats: FrontlineBattleStats;
+  firstClear: boolean;
+  adventureName: string | null;
 };
 
 function deriveEncounterBadge(adventureLevel: ReturnType<typeof getAdventureLevelForFrontline>): FrontlineEncounterBadgeKind | null {
@@ -167,6 +172,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     () => selectedPreset.deck.map((cardId) => FRONTLINE_CARD_BY_ID[cardId]).filter(Boolean),
     [selectedPreset.deck],
   );
+  const bossConfig = useMemo(() => getFrontlineBoss(selectedPreset.bossId), [selectedPreset.bossId]);
   const allyPower = allyHeroes.reduce((sum, hero) => sum + (hero ? hero.maxHp + hero.atk * 3 + hero.def * 2 + hero.speed : 0), 0);
   const enemyPower = enemyHeroes.reduce((sum, hero) => sum + (hero ? hero.maxHp + hero.atk * 3 + hero.def * 2 + hero.speed : 0), 0);
   const rewardPreview: Rewards = adventureLevel
@@ -233,9 +239,11 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
           ? { gold: 50, dust: 6, gems: 0, accountXp: 3 }
           : { gold: 35, dust: 4, gems: 0, accountXp: 2 };
 
+    let firstClearAchieved = false;
     if (adventureLevel) {
       if (won) {
         const { firstClear } = markAdventureCleared(adventureLevel.id);
+        firstClearAchieved = firstClear;
         rewards = getFrontlineAdventureVictoryRewards(adventureLevel, firstClear);
       } else {
         rewards = winner === "draw" ? { gold: 20, dust: 2, gems: 0, accountXp: 1 } : { gold: 0, dust: 0, gems: 0, accountXp: 0 };
@@ -270,10 +278,17 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       resourcesAfter,
       accountBefore,
       accountAfter,
+      stats: summarizeBattleStats(battleState),
+      firstClear: firstClearAchieved,
+      adventureName: adventureLevel?.name ?? null,
     });
     recordBattleResult(won, adventureLevel ? "adventure" : "vsai");
     if (rewards.gold || rewards.dust || rewards.gems || rewards.accountXp || rewards.xp || rewards.arenaTickets || rewards.adventureKeys || rewards.shards?.length || rewards.frontlineCards?.length) {
       awardRewards(rewards, won && adventureLevel ? adventureLevel.name : won ? t("frontline.victory") : winner === "draw" ? t("frontline.draw") : t("frontline.defeat"));
+    }
+    if (firstClearAchieved) {
+      // Layered sting after the standard victory chime so it actually feels like a milestone.
+      window.setTimeout(() => audio.playStinger("victory"), 720);
     }
     setPhase("result");
   }
@@ -396,6 +411,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                         <FrontlineHeroStandee hero={enemyHeroes[index]} side="enemy" compact label={t("frontline.enemy")} className="min-h-[13rem] border-rose-200/18 bg-[radial-gradient(circle_at_50%_22%,rgba(251,113,133,0.18),transparent_40%),linear-gradient(180deg,rgba(72,24,34,0.66),rgba(8,7,12,0.92))]" />
                       </div>
                       <LanePowerReadout ally={hero} enemy={enemyHeroes[index]} />
+                      <LaneMatchupForecast ally={hero} enemy={enemyHeroes[index]} />
                     </div>
                   ))}
                 </div>
@@ -458,6 +474,16 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                 </Panel>
               ) : null}
 
+              {bossConfig ? (
+                <Panel title={t("frontline.bossSignaturesTitle")} variant="enemy">
+                  <div className="grid gap-2">
+                    {bossConfig.signatures.map((signature, index) => (
+                      <BossSignaturePreview key={`sig-${index}-${signature.type}`} signature={signature} />
+                    ))}
+                  </div>
+                </Panel>
+              ) : null}
+
               <Panel title={t("frontline.enemyTricks")} variant="enemy">
                 <div className="grid grid-cols-2 gap-2">
                   {enemyCards.slice(0, 4).map((card, index) => (
@@ -506,6 +532,20 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                         : "border-rose-200/16 bg-[linear-gradient(180deg,rgba(128,48,58,0.16),rgba(18,12,18,0.92))]",
                     )}
                   >
+                    {resultContext.firstClear ? (
+                      <div className="frontline-first-clear-banner relative mb-3 overflow-hidden rounded-[18px] border border-[#f5c451]/56 bg-[linear-gradient(120deg,rgba(245,196,81,0.32),rgba(120,46,11,0.78))] px-3 py-2 shadow-[0_18px_42px_rgba(245,196,81,0.32)]">
+                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(255,255,255,0.28),transparent_44%)]" />
+                        <div className="relative flex items-center gap-2">
+                          <ProgressionIcon name="reward_chest" size="md" />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[10px] font-black uppercase tracking-[0.32em] text-[#fff0bd]">{t("frontline.firstClearBadge")}</div>
+                            {resultContext.adventureName ? (
+                              <div className="truncate text-base font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">{resultContext.adventureName}</div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                     <RewardBurstOverlay rewards={resultContext.rewards} />
                     <RewardFlightOverlay rewards={resultContext.rewards} active nonce={`${resultContext.winner}-${resultContext.rounds}`} origin="lower" />
                     <div className="flex items-start gap-3">
@@ -565,6 +605,9 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                         </div>
                       </div>
                     ) : null}
+
+                    <BattleStatsPanel stats={resultContext.stats} />
+
 
                     <div className="mt-4 rounded-[18px] border border-white/10 bg-black/16 p-3">
                       <div className="flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/48">
@@ -695,6 +738,56 @@ function EnemyStagePiece({ hero, index }: { hero: FrontlineHeroDef | null; index
   );
 }
 
+function LaneMatchupForecast({ ally, enemy }: { ally: FrontlineHeroDef | null; enemy: FrontlineHeroDef | null }) {
+  const { t } = useI18n();
+  if (!ally || !enemy) return null;
+  const allyAtk = ally.atk;
+  const enemyAtk = enemy.atk;
+  const allyEffectiveDmg = Math.max(1, allyAtk - Math.floor(enemy.def / 2));
+  const enemyEffectiveDmg = Math.max(1, enemyAtk - Math.floor(ally.def / 2));
+  const turnsAllyKills = Math.ceil(enemy.maxHp / allyEffectiveDmg);
+  const turnsEnemyKills = Math.ceil(ally.maxHp / enemyEffectiveDmg);
+  const verdict =
+    turnsAllyKills < turnsEnemyKills
+      ? "ally"
+      : turnsAllyKills > turnsEnemyKills
+        ? "enemy"
+        : "even";
+  const verdictTone =
+    verdict === "ally"
+      ? "border-cyan-200/40 bg-cyan-300/14 text-cyan-50"
+      : verdict === "enemy"
+        ? "border-rose-200/40 bg-rose-300/14 text-rose-50"
+        : "border-white/16 bg-white/[0.06] text-white/70";
+  const verdictLabel =
+    verdict === "ally"
+      ? t("frontline.matchupAdvantage")
+      : verdict === "enemy"
+        ? t("frontline.matchupRisk")
+        : t("frontline.matchupEven");
+  const allyTraitInfo = ally.trait.type !== "none" ? t(`frontlineData.traits.${ally.trait.type}.label`) : null;
+  const enemyTraitInfo = enemy.trait.type !== "none" ? t(`frontlineData.traits.${enemy.trait.type}.label`) : null;
+  return (
+    <div className="relative z-[1] mt-2 rounded-[14px] border border-white/8 bg-black/20 px-2.5 py-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em]", verdictTone)}>
+          {verdictLabel}
+        </span>
+        <span className="text-[9px] font-black uppercase tracking-[0.14em] text-white/52">
+          {t("frontline.matchupTurns", { ally: turnsAllyKills, enemy: turnsEnemyKills })}
+        </span>
+      </div>
+      {(allyTraitInfo || enemyTraitInfo) ? (
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[9px] font-black uppercase tracking-[0.14em] text-white/56">
+          <span className="text-cyan-100/82">{allyTraitInfo ?? "—"}</span>
+          <span className="opacity-60">vs</span>
+          <span className="text-rose-100/82">{enemyTraitInfo ?? "—"}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function LanePowerReadout({ ally, enemy }: { ally: FrontlineHeroDef | null; enemy: FrontlineHeroDef | null }) {
   const allyPower = heroPreviewPower(ally);
   const enemyPower = heroPreviewPower(enemy);
@@ -765,6 +858,111 @@ function EnemyMini({ combatantId }: { combatantId: string }) {
       <div className="absolute bottom-1 left-1 rounded-full bg-black/50 px-1.5 py-0.5 text-[8px] font-black text-white">T{combatant?.tier ?? 1}</div>
     </div>
   );
+}
+
+function BattleStatsPanel({ stats }: { stats: FrontlineBattleStats }) {
+  const { t } = useI18n();
+  return (
+    <div className="mt-3 rounded-[18px] border border-white/10 bg-black/22 px-3 py-3">
+      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/52">
+        <ProgressionIcon name="reward_chest" size="sm" />
+        {t("frontline.statsTitle")}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <BattleStatTile label={t("frontline.statsRounds")} value={stats.rounds} />
+        <BattleStatTile label={t("frontline.statsDamageDealt")} value={stats.damageDealtByAlly} />
+        <BattleStatTile label={t("frontline.statsDamageTaken")} value={stats.damageDealtByEnemy} />
+        <BattleStatTile label={t("frontline.statsHealing")} value={stats.healingByAlly} />
+        <BattleStatTile label={t("frontline.statsKnockouts")} value={stats.knockoutsByAlly} />
+        <BattleStatTile label={t("frontline.statsBreaches")} value={stats.breachesByAlly} />
+        {stats.bossSignaturesFired > 0 ? (
+          <BattleStatTile label={t("frontline.statsBossSignatures")} value={stats.bossSignaturesFired} />
+        ) : null}
+        {stats.cardsExhausted > 0 ? (
+          <BattleStatTile label={t("frontline.statsExhausted")} value={stats.cardsExhausted} />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function BattleStatTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-[14px] border border-white/8 bg-white/[0.03] px-2.5 py-2">
+      <div className="text-[9px] uppercase tracking-[0.16em] text-white/44">{label}</div>
+      <div className="mt-0.5 text-base font-black text-white tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function BossSignaturePreview({ signature }: { signature: FrontlineBossSignature }) {
+  const { t } = useI18n();
+  const meta = describeSignature(t, signature);
+  return (
+    <div className="relative overflow-hidden rounded-[18px] border border-violet-200/24 bg-[linear-gradient(180deg,rgba(120,80,180,0.3),rgba(14,8,22,0.94))] px-3 py-3 shadow-[0_14px_26px_rgba(0,0,0,0.22)]">
+      <div className="pointer-events-none absolute -right-5 -top-6 h-14 w-14 rounded-full bg-violet-300/16 blur-xl" />
+      <div className="relative z-[1] flex items-center gap-2">
+        <ProgressionIcon name={meta.icon} size="md" />
+        <div className="min-w-0 flex-1">
+          <div className="text-[9px] font-black uppercase tracking-[0.18em] text-violet-100/72">{meta.tagline}</div>
+          <div className="text-[13px] font-black leading-tight text-white">{meta.label}</div>
+        </div>
+      </div>
+      <div className="relative z-[1] mt-2 text-[11px] leading-snug text-violet-50/82">{meta.description}</div>
+    </div>
+  );
+}
+
+function describeSignature(t: (key: string, params?: Record<string, string | number>) => string, signature: FrontlineBossSignature): {
+  label: string;
+  description: string;
+  tagline: string;
+  icon: ProgressionIconName;
+} {
+  switch (signature.type) {
+    case "inferno_wave":
+      return {
+        label: t("frontline.signatureInfernoLabel"),
+        description: t("frontline.signatureInfernoDescription", { cadence: signature.cadenceRounds, damage: signature.damagePerHero }),
+        tagline: t("frontline.signatureCadenceTagline"),
+        icon: "level_up",
+      };
+    case "twilight_veil":
+      return {
+        label: t("frontline.signatureTwilightLabel"),
+        description: t("frontline.signatureTwilightDescription", { cadence: signature.cadenceRounds, bonus: signature.cardCostBonus, duration: signature.durationTurns }),
+        tagline: t("frontline.signatureCadenceTagline"),
+        icon: "tier_up",
+      };
+    case "ember_crown":
+      return {
+        label: t("frontline.signatureEmberLabel"),
+        description: t("frontline.signatureEmberDescription", { count: signature.minSegmentsAlive, atk: signature.atkBonus }),
+        tagline: t("frontline.signaturePassiveTagline"),
+        icon: "star",
+      };
+    case "soul_drain":
+      return {
+        label: t("frontline.signatureSoulDrainLabel"),
+        description: t("frontline.signatureSoulDrainDescription", { heal: signature.healPerHit }),
+        tagline: t("frontline.signaturePassiveTagline"),
+        icon: "claim",
+      };
+    case "veil_armor":
+      return {
+        label: t("frontline.signatureVeilArmorLabel"),
+        description: t("frontline.signatureVeilArmorDescription", { count: signature.minSegmentsAlive, reduction: signature.damageReduction }),
+        tagline: t("frontline.signaturePassiveTagline"),
+        icon: "evolve",
+      };
+    case "cinder_mark":
+      return {
+        label: t("frontline.signatureCinderMarkLabel"),
+        description: t("frontline.signatureCinderMarkDescription", { damage: signature.damagePerStack }),
+        tagline: t("frontline.signaturePassiveTagline"),
+        icon: "unlock",
+      };
+  }
 }
 
 function RewardPreview({
