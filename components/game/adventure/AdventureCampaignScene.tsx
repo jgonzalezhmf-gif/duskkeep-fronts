@@ -1235,14 +1235,12 @@ function InteractionPropContent({
       )}
     >
       {status === "ready" && shine ? (
-        <span className="pointer-events-none absolute left-1/2 top-[47%] z-[0] block h-[124%] w-[142%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[44%] opacity-60">
+        <span className="pointer-events-none absolute left-1/2 top-[47%] z-[0] block h-[148%] w-[170%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[44%] opacity-[0.68]">
           {Array.from({ length: shine.frameCount }).map((_, index) => (
             <span
               key={`gold-shine-frame-${index}`}
-              className="absolute inset-0 opacity-0 motion-safe:animate-[adventureGoldShineFrame_1.05s_steps(1,end)_infinite] motion-reduce:hidden"
-              style={{
-                animationDelay: `${index * (1050 / shine.frameCount)}ms`,
-              }}
+              className="absolute inset-0 opacity-0 motion-safe:animate-[adventureGoldShineFrame_0.65s_steps(1,end)_infinite] motion-reduce:hidden"
+              style={{ animationDelay: `${index * (650 / shine.frameCount)}ms` }}
             >
               <span
                 className="absolute top-0 h-full bg-[image:var(--adventure-gold-shine)] bg-[length:100%_100%] bg-no-repeat"
@@ -1264,8 +1262,9 @@ function InteractionPropContent({
         loading="lazy"
         decoding="async"
         className={cn(
-          "h-full w-full object-contain drop-shadow-[0_12px_16px_rgba(0,0,0,0.52)]",
+          "h-full w-full object-contain drop-shadow-[0_12px_16px_rgba(0,0,0,0.52)] [transform-origin:50%_58%]",
           status === "ready" && "brightness-110 saturate-[1.12] drop-shadow-[0_12px_18px_rgba(0,0,0,0.56)]",
+          status === "ready" && "motion-safe:animate-[adventureKeyChestBreath_2.35s_ease-in-out_infinite]",
         )}
       />
       {status === "ready" ? <span className="pointer-events-none absolute left-[9%] top-[5%] h-[42%] w-[82%] rounded-[45%] bg-[#fff0a8]/18 blur-[6px]" /> : null}
@@ -2010,6 +2009,10 @@ export function AdventureMapInteractionPanel({
   const lootTitle = claimedResult?.lootTitle ?? persistedClaim?.lootTitle ?? null;
   const statusLabel = getInteractionStatusLabel(status, t);
   const cta = getInteractionCta(interaction, status, t);
+  const resetHint =
+    status === "claimed" && persistedClaim?.resetAvailableAt
+      ? t("adventure.cacheResetsIn", { time: formatInteractionResetRemaining(persistedClaim.resetAvailableAt) })
+      : null;
 
   return (
     <ScreenPanel className="pointer-events-none overflow-hidden border-[#f5d498]/14 bg-[linear-gradient(180deg,rgba(20,15,8,0.76),rgba(6,8,12,0.88))] p-0 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl">
@@ -2026,6 +2029,7 @@ export function AdventureMapInteractionPanel({
                 <ScreenBadge tone="sky">{t("adventure.mapCache")}</ScreenBadge>
               </div>
               <h2 className="mt-1 truncate text-[1.05rem] font-black leading-tight text-white md:text-[1.2rem]">{lootTitle ?? interaction.title}</h2>
+              {resetHint ? <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#f5d498]/62">{resetHint}</p> : null}
             </div>
           </div>
 
@@ -2190,6 +2194,16 @@ function getInteractionStatusLabel(status: AdventureMapInteractionStatus, t: Tra
   if (status === "locked") return t("adventure.routeSealed");
   if (status === "needs_key") return t("adventure.needsKey");
   return t("adventure.cacheReady");
+}
+
+function formatInteractionResetRemaining(resetAvailableAt: string) {
+  const remainingMs = Math.max(0, Date.parse(resetAvailableAt) - Date.now());
+  const totalMinutes = Math.ceil(remainingMs / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${minutes}m`;
+  if (minutes <= 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
 }
 
 function getInteractionCta(
@@ -2444,22 +2458,35 @@ function AdventureMapInteractionStyles() {
         0%,
         100% {
           filter: brightness(1) saturate(1);
-          transform: scale(1);
         }
         48% {
           filter: brightness(1.13) saturate(1.14);
-          transform: scale(1.035);
+        }
+      }
+
+      @keyframes adventureKeyChestBreath {
+        0%,
+        100% {
+          transform: translateZ(0) scale(1);
+        }
+        45% {
+          transform: translateZ(0) scale(1.035);
+        }
+        62% {
+          transform: translateZ(0) scale(1.015);
         }
       }
 
       @keyframes adventureGoldShineFrame {
         0%,
         19.999% {
-          opacity: 1;
+          opacity: 0.86;
+          transform: translateZ(0) scale(1);
         }
         20%,
         100% {
           opacity: 0;
+          transform: translateZ(0) scale(1);
         }
       }
     `}</style>

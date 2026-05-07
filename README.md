@@ -5,9 +5,9 @@ Duskkeep Fronts: Home hub, Adventure flow, pre-combat, three-front card combat,
 Deck progression, Fortress, Market, Missions, Events and Arena. Runs fully offline
 on first boot; Supabase integration is prepared for a future persistence pass.
 
-> Source of truth: `agents.md`, `PRODUCT.md`, `DESIGN.md`,
-> `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`,
-> `docs/GAME_ARCHITECTURE_AND_VISUAL_SYSTEM.md`.
+> Source of truth: `AGENTS.md`, `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`,
+> `docs/ARCHITECTURE.md`, `docs/GAMEPLAY_GUIDE.md`,
+> `docs/QUALITY_AND_RELEASE.md` and `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
 
 ## Stack
 - **Next.js App Router** + TypeScript
@@ -16,6 +16,14 @@ on first boot; Supabase integration is prepared for a future persistence pass.
 - **Zod** (installed for future schema validation)
 - **Vitest** (unit tests for engine + rng + rewards)
 - **Supabase SDK** ready (schema in `supabase/schema.sql`)
+
+## Documentation
+
+- `docs/ARCHITECTURE.md`: codebase layers, data flow, boundaries and extension rules.
+- `docs/GAMEPLAY_GUIDE.md`: player-facing loop, screens and gameplay expectations.
+- `docs/QUALITY_AND_RELEASE.md`: release checklist, test commands, browser smoke routes and quality gates.
+- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: online persistence, backend validation and security roadmap.
+- `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: detailed continuation handoff for future implementation sessions.
 
 ## Quick start
 
@@ -126,10 +134,17 @@ Captured scenarios currently include:
 npm run check
 ```
 
+For release candidates, prefer:
+
+```bash
+npm run check
+npm run test
+npm run build
+```
+
 Use `npm run check:full` when your environment allows child-process spawning for
-Vitest/esbuild and Next production build workers. In restricted sandboxes,
-`npm run test` and `npm run build` may fail with `spawn EPERM` even when the
-code is otherwise correct.
+Vitest/esbuild and Next production build workers. In restricted sandboxes, tests
+or builds may fail with `spawn EPERM` even when the code is otherwise correct.
 
 ## What's implemented (alpha)
 
@@ -206,25 +221,25 @@ to local storage if credentials are missing.
 ## TODO — prioritized
 
 ### P0 (to finish the alpha promise)
-1. Daily/weekly mission **reset timer** (currently one-shot per install).
-2. Event rotation from a **calendar** (currently always-on).
-3. **Chapter 2** and chapter gating.
-4. **Auto-battle** toggle + speed control in `BattleView`.
-5. Proper **Supabase** backend implementation (the class is stubbed).
+1. Keep `npm run check`, `npm run test` and `npm run build` green.
+2. Finish Chapter 1 demo polish and keep Chapter 2 gated until content exists.
+3. Add route-level error boundaries and empty states.
+4. Prepare backend persistence design without making the client authoritative.
+5. Keep documentation current with gameplay, architecture and release state.
 
 ### P1
-6. Hero **fusion** (consume a duplicate for stars instead of only shards).
-7. **Onboarding** overlay for first-time players.
-8. Server-side **deterministic replays** (same seed = shareable video).
-9. **Error boundaries** around each route and empty states polish.
-10. Proper **analytics** hook + feature flags.
+6. Daily/weekly mission reset timers and event calendar rotation.
+7. Hero tiers/evolution and deeper shard usage.
+8. Server-side deterministic replays and result summaries.
+9. Proper analytics hook and feature flags.
+10. Supabase persistence MVP behind authenticated accounts.
 
 ### P2
-11. Fortaleza placeholder screen.
-12. Clans / social / real-time PvP.
-13. Cosmetics + skins.
+11. Authoritative economy operations.
+12. Arena ladder and anti-tamper validation.
+13. Cosmetics, skins and premium shop flows.
 14. Push notifications.
-15. Playwright smoke suite.
+15. Social, clans and real-time PvP.
 
 ## License
 Private — for alpha iteration.

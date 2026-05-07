@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.1] - 2026-05-07
+
+### Added
+- `docs/ARCHITECTURE.md` con capas del repo, flujo de datos, boundaries y reglas de extension.
+- `docs/GAMEPLAY_GUIDE.md` con guia del loop jugable, pantallas y expectativas de interaccion.
+- `docs/QUALITY_AND_RELEASE.md` con checklist de release, comandos, rutas smoke y criterios de calidad.
+- `docs/SECURITY_AND_BACKEND_ROADMAP.md` con roadmap de persistencia online, backend autoritativo y seguridad.
+
+### Changed
+- Actualizado `README.md` para enlazar la documentacion publica clave y priorizar checks/release.
+- Reforzado `supabase/README.md` con notas de seguridad antes de activar persistencia online real.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test`
+- `npm.cmd run build`
+- `npm.cmd run screenshots:auto` genero capturas parciales en `tmp/playwright-screenshots/2026-05-07T15-27-04-796Z` antes de exceder timeout.
+
 ## [0.25.0] - 2026-05-07
 
 ### Added
@@ -28,6 +46,60 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 ### Tested
 - `npm.cmd run check`
 - `npm.cmd run test` (114/114).
+
+## [0.24.13] - 2026-05-07
+
+### Added
+- Registrado `heroes_bg.png` en el manifest compartido de backgrounds como fondo de Heroes/Team.
+
+### Changed
+- Integrado `heroes_bg.png` como fondo principal de `/team` mediante `ScreenScaffold`.
+- Integrado `heroes_bg.png` como fondo principal de `/roster` con fallback al backdrop legacy.
+- Anadidas capas tonales y overlay suave/medio para mantener legibles cards, filtros y header.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run build`
+
+## [0.24.12] - 2026-05-07
+
+### Changed
+- Convertido el key chest de Adventure en un cofre recargable con ciclo de 8 horas tras cada apertura.
+- El estado del cofre vuelve automaticamente a `needs_key` o `ready` cuando expira el ciclo, segun las llaves disponibles.
+- Anadido texto de tiempo restante en la mission card cuando el cofre esta reclamado.
+- Anadido un refresco ligero de estado en Adventure para que el cofre se reactive sin requerir recargar la pantalla.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run test -- tests/adventure.mapInteractions.test.ts tests/rewards.test.ts`
+
+## [0.24.11] - 2026-05-07
+
+### Changed
+- Ampliado ligeramente el brillo claimable del key chest para que sobresalga mas alrededor del cofre.
+- Acelerada la animacion del brillo del cofre a `0.65s` manteniendo frames en ventana fija.
+
+### Tested
+- `npm.cmd run typecheck`
+
+## [0.24.10] - 2026-05-06
+
+### Changed
+- Ampliado el brillo claimable del key chest para que sobresalga mas por los bordes sin mover el spritesheet.
+- Acelerada la reproduccion de frames del brillo de cofre manteniendo la ventana fija por frame.
+- Anadida respiracion sutil al PNG del cofre, separada del brillo, para dar vida sin reintroducir bamboleo lateral.
+
+### Tested
+- `npm.cmd run typecheck`
+
+## [0.24.9] - 2026-05-06
+
+### Fixed
+- Regenerado el brillo del cofre claimable como `gold_shine_loop_core_aligned.png`, alineando los frames por centro luminoso para reducir el bamboleo residual del asset.
+- Cambiado el render del brillo a frames animados por opacidad en una ventana fija, sin `translateX` animado, sin mostrar la tira completa y sin escala del contenedor.
+
+### Tested
+- `npm.cmd run typecheck`
 
 ## [0.24.8] - 2026-05-06
 

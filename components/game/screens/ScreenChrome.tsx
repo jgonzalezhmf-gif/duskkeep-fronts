@@ -59,11 +59,13 @@ function screenBackgroundForScene(scene: ScreenScene): ScreenBackgroundId | null
   if (scene === "events") return "events";
   if (scene === "arena") return "arena";
   if (scene === "adventureMoon" || scene === "adventureAsh") return "adventure";
+  if (scene === "roster") return "heroes";
   return null;
 }
 
 function screenBackgroundOverlay(scene: ScreenScene): "soft" | "medium" | "strong" {
   if (scene === "adventureMoon" || scene === "adventureAsh") return "strong";
+  if (scene === "roster") return "medium";
   if (scene === "deck" || scene === "fortress") return "medium";
   return "soft";
 }

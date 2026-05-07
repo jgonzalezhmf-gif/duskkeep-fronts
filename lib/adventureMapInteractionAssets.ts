@@ -14,7 +14,7 @@ export const ADVENTURE_MAP_INTERACTION_ASSETS: Record<AdventureMapInteractionAss
 };
 
 export const ADVENTURE_MAP_INTERACTION_EFFECT_ASSETS: Record<AdventureMapInteractionEffectAssetId, { src: string; frameCount: number }> = {
-  gold_shine_loop: { src: `${INTERACTION_EFFECT_ROOT}/gold_shine_loop_aligned.png`, frameCount: 5 },
+  gold_shine_loop: { src: `${INTERACTION_EFFECT_ROOT}/gold_shine_loop_core_aligned.png`, frameCount: 5 },
 };
 
 export function getAdventureMapInteractionAsset(status: AdventureMapInteractionStatus) {

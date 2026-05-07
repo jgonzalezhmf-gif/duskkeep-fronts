@@ -46,6 +46,7 @@ import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile"
 import {
   ADVENTURE_MAP_INTERACTIONS_BY_ID,
   getAdventureMapInteractionStatus,
+  getAdventureMapInteractionResetAvailableAt,
   isAdventureKeySystemUnlocked,
   rollAdventureMapInteractionLoot,
   type AdventureMapInteractionClaim,
@@ -859,16 +860,18 @@ export const useGameStore = create<GameState & GameActions>()(
           return null;
         }
         const result = rollAdventureMapInteractionLoot(interaction);
+        const claimedAt = todayISO();
         set((st) => ({
           adventureMapClaims: {
             ...st.adventureMapClaims,
             [interactionId]: {
               claimed: true,
-              claimedAt: localDayKey(),
+              claimedAt,
               lootId: result.lootId,
               lootTier: result.lootTier,
               lootTitle: result.lootTitle,
               rewards: result.rewards,
+              resetAvailableAt: getAdventureMapInteractionResetAvailableAt(interaction, { claimed: true, claimedAt }) ?? undefined,
             },
           },
         }));

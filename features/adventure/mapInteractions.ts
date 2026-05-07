@@ -8,6 +8,7 @@ export type AdventureMapInteractionStatus = "locked" | "needs_key" | "ready" | "
 export type AdventureMapInteractionLootTier = "common" | "rare" | "epic" | "legendary";
 
 export const ADVENTURE_KEY_UNLOCK_LEVEL_ID = "c1l2";
+export const ADVENTURE_MAP_INTERACTION_RESET_HOURS = 8;
 
 export type AdventureMapInteractionLootEntry = {
   id: string;
@@ -26,6 +27,7 @@ export type AdventureMapInteractionDefinition = {
   keyCost: number;
   unlockAfter: string[];
   lootTable: AdventureMapInteractionLootEntry[];
+  resetEveryHours?: number;
 };
 
 export type AdventureMapInteractionClaim = {
@@ -35,6 +37,7 @@ export type AdventureMapInteractionClaim = {
   lootTier?: AdventureMapInteractionLootTier;
   lootTitle?: string;
   rewards?: Rewards;
+  resetAvailableAt?: string;
 };
 
 export type AdventureMapInteractionOpenResult = {
@@ -54,6 +57,7 @@ export const ADVENTURE_MAP_INTERACTIONS: AdventureMapInteractionDefinition[] = [
     description: "A sealed roadside cache. Clear the broken mill route, spend a map key, and claim the supplies inside.",
     keyCost: 1,
     unlockAfter: ["c1l2"],
+    resetEveryHours: ADVENTURE_MAP_INTERACTION_RESET_HOURS,
     lootTable: [
       {
         id: "road-cache-common-supplies",
@@ -116,13 +120,15 @@ export function getAdventureMapInteractionStatus({
   progress,
   resources,
   claim,
+  now = new Date(),
 }: {
   interaction: AdventureMapInteractionDefinition;
   progress: Record<string, AdventureProgressEntry | undefined>;
   resources: Pick<Resources, "adventureKeys">;
   claim?: AdventureMapInteractionClaim;
+  now?: Date;
 }): AdventureMapInteractionStatus {
-  if (claim?.claimed) return "claimed";
+  if (isAdventureMapInteractionClaimActive(interaction, claim, now)) return "claimed";
   if (!isAdventureMapInteractionUnlocked(interaction, progress)) return "locked";
   if ((resources.adventureKeys ?? 0) < interaction.keyCost) return "needs_key";
   return "ready";
@@ -160,6 +166,30 @@ export function rollAdventureMapInteractionLoot(
 
 export function getAdventureMapInteractionRewardPreview(interaction: AdventureMapInteractionDefinition): Rewards {
   return mergeRewards(...interaction.lootTable.map((entry) => entry.rewards));
+}
+
+export function getAdventureMapInteractionResetAvailableAt(
+  interaction: AdventureMapInteractionDefinition,
+  claim?: AdventureMapInteractionClaim,
+) {
+  if (!claim?.claimedAt || !interaction.resetEveryHours) return null;
+  if (claim.resetAvailableAt) return claim.resetAvailableAt;
+  const claimedAt = Date.parse(claim.claimedAt);
+  if (!Number.isFinite(claimedAt)) return null;
+  return new Date(claimedAt + interaction.resetEveryHours * 60 * 60 * 1000).toISOString();
+}
+
+export function isAdventureMapInteractionClaimActive(
+  interaction: AdventureMapInteractionDefinition,
+  claim: AdventureMapInteractionClaim | undefined,
+  now = new Date(),
+) {
+  if (!claim?.claimed) return false;
+  const resetAvailableAt = getAdventureMapInteractionResetAvailableAt(interaction, claim);
+  if (!resetAvailableAt) return true;
+  const resetAt = Date.parse(resetAvailableAt);
+  if (!Number.isFinite(resetAt)) return true;
+  return resetAt > now.getTime();
 }
 
 function toOpenResult(interactionId: string, entry: AdventureMapInteractionLootEntry): AdventureMapInteractionOpenResult {

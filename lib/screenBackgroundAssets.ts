@@ -1,4 +1,4 @@
-export const SCREEN_BACKGROUND_IDS = ["market", "deck", "fortress", "events", "arena", "adventure", "missions"] as const;
+export const SCREEN_BACKGROUND_IDS = ["market", "deck", "fortress", "events", "arena", "adventure", "missions", "heroes"] as const;
 
 export type ScreenBackgroundId = (typeof SCREEN_BACKGROUND_IDS)[number];
 
@@ -50,6 +50,12 @@ export const SCREEN_BACKGROUND_ASSETS: Record<ScreenBackgroundId, ScreenBackgrou
     src: "/assets/backgrounds/missions_bg.png",
     expectedFile: "missions_bg.png",
     alt: "Dark command rewards board backdrop",
+    position: "50% 48%",
+  },
+  heroes: {
+    src: "/assets/backgrounds/heroes_bg.png",
+    expectedFile: "heroes_bg.png",
+    alt: "Dark hero roster hall backdrop",
     position: "50% 48%",
   },
 };

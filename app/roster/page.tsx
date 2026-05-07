@@ -15,6 +15,7 @@ import { cn } from "@/lib/cn";
 import { sfx } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
+import ScreenBackground from "@/components/ui/ScreenBackground";
 import type { Rarity, Role } from "@/lib/types";
 
 type RarityFilter = "all" | Rarity;
@@ -84,7 +85,7 @@ export default function RosterPage() {
 
   return (
     <div className="relative isolate min-h-dvh overflow-hidden px-3 pb-24 pt-56 sm:pt-40 md:px-6 md:pb-28 md:pt-28">
-      <SceneBackdrop scene="roster" />
+      <ScreenBackground screen="heroes" overlayIntensity="soft" fallback={<SceneBackdrop scene="roster" />} />
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_22%_13%,rgba(245,196,81,0.08),transparent_24%),radial-gradient(circle_at_82%_16%,rgba(198,154,255,0.08),transparent_26%),linear-gradient(180deg,rgba(6,8,13,0.04),rgba(6,8,13,0.3)_58%,rgba(6,8,13,0.72))]" />
       <GameBackNav />
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />

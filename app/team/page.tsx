@@ -71,7 +71,7 @@ export default function TeamPage() {
   const leaderPowerDescription = frontlineLeaderPowerDescription(t, leader);
 
   return (
-    <ScreenScaffold scene="deck" dock={false} homeNav={false} hud={false}>
+    <ScreenScaffold scene="roster" dock={false} homeNav={false} hud={false}>
       <TeamTopChrome resources={resources} t={t} />
       <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-24">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-4 pb-6">

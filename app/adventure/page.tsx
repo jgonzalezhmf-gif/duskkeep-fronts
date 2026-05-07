@@ -8,6 +8,7 @@ import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 import {
   getAdventureMapInteraction,
   getAdventureMapInteractionStatus,
+  isAdventureMapInteractionClaimActive,
   type AdventureMapInteractionStatus,
 } from "@/features/adventure/mapInteractions";
 import {
@@ -174,6 +175,7 @@ export default function AdventureMapPage() {
   const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, ReturnType<typeof claimAdventureNode>>>({});
   const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, ReturnType<typeof claimAdventureMapInteraction>>>({});
   const [cacheReveal, setCacheReveal] = useState<NonNullable<ReturnType<typeof claimAdventureMapInteraction>> | null>(null);
+  const [interactionClock, setInteractionClock] = useState(() => Date.now());
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -187,6 +189,11 @@ export default function AdventureMapPage() {
   }, [activeChapter, defaultChapter]);
 
   useEffect(() => {
+    const id = window.setInterval(() => setInteractionClock(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
     if (!active) return;
     if (selectedId && active.nodes.some((node) => node.lvl.id === selectedId)) return;
     const fallback = active.nodes.find((node) => node.pausedHere || node.current)?.lvl.id ?? active.nodes[0]?.lvl.id ?? null;
@@ -197,6 +204,7 @@ export default function AdventureMapPage() {
 
   const meta = getLocalizedChapterMeta(active.chapter, t);
   const mapLayout = ADVENTURE_MAP_CHAPTER_LAYOUTS[active.chapter] ?? ADVENTURE_MAP_CHAPTER_LAYOUTS[1];
+  const interactionNow = new Date(interactionClock);
   const selected =
     active.nodes.find((node) => node.lvl.id === selectedId) ??
     active.nodes.find((node) => node.pausedHere || node.current) ??
@@ -217,6 +225,7 @@ export default function AdventureMapPage() {
         progress,
         resources,
         claim: adventureMapClaims[interaction.id],
+        now: interactionNow,
       });
     }
     return states;
@@ -230,10 +239,15 @@ export default function AdventureMapPage() {
           progress,
           resources,
           claim: adventureMapClaims[selectedInteractionId],
+          now: interactionNow,
         })
       : null;
-  const selectedInteractionRewards = selectedInteractionId ? claimedRewardsByInteraction[selectedInteractionId] ?? null : null;
-  const selectedInteractionClaim = selectedInteractionId ? adventureMapClaims[selectedInteractionId] : undefined;
+  const selectedInteractionRewards =
+    selectedInteractionId && selectedInteractionStatus === "claimed" ? claimedRewardsByInteraction[selectedInteractionId] ?? null : null;
+  const selectedInteractionClaim =
+    selectedInteractionId && selectedInteraction && isAdventureMapInteractionClaimActive(selectedInteraction, adventureMapClaims[selectedInteractionId], interactionNow)
+      ? adventureMapClaims[selectedInteractionId]
+      : undefined;
 
   function resolveSelectedNode() {
     setSelectedInteractionId(null);

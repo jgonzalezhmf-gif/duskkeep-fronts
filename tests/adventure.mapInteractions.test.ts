@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ADVENTURE_MAP_INTERACTIONS_BY_ID,
   canClaimAdventureMapInteraction,
+  ADVENTURE_MAP_INTERACTION_RESET_HOURS,
+  getAdventureMapInteractionResetAvailableAt,
   getAdventureMapInteractionStatus,
   isAdventureKeySystemUnlocked,
   isAdventureMapInteractionUnlocked,
@@ -45,13 +47,17 @@ describe("Adventure map interactions", () => {
     ).toBe("ready");
   });
 
-  it("does not reopen claimed map interactions", () => {
+  it("keeps claimed map interactions closed during the reset window", () => {
+    const claimedAt = "2026-05-06T08:00:00.000Z";
+    const now = new Date("2026-05-06T12:00:00.000Z");
+
     expect(
       getAdventureMapInteractionStatus({
         interaction: cache,
         progress: { c1l2: { cleared: true, firstClearTaken: true } },
         resources: { adventureKeys: 5 },
-        claim: { claimed: true, claimedAt: "2026-05-06" },
+        claim: { claimed: true, claimedAt },
+        now,
       }),
     ).toBe("claimed");
     expect(
@@ -59,9 +65,36 @@ describe("Adventure map interactions", () => {
         interaction: cache,
         progress: { c1l2: { cleared: true, firstClearTaken: true } },
         resources: { adventureKeys: 5 },
-        claim: { claimed: true, claimedAt: "2026-05-06" },
+        claim: { claimed: true, claimedAt },
+        now,
       }),
     ).toBe(false);
+  });
+
+  it("reopens resettable map interactions after eight hours", () => {
+    const claimedAt = "2026-05-06T08:00:00.000Z";
+    const claim = { claimed: true, claimedAt };
+
+    expect(cache.resetEveryHours).toBe(ADVENTURE_MAP_INTERACTION_RESET_HOURS);
+    expect(getAdventureMapInteractionResetAvailableAt(cache, claim)).toBe("2026-05-06T16:00:00.000Z");
+    expect(
+      getAdventureMapInteractionStatus({
+        interaction: cache,
+        progress: { c1l2: { cleared: true, firstClearTaken: true } },
+        resources: { adventureKeys: 1 },
+        claim,
+        now: new Date("2026-05-06T16:00:01.000Z"),
+      }),
+    ).toBe("ready");
+    expect(
+      getAdventureMapInteractionStatus({
+        interaction: cache,
+        progress: { c1l2: { cleared: true, firstClearTaken: true } },
+        resources: { adventureKeys: 0 },
+        claim,
+        now: new Date("2026-05-06T16:00:01.000Z"),
+      }),
+    ).toBe("needs_key");
   });
 
   it("rolls a single hidden loot bundle instead of exposing fixed rewards", () => {
