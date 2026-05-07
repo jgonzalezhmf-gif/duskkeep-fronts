@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.22] - 2026-05-07
+
+### Changed
+- Extraida la escena decorativa de Roster/Heroes de `SceneBackdrop` a `SceneBackdropRosterScene`.
+- Separados `RosterScene` y sus helpers propios: hall floor, columns, statues, relics, lineage constellation y training dummies.
+- Reducido `SceneBackdrop` para mantener el selector de escenas mas compacto y evitar acumulacion de JSX especifico.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.21] - 2026-05-07
 
 ### Changed
