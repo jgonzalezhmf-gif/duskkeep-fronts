@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.24] - 2026-05-07
+
+### Changed
+- Extraida la escena decorativa de Fortress de `SceneBackdrop` a `SceneBackdropFortressScene`.
+- Separados `FortressScene` y sus helpers propios: mountain line, moat, castle keep, fortress walls, tower glows, watch fires y sky bridge.
+- Reducido `SceneBackdrop` sin tocar la logica funcional de Fortress, raids, economia ni progreso.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.23] - 2026-05-07
 
 ### Changed
