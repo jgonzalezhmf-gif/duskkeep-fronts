@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.44] - 2026-05-08
+
+### Changed
+- Extraidos helpers y tipos de operaciones de Events a `app/events/eventsPageHelpers.ts`.
+- Separados presets, tonos, traducciones, fecha diaria y construccion de operaciones de la pantalla principal.
+- Reducida `app/events/page.tsx` sin tocar completions diarios, rewards, batalla de eventos, economia ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.43] - 2026-05-08
 
 ### Changed
