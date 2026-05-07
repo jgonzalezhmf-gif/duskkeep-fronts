@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.36] - 2026-05-07
+
+### Changed
+- Extraidos helpers y metadatos de Missions a `app/missions/missionsPageHelpers.ts`.
+- Separados metric metadata, traducciones de misiones, estadisticas, seleccion de siguiente contrato y labels de reset.
+- Reducida `app/missions/page.tsx` sin tocar misiones, rewards, claim, progreso ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.35] - 2026-05-07
 
 ### Changed
