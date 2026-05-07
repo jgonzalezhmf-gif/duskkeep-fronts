@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.43] - 2026-05-08
+
+### Changed
+- Extraidos paneles de estado de Fortress a `app/fortress/FortressStatusPanels.tsx`.
+- Separados `FortressStatus` y `RaidHistoryPanel` de la pantalla principal.
+- Reducida `app/fortress/page.tsx` sin tocar raids, economia, upgrades, garrison, rewards ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.42] - 2026-05-08
 
 ### Changed
