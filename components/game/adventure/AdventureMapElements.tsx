@@ -7,7 +7,6 @@ import {
   ADVENTURE_PROP_ASSET_IDS,
   getAdventureNodeAsset,
   getAdventurePropAsset,
-  type AdventureNodeAssetId,
   type AdventurePropAssetId,
 } from "@/lib/adventureMapAssets";
 import type { AdventureMapInteractionStatus } from "@/features/adventure/mapInteractions";
@@ -18,6 +17,7 @@ import { HOME_EFFECT_IDS, type HomeEffectId } from "@/lib/homeEffectAssets";
 import type { AdventureMapPartyMarkerLayout, AdventureMapPropLayout, AdventureMapPropType } from "./adventureMapLayout";
 import type { AdventureVisualNode, AdventureVisualRoute, TranslateFn } from "./AdventureCampaignTypes";
 import { curvedRoute, getEffectDuration, getPropHeight, getPropVisualOpacity, getPropWidth, nodeStyle } from "./AdventureMapGeometry";
+import { getNodeAssetId, getNodeAssetScale, getNodeIcon, getNodeTheme, getNodeVisualScale } from "./AdventureMapNodeVisuals";
 
 const HOME_EFFECT_PROP_IDS = new Set<string>(HOME_EFFECT_IDS);
 const ADVENTURE_PROP_ASSET_ID_SET = new Set<string>(ADVENTURE_PROP_ASSET_IDS);
@@ -233,7 +233,7 @@ export function AdventureMapNode({
         >
           <span className="absolute inset-[6px] rounded-full border border-black/40 bg-[radial-gradient(circle_at_42%_34%,rgba(255,255,255,0.18),transparent_30%),linear-gradient(180deg,rgba(12,15,20,0.28),rgba(0,0,0,0.52))]" />
           <span className="absolute inset-[13px] rounded-full border" style={{ borderColor: nodeTheme.innerBorder, boxShadow: nodeTheme.glow }} />
-          <GameIcon kind={nodeIcon(visualNode)} tone={tone} size="sm" className="relative z-[1] h-[62%] w-[62%] rounded-full border border-white/10 bg-black/20" />
+          <GameIcon kind={getNodeIcon(visualNode)} tone={tone} size="sm" className="relative z-[1] h-[62%] w-[62%] rounded-full border border-white/10 bg-black/20" />
           {visualNode.status === "cleared" || visualNode.status === "claimed" || visualNode.status === "completed" ? (
             <span className="absolute bottom-0 right-0 grid h-5 w-5 place-items-center rounded-full border border-emerald-200/28 bg-emerald-950/86 text-[10px] font-black text-emerald-200">
               OK
@@ -687,78 +687,4 @@ function isHomeEffectProp(type: AdventureMapPropType): type is HomeEffectId {
 
 function isAdventurePropAsset(type: AdventureMapPropType): type is AdventurePropAssetId {
   return ADVENTURE_PROP_ASSET_ID_SET.has(type);
-}
-
-function getNodeAssetId(node: AdventureVisualNode): AdventureNodeAssetId {
-  if (node.status === "locked") return "locked";
-  if (node.status === "claimed" || node.status === "completed") return "cleared";
-  if (node.type === "hidden") return "secret";
-  return node.type === "locked" ? "locked" : node.type;
-}
-
-function getNodeVisualScale(node: AdventureVisualNode, active: boolean) {
-  if (active || node.status === "current") return node.type === "boss" ? 1.38 : 1.34;
-  if (node.type === "boss") return 1.28;
-  if (node.type === "chest") return 1.22;
-  if (node.type === "elite") return 1.18;
-  if (node.status === "locked") return 0.86;
-  if (node.status === "cleared" || node.status === "claimed" || node.status === "completed") return 1.1;
-  return 1.18;
-}
-
-function getNodeAssetScale(node: AdventureVisualNode, active: boolean) {
-  if (active || node.status === "current") return 1.08;
-  if (node.type === "boss") return 1.08;
-  if (node.type === "chest") return 1.06;
-  if (node.status === "locked") return 0.96;
-  return 1.04;
-}
-
-
-function nodeIcon(node: AdventureVisualNode): "battle" | "rewards" | "shield" | "adventure" {
-  if (node.status === "locked") return "shield";
-  if (node.type === "chest" || node.status === "cleared") return "rewards";
-  if (node.type === "boss" || node.type === "elite") return "battle";
-  return "adventure";
-}
-
-function getNodeTheme(node: AdventureVisualNode, active: boolean, accent: string) {
-  if (node.status === "locked") {
-    return {
-      border: "rgba(156,163,175,0.24)",
-      innerBorder: "rgba(255,255,255,0.1)",
-      background: "radial-gradient(circle at 42% 32%, rgba(93,103,118,0.34), rgba(13,16,22,0.94) 68%)",
-      glow: "0 0 0 rgba(0,0,0,0)",
-    };
-  }
-  if (node.status === "cleared" || node.status === "claimed" || node.status === "completed") {
-    return {
-      border: "rgba(152,209,174,0.28)",
-      innerBorder: "rgba(152,209,174,0.18)",
-      background: "radial-gradient(circle at 42% 32%, rgba(130,180,145,0.24), rgba(18,24,18,0.94) 70%)",
-      glow: "0 0 14px rgba(99,180,121,0.12)",
-    };
-  }
-  if (node.type === "boss") {
-    return {
-      border: "rgba(255,184,117,0.5)",
-      innerBorder: "rgba(255,133,84,0.34)",
-      background: "radial-gradient(circle at 42% 30%, rgba(255,147,84,0.36), rgba(47,17,14,0.96) 70%)",
-      glow: active ? "0 0 24px rgba(255,147,84,0.34)" : "0 0 16px rgba(255,147,84,0.18)",
-    };
-  }
-  if (node.type === "chest") {
-    return {
-      border: "rgba(245,212,152,0.48)",
-      innerBorder: "rgba(245,196,81,0.3)",
-      background: "radial-gradient(circle at 42% 30%, rgba(245,196,81,0.34), rgba(48,32,12,0.95) 70%)",
-      glow: active ? "0 0 22px rgba(245,196,81,0.28)" : "0 0 13px rgba(245,196,81,0.14)",
-    };
-  }
-  return {
-    border: active ? "rgba(245,212,152,0.5)" : `${accent}80`,
-    innerBorder: "rgba(145,205,255,0.24)",
-    background: "radial-gradient(circle at 42% 30%, rgba(130,196,255,0.26), rgba(12,22,35,0.96) 70%)",
-    glow: active ? "0 0 22px rgba(145,205,255,0.25)" : "0 0 12px rgba(145,205,255,0.12)",
-  };
 }
