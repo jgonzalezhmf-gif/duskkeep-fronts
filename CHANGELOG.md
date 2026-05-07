@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.39] - 2026-05-07
+
+### Changed
+- Extraidas primitives visuales de Events a `app/events/EventsPrimitives.tsx`.
+- Separados metric cards, squad chips, enemy lineup, result metrics y reward chips de la pantalla principal.
+- Reducida `app/events/page.tsx` sin tocar completions diarios, rewards, batalla de eventos, economia ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.38] - 2026-05-07
 
 ### Changed
