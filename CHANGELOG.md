@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.23] - 2026-05-07
+
+### Changed
+- Extraida la escena decorativa de Missions de `SceneBackdrop` a `SceneBackdropMissionsScene`.
+- Separados `MissionsScene` y sus helpers propios: mission floor, contract board, route pins, courier camps y reward crates.
+- Reducido `SceneBackdrop` para mantener menos decoracion especifica de pantalla embebida.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.22] - 2026-05-07
 
 ### Changed
