@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.13] - 2026-05-07
+
+### Changed
+- Extraidas las capas atmosfericas compartidas de `SceneBackdrop` a `SceneBackdropAtmosphere`.
+- Separados sky, atmosphere glows, clouds, particles, constellation dust y birds del renderer principal de escenas.
+- Mantenida la composicion visual de `SceneBackdrop` sin cambios intencionales de estilos, rutas ni gameplay.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.12] - 2026-05-07
 
 ### Changed
