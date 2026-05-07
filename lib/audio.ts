@@ -14,6 +14,12 @@ import {
   getAudioSfxAsset,
   type AudioSfxAssetName,
 } from "@/lib/audioAssets";
+import {
+  disposeMusicElement,
+  fadeHtmlAudio,
+  registerMusicElement,
+  stopUntrackedMusicElements,
+} from "@/lib/audio-music-assets";
 import { createSfxController } from "@/lib/audio-sfx";
 import {
   STORAGE_KEYS,
@@ -300,61 +306,13 @@ class AudioManager {
   private applyMusicAssetVolume(fadeSeconds = 0.12) {
     const channel = this.activeMusicAssetChannel;
     if (!channel) return;
-    this.fadeHtmlAudio(channel, this.getMusicAssetVolume(channel.theme), fadeSeconds);
-  }
-
-  private getMusicElementRegistry() {
-    if (typeof window === "undefined") return null;
-    const audioGlobal = globalThis as DuskkeepAudioGlobal;
-    audioGlobal.__duskkeepMusicElements ??= new Set<HTMLAudioElement>();
-    return audioGlobal.__duskkeepMusicElements;
-  }
-
-  private registerMusicElement(audio: HTMLAudioElement) {
-    this.getMusicElementRegistry()?.add(audio);
-  }
-
-  private disposeMusicElement(audio: HTMLAudioElement) {
-    this.getMusicElementRegistry()?.delete(audio);
-    audio.pause();
-    audio.src = "";
-    audio.load();
-  }
-
-  private stopUntrackedMusicElements(except?: HTMLAudioElement) {
-    const registry = this.getMusicElementRegistry();
-    if (!registry) return;
-    for (const audio of Array.from(registry)) {
-      if (audio === except) continue;
-      this.disposeMusicElement(audio);
-    }
+    fadeHtmlAudio(channel, this.getMusicAssetVolume(channel.theme), fadeSeconds);
   }
 
   private stopActiveProceduralTheme(fadeSeconds = 0.45) {
     if (!this.activeThemeChannel) return;
     this.stopThemeChannel(this.activeThemeChannel, fadeSeconds);
     this.activeThemeChannel = null;
-  }
-
-  private fadeHtmlAudio(channel: MusicAssetChannel, targetVolume: number, seconds: number, onDone?: () => void) {
-    if (typeof window === "undefined") return;
-    if (channel.timer !== null) {
-      window.clearInterval(channel.timer);
-      channel.timer = null;
-    }
-
-    const startVolume = channel.audio.volume;
-    const duration = Math.max(0.02, seconds);
-    const startedAt = performance.now();
-    channel.timer = window.setInterval(() => {
-      const progress = Math.min(1, (performance.now() - startedAt) / (duration * 1000));
-      channel.audio.volume = startVolume + (targetVolume - startVolume) * progress;
-      if (progress >= 1) {
-        if (channel.timer !== null) window.clearInterval(channel.timer);
-        channel.timer = null;
-        onDone?.();
-      }
-    }, 40);
   }
 
   private stopMusicAssetChannel(fadeSeconds = 0.5) {
@@ -367,11 +325,11 @@ class AudioManager {
         channel.timer = null;
       }
       channel.audio.pause();
-      this.disposeMusicElement(channel.audio);
+      disposeMusicElement(channel.audio);
       return;
     }
-    this.fadeHtmlAudio(channel, 0, fadeSeconds, () => {
-      this.disposeMusicElement(channel.audio);
+    fadeHtmlAudio(channel, 0, fadeSeconds, () => {
+      disposeMusicElement(channel.audio);
     });
   }
 
@@ -381,13 +339,13 @@ class AudioManager {
     if (!asset) return false;
     if (this.activeMusicAssetChannel?.theme === theme) {
       this.stopActiveProceduralTheme(0.22);
-      this.stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
+      stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
       this.applyMusicAssetVolume(0.18);
       return true;
     }
     if (this.activeMusicAssetChannel?.audio.currentSrc.endsWith(asset.src)) {
       this.stopActiveProceduralTheme(0.22);
-      this.stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
+      stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
       this.activeMusicAssetChannel.theme = theme;
       this.applyMusicAssetVolume(0.18);
       return true;
@@ -395,19 +353,19 @@ class AudioManager {
 
     this.stopActiveProceduralTheme(0.22);
     this.stopMusicAssetChannel(0);
-    this.stopUntrackedMusicElements();
+    stopUntrackedMusicElements();
     const audio = new Audio(asset.src);
     audio.loop = asset.loop ?? true;
     audio.preload = "auto";
     audio.volume = 0;
     const channel: MusicAssetChannel = { theme, audio, timer: null };
     this.activeMusicAssetChannel = channel;
-    this.registerMusicElement(audio);
+    registerMusicElement(audio);
     audio.play().then(
-      () => this.fadeHtmlAudio(channel, this.getMusicAssetVolume(theme), 0.75),
+      () => fadeHtmlAudio(channel, this.getMusicAssetVolume(theme), 0.75),
       () => {
         if (this.activeMusicAssetChannel === channel) this.activeMusicAssetChannel = null;
-        this.disposeMusicElement(audio);
+        disposeMusicElement(audio);
         this.crossfadeProceduralTheme(theme);
       },
     );
@@ -887,14 +845,14 @@ class AudioManager {
     if (!this.primed || this.muted) {
       this.stopActiveProceduralTheme(0.35);
       this.stopMusicAssetChannel(0.35);
-      this.stopUntrackedMusicElements();
+      stopUntrackedMusicElements();
       return;
     }
 
     if (!theme) {
       this.stopActiveProceduralTheme(0.58);
       this.stopMusicAssetChannel(0.58);
-      this.stopUntrackedMusicElements();
+      stopUntrackedMusicElements();
       return;
     }
 
@@ -903,7 +861,7 @@ class AudioManager {
       if (this.playMusicAsset(theme)) return;
     } else {
       this.stopMusicAssetChannel(0.45);
-      this.stopUntrackedMusicElements();
+      stopUntrackedMusicElements();
     }
 
     this.crossfadeProceduralTheme(theme);
@@ -1071,7 +1029,6 @@ class AudioManager {
 
 type DuskkeepAudioGlobal = typeof globalThis & {
   __duskkeepAudioManager?: AudioManager;
-  __duskkeepMusicElements?: Set<HTMLAudioElement>;
 };
 
 const audioGlobal = globalThis as DuskkeepAudioGlobal;

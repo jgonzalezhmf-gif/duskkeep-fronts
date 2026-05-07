@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.11] - 2026-05-07
+
+### Changed
+- Extraida la gestion de pistas musicales HTMLAudioElement a `lib/audio-music-assets`.
+- Centralizados el registro global de music elements, fade de volumen y limpieza de pistas no controladas para reducir riesgo de musica solapada.
+- Mantenida la API publica de `lib/audio` y el comportamiento de crossfade/fallback procedural sin cambios funcionales.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.10] - 2026-05-07
 
 ### Changed
