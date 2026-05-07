@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.50] - 2026-05-08
+
+### Changed
+- Extraidos los editores de seleccion del QA map editor de Adventure a `components/game/adventure/AdventureMapEditorSelectionFields.tsx`.
+- Separada la edicion de nodos, props, party marker y route handles del overlay principal.
+- Reducido `AdventureMapEditorOverlay.tsx` sin tocar coordenadas, layout del mapa, interacciones, rewards, gameplay ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.49] - 2026-05-08
 
 ### Changed
