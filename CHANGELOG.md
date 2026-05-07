@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.46] - 2026-05-08
+
+### Changed
+- Extraidos datos y helpers de rivales de Arena a `app/arena/arenaPageHelpers.ts`.
+- Separados `FRONTLINE_ARENA_RIVALS`, traduccion de rivales y tipos compartidos de la pantalla principal.
+- Reducida `app/arena/page.tsx` sin tocar tickets, rewards, resultados, batalla, economia ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.45] - 2026-05-08
 
 ### Changed
