@@ -1,275 +1,53 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ADVENTURE } from "@/data/adventure";
-import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
-import { nextUnlockedLevel, useGameStore } from "@/lib/store";
-import {
-  getAdventureMapInteraction,
-  getAdventureMapInteractionStatus,
-  isAdventureMapInteractionClaimActive,
-  type AdventureMapInteractionStatus,
-} from "@/features/adventure/mapInteractions";
-import {
-  getAdventureNodeDefinition,
-  getAdventureNodeType,
-  isAdventureClaimed,
-  isAdventureCombatNode,
-  type AdventureProgressEntry,
-} from "@/features/adventure/nodeResolution";
-import { getAdventureUnlockedLevelIds, isAdventureChapterDemoLocked } from "@/features/adventure/progression";
+import { isAdventureChapterDemoLocked } from "@/features/adventure/progression";
 import { AdventureCampaignMap } from "@/components/game/adventure/AdventureCampaignScene";
+import { getLocalizedChapterMeta } from "@/components/game/adventure/AdventureChapterMeta";
 import {
   AdventureCacheRevealOverlay,
   AdventureMapInteractionPanel,
   AdventureMissionPanel,
 } from "@/components/game/adventure/AdventureMissionPanels";
-import type { AdventureCampaignMeta, AdventureNodeState } from "@/components/game/adventure/AdventureCampaignTypes";
-import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/components/game/adventure/adventureMapLayout";
+import { useAdventureMapPageState } from "@/components/game/adventure/useAdventureMapPageState";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { ScreenBadge, ScreenScaffold } from "@/components/game/screens/ScreenChrome";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
 
-const CHAPTER_META: Record<number, AdventureCampaignMeta> = {
-  1: {
-    name: "The Eclipse Rising",
-    subtitle: "Chapter I",
-    accent: "#f5c451",
-    scene: "adventureMoon",
-    hint: "Climb through ruined ridge roads, moonlit shrines and fractured gates until the eclipse citadel opens.",
-    atmosphere: "Moonlit campaign route with broken sanctuaries, ritual bridges and cold blue haze hanging over the ascent.",
-    terrainLabel: "Moon ridges and shrine roads",
-    threatLabel: "Cult patrols, ambush lanes and citadel defenders",
-    landmarks: [
-      { label: "Crossroads Camp", kind: "camp", x: "13%", y: "82%", mobileX: "13%", mobileY: "77%" },
-      { label: "Lumen Altar", kind: "altar", x: "36%", y: "58%", mobileX: "31%", mobileY: "53%" },
-      { label: "Broken Span", kind: "bridge", x: "53%", y: "47%", mobileX: "53%", mobileY: "44%" },
-      { label: "Citadel Gate", kind: "gate", x: "70%", y: "22%", mobileX: "73%", mobileY: "22%" },
-    ],
-  },
-  2: {
-    name: "Ashes of the Pact",
-    subtitle: "Chapter II",
-    accent: "#ff9c5f",
-    scene: "adventureAsh",
-    hint: "Advance through scorched passes, kiln basins and siege furnaces toward the crown of ash.",
-    atmosphere: "A volcanic route with obsidian spires, cinder winds, forge-light and collapsing bridges across a burning basin.",
-    terrainLabel: "Scorched ravines and kiln basins",
-    threatLabel: "Ash warbands, brute elites and spire wardens",
-    landmarks: [
-      { label: "Scorched Pass", kind: "spire", x: "13%", y: "80%", mobileX: "15%", mobileY: "74%" },
-      { label: "Ember Kiln", kind: "ruin", x: "40%", y: "58%", mobileX: "37%", mobileY: "54%" },
-      { label: "Forge Span", kind: "bridge", x: "59%", y: "43%", mobileX: "58%", mobileY: "39%" },
-      { label: "Ash Crown", kind: "gate", x: "78%", y: "20%", mobileX: "79%", mobileY: "19%" },
-    ],
-  },
-  3: {
-    name: "Starlit Tower",
-    subtitle: "Chapter III",
-    accent: "#8ec5ff",
-    scene: "adventureMoon",
-    hint: "Reserved for the next campaign drop.",
-    atmosphere: "Placeholder chapter slot kept visible to preserve progression rhythm and future content pacing.",
-    terrainLabel: "Future chapter",
-    threatLabel: "Content drop pending",
-    landmarks: [],
-  },
-};
-
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
-const CHAPTER_TRANSLATION_KEYS: Record<number, "one" | "two" | "three"> = {
-  1: "one",
-  2: "two",
-  3: "three",
-};
-
-const CHAPTER_LANDMARK_KEYS: Record<number, string[]> = {
-  1: ["camp", "altar", "bridge", "gate"],
-  2: ["pass", "kiln", "bridge", "crown"],
-  3: [],
-};
-
-function getLocalizedChapterMeta(chapter: number, t: TranslateFn): AdventureCampaignMeta {
-  const base = CHAPTER_META[chapter] ?? CHAPTER_META[1];
-  const key = CHAPTER_TRANSLATION_KEYS[chapter] ?? "one";
-  const landmarkKeys = CHAPTER_LANDMARK_KEYS[chapter] ?? [];
-
-  return {
-    ...base,
-    name: t(`adventure.chaptersMeta.${key}.name`),
-    subtitle: t(`adventure.chaptersMeta.${key}.subtitle`),
-    hint: t(`adventure.chaptersMeta.${key}.hint`),
-    atmosphere: t(`adventure.chaptersMeta.${key}.atmosphere`),
-    terrainLabel: t(`adventure.chaptersMeta.${key}.terrain`),
-    threatLabel: t(`adventure.chaptersMeta.${key}.threat`),
-    landmarks: base.landmarks.map((landmark, index) => ({
-      ...landmark,
-      label: t(`adventure.chaptersMeta.${key}.landmarks.${landmarkKeys[index]}`),
-    })),
-  };
-}
-
 export default function AdventureMapPage() {
   const { t } = useI18n();
-  const progress = useGameStore((state) => state.adventureProgress);
-  const resources = useGameStore((state) => state.resources);
-  const adventureMapClaims = useGameStore((state) => state.adventureMapClaims);
-  const accountLevel = useGameStore((state) => state.account.level);
-  const claimAdventureNode = useGameStore((state) => state.claimAdventureNode);
-  const claimAdventureMapInteraction = useGameStore((state) => state.claimAdventureMapInteraction);
-  const router = useRouter();
+  const state = useAdventureMapPageState(t);
+  if (!state.ready) return null;
 
-  const chapters = useMemo(() => {
-    const byChapter = new Map<number, (typeof ADVENTURE)[number][]>();
-    for (const level of ADVENTURE) {
-      if (!byChapter.has(level.chapter)) byChapter.set(level.chapter, []);
-      byChapter.get(level.chapter)!.push(level);
-    }
-
-    const out: { chapter: number; nodes: AdventureNodeState[] }[] = [];
-    const unlockedLevelIds = getAdventureUnlockedLevelIds(progress, accountLevel);
-    for (const chapter of Array.from(byChapter.keys()).sort((a, b) => a - b)) {
-      const demoLocked = isAdventureChapterDemoLocked(chapter);
-      const nodes = byChapter.get(chapter)!.map((lvl) => {
-        const levelProgress = progress[lvl.id];
-        const nodeType = getAdventureNodeType(lvl);
-        const claimed = isAdventureClaimed(nodeType, levelProgress as AdventureProgressEntry | undefined);
-        const cleared = levelProgress?.cleared ?? false;
-        const accountLocked = (lvl.unlockAccountLevel ?? 0) > accountLevel;
-        const progressLocked = !unlockedLevelIds.has(lvl.id) && !cleared && !claimed;
-        const locked = demoLocked || accountLocked || progressLocked;
-        const current = !cleared && !claimed && !locked;
-        return {
-          lvl,
-          cleared,
-          claimed,
-          locked,
-          current,
-          pausedHere: false,
-          firstClearAvailable: isAdventureFirstClearRewardAvailable(levelProgress),
-        };
-      });
-      out.push({ chapter, nodes });
-    }
-    return out;
-  }, [accountLevel, progress]);
-
-  const nextLevel = nextUnlockedLevel(useGameStore.getState());
-  const defaultChapter =
-    nextLevel && !isAdventureChapterDemoLocked(nextLevel.chapter)
-      ? nextLevel.chapter
-      : chapters.find((chapter) => !isAdventureChapterDemoLocked(chapter.chapter))?.chapter ?? chapters[0]?.chapter ?? 1;
-  const [activeChapter, setActiveChapter] = useState(defaultChapter);
-  const active =
-    !isAdventureChapterDemoLocked(activeChapter)
-      ? chapters.find((chapter) => chapter.chapter === activeChapter) ?? chapters[0]
-      : chapters.find((chapter) => chapter.chapter === defaultChapter) ?? chapters[0];
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedInteractionId, setSelectedInteractionId] = useState<string | null>(null);
-  const [chaptersOpen, setChaptersOpen] = useState(false);
-  const [detailsExpanded, setDetailsExpanded] = useState(false);
-  const [qaMapEditor, setQaMapEditor] = useState(false);
-  const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, ReturnType<typeof claimAdventureNode>>>({});
-  const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, ReturnType<typeof claimAdventureMapInteraction>>>({});
-  const [cacheReveal, setCacheReveal] = useState<NonNullable<ReturnType<typeof claimAdventureMapInteraction>> | null>(null);
-  const [interactionClock, setInteractionClock] = useState(() => Date.now());
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setQaMapEditor(params.get("qa") === "adventure-map" || params.get("qa") === "map-editor");
-  }, []);
-
-  useEffect(() => {
-    if (activeChapter !== defaultChapter && isAdventureChapterDemoLocked(activeChapter)) {
-      setActiveChapter(defaultChapter);
-    }
-  }, [activeChapter, defaultChapter]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => setInteractionClock(Date.now()), 60_000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    if (!active) return;
-    if (selectedId && active.nodes.some((node) => node.lvl.id === selectedId)) return;
-    const fallback = active.nodes.find((node) => node.pausedHere || node.current)?.lvl.id ?? active.nodes[0]?.lvl.id ?? null;
-    setSelectedId(fallback);
-  }, [active, selectedId]);
-
-  if (!active) return null;
-
-  const meta = getLocalizedChapterMeta(active.chapter, t);
-  const mapLayout = ADVENTURE_MAP_CHAPTER_LAYOUTS[active.chapter] ?? ADVENTURE_MAP_CHAPTER_LAYOUTS[1];
-  const interactionNow = new Date(interactionClock);
-  const selected =
-    active.nodes.find((node) => node.lvl.id === selectedId) ??
-    active.nodes.find((node) => node.pausedHere || node.current) ??
-    active.nodes[0];
-
-  if (!selected) return null;
-
-  const selectedDefinition = getAdventureNodeDefinition(selected.lvl);
-  const selectedProgress = progress[selected.lvl.id] as AdventureProgressEntry | undefined;
-  const claimedRewards = claimedRewardsByNode[selected.lvl.id] ?? null;
-  const interactionStates = (() => {
-    const states: Record<string, AdventureMapInteractionStatus> = {};
-    for (const prop of mapLayout.props ?? []) {
-      const interaction = getAdventureMapInteraction(prop.interaction?.id);
-      if (!interaction || prop.interaction?.enabled === false) continue;
-      states[interaction.id] = getAdventureMapInteractionStatus({
-        interaction,
-        progress,
-        resources,
-        claim: adventureMapClaims[interaction.id],
-        now: interactionNow,
-      });
-    }
-    return states;
-  })();
-  const selectedInteraction = getAdventureMapInteraction(selectedInteractionId);
-  const selectedInteractionStatus =
-    selectedInteraction && selectedInteractionId
-      ? interactionStates[selectedInteractionId] ??
-        getAdventureMapInteractionStatus({
-          interaction: selectedInteraction,
-          progress,
-          resources,
-          claim: adventureMapClaims[selectedInteractionId],
-          now: interactionNow,
-        })
-      : null;
-  const selectedInteractionRewards =
-    selectedInteractionId && selectedInteractionStatus === "claimed" ? claimedRewardsByInteraction[selectedInteractionId] ?? null : null;
-  const selectedInteractionClaim =
-    selectedInteractionId && selectedInteraction && isAdventureMapInteractionClaimActive(selectedInteraction, adventureMapClaims[selectedInteractionId], interactionNow)
-      ? adventureMapClaims[selectedInteractionId]
-      : undefined;
-
-  function resolveSelectedNode() {
-    setSelectedInteractionId(null);
-    if (selected.locked || selectedDefinition.type === "locked") return;
-    if (isAdventureClaimed(selectedDefinition.type, selectedProgress)) return;
-    if (!isAdventureCombatNode(selectedDefinition.type)) {
-      const rewards = claimAdventureNode(selected.lvl.id);
-      if (rewards) {
-        setClaimedRewardsByNode((current) => ({ ...current, [selected.lvl.id]: rewards }));
-      }
-      return;
-    }
-    router.push(`/adventure/${selected.lvl.id}`);
-  }
-
-  function resolveSelectedInteraction() {
-    if (!selectedInteractionId) return;
-    const result = claimAdventureMapInteraction(selectedInteractionId);
-    if (result) {
-      setClaimedRewardsByInteraction((current) => ({ ...current, [selectedInteractionId]: result }));
-      setCacheReveal(result);
-    }
-  }
+  const {
+    active,
+    cacheReveal,
+    chapters,
+    chaptersOpen,
+    claimedRewards,
+    detailsExpanded,
+    interactionStates,
+    mapLayout,
+    meta,
+    qaMapEditor,
+    resources,
+    resolveSelectedInteraction,
+    resolveSelectedNode,
+    selectChapter,
+    selectNode,
+    selected,
+    selectedDefinition,
+    selectedInteraction,
+    selectedInteractionClaim,
+    selectedInteractionId,
+    selectedInteractionRewards,
+    selectedInteractionStatus,
+    selectedProgress,
+    setCacheReveal,
+    setChaptersOpen,
+    setDetailsExpanded,
+    setSelectedInteractionId,
+  } = state;
 
   return (
     <ScreenScaffold scene={meta.scene} dock={false}>
@@ -282,10 +60,7 @@ export default function AdventureMapPage() {
           selectedId={selected.lvl.id}
           selectedInteractionId={selectedInteractionId}
           interactionStates={interactionStates}
-          onSelect={(id) => {
-            setSelectedInteractionId(null);
-            setSelectedId(id);
-          }}
+          onSelect={selectNode}
           onSelectInteraction={setSelectedInteractionId}
           fullScreen
         />
@@ -330,11 +105,7 @@ export default function AdventureMapPage() {
                       disabled={demoLocked}
                       aria-disabled={demoLocked}
                       title={demoLocked ? "Demo locked" : undefined}
-                      onClick={() => {
-                        if (demoLocked) return;
-                        setActiveChapter(chapter.chapter);
-                        setChaptersOpen(false);
-                      }}
+                      onClick={() => selectChapter(chapter.chapter)}
                       className={cn(
                         "frontline-motion-tab relative overflow-hidden rounded-[13px] border px-2.5 py-1.5 text-left transition",
                         selectedTab

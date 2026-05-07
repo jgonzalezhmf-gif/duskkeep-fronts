@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.6] - 2026-05-07
+
+### Changed
+- Extraida la logica de estado de `/adventure` a `useAdventureMapPageState`: progreso, seleccion, claims, interaction states, reveals, CTA de nodo y cache interactuable.
+- Movidos los metadatos/localizacion de capitulos a `AdventureChapterMeta` para separar configuracion de render.
+- Reducida la pagina `/adventure` a composicion de mapa, placa de capitulos y mission card.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run typecheck`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
 ## [0.25.5] - 2026-05-07
 
 ### Changed
