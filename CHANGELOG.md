@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.15] - 2026-05-07
+
+### Changed
+- Extraidos efectos auxiliares de escena a `SceneBackdropSceneEffects`.
+- Separados starfall, ember rain, fireworks, market silk ceiling y arena spotlights del renderer principal de `SceneBackdrop`.
+- Mantenidos `CardAurora` y `FortressMountainLine` en el archivo principal por sus dependencias internas, evitando un refactor visual de mayor riesgo.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.14] - 2026-05-07
 
 ### Changed
