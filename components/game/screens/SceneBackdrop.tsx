@@ -17,8 +17,12 @@ import {
 import {
   ArcaneWarRoomLandmark,
   AshForgeLandmark,
+  CitadelLandmark,
+  ColiseumLandmark,
+  CommandBoardLandmark,
   FestivalPortalLandmark,
   GrandMarketLandmark,
+  HeroHallLandmark,
   MoonSanctumLandmark,
 } from "./SceneBackdropCoreLandmarks";
 import {
@@ -274,77 +278,6 @@ function LandmarkDetailOverlay({ scene }: { scene: ScreenScene }) {
   if (scene === "missions") return <CommandBoardLandmark />;
   if (scene === "fortress") return <CitadelLandmark />;
   return <ColiseumLandmark />;
-}
-
-function HeroHallLandmark() {
-  return (
-    <div className="absolute bottom-[12%] left-1/2 h-[45%] w-[56rem] max-w-[96vw] -translate-x-1/2">
-      <div className="absolute bottom-0 left-1/2 h-[26%] w-[80%] -translate-x-1/2 rounded-[50%] bg-violet-200/12 blur-2xl" />
-      <div className="absolute bottom-[8%] left-1/2 h-[58%] w-[34rem] -translate-x-1/2 rounded-t-[60px] border border-white/10 bg-[linear-gradient(180deg,rgba(75,63,108,0.64),rgba(12,13,22,0.96))]" />
-      {[16, 28, 40, 60, 72, 84].map((left, index) => (
-        <div key={left} className="absolute bottom-[9%] h-[58%] w-14 rounded-t-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(160,137,194,0.36),rgba(34,30,48,0.9))]" style={{ left: `${left}%`, transform: "translateX(-50%)" }}>
-          <div className="absolute left-1/2 top-[-1rem] h-12 w-16 -translate-x-1/2 rounded-[16px] bg-[#f5c451]/10" />
-          <span className="absolute left-1/2 top-[32%] h-16 w-7 -translate-x-1/2 rounded-t-[18px] bg-[linear-gradient(180deg,rgba(245,196,81,0.26),rgba(255,255,255,0.06))]" />
-          <span className="absolute left-1/2 top-[24%] h-8 w-8 -translate-x-1/2 rounded-full bg-white/12 animate-[iconBreath_5s_ease-in-out_infinite]" style={{ animationDelay: `${index * 0.3}s` }} />
-        </div>
-      ))}
-      <div className="absolute left-1/2 top-[4%] h-32 w-32 -translate-x-1/2 rotate-45 rounded-[28px] border border-[#f5c451]/16 bg-[#f5c451]/8 animate-[iconBreath_6.5s_ease-in-out_infinite]" />
-    </div>
-  );
-}
-
-function CommandBoardLandmark() {
-  return (
-    <div className="absolute bottom-[13%] left-1/2 h-[42%] w-[52rem] max-w-[94vw] -translate-x-1/2">
-      <div className="absolute bottom-[2%] left-1/2 h-[24%] w-[76%] -translate-x-1/2 rounded-[50%] bg-emerald-200/12 blur-2xl" />
-      <div className="absolute bottom-[9%] left-1/2 h-[66%] w-[25rem] -translate-x-1/2 rounded-[32px] border border-[#f5c451]/16 bg-[linear-gradient(180deg,rgba(111,78,45,0.78),rgba(18,17,18,0.96))] shadow-[0_28px_70px_rgba(0,0,0,0.28)]" />
-      {[0, 1, 2, 3].map((index) => (
-        <div key={index} className="absolute left-1/2 h-12 w-[19rem] -translate-x-1/2 rounded-[14px] border border-white/8 bg-[linear-gradient(90deg,rgba(245,196,81,0.1),rgba(93,211,158,0.08))]" style={{ top: `${20 + index * 15}%` }}>
-          <span className="absolute left-4 top-4 h-2 w-28 rounded-full bg-[#f5d498]/28" />
-          <span className="absolute right-5 top-3 h-6 w-6 rounded-full bg-emerald-200/18 blur-sm" />
-        </div>
-      ))}
-      {[19, 31, 69, 81].map((left, index) => (
-        <div key={left} className="absolute bottom-[8%] h-[42%] w-12 rounded-t-[24px] bg-[linear-gradient(180deg,rgba(44,66,53,0.72),rgba(8,11,14,0.94))]" style={{ left: `${left}%` }}>
-          <div className="absolute left-1/2 top-[-1rem] h-10 w-10 -translate-x-1/2 rounded-full bg-emerald-200/16 blur-xl animate-[iconBreath_4.8s_ease-in-out_infinite]" style={{ animationDelay: `${index * 0.4}s` }} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function CitadelLandmark() {
-  return (
-    <div className="absolute bottom-[11%] left-1/2 h-[48%] w-[58rem] max-w-[98vw] -translate-x-1/2">
-      <div className="absolute bottom-0 left-1/2 h-[22%] w-[82%] -translate-x-1/2 rounded-[50%] bg-sky-200/12 blur-2xl" />
-      <div className="absolute bottom-[7%] left-1/2 h-[38%] w-[44rem] -translate-x-1/2 rounded-[36px] border border-white/10 bg-[linear-gradient(180deg,rgba(78,98,150,0.62),rgba(16,23,38,0.96))]" />
-      {[18, 30, 42, 50, 58, 70, 82].map((left, index) => (
-        <div key={left} className="absolute bottom-[9%] w-[4.4rem] rounded-t-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(105,132,196,0.74),rgba(22,31,52,0.98))]" style={{ left: `${left}%`, height: `${48 + (index % 3) * 12}%`, transform: "translateX(-50%)" }}>
-          <div className="absolute inset-x-[-6px] top-[-8px] h-8 rounded-t-[18px] bg-[linear-gradient(180deg,rgba(188,214,255,0.32),rgba(88,112,170,0.44))]" />
-          {[0, 1, 2].map((windowIndex) => (
-            <span key={windowIndex} className="absolute left-1/2 h-5 w-2 -translate-x-1/2 rounded-full bg-amber-100/24 blur-[1px] animate-[iconBreath_5s_ease-in-out_infinite]" style={{ top: `${28 + windowIndex * 20}%`, animationDelay: `${index * 0.25}s` }} />
-          ))}
-        </div>
-      ))}
-      <div className="absolute left-1/2 top-[3%] h-28 w-24 -translate-x-1/2 rounded-t-[999px] border border-[#f5c451]/16 bg-[linear-gradient(180deg,rgba(245,196,81,0.18),rgba(76,93,138,0.28))]" />
-    </div>
-  );
-}
-
-function ColiseumLandmark() {
-  return (
-    <div className="absolute bottom-[12%] left-1/2 h-[44%] w-[58rem] max-w-[98vw] -translate-x-1/2">
-      <div className="absolute bottom-0 left-1/2 h-[24%] w-[82%] -translate-x-1/2 rounded-[50%] bg-orange-200/13 blur-2xl" />
-      <div className="absolute bottom-[5%] left-1/2 h-[54%] w-[52rem] -translate-x-1/2 rounded-t-[50%] border border-orange-100/12 bg-[radial-gradient(circle_at_50%_74%,rgba(255,180,104,0.13),rgba(97,54,35,0.3)_46%,rgba(13,11,17,0.94)_100%)]" />
-      <div className="absolute bottom-[12%] left-1/2 h-[34%] w-[42rem] -translate-x-1/2 rounded-t-[50%] border border-amber-100/10 bg-[linear-gradient(180deg,rgba(99,56,42,0.44),rgba(20,13,16,0.84))]" />
-      {[13, 21, 29, 37, 45, 55, 63, 71, 79, 87].map((left, index) => (
-        <div key={left} className="absolute bottom-[18%] h-[24%] w-9 rounded-t-[18px] border border-orange-100/10 bg-[linear-gradient(180deg,rgba(255,190,122,0.16),rgba(36,21,19,0.88))]" style={{ left: `${left}%`, transform: "translateX(-50%)" }}>
-          <span className="absolute left-1/2 top-[38%] h-5 w-3 -translate-x-1/2 rounded-full bg-orange-200/20 blur-[1px] animate-[iconBreath_4.2s_ease-in-out_infinite]" style={{ animationDelay: `${index * 0.18}s` }} />
-        </div>
-      ))}
-      <div className="absolute bottom-[17%] left-1/2 h-[18%] w-[28rem] -translate-x-1/2 rounded-[50%] border border-[#f5c451]/13 bg-[radial-gradient(circle,rgba(245,196,81,0.16),transparent_68%)]" />
-    </div>
-  );
 }
 
 function MoonTempleSteps() {
