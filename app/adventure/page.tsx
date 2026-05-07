@@ -19,14 +19,13 @@ import {
   type AdventureProgressEntry,
 } from "@/features/adventure/nodeResolution";
 import { getAdventureUnlockedLevelIds, isAdventureChapterDemoLocked } from "@/features/adventure/progression";
+import { AdventureCampaignMap } from "@/components/game/adventure/AdventureCampaignScene";
 import {
-  AdventureCampaignMap,
   AdventureCacheRevealOverlay,
-  AdventureMissionPanel,
   AdventureMapInteractionPanel,
-  type AdventureCampaignMeta,
-  type AdventureNodeState,
-} from "@/components/game/adventure/AdventureCampaignScene";
+  AdventureMissionPanel,
+} from "@/components/game/adventure/AdventureMissionPanels";
+import type { AdventureCampaignMeta, AdventureNodeState } from "@/components/game/adventure/AdventureCampaignTypes";
 import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/components/game/adventure/adventureMapLayout";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { ScreenBadge, ScreenScaffold } from "@/components/game/screens/ScreenChrome";
