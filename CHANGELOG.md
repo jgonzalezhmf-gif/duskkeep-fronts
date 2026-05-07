@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.9] - 2026-05-07
+
+### Changed
+- Extraidos tipos, perfiles de mezcla, claves de preferencias y helpers puros de audio a `lib/audio-runtime`.
+- Reducido `lib/audio.ts` para que concentre menos configuracion global y mantenga el runtime de reproduccion como responsabilidad principal.
+- Mantenido el comportamiento de musica, SFX, preferencias y fallback procedural sin cambios funcionales.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.8] - 2026-05-07
 
 ### Changed
