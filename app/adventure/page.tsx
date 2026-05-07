@@ -3,11 +3,9 @@
 import { isAdventureChapterDemoLocked } from "@/features/adventure/progression";
 import { AdventureCampaignMap } from "@/components/game/adventure/AdventureCampaignScene";
 import { getLocalizedChapterMeta } from "@/components/game/adventure/AdventureChapterMeta";
-import {
-  AdventureCacheRevealOverlay,
-  AdventureMapInteractionPanel,
-  AdventureMissionPanel,
-} from "@/components/game/adventure/AdventureMissionPanels";
+import { AdventureCacheRevealOverlay } from "@/components/game/adventure/AdventureCacheRevealOverlay";
+import { AdventureMapInteractionPanel } from "@/components/game/adventure/AdventureMapInteractionPanel";
+import { AdventureMissionPanel } from "@/components/game/adventure/AdventureMissionPanels";
 import { useAdventureMapPageState } from "@/components/game/adventure/useAdventureMapPageState";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { ScreenBadge, ScreenScaffold } from "@/components/game/screens/ScreenChrome";
