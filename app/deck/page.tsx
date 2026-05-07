@@ -12,7 +12,6 @@ import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontli
 import {
   FRONTLINE_CARD_BY_ID,
   FRONTLINE_CARD_POOL,
-  FRONTLINE_HERO_BY_ID,
   FRONTLINE_HEROES,
   FRONTLINE_LEADERS,
 } from "@/features/frontline/data";
@@ -32,41 +31,7 @@ import { frontlineLeaderName, frontlineLeaderPowerName, frontlineLeaderTitle } f
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import { BuildPill, CardUpgradeBar, Metric, Panel, SelectedPackageRow } from "./DeckPrimitives";
-
-type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
-
-function buildPlan(
-  leaderId: string,
-  squadIds: Array<string | null>,
-  deckIds: string[],
-  t: TranslateFn,
-) {
-  const heroes = squadIds
-    .map((id) => (id ? FRONTLINE_HERO_BY_ID[id] : null))
-    .filter((hero): hero is FrontlineHeroDef => Boolean(hero));
-  const counts = {
-    orders: deckIds.filter((id) => FRONTLINE_CARD_BY_ID[id]?.kind === "order").length,
-    tactics: deckIds.filter((id) => FRONTLINE_CARD_BY_ID[id]?.kind === "tactic").length,
-    summons: deckIds.filter((id) => FRONTLINE_CARD_BY_ID[id]?.kind === "summon").length,
-  };
-  const roles = heroes.map((hero) => hero.role.toLowerCase()).join(" ");
-  const leader = FRONTLINE_LEADERS.find((entry) => entry.id === leaderId);
-  const leaderName = frontlineLeaderName(t, leader);
-
-  let doctrine = t("deckScreen.buildPlan.flexibleDoctrine");
-  let plan = t("deckScreen.buildPlan.flexiblePlan");
-  if (roles.includes("tank") && roles.includes("healer")) {
-    doctrine = t("deckScreen.buildPlan.stableDoctrine", { leader: leaderName || t("deckScreen.metrics.leader") });
-    plan = t("deckScreen.buildPlan.stablePlan");
-  } else if (roles.includes("finisher") || roles.includes("archer")) {
-    doctrine = t("deckScreen.buildPlan.burstDoctrine", { leader: leaderName || t("deckScreen.metrics.leader") });
-    plan = t("deckScreen.buildPlan.burstPlan");
-  }
-  if (counts.summons >= 2) {
-    plan += t("deckScreen.buildPlan.summonAddon");
-  }
-  return { doctrine, plan, counts };
-}
+import { buildPlan, type TranslateFn } from "./deckPageHelpers";
 
 export default function DeckPage() {
   const { t } = useI18n();

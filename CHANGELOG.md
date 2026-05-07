@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.47] - 2026-05-08
+
+### Changed
+- Extraido el helper de build plan de Deck a `app/deck/deckPageHelpers.ts`.
+- Separado el calculo de doctrina, roles y conteo de tipos de carta de la pantalla principal.
+- Reducida `app/deck/page.tsx` sin tocar loadout, cartas, upgrades, economia, progreso ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.46] - 2026-05-08
 
 ### Changed
