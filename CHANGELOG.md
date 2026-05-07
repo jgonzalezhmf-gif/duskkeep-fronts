@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.19] - 2026-05-07
+
+### Added
+- Creada la skill `duskkeep-optimization-loop` para guiar iteraciones repetidas de refactor, limpieza, rendimiento y reduccion de God classes.
+- Documentado el flujo seguro de optimizacion: seleccionar un slice pequeno, validar, versionar, actualizar changelog, verificar privacidad del repo, commitear y pushear.
+- Sincronizada una copia local en `.agents/skills/duskkeep-optimization-loop` para futuras sesiones, manteniendo `docs/skills` como fuente versionada.
+
+### Changed
+- Movidos assets PNG raw/source no registrados fuera del proyecto a `C:\Users\Usuario\OneDrive\Documentos\Duskkeep raw assets`.
+
+### Tested
+- Validada igualdad entre la copia fuente y la copia local de la skill.
+
 ## [0.25.18] - 2026-05-07
 
 ### Changed
