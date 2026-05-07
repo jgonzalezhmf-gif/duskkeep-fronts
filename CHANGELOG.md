@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.28] - 2026-05-07
+
+### Changed
+- Separados los diccionarios i18n por locale en `lib/i18n/dictionary-data`.
+- Reducido `lib/i18n/dictionaries.ts` a un agregador compatible que conserva la API publica `dictionaries`.
+- Extraidos los tipos compartidos de traduccion a `lib/i18n/dictionaryTypes.ts` para reducir acoplamiento entre datos y consumo.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.27] - 2026-05-07
 
 ### Changed
