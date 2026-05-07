@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.4] - 2026-05-07
+
+### Changed
+- Extraidos los renderers visuales de Adventure a `AdventureMapElements`: rutas, runas, nodos, party marker, props, handles de QA y estilos del key chest.
+- `AdventureCampaignScene` queda reducido a orquestacion del canvas, estado QA, seleccion y construccion de nodos/rutas visuales.
+- Reforzada la separacion entre herramientas QA, geometria compartida y elementos visuales del mapa.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run typecheck`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
 ## [0.25.3] - 2026-05-07
 
 ### Changed
