@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.16] - 2026-05-07
+
+### Changed
+- Extraidos landmarks principales de `SceneBackdrop` a `SceneBackdropCoreLandmarks`.
+- Separados Moon Sanctum, Ash Forge, Festival Portal, Grand Market y Arcane War Room del renderer principal de escenas.
+- Mantenidos los landmarks restantes en `SceneBackdrop` para limitar el riesgo visual de la iteracion.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.15] - 2026-05-07
 
 ### Changed
