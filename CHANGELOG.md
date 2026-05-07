@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.27] - 2026-05-07
+
+### Changed
+- Extraida la escena decorativa de Events de `SceneBackdrop` a `SceneBackdropEventsScene`.
+- Separadas sus capas propias: portal, fuegos artificiales, arco, tiendas, linternas, cristales, hogueras y montanas.
+- Reducido `SceneBackdrop` a un compositor de escenas y landmarks sin JSX decorativo especifico.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.26] - 2026-05-07
 
 ### Changed
