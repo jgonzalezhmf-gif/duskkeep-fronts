@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.10] - 2026-05-07
+
+### Changed
+- Extraido el controlador publico de SFX a `lib/audio-sfx`, manteniendo `sfx` exportado desde `lib/audio`.
+- `lib/audio.ts` queda por debajo de 1000 lineas y mas centrado en el runtime de musica/WebAudio.
+- Mantenidos los nombres publicos de SFX, fallbacks a sintesis procedural, stingers y vibracion sin cambios funcionales.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.9] - 2026-05-07
 
 ### Changed
