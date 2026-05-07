@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.5] - 2026-05-07
+
+### Changed
+- Extraida la logica de estado de Adventure map a `useAdventureCampaignMapState`: modo QA, layout local, seleccion, drag, shortcuts, creacion/duplicado/borrado y guardado del editor.
+- `AdventureCampaignScene` queda como componente de composicion visual del canvas, usando el hook para datos derivados y acciones.
+- Movida la derivacion de nodos visuales y rutas del mapa al hook para aislar mejor reglas de presentacion de JSX.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run typecheck`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
 ## [0.25.4] - 2026-05-07
 
 ### Changed
