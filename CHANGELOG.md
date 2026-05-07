@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.7] - 2026-05-07
+
+### Changed
+- Extraidos los helpers de `AdventureMissionPanels` a `AdventureMissionPanelParts`: labels, CTAs, mission facts, badge de nodo, filas de enemigos y reward chips.
+- `AdventureMissionPanels` queda centrado en componer los paneles de mision, cache interactuable y reveal de recompensas.
+- Mantenido el comportamiento de Adventure sin cambios de gameplay, progreso, rewards ni layout del mapa.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run typecheck`
+- `npm.cmd run test`
+- `npm.cmd run build`
+
 ## [0.25.6] - 2026-05-07
 
 ### Changed
