@@ -36,6 +36,14 @@ El sistema está en fase alpha aceptable:
 - `app/deck/page.tsx`: builder mínimo de squad/deck Frontline.
 - `app/fortress/page.tsx`: Fortaleza MVP.
 
+## Sinergias
+
+Catálogo y reglas técnicas en [FRONTLINE_SYNERGIES.md](FRONTLINE_SYNERGIES.md). Resumen:
+- 7 sinergias activas (tanda 2): Blade Strike Affinity, Archer's Focus, Shadow Strike, Bulwark Cohesion, Sanctified Healing, Howling Pack (forward) y Howling Pack Echo.
+- Tres categorías: Affinity (carta + trait del target), Presence (carta + trait de un ally vivo), Combo (carta + estado global como rally activo o support en campo).
+- UI genérica con un solo componente: `SynergyProcBadge` (sobre el standee si la sinergia tiene lane) y `SynergyGlobalToast` (banner central si es global).
+- Detección dentro de `playCard` con helpers `livingAllyWithTrait`, `ralliedAllyCount` y `emitSynergy`.
+
 ## Reglas del Núcleo
 
 El combate no usa grid libre. Cada bando tiene 3 combatientes principales, uno por frente. Las cartas modifican frentes, unidades o summons temporales.

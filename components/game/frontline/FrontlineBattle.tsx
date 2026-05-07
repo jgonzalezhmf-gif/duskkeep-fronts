@@ -177,6 +177,7 @@ type HeroVisualState = {
   floatLabel?: string;
   floatTone?: VisualFxTone;
   trait?: NonNullable<FrontlineEvent["trait"]>;
+  synergy?: { id: string; label: string };
 };
 
 function laneEntityScore(
@@ -470,6 +471,12 @@ function heroVisualState(input: {
   // The trait badge fires for the side that "owns" the trait procced.
   // bulwark/mend/lifesteal/ambush/venom procean en el lado del actor (eventSourcesSide).
   const traitOwnsSide = activeEvent?.trait && eventSourcesSide(activeEvent, side);
+  // Synergy badge fires on the side that played the card (event.side === side).
+  const synergyOwnsSide =
+    activeEvent?.signature === "synergy" && activeEvent.side === side && activeEvent.signatureId;
+  const synergyLabel = synergyOwnsSide
+    ? activeEvent!.label.replace(/^Synergy:\s*/i, "")
+    : null;
   return {
     idle: true,
     selected: focused,
@@ -485,6 +492,9 @@ function heroVisualState(input: {
     floatLabel: floatEvent ? eventFloatLabel(floatEvent) : undefined,
     floatTone: floatEvent ? visualToneFromEvent(floatEvent) : cardTone ?? undefined,
     trait: traitOwnsSide ? activeEvent!.trait : undefined,
+    synergy: synergyOwnsSide && synergyLabel
+      ? { id: activeEvent!.signatureId!, label: synergyLabel }
+      : undefined,
   } satisfies HeroVisualState;
 }
 
@@ -1281,6 +1291,7 @@ function FrontlineBattleInner({
         <PreviewSpotlight preview={previewOutcome} cardName={selectedCard ? frontlineCardName(t, selectedCard) : null} />
       ) : null}
       <CardUseToast fx={cardPlayFx} />
+      <SynergyGlobalToast event={activeResolutionEvent} />
       {finishFx ? <BattleEndOverlay winner={finishFx.winner} /> : null}
 
       <div className="relative z-[1] flex flex-col gap-4 p-4 md:p-5">
@@ -3005,6 +3016,7 @@ function FrontlineHeroPiece({
           ) : null}
           {fx.floatLabel ? <HeroFxBadge tone={fx.floatTone ?? "damage"}>{fx.floatLabel}</HeroFxBadge> : null}
           {fx.trait ? <TraitProcBadge trait={fx.trait} side={accent} /> : null}
+          {fx.synergy ? <SynergyProcBadge label={fx.synergy.label} /> : null}
           <VisualAssetImage
             src={visual.standeeSrc}
             fallbackSrc={visual.portraitFallbackSrc}
@@ -3155,13 +3167,38 @@ function TraitProcBadge({ trait, side }: { trait: NonNullable<FrontlineEvent["tr
     : "border-rose-200/72 bg-rose-300/26 text-rose-50";
   return (
     <div
-      key={`trait-${trait}-${Date.now()}`}
       className={cn(
         "frontline-trait-proc-fx pointer-events-none absolute left-1/2 top-[-1.6rem] z-[5] inline-flex -translate-x-1/2 items-center gap-1 rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] shadow-[0_0_18px_rgba(255,255,255,0.18)] backdrop-blur-sm",
         tone,
       )}
     >
       <StatusIcon name={icon} size="sm" className="h-4 w-4" fallbackClassName="opacity-95 h-4 w-4" />
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function SynergyGlobalToast({ event }: { event: FrontlineEvent | null }) {
+  if (!event || event.signature !== "synergy" || event.lane) return null;
+  const label = event.label.replace(/^Synergy:\s*/i, "");
+  return (
+    <div className="frontline-trait-proc-fx pointer-events-none absolute left-1/2 top-[6.5rem] z-[7] -translate-x-1/2">
+      <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-300/26 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-amber-50 shadow-[0_0_22px_rgba(245,196,81,0.4)] backdrop-blur-sm">
+        <StatusIcon name="buff" size="sm" className="h-4 w-4 text-amber-100" fallbackClassName="opacity-95 h-4 w-4" />
+        <span>Synergy · {label}</span>
+      </div>
+    </div>
+  );
+}
+
+function SynergyProcBadge({ label }: { label: string }) {
+  return (
+    <div
+      className={cn(
+        "frontline-trait-proc-fx pointer-events-none absolute left-1/2 top-[-3rem] z-[6] inline-flex -translate-x-1/2 items-center gap-1 rounded-full border border-amber-200/80 bg-amber-300/26 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-50 shadow-[0_0_18px_rgba(245,196,81,0.34)] backdrop-blur-sm",
+      )}
+    >
+      <StatusIcon name="buff" size="sm" className="h-4 w-4 text-amber-100" fallbackClassName="opacity-95 h-4 w-4" />
       <span>{label}</span>
     </div>
   );

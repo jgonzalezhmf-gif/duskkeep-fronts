@@ -7,6 +7,28 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.0] - 2026-05-07
+
+### Added
+- Frontline AI tactica variada (B1): nueva funcion `chooseEnemyAction` en `runEnemyTurn` con prioridades en cascada (execute en lane abierto, heal, stun al hero con mayor ATK, rally antes de carta de dano, summon en lane libre, fallback por coste).
+- Sistema de sinergias (B2) con 7 entradas iniciales: Blade Strike Affinity, Archer's Focus, Shadow Strike, Bulwark Cohesion, Sanctified Healing, Howling Pack (forward) y Howling Pack Echo. Categorias: Affinity (carta + trait del target), Presence (carta + trait de un ally vivo) y Combo (carta + estado global).
+- Eventos `signature: "synergy"` con `signatureId` para identificar la sinergia disparada.
+- UI generica para sinergias: `SynergyProcBadge` (sobre el standee si tiene lane) y `SynergyGlobalToast` (banner central si la sinergia es global).
+- `docs/FRONTLINE_SYNERGIES.md` con catalogo, integracion tecnica y guia para anadir sinergias nuevas.
+- Tests para AI variada (3) y para cada sinergia (8) en `tests/frontline.engine.test.ts`.
+
+### Changed
+- `FRONTLINE_COMBAT_HANDOFF.md` referencia el nuevo doc de sinergias.
+- Sanctuary aplica spread heal con target `mend` (healer), no con `bulwark`. Battle Hymn aplica el bonus de presencia con `bulwark` (en lugar del antiguo `chant`).
+- `FrontlineEvent.signature` admite `"synergy"`.
+
+### Fixed
+- `TraitProcBadge` ya no usa `Date.now()` durante render (regla de pureza de React).
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test` (114/114).
+
 ## [0.24.8] - 2026-05-06
 
 ### Fixed

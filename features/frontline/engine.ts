@@ -19,6 +19,7 @@ import type {
   FrontlineEvent,
   FrontlineHeroDef,
   FrontlineHeroState,
+  FrontlineHeroTrait,
   FrontlineLaneState,
   FrontlineLeaderDef,
   FrontlinePreset,
@@ -937,6 +938,43 @@ function consumeHandCard(deck: FrontlineDeckState, card: FrontlineCardDef) {
   };
 }
 
+function livingAllyWithTrait(
+  state: FrontlineBattleState,
+  side: FrontlineSide,
+  traitType: Exclude<FrontlineHeroTrait["type"], "none">,
+): boolean {
+  return FRONTLINE_LANES.some((lane) => {
+    const hero = getHeroInLane(state, side, lane);
+    if (!hero?.alive) return false;
+    return heroDefinition(hero).trait.type === traitType;
+  });
+}
+
+function ralliedAllyCount(state: FrontlineBattleState, side: FrontlineSide): number {
+  return FRONTLINE_LANES.reduce((count, lane) => {
+    const hero = getHeroInLane(state, side, lane);
+    return count + (hero?.alive && hero.tempAtk > 0 ? 1 : 0);
+  }, 0);
+}
+
+function emitSynergy(
+  state: FrontlineBattleState,
+  side: FrontlineSide,
+  synergyId: string,
+  label: string,
+  lane?: FrontlineLane,
+) {
+  pushEvent(state, {
+    kind: "card",
+    side,
+    lane,
+    label: `Synergy: ${label}`,
+    emphasis: "mid",
+    signature: "synergy",
+    signatureId: synergyId,
+  });
+}
+
 export function playCard(
   state: FrontlineBattleState,
   side: FrontlineSide,
@@ -958,18 +996,45 @@ export function playCard(
   if (card.effect.type === "hero_strike" && lane) {
     const hero = getHeroInLane(next, side, lane);
     if (hero) {
-      hero.tempAtk += card.effect.atk;
+      // Affinity — Twin Slash + Blade Striker: target ally with flurry trait gets +2 ATK extra.
+      const bladeAffinity =
+        side === "ally" && card.id === "order_twin_slash" && heroDefinition(hero).trait.type === "flurry";
+      const atkBonus = bladeAffinity ? 2 : 0;
+      hero.tempAtk += card.effect.atk + atkBonus;
       if (card.effect.shield) addShield(hero, card.effect.shield, true);
       if (card.effect.strikeFirst) hero.strikeFirst = true;
+      if (bladeAffinity) emitSynergy(next, side, "blade_strike_affinity", "Blade Strike Affinity", lane);
     }
   } else if (card.effect.type === "front_shot" && lane) {
-    applyDirectDamage(next, side, lane, card.effect.damage, card.name);
+    // Affinity — Archer's Focus: focus_fire while a breach (archer) ally is alive deals +2 damage.
+    const archerAffinity =
+      side === "ally" && card.id === "order_focus_fire" && livingAllyWithTrait(next, side, "breach");
+    const damageBonus = archerAffinity ? 2 : 0;
+    if (archerAffinity) emitSynergy(next, side, "archers_focus", "Archer's Focus", lane);
+    applyDirectDamage(next, side, lane, card.effect.damage + damageBonus, card.name);
   } else if (card.effect.type === "rally") {
+    // Bulwark Cohesion: Battle Hymn with a bulwark ally alive grants +1 ATK extra to the rally.
+    const bulwarkBonus =
+      side === "ally" && card.id === "tactic_battle_hymn" && livingAllyWithTrait(next, side, "bulwark")
+        ? 1
+        : 0;
+    if (bulwarkBonus > 0) emitSynergy(next, side, "bulwark_cohesion", "Bulwark Cohesion");
     for (const targetLane of FRONTLINE_LANES) {
       const hero = getHeroInLane(next, side, targetLane);
       if (!hero) continue;
-      hero.tempAtk += card.effect.atk;
+      hero.tempAtk += card.effect.atk + bulwarkBonus;
       if (card.effect.shield) addShield(hero, card.effect.shield, true);
+    }
+    // Howling Pack (echo): Battle Hymn while a friendly support is on the field also bumps the support's ATK.
+    if (side === "ally" && card.id === "tactic_battle_hymn") {
+      let echoTriggered = false;
+      for (const targetLane of FRONTLINE_LANES) {
+        const support = getSupportInLane(next, side, targetLane);
+        if (!support) continue;
+        support.atk += 1;
+        echoTriggered = true;
+      }
+      if (echoTriggered) emitSynergy(next, side, "howling_echo", "Howling Pack Echo");
     }
   } else if (card.effect.type === "heal_front" && lane) {
     const hero = getHeroInLane(next, side, lane);
@@ -986,6 +1051,31 @@ export function playCard(
         pushEvent(next, { kind: "heal", side, lane, label: `${card.name} steadies the core`, amount: next[coreKey] - before, emphasis: "low" });
       }
     }
+    // Affinity — Sanctified Healing: Sanctuary on a mend (healer) hero spreads a softer heal to lateral lanes.
+    if (
+      side === "ally" &&
+      card.id === "tactic_sanctuary" &&
+      hero &&
+      heroDefinition(hero).trait.type === "mend"
+    ) {
+      emitSynergy(next, side, "sanctified_healing", "Sanctified Healing", lane);
+      for (const sideLane of FRONTLINE_LANES) {
+        if (sideLane === lane) continue;
+        const sideHero = getHeroInLane(next, side, sideLane);
+        if (!sideHero) continue;
+        const healed = healHero(sideHero, 3);
+        if (healed > 0) {
+          pushEvent(next, {
+            kind: "heal",
+            side,
+            lane: sideLane,
+            label: `${card.name} steadies ${sideHero.name}`,
+            amount: healed,
+            emphasis: "low",
+          });
+        }
+      }
+    }
   } else if (card.effect.type === "stun_front" && lane) {
     const hero = getHeroInLane(next, otherSide(side), lane);
     if (hero) {
@@ -994,8 +1084,15 @@ export function playCard(
     }
   } else if (card.effect.type === "execute_front" && lane) {
     const enemySide = otherSide(side);
+    // Shadow Strike: shadow_dive on an already-stunned enemy hero deals +3 extra.
+    const enemyHero = getHeroInLane(next, enemySide, lane);
+    const shadowBonus =
+      side === "ally" && card.id === "order_shadow_dive" && enemyHero?.alive && enemyHero.stun > 0
+        ? 3
+        : 0;
+    if (shadowBonus > 0) emitSynergy(next, side, "shadow_strike", "Shadow Strike", lane);
     if (livingPresence(next, enemySide, lane)) {
-      applyDirectDamage(next, side, lane, card.effect.damage, card.name);
+      applyDirectDamage(next, side, lane, card.effect.damage + shadowBonus, card.name);
     } else if (card.effect.bonusOpenCore) {
       const coreKey = sideCoreKey(enemySide);
       next[coreKey] = Math.max(0, next[coreKey] - card.effect.bonusOpenCore);
@@ -1004,18 +1101,24 @@ export function playCard(
   } else if (card.effect.type === "summon" && lane) {
     const supportDef = getStateSupport(next, side, card.effect.supportId);
     if (supportDef) {
+      // Howling Pack (forward): summon_wolf with ≥2 rallied allies → wolf enters with +2 HP / +1 ATK.
+      const howlingPack =
+        side === "ally" && card.id === "summon_wolf" && ralliedAllyCount(next, side) >= 2;
+      const hpBonus = howlingPack ? 2 : 0;
+      const atkBonus = howlingPack ? 1 : 0;
       setSupportInLane(next, side, lane, {
         id: supportDef.id,
         side,
         lane,
         name: supportDef.name,
-        hp: supportDef.maxHp,
-        maxHp: supportDef.maxHp,
-        atk: supportDef.atk,
+        hp: supportDef.maxHp + hpBonus,
+        maxHp: supportDef.maxHp + hpBonus,
+        atk: supportDef.atk + atkBonus,
         duration: supportDef.duration,
         intercepts: supportDef.intercepts,
         effect: supportDef.effect,
       });
+      if (howlingPack) emitSynergy(next, side, "howling_pack", "Howling Pack", lane);
       pushEvent(next, { kind: "summon", side, lane, label: `${supportDef.name} enters ${lane}`, emphasis: "mid" });
     }
   }
@@ -1176,6 +1279,87 @@ function enemyShouldUsePower(state: FrontlineBattleState) {
   return validLeaderPowerTargets(state, "enemy")[0] ?? null;
 }
 
+function findOpenAllyLane(state: FrontlineBattleState): FrontlineLane | undefined {
+  return FRONTLINE_LANES.find(
+    (lane) => !getHeroInLane(state, "ally", lane) && !getSupportInLane(state, "ally", lane),
+  );
+}
+
+function findHighestThreatAllyLane(state: FrontlineBattleState, minAtk = 5): FrontlineLane | undefined {
+  let bestLane: FrontlineLane | undefined;
+  let bestScore = -Infinity;
+  for (const lane of FRONTLINE_LANES) {
+    const hero = getHeroInLane(state, "ally", lane);
+    if (!hero?.alive || hero.stun > 0) continue;
+    const atk = hero.atk + hero.tempAtk;
+    if (atk < minAtk) continue;
+    if (atk > bestScore) {
+      bestScore = atk;
+      bestLane = lane;
+    }
+  }
+  return bestLane;
+}
+
+function chooseEnemyAction(
+  state: FrontlineBattleState,
+  playable: FrontlineCardDef[],
+): { card: FrontlineCardDef; lane: FrontlineLane | undefined } | null {
+  // Priority 1 — Execute on an already-open ally lane: free core damage.
+  const executeCard = playable.find((card) => card.effect.type === "execute_front");
+  if (executeCard) {
+    const openLane = findOpenAllyLane(state);
+    if (openLane) return { card: executeCard, lane: openLane };
+  }
+
+  // Priority 2 — Heal a wounded enemy hero (existing rule).
+  const healCard = playable.find((card) => card.effect.type === "heal_front");
+  if (healCard) {
+    const lowLane = FRONTLINE_LANES.find((lane) => {
+      const hero = getHeroInLane(state, "enemy", lane);
+      return hero && hero.hp <= hero.maxHp / 2;
+    });
+    if (lowLane) return { card: healCard, lane: lowLane };
+  }
+
+  // Priority 3 — Stun the most threatening ally hero (high ATK).
+  const stunCard = playable.find((card) => card.effect.type === "stun_front");
+  if (stunCard) {
+    const threatLane = findHighestThreatAllyLane(state);
+    if (threatLane) return { card: stunCard, lane: threatLane };
+  }
+
+  // Priority 4 — Buff first if there's a damage follow-up still in hand.
+  const buffCard = playable.find((card) => card.effect.type === "rally");
+  if (buffCard) {
+    const hasDamageFollowup = playable.some(
+      (card) =>
+        card !== buffCard &&
+        (card.effect.type === "front_shot" || card.effect.type === "execute_front" || card.effect.type === "hero_strike"),
+    );
+    if (hasDamageFollowup) return { card: buffCard, lane: undefined };
+  }
+
+  // Priority 5 — Summon in an empty enemy support slot (existing rule).
+  const summonCard = playable.find((card) => card.kind === "summon");
+  if (summonCard) {
+    const openSummonLane = FRONTLINE_LANES.find((lane) => !getSupportInLane(state, "enemy", lane));
+    if (openSummonLane) return { card: summonCard, lane: openSummonLane };
+  }
+
+  // Fallback — most expensive card with a valid target.
+  const ranked = [...playable].sort(
+    (left, right) => right.cost - left.cost || left.id.localeCompare(right.id),
+  );
+  for (const card of ranked) {
+    const target = card.target === "none" ? undefined : chooseEnemyTarget(state, card) ?? undefined;
+    if (card.target !== "none" && !target) continue;
+    return { card, lane: target };
+  }
+
+  return null;
+}
+
 export function runEnemyTurn(state: FrontlineBattleState) {
   let next = cloneState(state);
   if (next.turn !== "enemy" || next.winner) return state;
@@ -1190,33 +1374,8 @@ export function runEnemyTurn(state: FrontlineBattleState) {
     if (!playable.length) break;
     if (ownDeck(next, "enemy").command <= 0) break;
 
-    let chosen: { card: FrontlineCardDef; lane: FrontlineLane | undefined } | null = null;
-
-    const healCard = playable.find((card) => card.effect.type === "heal_front");
-    if (healCard) {
-      const lowLane = FRONTLINE_LANES.find((lane) => {
-        const hero = getHeroInLane(next, "enemy", lane);
-        return hero && hero.hp <= hero.maxHp / 2;
-      });
-      if (lowLane) chosen = { card: healCard, lane: lowLane };
-    }
-
-    if (!chosen) {
-      const summonCard = playable.find((card) => card.kind === "summon");
-      const openSummonLane = FRONTLINE_LANES.find((lane) => !getSupportInLane(next, "enemy", lane));
-      if (summonCard && openSummonLane) chosen = { card: summonCard, lane: openSummonLane };
-    }
-
-    if (!chosen) {
-      const priority = [...playable].sort((left, right) => right.cost - left.cost || left.id.localeCompare(right.id))[0];
-      if (!priority) break;
-      const target = priority.target === "none" ? undefined : chooseEnemyTarget(next, priority) ?? undefined;
-      if (priority.target !== "none" && !target) {
-        skipCardIds.add(priority.id);
-        continue;
-      }
-      chosen = { card: priority, lane: target };
-    }
+    const chosen = chooseEnemyAction(next, playable);
+    if (!chosen) break;
 
     const before = next;
     next = playCard(next, "enemy", chosen.card.id, chosen.lane);

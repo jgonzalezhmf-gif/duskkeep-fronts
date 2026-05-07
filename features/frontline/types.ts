@@ -176,7 +176,7 @@ export type FrontlineEvent = {
   label: string;
   amount?: number;
   emphasis?: "high" | "mid" | "low";
-  signature?: "charge" | "cast" | "exhaust";
+  signature?: "charge" | "cast" | "exhaust" | "synergy";
   signatureId?: string;
   subKind?: "hero" | "support";
   /** Hero trait that triggered this event, if any (bulwark, flurry, breach,
