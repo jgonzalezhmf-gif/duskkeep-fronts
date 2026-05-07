@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.18] - 2026-05-07
+
+### Changed
+- Extraidas primitives y props compartidos de mundo de `SceneBackdrop` a `SceneBackdropWorldProps`.
+- Separados moon/sun, montanas SVG, rios/lava, ruinas, spires, banners, portal, tiendas, senales de fuego, arboles de cristal y antorchas.
+- Reducido `SceneBackdrop` para que mantenga menos decoracion reutilizable embebida y sea mas facil de seguir por escena.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.17] - 2026-05-07
 
 ### Changed
