@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.12] - 2026-05-07
+
+### Changed
+- Extraida la creacion del WebAudio graph a `lib/audio-graph`.
+- Centralizadas las conexiones de master/music/sfx, compressor, reverb, delay e impulse buffers sin cambiar valores ni routing.
+- Reducido `lib/audio.ts` manteniendo el control de estado, crossfade, scheduling y API publica en `AudioManager`.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.11] - 2026-05-07
 
 ### Changed

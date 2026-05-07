@@ -20,6 +20,7 @@ import {
   registerMusicElement,
   stopUntrackedMusicElements,
 } from "@/lib/audio-music-assets";
+import { createAudioGraph } from "@/lib/audio-graph";
 import { createSfxController } from "@/lib/audio-sfx";
 import {
   STORAGE_KEYS,
@@ -46,11 +47,6 @@ class AudioManager {
   private musicVerbIn: GainNode | null = null;
   private musicDelayIn: GainNode | null = null;
   private sfxVerbIn: GainNode | null = null;
-  private musicVerbNode: ConvolverNode | null = null;
-  private musicDelayNode: DelayNode | null = null;
-  private musicDelayFeedback: GainNode | null = null;
-  private musicDelayFilter: BiquadFilterNode | null = null;
-  private sfxVerbNode: ConvolverNode | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private muted = false;
   private ready = false;
@@ -205,60 +201,18 @@ class AudioManager {
       !this.sfxGain ||
       !this.musicVerbIn ||
       !this.musicDelayIn ||
-      !this.sfxVerbIn ||
-      !this.musicVerbNode ||
-      !this.musicDelayNode ||
-      !this.musicDelayFeedback ||
-      !this.musicDelayFilter ||
-      !this.sfxVerbNode
+      !this.sfxVerbIn
     ) {
-      this.masterGain = this.ctx.createGain();
-      this.musicGain = this.ctx.createGain();
-      this.themeGain = this.ctx.createGain();
-      this.musicDuckGain = this.ctx.createGain();
-      this.stingerGain = this.ctx.createGain();
-      this.sfxGain = this.ctx.createGain();
-      this.musicVerbIn = this.ctx.createGain();
-      this.musicDelayIn = this.ctx.createGain();
-      this.sfxVerbIn = this.ctx.createGain();
-      this.musicVerbNode = this.ctx.createConvolver();
-      this.musicDelayNode = this.ctx.createDelay(1.1);
-      this.musicDelayFeedback = this.ctx.createGain();
-      this.musicDelayFilter = this.ctx.createBiquadFilter();
-      this.sfxVerbNode = this.ctx.createConvolver();
-
-      const compressor = this.ctx.createDynamicsCompressor();
-      compressor.threshold.value = -20;
-      compressor.knee.value = 24;
-      compressor.ratio.value = 2.4;
-      compressor.attack.value = 0.004;
-      compressor.release.value = 0.22;
-
-      this.themeGain.connect(this.musicDuckGain);
-      this.musicDuckGain.connect(this.musicGain);
-      this.stingerGain.connect(this.musicGain);
-      this.musicGain.connect(compressor);
-      this.sfxGain.connect(compressor);
-      compressor.connect(this.masterGain);
-      this.masterGain.connect(this.ctx.destination);
-
-      this.musicVerbNode.buffer = this.createImpulseBuffer(this.ctx, 2.6, 2.4);
-      this.musicVerbIn.connect(this.musicVerbNode);
-      this.musicVerbNode.connect(this.musicGain);
-
-      this.musicDelayNode.delayTime.value = 0.375;
-      this.musicDelayFeedback.gain.value = 0.22;
-      this.musicDelayFilter.type = "lowpass";
-      this.musicDelayFilter.frequency.value = 2400;
-      this.musicDelayIn.connect(this.musicDelayNode);
-      this.musicDelayNode.connect(this.musicDelayFeedback);
-      this.musicDelayFeedback.connect(this.musicDelayFilter);
-      this.musicDelayFilter.connect(this.musicDelayNode);
-      this.musicDelayNode.connect(this.musicGain);
-
-      this.sfxVerbNode.buffer = this.createImpulseBuffer(this.ctx, 0.72, 4.1);
-      this.sfxVerbIn.connect(this.sfxVerbNode);
-      this.sfxVerbNode.connect(this.sfxGain);
+      const graph = createAudioGraph(this.ctx);
+      this.masterGain = graph.masterGain;
+      this.musicGain = graph.musicGain;
+      this.themeGain = graph.themeGain;
+      this.musicDuckGain = graph.musicDuckGain;
+      this.stingerGain = graph.stingerGain;
+      this.sfxGain = graph.sfxGain;
+      this.musicVerbIn = graph.musicVerbIn;
+      this.musicDelayIn = graph.musicDelayIn;
+      this.sfxVerbIn = graph.sfxVerbIn;
     }
 
     if (this.ctx.state === "suspended") {
@@ -370,19 +324,6 @@ class AudioManager {
       },
     );
     return true;
-  }
-
-  private createImpulseBuffer(ctx: AudioContext, seconds: number, decay: number) {
-    const length = Math.max(1, Math.floor(ctx.sampleRate * seconds));
-    const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
-    for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) {
-      const data = impulse.getChannelData(channel);
-      for (let index = 0; index < length; index += 1) {
-        const envelope = Math.pow(1 - index / length, decay);
-        data[index] = (Math.random() * 2 - 1) * envelope;
-      }
-    }
-    return impulse;
   }
 
   private getNoiseBuffer(ctx: AudioContext) {
