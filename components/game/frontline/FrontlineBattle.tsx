@@ -68,6 +68,7 @@ import { BattleEndOverlay } from "./FrontlineBattleEndOverlay";
 import { CommandPips, CompactPressureBar, CoreShockOverlay } from "./FrontlineBattleMeters";
 import { CompactPill, StatusTag } from "./FrontlineBattlePills";
 import { CombatIcon } from "./FrontlineCombatIcon";
+import { VisualAssetImage } from "./FrontlineVisualAssetImage";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
 import type { FrontlineBossConfig, FrontlineBossSegmentConfig } from "@/features/frontline/types";
 
@@ -2295,55 +2296,6 @@ function LaneKoFx({ event }: { event: FrontlineEvent | null }) {
           <div className="rounded-full bg-black/40 px-3 py-1 text-sm font-black uppercase tracking-[0.2em] text-white">KO</div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function VisualAssetImage({
-  src,
-  fallbackSrc,
-  alt,
-  className,
-  imgClassName,
-  fallback,
-}: {
-  src?: string | null;
-  fallbackSrc?: string | null;
-  alt: string;
-  className?: string;
-  imgClassName?: string;
-  fallback?: ReactNode;
-}) {
-  const initialSrc = src ?? fallbackSrc ?? null;
-  const [resolvedSrc, setResolvedSrc] = useState<string | null>(initialSrc);
-  const [failed, setFailed] = useState(initialSrc === null);
-
-  useEffect(() => {
-    const nextSrc = src ?? fallbackSrc ?? null;
-    setResolvedSrc(nextSrc);
-    setFailed(nextSrc === null);
-  }, [fallbackSrc, src]);
-
-  return (
-    <div className={cn("relative overflow-hidden", className)}>
-      {resolvedSrc && !failed ? (
-        <img
-          src={resolvedSrc}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          className={imgClassName}
-          onError={() => {
-            if (fallbackSrc && resolvedSrc !== fallbackSrc) {
-              setResolvedSrc(fallbackSrc);
-              return;
-            }
-            setFailed(true);
-          }}
-        />
-      ) : (
-        fallback ?? null
-      )}
     </div>
   );
 }
