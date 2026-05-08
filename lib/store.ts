@@ -12,6 +12,12 @@ import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
 import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import type { LocaleCode } from "@/lib/i18n/locales";
+import {
+  getAdventureProgressEntry,
+  markAdventureLevelCleared,
+  markAdventureMapInteractionClaimed,
+  markAdventureNodeClaimed,
+} from "@/lib/adventureProgressState";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import { applyHeroLevelUp, applyHeroSkillUp, applyHeroStarUp } from "@/lib/heroUpgrades";
@@ -47,7 +53,6 @@ import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile"
 import {
   ADVENTURE_MAP_INTERACTIONS_BY_ID,
   getAdventureMapInteractionStatus,
-  getAdventureMapInteractionResetAvailableAt,
   isAdventureKeySystemUnlocked,
   rollAdventureMapInteractionLoot,
   type AdventureMapInteractionClaim,
@@ -573,19 +578,13 @@ export const useGameStore = create<GameState & GameActions>()(
 
       markAdventureCleared: (levelId) => {
         const s = get();
-        const prev = s.adventureProgress[levelId] ?? { cleared: false, firstClearTaken: false };
+        const prev = getAdventureProgressEntry(s.adventureProgress, levelId);
         const firstClear = isAdventureFirstClearRewardAvailable(prev);
         set((st) => ({
-          adventureProgress: {
-            ...st.adventureProgress,
-            [levelId]: {
-              ...prev,
-              cleared: true,
-              firstClearTaken: prev.firstClearTaken || firstClear,
-              completions: (prev.completions ?? 0) + 1,
-              lastCompletedAt: localDayKey(),
-            },
-          },
+          adventureProgress: markAdventureLevelCleared(st.adventureProgress, levelId, {
+            firstClear,
+            completedAt: localDayKey(),
+          }),
         }));
         if (firstClear) get().updateMissionProgress("adventure_levels_cleared", 1);
         return { firstClear };
@@ -595,24 +594,14 @@ export const useGameStore = create<GameState & GameActions>()(
         const level = ADVENTURE.find((entry) => entry.id === levelId);
         if (!level) return null;
         const type = getAdventureNodeType(level);
-        const prev = get().adventureProgress[levelId] ?? { cleared: false, firstClearTaken: false };
+        const prev = getAdventureProgressEntry(get().adventureProgress, levelId);
         const rewards = getAdventureChestClaimRewards(level, prev);
         if (!rewards) {
           get().pushNotification("info", type === "chest" ? "Chest already claimed" : "Node cannot be claimed");
           return null;
         }
         set((st) => ({
-          adventureProgress: {
-            ...st.adventureProgress,
-            [levelId]: {
-              ...prev,
-              cleared: true,
-              firstClearTaken: true,
-              claimed: true,
-              completions: (prev.completions ?? 0) + 1,
-              lastCompletedAt: localDayKey(),
-            },
-          },
+          adventureProgress: markAdventureNodeClaimed(st.adventureProgress, levelId, localDayKey()),
         }));
         get().updateMissionProgress("adventure_levels_cleared", 1);
         get().awardRewards(rewards, level.name);
@@ -652,18 +641,7 @@ export const useGameStore = create<GameState & GameActions>()(
         const result = rollAdventureMapInteractionLoot(interaction);
         const claimedAt = todayISO();
         set((st) => ({
-          adventureMapClaims: {
-            ...st.adventureMapClaims,
-            [interactionId]: {
-              claimed: true,
-              claimedAt,
-              lootId: result.lootId,
-              lootTier: result.lootTier,
-              lootTitle: result.lootTitle,
-              rewards: result.rewards,
-              resetAvailableAt: getAdventureMapInteractionResetAvailableAt(interaction, { claimed: true, claimedAt }) ?? undefined,
-            },
-          },
+          adventureMapClaims: markAdventureMapInteractionClaimed(st.adventureMapClaims, interaction, result, claimedAt),
         }));
         get().awardRewards(result.rewards, interaction.title);
         return result;
