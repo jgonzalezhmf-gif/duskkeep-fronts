@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.171] - 2026-05-08
+
+### Changed
+- Extraida la gestion de mazo, mano inicial, robo y cartas jugables de DeckBattle a `features/deckbattle/deckSideState.ts`.
+- Mantenidos reexports desde `features/deckbattle/engine.ts` para preservar imports existentes.
+- Reducido `features/deckbattle/engine.ts` por debajo de 500 lineas sin cambiar shuffle, mana, robo ni descarte.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.170] - 2026-05-08
 
 ### Changed
