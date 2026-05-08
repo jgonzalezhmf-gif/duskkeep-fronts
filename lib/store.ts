@@ -9,10 +9,11 @@ import { SHOP_OFFERS, SHOP_OFFERS_BY_ID } from "@/data/shop";
 import { DAILY_LOGIN } from "@/data/dailyLogin";
 import { ROADMAP, type RoadmapStep } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
-import { CARD_BY_ID, STARTER_DECK } from "@/data/cards";
+import { CARD_BY_ID } from "@/data/cards";
 import { STARTER_LEADER_ID } from "@/data/leaders";
-import { FORTRESS_BUILDING_BY_ID, FORTRESS_BUILDINGS } from "@/data/fortress";
+import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import { DEFAULT_LOCALE, isLocaleCode, type LocaleCode } from "@/lib/i18n/locales";
+import { defaultFortress, defaultInitial, freshStarterDeck, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import {
   firstVisibleRoadmapStep,
@@ -26,7 +27,6 @@ import {
 import { createDefaultFrontlineLoadout } from "@/features/frontline/engine";
 import {
   FRONTLINE_CARD_MAX_LEVEL,
-  createDefaultFrontlineCardUnlocks,
   frontlineCardUpgradeCost,
   isFrontlineCardUnlocked,
   isFrontlineProgressionCard,
@@ -70,7 +70,6 @@ import {
   SKILL_COOLDOWN_REDUCTION_AT_MAX,
   SKILL_MULTIPLIER_BONUS,
   SKILL_UP_DUST,
-  TEAM_SIZE,
 } from "./constants";
 import type {
   AccountState,
@@ -227,25 +226,6 @@ export type GameActions = {
   refreshArenaTicketsIfNeeded: () => void;
 };
 
-const todayISO = () => new Date().toISOString();
-const todayYMD = () => localDayKey();
-const freshStarterTeam = () => ["bran", "kara", "vex", "mira"];
-const frontlineStarterHeroes = ["bran", "kara", "vex", "mira", "drak", "tovi"];
-const freshStarterDeck = () => {
-  const deck = [...STARTER_DECK];
-  while (deck.length < DECK_SIZE) deck.push(null as unknown as string);
-  return deck.slice(0, DECK_SIZE).map((id) => id ?? null);
-};
-
-function defaultFortress(): FortressState {
-  return {
-    level: 1,
-    style: "dawnkeep",
-    buildings: Object.fromEntries(FORTRESS_BUILDINGS.map((building) => [building.id, 1])),
-    lastCollectedAt: null,
-  };
-}
-
 function fortressLevel(state: FortressState, buildingId: string) {
   return state.buildings[buildingId] ?? 0;
 }
@@ -280,56 +260,6 @@ function buildingUpgradeCost(state: FortressState, buildingId: string) {
     gold: def.baseCost.gold ? Math.round(def.baseCost.gold * Math.pow(def.scaling, nextLevel - 1)) : undefined,
     dust: def.baseCost.dust ? Math.round(def.baseCost.dust * Math.pow(def.scaling, nextLevel - 1)) : undefined,
     gems: def.baseCost.gems ? Math.round(def.baseCost.gems * Math.pow(def.scaling, nextLevel - 1)) : undefined,
-  };
-}
-
-function defaultInitial(): Omit<GameState, "hydrated" | "notifications"> {
-  const starter = freshStarterTeam();
-  const heroes: PlayerHero[] = frontlineStarterHeroes.map((id) => ({
-    heroId: id, level: 1, stars: 1, shards: 0, xp: 0, skillLevel: 1,
-  }));
-  const team: (string | null)[] = [...starter];
-  while (team.length < TEAM_SIZE) team.push(null);
-  return {
-    account: { name: "Commander", level: 1, xp: 0, createdAt: todayISO() },
-    resources: { gold: 500, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
-    heroes,
-    team,
-    activeDeck: freshStarterDeck(),
-    activeLeaderId: STARTER_LEADER_ID,
-    knownSpellIds: ["spell_battle_hymn", "spell_sanctuary", "spell_guardian_aegis", "spell_meteor"],
-    fortress: defaultFortress(),
-    frontlineLoadout: createDefaultFrontlineLoadout(),
-    frontlineCardUnlocks: createDefaultFrontlineCardUnlocks(),
-    frontlineCardLevels: {},
-    frontlineFortress: createDefaultFrontlineFortress(),
-    adventureProgress: {},
-    adventureMapClaims: {},
-    missionsProgress: {},
-    arenaWins: 0,
-    arenaLosses: 0,
-    shopPurchases: {},
-    eventsPlayed: {},
-    battlesWon: 0,
-    heroesUpgraded: 0,
-    lastSeed: 1,
-    savedBattle: null,
-    dailyLogin: { streak: 0, lastClaim: null },
-    roadmapClaimed: {},
-    milestonesClaimed: {},
-    eventCompletions: {},
-    dailyShopPurchases: {},
-    shopRefreshedAt: null,
-    audioMuted: false,
-    musicVolume: 0.78,
-    sfxVolume: 0.92,
-    language: DEFAULT_LOCALE,
-    reducedMotion: false,
-    visualEffects: true,
-    textScale: "normal",
-    onboarding: { step: 0, completed: false },
-    pendingUnlockLevel: null,
-    arenaTicketsRefreshedAt: null,
   };
 }
 
