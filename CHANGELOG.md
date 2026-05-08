@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.135] - 2026-05-08
+
+### Changed
+- Extraida la politica de claims meta a `lib/metaRewardClaims.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando daily login, roadmap y milestones de la orquestacion de rewards.
+
+### Added
+- Tests de claims meta para daily login, bloqueo de doble claim diario, roadmap completado y milestones de cuenta.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.134] - 2026-05-08
 
 ### Changed

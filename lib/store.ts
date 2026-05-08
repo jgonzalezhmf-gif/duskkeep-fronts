@@ -21,6 +21,7 @@ import {
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import { applyHeroLevelUp, applyHeroSkillUp, applyHeroStarUp } from "@/lib/heroUpgrades";
+import { claimDailyLoginReward, claimMilestoneReward, claimRoadmapReward } from "@/lib/metaRewardClaims";
 import { applyMissionMetricProgress, claimMissionProgress, ensureMissionProgress } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
@@ -31,8 +32,6 @@ import {
   getDailyLoginClaimState,
   isAdventureFirstClearRewardAvailable,
   isDailyRotationRewardClaimedToday,
-  isMilestoneRewardClaimable,
-  isRoadmapRewardClaimable,
   localDayKey,
 } from "@/lib/rewardVisibility";
 import {
@@ -704,35 +703,31 @@ export const useGameStore = create<GameState & GameActions>()(
       clearSavedBattle: () => set({ savedBattle: null }),
 
       claimDailyLogin: () => {
-        const s = get();
-        const status = getDailyLoginClaimState(s.dailyLogin);
-        if (!status.claimable) return null;
-        const newStreak = status.nextDay;
-        const day = status.nextDay; // 1..7
-        const entry = DAILY_LOGIN.find((e) => e.day === day) ?? DAILY_LOGIN[0];
-        set({ dailyLogin: { streak: newStreak, lastClaim: status.today } });
-        get().awardRewards(entry.rewards, `Daily ${entry.label}`);
-        return entry.rewards;
+        const result = claimDailyLoginReward(get().dailyLogin, DAILY_LOGIN);
+        if (!result) return null;
+        set(result.patch);
+        get().awardRewards(result.rewards, result.source);
+        return result.rewards;
       },
 
       claimRoadmapStep: (id) => {
         const s = get();
         const step = ROADMAP.find((r) => r.id === id);
-        if (!step) return null;
-        if (!isRoadmapRewardClaimable(s.roadmapClaimed[id], isRoadmapStepComplete(s, step))) return null;
-        set((st) => ({ roadmapClaimed: { ...st.roadmapClaimed, [id]: true } }));
-        get().awardRewards(step.rewards, `Roadmap: ${step.title}`);
-        return step.rewards;
+        const result = claimRoadmapReward(s.roadmapClaimed, step, step ? isRoadmapStepComplete(s, step) : false);
+        if (!result) return null;
+        set(result.patch);
+        get().awardRewards(result.rewards, result.source);
+        return result.rewards;
       },
 
       claimMilestone: (level) => {
         const s = get();
         const m = MILESTONES.find((x) => x.level === level);
-        if (!m) return null;
-        if (!isMilestoneRewardClaimable(s.account.level, level, s.milestonesClaimed[level])) return null;
-        set((st) => ({ milestonesClaimed: { ...st.milestonesClaimed, [level]: true } }));
-        get().awardRewards(m.rewards, `Level ${level}: ${m.title}`);
-        return m.rewards;
+        const result = claimMilestoneReward(s.account.level, s.milestonesClaimed, m);
+        if (!result) return null;
+        set(result.patch);
+        get().awardRewards(result.rewards, result.source);
+        return result.rewards;
       },
 
       markEventCompleted: (eventId) => {
