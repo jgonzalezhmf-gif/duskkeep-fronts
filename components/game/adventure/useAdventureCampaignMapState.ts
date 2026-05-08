@@ -18,7 +18,7 @@ import {
   getPropHeight,
   getPropWidth,
 } from "./AdventureMapGeometry";
-import { createEditorNode, createEditorProp, createEditorRouteFromSelection, duplicateEditorNode, duplicateEditorProp } from "./AdventureMapEditorFactories";
+import { createEditorNode, createEditorProp, createEditorRouteFromSelection, duplicateEditorNode, duplicateEditorProp, removeEditorSelectionFromLayout } from "./AdventureMapEditorFactories";
 import { deriveNodeStatus, deriveNodeType, isCompletedPartyNode } from "./AdventureMapStateHelpers";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
@@ -299,31 +299,8 @@ export function useAdventureCampaignMapState({
 
   function removeSelection(selection: EditorSelection | null) {
     if (!selection) return;
-    if (selection.kind === "node") {
-      setEditorLayout((current) => ({
-        ...current,
-        nodes: current.nodes.filter((entry, index) => (entry.id ?? nodes[index]?.lvl.id) !== selection.id),
-        routes: getEditableRoutes(current, visualNodes).filter((route) => route.from !== selection.id && route.to !== selection.id),
-        partyMarker:
-          current.partyMarker?.anchorNodeId === selection.id
-            ? { ...current.partyMarker, anchorNodeId: undefined }
-            : current.partyMarker,
-      }));
-      setSelectedEditor(null);
-      return;
-    }
-    if (selection.kind === "prop") {
-      setEditorLayout((current) => ({ ...current, props: (current.props ?? []).filter((prop) => prop.id !== selection.id) }));
-      setSelectedEditor(null);
-      return;
-    }
-    if (selection.kind === "routeControl") {
-      setEditorLayout((current) => ({
-        ...current,
-        routes: getEditableRoutes(current, visualNodes).filter((route) => route.id !== selection.id),
-      }));
-      setSelectedEditor(null);
-    }
+    setEditorLayout((current) => removeEditorSelectionFromLayout(current, selection, nodes.map((node) => node.lvl.id), visualNodes));
+    setSelectedEditor(null);
   }
 
   function addRouteFromSelection(selection: EditorSelection | null) {

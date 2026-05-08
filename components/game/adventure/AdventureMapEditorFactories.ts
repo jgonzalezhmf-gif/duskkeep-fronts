@@ -1,7 +1,7 @@
-import type { AdventureMapPropLayout, AdventureMapPropType, AdventureMapRouteLayout, AdventureNodeLayout } from "./adventureMapLayout";
+import type { AdventureMapChapterLayout, AdventureMapPropLayout, AdventureMapPropType, AdventureMapRouteLayout, AdventureNodeLayout } from "./adventureMapLayout";
 import type { AdventureMapEditorSelection, AdventureVisualNode } from "./AdventureCampaignTypes";
 import { ADVENTURE_MAP_DESIGN } from "./adventureMapLayout";
-import { clamp, getDefaultPropDimensions, getDefaultPropEffect } from "./AdventureMapGeometry";
+import { clamp, getDefaultPropDimensions, getDefaultPropEffect, getEditableRoutes } from "./AdventureMapGeometry";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
 const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;
@@ -86,4 +86,36 @@ export function duplicateEditorProp(source: AdventureMapPropLayout, sourceId: st
     x: clamp(source.x + 36, 0, DESIGN_WIDTH),
     y: clamp(source.y + 36, 0, DESIGN_HEIGHT),
   };
+}
+
+export function removeEditorSelectionFromLayout(
+  layout: AdventureMapChapterLayout,
+  selection: AdventureMapEditorSelection,
+  fallbackNodeIds: string[],
+  visualNodes: AdventureVisualNode[],
+): AdventureMapChapterLayout {
+  if (selection.kind === "node") {
+    return {
+      ...layout,
+      nodes: layout.nodes.filter((entry, index) => (entry.id ?? fallbackNodeIds[index]) !== selection.id),
+      routes: getEditableRoutes(layout, visualNodes).filter((route) => route.from !== selection.id && route.to !== selection.id),
+      partyMarker:
+        layout.partyMarker?.anchorNodeId === selection.id
+          ? { ...layout.partyMarker, anchorNodeId: undefined }
+          : layout.partyMarker,
+    };
+  }
+  if (selection.kind === "prop") {
+    return {
+      ...layout,
+      props: (layout.props ?? []).filter((prop) => prop.id !== selection.id),
+    };
+  }
+  if (selection.kind === "routeControl") {
+    return {
+      ...layout,
+      routes: getEditableRoutes(layout, visualNodes).filter((route) => route.id !== selection.id),
+    };
+  }
+  return layout;
 }

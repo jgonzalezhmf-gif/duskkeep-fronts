@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.60] - 2026-05-08
+
+### Changed
+- Movida la eliminacion de nodos, props y rutas del editor QA de Adventure a `removeEditorSelectionFromLayout`.
+- Reducida la responsabilidad de `useAdventureCampaignMapState.ts` en mutaciones de borrado del layout.
+- Mantenida la limpieza de rutas y `partyMarker.anchorNodeId` al borrar nodos sin tocar coordenadas, rewards, progreso, gameplay ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.59] - 2026-05-08
 
 ### Changed
