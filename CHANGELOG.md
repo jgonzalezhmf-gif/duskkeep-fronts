@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.61] - 2026-05-08
+
+### Changed
+- Extraidas las cards y contratos de Missions a `app/missions/MissionContracts.tsx`.
+- Separada la UI de contrato destacado, columnas y contratos individuales de `app/missions/page.tsx`.
+- Reducida la pantalla de Missions sin tocar progreso, claims de recompensas, economia, rutas ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.60] - 2026-05-08
 
 ### Changed
