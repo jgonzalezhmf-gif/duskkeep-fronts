@@ -21,7 +21,6 @@ import type {
   FrontlineCardDef,
   FrontlineCardProfileMap,
   FrontlineEvent,
-  FrontlineSnapshot,
   FrontlineSupportProfileMap,
 } from "@/features/frontline/types";
 import type { FrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
@@ -52,12 +51,18 @@ import {
   isInfernoCastingEvent,
 } from "./FrontlineBattleDerivedState";
 import { BossBanner } from "./FrontlineBossBanner";
-import type { FrontlineCardPlayFx } from "./FrontlineCardCastFx";
-import type { FrontlineDeathGhostFx } from "./FrontlineDeathGhost";
 import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
+import type {
+  FrontlineBattleFinishFx,
+  FrontlineCardFxState,
+  FrontlineCoreShockState,
+  FrontlineDeathGhostState,
+  FrontlinePendingResolution,
+  FrontlineResolutionFx,
+  FrontlineVisualTone,
+} from "./FrontlineBattleFxState";
 import { FrontlineHandSection } from "./FrontlineHandSection";
 import { laneStatusTitle, type LaneInsight } from "./FrontlineLaneInsights";
-import type { FrontlineVisualFxTone } from "./FrontlineLaneActionTrail";
 import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
 import {
   collectDeathGhosts,
@@ -90,23 +95,7 @@ type Props = {
   onFinished: (winner: "ally" | "enemy" | "draw", state: FrontlineBattleState) => void;
 };
 
-type ResolutionFx = {
-  id: number;
-  events: FrontlineEvent[];
-  activeIndex: number;
-};
-
-type CardPlayFx = FrontlineCardPlayFx;
-
-type BattleFinishFx = {
-  winner: "ally" | "enemy" | "draw";
-};
-
-type DeathGhostFx = FrontlineDeathGhostFx;
-
-type VisualFxTone = FrontlineVisualFxTone;
-
-function playFrontlineCardSfx(cardId: string, tone: VisualFxTone) {
+function playFrontlineCardSfx(cardId: string, tone: FrontlineVisualTone) {
   if (cardId.startsWith("leader:")) {
     sfx.leaderPower();
   } else {
@@ -124,7 +113,7 @@ function playFrontlineCardSfx(cardId: string, tone: VisualFxTone) {
 
 const FEMALE_HERO_IDS = new Set(["kara", "mira", "tovi", "lyria", "fenra"]);
 
-function playDeathVoiceForGhost(ghost: DeathGhostFx | undefined) {
+function playDeathVoiceForGhost(ghost: FrontlineDeathGhostState | undefined) {
   if (!ghost) {
     sfx.death();
     return;
@@ -140,7 +129,7 @@ function playDeathVoiceForGhost(ghost: DeathGhostFx | undefined) {
   sfx.deathHumanMale();
 }
 
-function playFrontlineResolutionSfx(event: FrontlineEvent, ghosts: DeathGhostFx[]) {
+function playFrontlineResolutionSfx(event: FrontlineEvent, ghosts: FrontlineDeathGhostState[]) {
   if (event.kind === "damage" || event.kind === "stun") {
     sfx.attack();
     window.setTimeout(() => sfx.hit(), 420);
@@ -204,12 +193,12 @@ function FrontlineBattleInner({
     }),
   );
   const [focusedLane, setFocusedLane] = useState<FrontlineLane | null>(null);
-  const [resolutionFx, setResolutionFx] = useState<ResolutionFx | null>(null);
-  const [cardPlayFx, setCardPlayFx] = useState<CardPlayFx | null>(null);
-  const [finishFx, setFinishFx] = useState<BattleFinishFx | null>(null);
-  const [deathGhosts, setDeathGhosts] = useState<DeathGhostFx[]>([]);
-  const [coreShock, setCoreShock] = useState<{ side: "ally" | "enemy"; amount: number; key: number } | null>(null);
-  const [pendingResolution, setPendingResolution] = useState<{ finalState: FrontlineBattleState; snapshots: FrontlineSnapshot[] } | null>(null);
+  const [resolutionFx, setResolutionFx] = useState<FrontlineResolutionFx | null>(null);
+  const [cardPlayFx, setCardPlayFx] = useState<FrontlineCardFxState | null>(null);
+  const [finishFx, setFinishFx] = useState<FrontlineBattleFinishFx | null>(null);
+  const [deathGhosts, setDeathGhosts] = useState<FrontlineDeathGhostState[]>([]);
+  const [coreShock, setCoreShock] = useState<FrontlineCoreShockState | null>(null);
+  const [pendingResolution, setPendingResolution] = useState<FrontlinePendingResolution | null>(null);
   const finishedRef = useRef(false);
   const fxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cardFxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -391,8 +380,8 @@ function FrontlineBattleInner({
   function showCardPlayFx(
     cardId: string,
     lane: FrontlineLane | null,
-    targetSide: CardPlayFx["targetSide"],
-    tone: VisualFxTone,
+    targetSide: FrontlineCardFxState["targetSide"],
+    tone: FrontlineVisualTone,
     events: FrontlineEvent[],
   ) {
     if (cardFxTimerRef.current) clearTimeout(cardFxTimerRef.current);
