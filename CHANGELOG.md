@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.65] - 2026-05-08
+
+### Changed
+- Extraidos los tabs de categoria de Shop a `app/shop/ShopCategoryTabs.tsx`.
+- Reducida la responsabilidad de `app/shop/page.tsx` manteniendo ahi el estado de categoria y el `sfx.tap()` de seleccion.
+- Mantenido el comportamiento de tienda, compras, economia, progreso, rutas y audio sin cambios.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.64] - 2026-05-08
 
 ### Changed
