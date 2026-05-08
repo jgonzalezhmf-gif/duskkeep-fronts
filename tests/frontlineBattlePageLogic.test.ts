@@ -4,6 +4,7 @@ import {
   accountProgressPercent,
   deriveEncounterBadge,
   encounterModifiers,
+  heroPreviewPower,
   projectAccountProgress,
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
@@ -38,5 +39,10 @@ describe("frontline battle page logic", () => {
     expect(accountProgressPercent(1, -10)).toBe(0);
     expect(accountProgressPercent(1, 50)).toBe(50);
     expect(accountProgressPercent(1, 150)).toBe(100);
+  });
+
+  it("calculates preview power for lane matchup readouts", () => {
+    expect(heroPreviewPower(null)).toBe(0);
+    expect(heroPreviewPower({ maxHp: 10, atk: 2, def: 3, speed: 4 })).toBe(26);
   });
 });

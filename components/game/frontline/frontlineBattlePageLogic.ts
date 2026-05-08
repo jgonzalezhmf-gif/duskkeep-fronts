@@ -1,5 +1,5 @@
 import { getAdventureNodeType } from "@/features/adventure/nodeResolution";
-import type { FrontlineBattleModifiers } from "@/features/frontline/types";
+import type { FrontlineBattleModifiers, FrontlineHeroDef } from "@/features/frontline/types";
 import { ACCOUNT_XP_PER_LEVEL } from "@/lib/constants";
 import type { AdventureLevel } from "@/lib/types";
 import type { FrontlineEncounterBadgeKind } from "./FrontlineBattle";
@@ -42,4 +42,8 @@ export function projectAccountProgress(level: number, xp: number, gain: number) 
 
 export function accountProgressPercent(level: number, xp: number) {
   return Math.max(0, Math.min(100, (xp / (ACCOUNT_XP_PER_LEVEL * level)) * 100));
+}
+
+export function heroPreviewPower(hero: Pick<FrontlineHeroDef, "maxHp" | "atk" | "def" | "speed"> | null) {
+  return hero ? hero.maxHp + hero.atk * 3 + hero.def * 2 + hero.speed : 0;
 }
