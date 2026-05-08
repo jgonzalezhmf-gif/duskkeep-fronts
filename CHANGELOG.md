@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.85] - 2026-05-08
+
+### Changed
+- Eliminado el componente muerto `MiniActorLine` de `components/game/frontline/FrontlineBattle.tsx`.
+- Reducido codigo no usado en Combat sin alterar UI renderizada, reglas del engine, cartas, command economy, rewards, SFX, audio ni persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.84] - 2026-05-08
 
 ### Changed

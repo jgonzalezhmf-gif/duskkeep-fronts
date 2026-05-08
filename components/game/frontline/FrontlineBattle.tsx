@@ -2867,32 +2867,6 @@ function FrontlineHeroPiece({
   );
 }
 
-function MiniActorLine({
-  actor,
-  support,
-  side,
-}: {
-  actor: FrontlineBattleState["lanes"]["left"]["allyHero"];
-  support: FrontlineBattleState["lanes"]["left"]["allySupport"];
-  side: "ally" | "enemy";
-}) {
-  const { t } = useI18n();
-  const actorName = actor ? tx(t, `frontlineData.heroes.${actor.heroId}.name`, actor.name) : t("frontline.openFront");
-  const supportName = support ? frontlineSupportName(t, support) : "";
-  return (
-    <div className="flex items-center justify-between gap-2 rounded-[14px] bg-black/18 px-3 py-2">
-      <div className="flex items-center gap-2">
-        <div className={cn("h-2.5 w-2.5 rounded-full", side === "ally" ? "bg-[#65d2c8]" : "bg-[#f05f72]")} />
-        <div className="text-[11px] font-black text-white">{actorName}</div>
-      </div>
-      <div className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-white/48">
-        {!actor ? <CombatIcon name="breach" size="xs" fallbackClassName="opacity-70" /> : null}
-        <span>{actor ? `${actor.hp}/${actor.maxHp}${supportName ? ` - ${supportName}` : ""}` : t("frontline.breach")}</span>
-      </div>
-    </div>
-  );
-}
-
 function TraitProcBadge({ trait, side }: { trait: NonNullable<FrontlineEvent["trait"]>; side: "ally" | "enemy" }) {
   const { t } = useI18n();
   const label = t(`frontlineData.traits.${trait}.label`);
