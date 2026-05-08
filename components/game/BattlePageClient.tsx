@@ -14,12 +14,10 @@ import {
   getFrontlineAdventureVictoryRewards,
   getFrontlinePresetForAdventure,
 } from "@/features/frontline/adventure";
-import { getAdventureNodeType } from "@/features/adventure/nodeResolution";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
 import { summarizeBattleStats, type FrontlineBattleStats } from "@/lib/frontlineBattleStats";
 import type { FrontlineEncounterBadgeKind } from "@/components/game/frontline/FrontlineBattle";
-import type { FrontlineBattleModifiers, FrontlineBossSignature } from "@/features/frontline/types";
-import { ACCOUNT_XP_PER_LEVEL } from "@/lib/constants";
+import type { FrontlineBossSignature } from "@/features/frontline/types";
 import { audio } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import {
@@ -36,8 +34,14 @@ import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/front
 import {
   getFrontlineBattleBackgroundSrc,
   getFrontlineHeroVisualAsset,
-  type FrontlineBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineVisualAssets";
+import {
+  accountProgressPercent,
+  deriveEncounterBadge,
+  encounterModifiers,
+  projectAccountProgress,
+  resolveBattleBackgroundKey,
+} from "@/components/game/frontline/frontlineBattlePageLogic";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import { ProgressionIcon, type ProgressionIconName } from "@/components/game/shared/ProgressionIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
@@ -76,45 +80,6 @@ type ResultContext = {
   firstClear: boolean;
   adventureName: string | null;
 };
-
-function deriveEncounterBadge(adventureLevel: ReturnType<typeof getAdventureLevelForFrontline>): FrontlineEncounterBadgeKind | null {
-  if (!adventureLevel) return null;
-  const nodeType = getAdventureNodeType(adventureLevel);
-  if (nodeType === "boss" || nodeType === "elite" || nodeType === "danger") return nodeType;
-  return null;
-}
-
-function encounterModifiers(badge: FrontlineEncounterBadgeKind | null): FrontlineBattleModifiers | undefined {
-  if (badge === "boss") return { enemyCoreBonus: 5, enemyStartingCommandBonus: 1 };
-  if (badge === "elite") return { enemyCoreBonus: 2 };
-  return undefined;
-}
-
-function resolveBattleBackgroundKey(
-  adventureLevel: ReturnType<typeof getAdventureLevelForFrontline>,
-  encounterKind: FrontlineEncounterBadgeKind | null,
-  enemyBossId: string | undefined,
-): FrontlineBattleBackgroundKey | null {
-  const chapter = adventureLevel?.chapter ?? 1;
-  if (chapter !== 1 && enemyBossId !== "the_eclipse") return null;
-  if (enemyBossId === "the_eclipse" || encounterKind === "boss") return "ch1_boss_eclipse_gate";
-  if (encounterKind === "elite" || encounterKind === "danger") return "ch1_battle_ruins";
-  return "ch1_battle_road";
-}
-
-function projectAccount(level: number, xp: number, gain: number) {
-  let nextLevel = level;
-  let nextXp = xp + gain;
-  while (nextXp >= ACCOUNT_XP_PER_LEVEL * nextLevel) {
-    nextXp -= ACCOUNT_XP_PER_LEVEL * nextLevel;
-    nextLevel += 1;
-  }
-  return { level: nextLevel, xp: nextXp };
-}
-
-function accountProgressPercent(level: number, xp: number) {
-  return Math.max(0, Math.min(100, (xp / (ACCOUNT_XP_PER_LEVEL * level)) * 100));
-}
 
 export default function BattlePageClient({ autostart = false, enemyPresetId, adventureLevelId }: Props) {
   const { t } = useI18n();
@@ -264,7 +229,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       gems: resourcesBefore.gems + normalizedRewards.gems,
     };
     const accountBefore = { level: account.level, xp: account.xp };
-    const accountAfter = projectAccount(account.level, account.xp, normalizedRewards.accountXp);
+    const accountAfter = projectAccountProgress(account.level, account.xp, normalizedRewards.accountXp);
 
     setResultContext({
       winner,

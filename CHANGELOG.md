@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.144] - 2026-05-08
+
+### Changed
+- Extraidos helpers puros de `BattlePageClient` a `components/game/frontline/frontlineBattlePageLogic.ts`.
+- Separada la logica de encounter badge, modificadores, fondo de batalla y proyeccion de XP de cuenta sin tocar reglas de Combat.
+
+### Added
+- Tests de logica de battle page para badges, modificadores, fondos y progreso de cuenta.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.143] - 2026-05-08
 
 ### Changed
