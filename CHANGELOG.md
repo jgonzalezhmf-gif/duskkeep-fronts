@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.113] - 2026-05-08
+
+### Changed
+- Extraido el tablero de lanes de Combat a `components/game/frontline/FrontlineBattleLanes.tsx`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando composicion de lanes, boss colossus, boss segments, combatientes y feedback visual por frente.
+- Mantenidas intactas las reglas del engine, validacion de targets, command economy, SFX, audio, rewards y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.112] - 2026-05-08
 
 ### Changed
