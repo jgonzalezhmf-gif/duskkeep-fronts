@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.143] - 2026-05-08
+
+### Changed
+- Extraida la planificacion de clear/claim de nodos Adventure a `lib/adventureNodeState.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando first-clear, claims de nodos, rewards y patches de progreso.
+
+### Added
+- Tests de planes de nodos Adventure para first clear, clears repetidos, claims validos, claims repetidos y nodos desconocidos.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.142] - 2026-05-08
 
 ### Changed

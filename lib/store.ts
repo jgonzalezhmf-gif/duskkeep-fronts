@@ -3,18 +3,13 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { ALL_MISSIONS } from "@/data/missions";
-import { ADVENTURE } from "@/data/adventure";
 import { SHOP_OFFERS, SHOP_OFFERS_BY_ID } from "@/data/shop";
 import { DAILY_LOGIN } from "@/data/dailyLogin";
 import { ROADMAP } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
-import {
-  getAdventureProgressEntry,
-  markAdventureLevelCleared,
-  markAdventureNodeClaimed,
-} from "@/lib/adventureProgressState";
 import { createAdventureMapInteractionClaimPlan } from "@/lib/adventureMapInteractionClaims";
+import { planAdventureLevelClear, planAdventureNodeClaim } from "@/lib/adventureNodeState";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import {
   applyFortressBuildingUpgrade,
@@ -54,10 +49,6 @@ import {
 } from "@/features/frontline/fortress";
 import { planFrontlineCardUnlock, planFrontlineCardUpgrade } from "@/lib/frontlineCardState";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
-import {
-  getAdventureChestClaimRewards,
-  getAdventureNodeType,
-} from "@/features/adventure/nodeResolution";
 import {
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
@@ -303,35 +294,22 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       markAdventureCleared: (levelId) => {
-        const s = get();
-        const prev = getAdventureProgressEntry(s.adventureProgress, levelId);
-        const firstClear = isAdventureFirstClearRewardAvailable(prev);
-        set((st) => ({
-          adventureProgress: markAdventureLevelCleared(st.adventureProgress, levelId, {
-            firstClear,
-            completedAt: localDayKey(),
-          }),
-        }));
-        if (firstClear) get().updateMissionProgress("adventure_levels_cleared", 1);
-        return { firstClear };
+        const plan = planAdventureLevelClear(get().adventureProgress, levelId, localDayKey());
+        set({ adventureProgress: plan.adventureProgress });
+        if (plan.firstClear) get().updateMissionProgress("adventure_levels_cleared", 1);
+        return { firstClear: plan.firstClear };
       },
 
       claimAdventureNode: (levelId) => {
-        const level = ADVENTURE.find((entry) => entry.id === levelId);
-        if (!level) return null;
-        const type = getAdventureNodeType(level);
-        const prev = getAdventureProgressEntry(get().adventureProgress, levelId);
-        const rewards = getAdventureChestClaimRewards(level, prev);
-        if (!rewards) {
-          get().pushNotification("info", type === "chest" ? "Chest already claimed" : "Node cannot be claimed");
+        const plan = planAdventureNodeClaim(get().adventureProgress, levelId, localDayKey());
+        if (!plan.ok) {
+          if (plan.notification) get().pushNotification(plan.notification.kind, plan.notification.message);
           return null;
         }
-        set((st) => ({
-          adventureProgress: markAdventureNodeClaimed(st.adventureProgress, levelId, localDayKey()),
-        }));
+        set({ adventureProgress: plan.adventureProgress });
         get().updateMissionProgress("adventure_levels_cleared", 1);
-        get().awardRewards(rewards, level.name);
-        return rewards;
+        get().awardRewards(plan.rewards, plan.source);
+        return plan.rewards;
       },
 
       claimAdventureMapInteraction: (interactionId) => {
