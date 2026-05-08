@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.57] - 2026-05-08
+
+### Changed
+- Extraidos helpers puros de estado visual del mapa de Adventure a `components/game/adventure/AdventureMapStateHelpers.ts`.
+- Separada la derivacion de tipo/estado de nodo y el helper de party node completado de `useAdventureCampaignMapState.ts`.
+- Mantenido re-export de compatibilidad desde `AdventureMapElements.tsx` sin tocar progreso, rewards, coordenadas, gameplay ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.56] - 2026-05-08
 
 ### Changed

@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { getFrontlineAdventureSquad } from "@/features/frontline/adventure";
 import {
   ADVENTURE_MAP_DESIGN,
   type AdventureMapChapterLayout,
-  type AdventureMapNodeStatus,
-  type AdventureMapNodeType,
   type AdventureMapPartyMarkerLayout,
   type AdventureMapPropLayout,
   type AdventureMapPropType,
@@ -23,6 +20,7 @@ import {
   getPropHeight,
   getPropWidth,
 } from "./AdventureMapGeometry";
+import { deriveNodeStatus, deriveNodeType, isCompletedPartyNode } from "./AdventureMapStateHelpers";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
 const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;
@@ -460,25 +458,4 @@ export function useAdventureCampaignMapState({
     visualNodes,
     duplicateSelection,
   };
-}
-
-function isCompletedPartyNode(node: AdventureVisualNode) {
-  return node.status === "cleared" || node.status === "claimed" || node.status === "completed";
-}
-
-function deriveNodeStatus(node: AdventureNodeState): AdventureMapNodeStatus {
-  if (node.locked) return "locked";
-  if (node.claimed) return "claimed";
-  if (node.pausedHere || node.current) return "current";
-  if (node.cleared) return "cleared";
-  return "available";
-}
-
-function deriveNodeType(node: AdventureNodeState, index: number, total: number): AdventureMapNodeType {
-  if (node.locked) return "locked";
-  if (/boss/i.test(node.lvl.name) || index === total - 1) return "boss";
-  if (node.firstClearAvailable && (node.lvl.firstClearRewards?.frontlineCards?.length || node.lvl.firstClearRewards?.gems)) return "chest";
-  const squad = getFrontlineAdventureSquad(node.lvl);
-  if ((node.lvl.obstacles?.length ?? 0) >= 2 || squad.some((enemy) => enemy.tier >= 3)) return "elite";
-  return "battle";
 }
