@@ -12,14 +12,12 @@ import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
 import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import type { LocaleCode } from "@/lib/i18n/locales";
-import { applyAccountXpReward } from "@/lib/accountProgression";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
-import { applyFrontlineCardRewards, getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
-import { applyHeroShardRewards } from "@/lib/heroShards";
-import { applyTeamXpReward } from "@/lib/heroXp";
+import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
-import { applyRewardResources, canAfford, spendResources } from "@/lib/resourceMath";
+import { applyRewardsToGameState } from "@/lib/rewardApplication";
+import { canAfford, spendResources } from "@/lib/resourceMath";
 import {
   firstVisibleRoadmapStep,
   getDailyLoginClaimState,
@@ -493,34 +491,7 @@ export const useGameStore = create<GameState & GameActions>()(
       awardRewards: (r, source) => {
         const newlyUnlockedFrontlineCards = getNewlyUnlockedFrontlineCardRewards(get().frontlineCardUnlocks, r.frontlineCards);
 
-        set((s) => {
-          const next: Partial<GameState> = {};
-          next.resources = applyRewardResources(s.resources, r);
-
-          const accountProgression = applyAccountXpReward(s.account, r.accountXp, s.pendingUnlockLevel);
-          if (accountProgression) {
-            next.account = accountProgression.account;
-            if (typeof accountProgression.pendingUnlockLevel === "number") {
-              next.pendingUnlockLevel = accountProgression.pendingUnlockLevel;
-            }
-          }
-
-          const heroesWithShardRewards = applyHeroShardRewards(s.heroes, r.shards);
-          if (heroesWithShardRewards) {
-            next.heroes = heroesWithShardRewards;
-          }
-
-          const heroesWithXpReward = applyTeamXpReward(next.heroes ?? s.heroes, s.team, r.xp);
-          if (heroesWithXpReward) {
-            next.heroes = heroesWithXpReward;
-          }
-
-          const frontlineCardUnlocks = applyFrontlineCardRewards(s.frontlineCardUnlocks, r.frontlineCards);
-          if (frontlineCardUnlocks) {
-            next.frontlineCardUnlocks = frontlineCardUnlocks;
-          }
-          return next;
-        });
+        set((s) => applyRewardsToGameState(s, r));
         if (newlyUnlockedFrontlineCards.length) {
           get().pushNotification("success", "Frontline card unlocked");
         }

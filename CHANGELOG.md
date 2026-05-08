@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.130] - 2026-05-08
+
+### Changed
+- Extraida la construccion del patch de recompensas a `lib/rewardApplication.ts`.
+- Reducida la responsabilidad de `lib/store.ts` para que `awardRewards` solo orqueste aplicacion de rewards y notificaciones.
+
+### Added
+- Tests de aplicacion combinada de recompensas para recursos, shards antes de XP de equipo, XP de cuenta y cartas Frontline.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.129] - 2026-05-08
 
 ### Changed
