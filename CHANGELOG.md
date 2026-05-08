@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.189] - 2026-05-09
+
+### Changed
+- Movido el tipo `HomeHotspot` a `components/game/home/types.ts` para desacoplar datos de hotspots del componente HomeWorldMap.
+- Extraido `WorldHotspot` a `components/game/home/HomeWorldMapWidgets.tsx`, reduciendo `components/game/HomeWorldMap.tsx` sin cambiar layout, navegacion, SFX ni editor QA.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.188] - 2026-05-09
 
 ### Changed

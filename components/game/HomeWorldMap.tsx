@@ -1,19 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { HomeEffectsQaPanel, type HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
-import { type HomeIconKind } from "@/components/game/home/HomeIcon";
 import HomeScene from "@/components/game/home/HomeScene";
 import {
   CommanderBanner,
   CornerAction,
   DockShrine,
   FightCrystal,
-  HomeVisualIcon,
   MiniActionCharm,
   SideCharm,
   TimedCharm,
+  WorldHotspot,
 } from "@/components/game/home/HomeWorldMapWidgets";
 import {
   HOME_EFFECTS_QA_STORAGE_KEY,
@@ -22,26 +20,22 @@ import {
 } from "@/components/game/home/homeEffectsQaState";
 import { HOME_CTA_LAYOUT, HOME_DESIGN_HEIGHT, HOME_DESIGN_WIDTH } from "@/components/game/home/homeComposition";
 import { HOME_LANDMARK_EFFECT_DEFS, getHomeWorldEffects, groupHomeLandmarkEffects, type HomeLandmarkEffectConfig } from "@/components/game/home/homeEffectLayout";
-import { type HomeTone, type HomeZoneId } from "@/components/game/home/types";
+import { type HomeHotspot, type HomeZoneId } from "@/components/game/home/types";
 import {
   DOCK_ACTIONS,
   SIDE_ACTIONS,
-  TONE_STYLES,
   formatCompact,
   formatCountdown,
   msUntilMidnight,
 } from "@/components/game/home/homeWorldMapConfig";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
-import { type ModeIconName } from "@/components/game/shared/ModeIcon";
 import GameOptionsButton from "@/components/game/options/GameOptionsButton";
 import MuteButton from "@/components/ui/MuteButton";
 import { getLeader } from "@/data/leaders";
 import { teamPower } from "@/features/tactical/engine";
-import { sfx } from "@/lib/audio";
 import { getLeaderPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
 import { getHomeEffectAsset, type HomeEffectId } from "@/lib/homeEffectAssets";
-import { type HomeLandmarkId } from "@/lib/homeLandmarkAssets";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 
@@ -55,31 +49,7 @@ type HomeWorldFrame = {
   cropY: number;
 };
 
-export type HomeHotspot = {
-  zoneId: HomeZoneId;
-  href: string;
-  label: string;
-  sublabel: string;
-  icon: HomeIconKind;
-  modeIcon?: ModeIconName;
-  landmarkId?: HomeLandmarkId;
-  tone: HomeTone;
-  anchorX: string;
-  anchorY: string;
-  mobileAnchorX?: string;
-  mobileAnchorY?: string;
-  width?: string;
-  height?: string;
-  mobileWidth?: string;
-  mobileHeight?: string;
-  badge?: string | number;
-  labelDx?: string;
-  labelDy?: string;
-  mobileLabelDx?: string;
-  mobileLabelDy?: string;
-  plaqueWidth?: string;
-  mobilePlaqueWidth?: string;
-};
+export type { HomeHotspot } from "@/components/game/home/types";
 
 export default function HomeWorldMap({
   hotspots,
@@ -547,134 +517,5 @@ export default function HomeWorldMap({
         />
       ) : null}
     </section>
-  );
-}
-
-function WorldHotspot({
-  spot,
-  qaDisabled = false,
-  onActivate,
-  onDeactivate,
-}: {
-  spot: HomeHotspot;
-  qaDisabled?: boolean;
-  onActivate: (zone: HomeZoneId) => void;
-  onDeactivate: () => void;
-}) {
-  const style = {
-    ["--spot-left" as string]: spot.anchorX,
-    ["--spot-top" as string]: spot.anchorY,
-    ["--spot-width" as string]: spot.width ?? spot.mobileWidth ?? "7rem",
-    ["--spot-height" as string]: spot.height ?? spot.mobileHeight ?? "5rem",
-    ["--spot-left-mobile" as string]: spot.mobileAnchorX ?? spot.anchorX,
-    ["--spot-top-mobile" as string]: spot.mobileAnchorY ?? spot.anchorY,
-    ["--spot-width-mobile" as string]: spot.mobileWidth ?? spot.width ?? "7rem",
-    ["--spot-height-mobile" as string]: spot.mobileHeight ?? spot.height ?? "5rem",
-    ["--spot-label-dx" as string]: spot.labelDx ?? "0rem",
-    ["--spot-label-dy" as string]: spot.labelDy ?? "2.4rem",
-    ["--spot-label-dx-mobile" as string]: spot.mobileLabelDx ?? spot.labelDx ?? "0rem",
-    ["--spot-label-dy-mobile" as string]: spot.mobileLabelDy ?? spot.labelDy ?? "1.7rem",
-    ["--spot-plaque-width" as string]: spot.plaqueWidth ?? spot.mobilePlaqueWidth ?? "8rem",
-    ["--spot-plaque-width-mobile" as string]: spot.mobilePlaqueWidth ?? spot.plaqueWidth ?? "6rem",
-  } as CSSProperties;
-
-  return (
-    <WorldHotspotAnchor spot={spot} qaDisabled={qaDisabled} onActivate={onActivate} onDeactivate={onDeactivate} style={style} />
-  );
-}
-
-function WorldHotspotAnchor({
-  spot,
-  qaDisabled,
-  style,
-  onActivate,
-  onDeactivate,
-}: {
-  spot: HomeHotspot;
-  qaDisabled: boolean;
-  style: CSSProperties;
-  onActivate: (zone: HomeZoneId) => void;
-  onDeactivate: () => void;
-}) {
-  const palette = TONE_STYLES[spot.tone];
-  const landmarkDriven = Boolean(spot.landmarkId);
-
-  return (
-    <Link
-      href={spot.href}
-      aria-label={spot.label}
-      data-home-zone={spot.zoneId}
-      data-home-hotspot={spot.zoneId}
-      className={cn(
-        "group absolute z-20 isolate will-change-transform",
-        qaDisabled ? "pointer-events-none" : "pointer-events-auto",
-        "left-[var(--spot-left-mobile)] top-[var(--spot-top-mobile)] h-[var(--spot-height-mobile)] w-[var(--spot-width-mobile)]",
-        "md:left-[var(--spot-left)] md:top-[var(--spot-top)] md:h-[var(--spot-height)] md:w-[var(--spot-width)]",
-      )}
-      style={{
-        ...style,
-        transform: "translate(-50%, -50%)",
-        transformOrigin: "center center",
-      }}
-      onMouseEnter={() => {
-        sfx.hover();
-        onActivate(spot.zoneId);
-      }}
-      onFocus={() => onActivate(spot.zoneId)}
-      onPointerDown={() => sfx.tap()}
-      onMouseLeave={onDeactivate}
-      onBlur={onDeactivate}
-    >
-      <span
-        className="absolute inset-[6%] rounded-[52px] blur-2xl opacity-0 transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
-        style={{
-          background: `radial-gradient(circle at 50% 68%, ${palette.soft}, transparent 62%)`,
-          animation: "homeZoneBreath 3.8s ease-in-out infinite",
-        }}
-      />
-      <span className="absolute inset-[10%] rounded-[42px] bg-[radial-gradient(circle_at_50%_62%,rgba(255,255,255,0.14),transparent_58%)] opacity-0 blur-xl transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100" />
-
-      {!landmarkDriven ? (
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[52%]">
-          <span className={cn("absolute left-1/2 top-[calc(100%+0.1rem)] h-8 w-14 -translate-x-1/2 rounded-full opacity-[0.76] blur-xl", palette.wash)} />
-          <span className="absolute left-1/2 top-[calc(100%+0.55rem)] h-3.5 w-10 -translate-x-1/2 rounded-full bg-black/36 blur-md" />
-          <span className="absolute left-1/2 top-[calc(100%-3.15rem)] h-[3.45rem] w-[3.45rem] -translate-x-1/2 md:top-[calc(100%-3.62rem)] md:h-[4rem] md:w-[4rem]">
-            <HomeVisualIcon icon={spot.icon} modeIcon={spot.modeIcon} />
-          </span>
-        </span>
-      ) : null}
-
-      <span
-        data-home-hotspot-label={spot.zoneId}
-        className={cn(
-          "absolute -translate-x-1/2 -translate-y-1/2",
-          "left-[calc(50%+var(--spot-label-dx-mobile))] top-[calc(50%+var(--spot-label-dy-mobile))] w-[var(--spot-plaque-width-mobile)]",
-          "md:left-[calc(50%+var(--spot-label-dx))] md:top-[calc(50%+var(--spot-label-dy))] md:w-[var(--spot-plaque-width)]",
-        )}
-      >
-        <span
-          className={cn(
-            "relative flex items-center justify-center gap-1.5 rounded-[14px] border text-center shadow-[0_14px_22px_rgba(0,0,0,0.24)] backdrop-blur-xl transition duration-200 group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5 md:rounded-[16px]",
-            landmarkDriven ? "px-2 py-1.5 md:px-2.5 md:py-1.5 bg-[linear-gradient(180deg,rgba(10,14,21,0.66),rgba(7,10,16,0.9))]" : "px-2.5 py-1.5 md:px-3 md:py-1.5 bg-[linear-gradient(180deg,rgba(10,14,21,0.74),rgba(7,10,16,0.96))]",
-            palette.ring,
-          )}
-        >
-          <span className="absolute inset-x-[18%] top-0 h-[38%] rounded-full bg-white/10 opacity-60 blur-sm" />
-          <span className={cn("absolute left-1.5 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-gradient-to-b md:h-7", palette.wash)} />
-          <span className="relative min-w-0 pl-2">
-            <span className="hidden truncate text-[7px] font-black uppercase tracking-[0.22em] text-white/30 md:block">{spot.sublabel}</span>
-            <span className={cn("block truncate text-[9px] font-black uppercase tracking-[0.16em] drop-shadow-[0_2px_8px_rgba(255,255,255,0.16)] md:text-[11px]", palette.text)}>
-              {spot.label}
-            </span>
-          </span>
-
-          {spot.badge !== undefined ? (
-            <span className="relative z-[1] grid min-h-[1.2rem] min-w-[1.2rem] shrink-0 place-items-center rounded-full border border-[#240d10] bg-[linear-gradient(180deg,#ff8b7d,#f14a55)] px-1 text-[8px] font-black text-white shadow-[0_0_18px_rgba(255,104,112,0.56)] md:min-h-[1.35rem] md:min-w-[1.35rem] md:text-[9px]">
-              {spot.badge}
-            </span>
-          ) : null}
-        </span>
-      </span>
-    </Link>
   );
 }
