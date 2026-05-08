@@ -10,11 +10,11 @@ import { DAILY_LOGIN } from "@/data/dailyLogin";
 import { ROADMAP, type RoadmapStep } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
-import { STARTER_LEADER_ID } from "@/data/leaders";
 import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
-import { DEFAULT_LOCALE, isLocaleCode, type LocaleCode } from "@/lib/i18n/locales";
-import { defaultFortress, defaultInitial, freshStarterDeck, todayISO, todayYMD } from "@/lib/defaultGameState";
+import type { LocaleCode } from "@/lib/i18n/locales";
+import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
+import { mergePersistedGameState } from "@/lib/persistedGameState";
 import {
   firstVisibleRoadmapStep,
   getDailyLoginClaimState,
@@ -24,21 +24,17 @@ import {
   isRoadmapRewardClaimable,
   localDayKey,
 } from "@/lib/rewardVisibility";
-import { createDefaultFrontlineLoadout } from "@/features/frontline/engine";
 import {
   FRONTLINE_CARD_MAX_LEVEL,
   frontlineCardUpgradeCost,
   isFrontlineCardUnlocked,
   isFrontlineProgressionCard,
   normalizeFrontlineCardLevel,
-  sanitizeFrontlineCardUnlocks,
-  sanitizeFrontlineCardLevels,
   type FrontlineCardLevels,
   type FrontlineCardUnlocks,
 } from "@/features/frontline/cardProgression";
 import {
   FRONTLINE_FORTRESS_BUILDING_BY_ID,
-  createDefaultFrontlineFortress,
   frontlineFortressRaidReady,
   frontlineFortressUpgradeCost,
   resolveFrontlineFortressRaid,
@@ -972,97 +968,8 @@ export const useGameStore = create<GameState & GameActions>()(
       onRehydrateStorage: () => (state) => {
         state?.hydrate();
       },
-      // Merge persisted data on top of defaults so new fields (dailyLogin,
-      // roadmapClaimed, etc.) appear automatically on upgrade without wiping.
-      merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<GameState>;
-        const mergedDeck = (p.activeDeck ?? current.activeDeck ?? freshStarterDeck())
-          .slice(0, DECK_SIZE)
-          .map((id) => (id && CARD_BY_ID[id] ? id : null));
-        const frontlineCardUnlocks = sanitizeFrontlineCardUnlocks(
-          p.frontlineCardUnlocks ?? current.frontlineCardUnlocks ?? {},
-        );
-        for (const cardId of p.frontlineLoadout?.deck ?? []) {
-          if (typeof cardId === "string" && isFrontlineProgressionCard(cardId)) {
-            frontlineCardUnlocks[cardId] = true;
-          }
-        }
-        return {
-          ...current,
-          ...p,
-          resources: {
-            ...(current.resources ?? defaultInitial().resources),
-            ...(p.resources ?? {}),
-            adventureKeys: p.resources?.adventureKeys ?? current.resources?.adventureKeys ?? 0,
-          },
-          dailyLogin: p.dailyLogin ?? current.dailyLogin ?? { streak: 0, lastClaim: null },
-          roadmapClaimed: p.roadmapClaimed ?? current.roadmapClaimed ?? {},
-          milestonesClaimed: p.milestonesClaimed ?? current.milestonesClaimed ?? {},
-          adventureMapClaims: p.adventureMapClaims ?? current.adventureMapClaims ?? {},
-          activeDeck: mergedDeck,
-          activeLeaderId: p.activeLeaderId ?? current.activeLeaderId ?? STARTER_LEADER_ID,
-          knownSpellIds: (p.knownSpellIds ?? current.knownSpellIds ?? []).filter((id) => !!CARD_BY_ID[id]),
-          fortress: {
-            ...(current.fortress ?? defaultFortress()),
-            ...(p.fortress ?? {}),
-            buildings: {
-              ...defaultFortress().buildings,
-              ...(current.fortress?.buildings ?? {}),
-              ...(p.fortress?.buildings ?? {}),
-            },
-          },
-          frontlineLoadout: {
-            ...(current.frontlineLoadout ?? createDefaultFrontlineLoadout()),
-            ...(p.frontlineLoadout ?? {}),
-            squad: (
-              p.frontlineLoadout?.squad ??
-              current.frontlineLoadout?.squad ??
-              createDefaultFrontlineLoadout().squad
-            ).slice(0, 3) as FrontlineLoadout["squad"],
-            deck: (
-              p.frontlineLoadout?.deck ??
-              current.frontlineLoadout?.deck ??
-              createDefaultFrontlineLoadout().deck
-            )
-              .filter((id): id is string => typeof id === "string")
-              .slice(0, DECK_SIZE),
-          },
-          frontlineCardUnlocks,
-          frontlineCardLevels: sanitizeFrontlineCardLevels(p.frontlineCardLevels ?? current.frontlineCardLevels ?? {}),
-          frontlineFortress: {
-            ...(current.frontlineFortress ?? createDefaultFrontlineFortress()),
-            ...(p.frontlineFortress ?? {}),
-            buildings: {
-              ...createDefaultFrontlineFortress().buildings,
-              ...(current.frontlineFortress?.buildings ?? {}),
-              ...(p.frontlineFortress?.buildings ?? {}),
-            },
-            garrison: (
-              p.frontlineFortress?.garrison ??
-              current.frontlineFortress?.garrison ??
-              createDefaultFrontlineFortress().garrison
-            ).slice(0, 3) as FrontlineFortressState["garrison"],
-          },
-          eventCompletions: p.eventCompletions ?? current.eventCompletions ?? {},
-          dailyShopPurchases: p.dailyShopPurchases ?? current.dailyShopPurchases ?? {},
-          shopRefreshedAt: p.shopRefreshedAt ?? current.shopRefreshedAt ?? null,
-          audioMuted: typeof p.audioMuted === "boolean" ? p.audioMuted : current.audioMuted ?? false,
-          musicVolume: typeof p.musicVolume === "number" ? p.musicVolume : current.musicVolume ?? 0.78,
-          sfxVolume: typeof p.sfxVolume === "number" ? p.sfxVolume : current.sfxVolume ?? 0.92,
-          language: typeof p.language === "string" && isLocaleCode(p.language) ? p.language : current.language ?? DEFAULT_LOCALE,
-          reducedMotion: typeof p.reducedMotion === "boolean" ? p.reducedMotion : current.reducedMotion ?? false,
-          visualEffects: typeof p.visualEffects === "boolean" ? p.visualEffects : current.visualEffects ?? true,
-          textScale: p.textScale === "large" ? "large" : current.textScale ?? "normal",
-          onboarding: p.onboarding ?? current.onboarding ?? { step: 0, completed: false },
-          pendingUnlockLevel: p.pendingUnlockLevel ?? current.pendingUnlockLevel ?? null,
-          arenaTicketsRefreshedAt: p.arenaTicketsRefreshedAt ?? current.arenaTicketsRefreshedAt ?? null,
-          // Migrate heroes to include skillLevel if missing
-          heroes: ((p.heroes ?? current.heroes) as PlayerHero[]).map((h) => ({
-            ...h,
-            skillLevel: h.skillLevel ?? 1,
-          })),
-        };
-      },
+      // Merge persisted data on top of defaults so new fields appear automatically on upgrade without wiping.
+      merge: mergePersistedGameState,
       version: 5,
     },
   ),
