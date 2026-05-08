@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.89] - 2026-05-08
+
+### Changed
+- Extraido `BossColossusOverlay` a `components/game/frontline/FrontlineBossColossusOverlay.tsx`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando el overlay visual de boss.
+- Mantenidas intactas las reglas del engine, presets de boss, cartas, command economy, rewards, SFX, audio y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.88] - 2026-05-08
 
 ### Changed
