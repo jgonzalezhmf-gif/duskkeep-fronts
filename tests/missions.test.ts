@@ -1,7 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { getMissionResetAt, missionNeedsReset } from "@/lib/missionProgress";
+import {
+  applyMissionMetricProgress,
+  claimMissionProgress,
+  ensureMissionProgress,
+  getMissionResetAt,
+  missionNeedsReset,
+} from "@/lib/missionProgress";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
-import type { MissionProgress } from "@/lib/types";
+import type { Mission, MissionProgress } from "@/lib/types";
+
+const missions: Mission[] = [
+  {
+    id: "daily-battle",
+    kind: "daily",
+    name: "Win Battles",
+    description: "Win battles.",
+    goal: 3,
+    metric: "battles_won",
+    rewards: { gold: 100 },
+  },
+  {
+    id: "weekly-arena",
+    kind: "weekly",
+    name: "Arena Drill",
+    description: "Play arena.",
+    goal: 2,
+    metric: "arena_battles",
+    rewards: { gems: 10 },
+  },
+];
 
 describe("mission reset helpers", () => {
   it("computes daily reset at next local midnight", () => {
@@ -43,6 +70,69 @@ describe("mission reset helpers", () => {
     };
 
     expect(missionNeedsReset(active, now)).toBe(false);
+  });
+
+  it("initializes missing or expired mission progress", () => {
+    const now = new Date(2026, 3, 22, 12, 0, 0);
+
+    expect(ensureMissionProgress({}, missions, now)).toMatchObject({
+      "daily-battle": {
+        progress: 0,
+        claimed: false,
+      },
+      "weekly-arena": {
+        progress: 0,
+        claimed: false,
+      },
+    });
+  });
+
+  it("applies progress only to matching unclaimed missions and caps at the goal", () => {
+    const now = new Date(2026, 3, 22, 12, 0, 0);
+    const resetAt = new Date(2026, 3, 23, 0, 0, 0).toISOString();
+
+    expect(
+      applyMissionMetricProgress(
+        {
+          "daily-battle": { progress: 2, claimed: false, resetAt },
+          "weekly-arena": { progress: 1, claimed: false, resetAt },
+        },
+        missions,
+        "battles_won",
+        5,
+        now,
+      ),
+    ).toMatchObject({
+      "daily-battle": { progress: 3, claimed: false, resetAt },
+      "weekly-arena": { progress: 1, claimed: false, resetAt },
+    });
+  });
+
+  it("claims a completed mission and returns its rewards", () => {
+    const resetAt = new Date(2026, 3, 23, 0, 0, 0).toISOString();
+
+    expect(
+      claimMissionProgress(
+        {
+          "daily-battle": { progress: 3, claimed: false, resetAt },
+        },
+        missions,
+        "daily-battle",
+      ),
+    ).toEqual({
+      missionsProgress: {
+        "daily-battle": { progress: 3, claimed: true, resetAt },
+      },
+      rewards: { gold: 100 },
+      source: "mission Win Battles",
+    });
+  });
+
+  it("does not claim incomplete or already claimed missions", () => {
+    const resetAt = new Date(2026, 3, 23, 0, 0, 0).toISOString();
+
+    expect(claimMissionProgress({ "daily-battle": { progress: 2, claimed: false, resetAt } }, missions, "daily-battle")).toBeNull();
+    expect(claimMissionProgress({ "daily-battle": { progress: 3, claimed: true, resetAt } }, missions, "daily-battle")).toBeNull();
   });
 });
 

@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.134] - 2026-05-08
+
+### Changed
+- Ampliada `lib/missionProgress.ts` para centralizar inicializacion, progreso por metrica y claim de misiones.
+- Reducida la responsabilidad de `lib/store.ts` separando la politica de reset/progreso/claim de misiones.
+
+### Added
+- Tests de misiones para inicializacion, progreso con cap de objetivo, claim valido y rechazo de claims incompletos o ya reclamados.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.133] - 2026-05-08
 
 ### Changed

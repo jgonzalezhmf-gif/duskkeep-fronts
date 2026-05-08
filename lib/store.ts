@@ -21,7 +21,7 @@ import {
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import { applyHeroLevelUp, applyHeroSkillUp, applyHeroStarUp } from "@/lib/heroUpgrades";
-import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
+import { applyMissionMetricProgress, claimMissionProgress, ensureMissionProgress } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
@@ -649,16 +649,11 @@ export const useGameStore = create<GameState & GameActions>()(
 
       claimMission: (missionId) => {
         get().ensureMissionsInitialized();
-        const s = get();
-        const m = ALL_MISSIONS.find((x) => x.id === missionId);
-        if (!m) return null;
-        const p = s.missionsProgress[missionId];
-        if (!p || p.claimed || p.progress < m.goal) return null;
-        set((st) => ({
-          missionsProgress: { ...st.missionsProgress, [missionId]: { ...p, claimed: true } },
-        }));
-        get().awardRewards(m.rewards, `mission ${m.name}`);
-        return m.rewards;
+        const result = claimMissionProgress(get().missionsProgress, ALL_MISSIONS, missionId);
+        if (!result) return null;
+        set({ missionsProgress: result.missionsProgress });
+        get().awardRewards(result.rewards, result.source);
+        return result.rewards;
       },
 
       purchaseOffer: (offerId) => {
@@ -693,18 +688,8 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       ensureMissionsInitialized: () => {
-        const s = get();
-        const now = new Date();
-        const updates: Record<string, MissionProgress> = {};
-        let changed = false;
-        for (const m of ALL_MISSIONS) {
-          const current = s.missionsProgress[m.id];
-          if (missionNeedsReset(current, now)) {
-            updates[m.id] = freshMissionProgress(m, now);
-            changed = true;
-          }
-        }
-        if (changed) set((st) => ({ missionsProgress: { ...st.missionsProgress, ...updates } }));
+        const missionsProgress = ensureMissionProgress(get().missionsProgress, ALL_MISSIONS);
+        if (missionsProgress) set({ missionsProgress });
       },
 
       saveBattle: (levelId, state) => {
@@ -796,20 +781,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
       },
 
-
       updateMissionProgress: (metric, delta) => {
-        get().ensureMissionsInitialized();
-        const s = get();
-        const now = new Date();
-        const updates: Record<string, MissionProgress> = {};
-        for (const m of ALL_MISSIONS) {
-          if (m.metric !== metric) continue;
-          const p = s.missionsProgress[m.id] ?? freshMissionProgress(m, now);
-          if (p.claimed) continue;
-          updates[m.id] = { ...p, progress: Math.min(m.goal, p.progress + delta) };
-        }
-        if (Object.keys(updates).length)
-          set((st) => ({ missionsProgress: { ...st.missionsProgress, ...updates } }));
+        const missionsProgress = applyMissionMetricProgress(get().missionsProgress, ALL_MISSIONS, metric, delta);
+        if (missionsProgress) set({ missionsProgress });
       },
     }),
     {
