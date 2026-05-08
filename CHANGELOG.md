@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.154] - 2026-05-08
+
+### Changed
+- Extraidas reglas auxiliares de cartas a `features/frontline/frontlineCardRules.ts`.
+- Mantenidos los exports publicos desde `features/frontline/engine.ts` para preservar compatibilidad con preview y UI.
+- Reducido `features/frontline/engine.ts` sin cambiar costes, targets validos, cartas jugables ni consumo de cartas.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.153] - 2026-05-08
 
 ### Changed
