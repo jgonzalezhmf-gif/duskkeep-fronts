@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.82] - 2026-05-08
+
+### Changed
+- Extraido `EncounterBanner` y su metadata a `components/game/frontline/FrontlineEncounterBanner.tsx`.
+- Movido el tipo `FrontlineEncounterBadgeKind` al nuevo modulo y re-exportado desde `FrontlineBattle` para conservar compatibilidad.
+- Mantenidas intactas las reglas del engine, cartas, command economy, rewards, SFX, audio y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.81] - 2026-05-08
 
 ### Changed
