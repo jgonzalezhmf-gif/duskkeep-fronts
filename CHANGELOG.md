@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.126] - 2026-05-08
+
+### Changed
+- Extraida la progresion de XP de cuenta a `lib/accountProgression.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando calculo de nivel, XP sobrante y `pendingUnlockLevel`.
+
+### Added
+- Tests de progresion de cuenta para no-reward, suma simple, level-up y preservacion del mayor unlock pendiente.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.125] - 2026-05-08
 
 ### Changed

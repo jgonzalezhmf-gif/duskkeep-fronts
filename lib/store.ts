@@ -12,6 +12,7 @@ import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
 import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import type { LocaleCode } from "@/lib/i18n/locales";
+import { applyAccountXpReward } from "@/lib/accountProgression";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
@@ -57,7 +58,6 @@ import {
 } from "@/features/adventure/nodeResolution";
 import { isAdventureLevelUnlocked } from "@/features/adventure/progression";
 import {
-  ACCOUNT_XP_PER_LEVEL,
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
   LEVEL_UP_GOLD,
@@ -499,17 +499,11 @@ export const useGameStore = create<GameState & GameActions>()(
           const next: Partial<GameState> = {};
           next.resources = applyRewardResources(s.resources, r);
 
-          if (r.accountXp) {
-            let xp = s.account.xp + r.accountXp;
-            let lvl = s.account.level;
-            while (xp >= ACCOUNT_XP_PER_LEVEL * lvl) {
-              xp -= ACCOUNT_XP_PER_LEVEL * lvl;
-              lvl += 1;
-            }
-            next.account = { ...s.account, xp, level: lvl };
-            if (lvl > s.account.level) {
-              // Remember the highest unacknowledged level so the LevelUpModal can fire once.
-              next.pendingUnlockLevel = Math.max(s.pendingUnlockLevel ?? 0, lvl);
+          const accountProgression = applyAccountXpReward(s.account, r.accountXp, s.pendingUnlockLevel);
+          if (accountProgression) {
+            next.account = accountProgression.account;
+            if (typeof accountProgression.pendingUnlockLevel === "number") {
+              next.pendingUnlockLevel = accountProgression.pendingUnlockLevel;
             }
           }
 
