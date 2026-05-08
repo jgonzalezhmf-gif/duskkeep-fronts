@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.180] - 2026-05-09
+
+### Changed
+- Extraidas las queries tacticas puras a `features/tactical/queries.ts`.
+- Mantenidos reexports desde `features/tactical/engine.ts` para preservar imports existentes.
+- Reducido `features/tactical/engine.ts` por debajo de 500 lineas sin cambiar movimiento, ataques, habilidades, IA ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.179] - 2026-05-09
 
 ### Changed
