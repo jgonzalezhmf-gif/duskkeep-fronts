@@ -46,6 +46,7 @@ import {
   livingAllyWithTrait,
   ralliedAllyCount,
 } from "./frontlineCombatantRules";
+import { addShield, dealHeroDamage, dealSupportDamage, healHero } from "./frontlineHealthRules";
 
 export { getEffectiveCardCost, getFrontlineCard, playableCards, validCardTargets } from "./frontlineCardRules";
 export { frontPresenceScore } from "./frontlineCombatantRules";
@@ -57,37 +58,6 @@ const BREACH_DAMAGE: Record<FrontlineLane, number> = { left: 2, center: 3, right
 
 function battleResolved(state: FrontlineBattleState) {
   return state.allyCoreHp <= 0 || state.enemyCoreHp <= 0 || Boolean(state.winner);
-}
-
-function dealHeroDamage(hero: FrontlineHeroState, amount: number) {
-  let remaining = amount;
-  if (hero.shield > 0) {
-    const absorbed = Math.min(hero.shield, remaining);
-    hero.shield -= absorbed;
-    remaining -= absorbed;
-  }
-  if (remaining <= 0) return 0;
-  hero.hp = Math.max(0, hero.hp - remaining);
-  hero.alive = hero.hp > 0;
-  return remaining;
-}
-
-function dealSupportDamage(support: FrontlineSupportState, amount: number) {
-  support.hp = Math.max(0, support.hp - amount);
-  return amount;
-}
-
-function addShield(hero: FrontlineHeroState, amount: number, temporary = false) {
-  hero.shield += amount;
-  if (temporary) hero.tempShield += amount;
-}
-
-function healHero(hero: FrontlineHeroState, amount: number) {
-  if (!hero.alive) return 0;
-  const next = Math.min(hero.maxHp, hero.hp + amount);
-  const healed = next - hero.hp;
-  hero.hp = next;
-  return healed;
 }
 
 function applyDirectDamage(
