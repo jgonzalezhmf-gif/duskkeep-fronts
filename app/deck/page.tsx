@@ -5,29 +5,23 @@ import SceneBackdrop from "@/components/game/screens/SceneBackdrop";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
-import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
+import { FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
 import {
   FRONTLINE_CARD_BY_ID,
-  FRONTLINE_CARD_POOL,
   FRONTLINE_HEROES,
   FRONTLINE_LEADERS,
 } from "@/features/frontline/data";
 import {
-  FRONTLINE_CARD_MAX_LEVEL,
   createFrontlineCardProfileMap,
-  frontlineCardUpgradeCost,
-  getFrontlineCardLevel,
-  isFrontlineCardUnlocked,
 } from "@/features/frontline/cardProgression";
-import { getFrontlineCardUnlockSource } from "@/features/frontline/cardUnlockSources";
 import { getFrontlineHeroProfileById } from "@/features/frontline/heroProfile";
-import { cn } from "@/lib/cn";
 import { frontlineLeaderName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
+import { DeckCardPoolSection } from "./DeckCardPoolSection";
 import { HeroRosterButton } from "./DeckHeroRosterButton";
 import { LeaderDoctrinePanel } from "./DeckLeaderDoctrinePanel";
-import { BuildPill, CardUpgradeBar, Metric, Panel, SelectedPackageRow } from "./DeckPrimitives";
+import { BuildPill, Metric, Panel, SelectedPackageRow } from "./DeckPrimitives";
 import { buildPlan } from "./deckPageHelpers";
 
 export default function DeckPage() {
@@ -43,13 +37,7 @@ export default function DeckPage() {
   const upgradeFrontlineCard = useGameStore((state) => state.upgradeFrontlineCard);
 
   const selectedDeck = loadout.deck.filter(Boolean) as string[];
-  const selectedDeckSet = new Set(selectedDeck);
   const cardProfiles = useMemo(() => createFrontlineCardProfileMap(frontlineCardLevels), [frontlineCardLevels]);
-  const orderedCardPool = [
-    ...FRONTLINE_CARD_POOL.filter((cardId) => selectedDeckSet.has(cardId)),
-    ...FRONTLINE_CARD_POOL.filter((cardId) => !selectedDeckSet.has(cardId) && isFrontlineCardUnlocked(frontlineCardUnlocks, cardId)),
-    ...FRONTLINE_CARD_POOL.filter((cardId) => !selectedDeckSet.has(cardId) && !isFrontlineCardUnlocked(frontlineCardUnlocks, cardId)),
-  ];
   const playerHeroById = useMemo(() => new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)), [playerHeroes]);
   const squadHeroes = loadout.squad.map((id) => (id ? getFrontlineHeroProfileById(id, playerHeroById.get(id)) : null));
   const leader = FRONTLINE_LEADERS.find((entry) => entry.id === loadout.leaderId) ?? FRONTLINE_LEADERS[0];
@@ -133,64 +121,16 @@ export default function DeckPage() {
       </section>
 
       <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(8,10,16,0.92))] p-3 shadow-[0_22px_48px_rgba(0,0,0,0.26)] md:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("deckScreen.pool.eyebrow")}</div>
-            <div className="mt-1 text-sm text-white/62">{t("deckScreen.pool.copy")}</div>
-          </div>
-          <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/62">
-            {t("deckScreen.pool.selected", { count: selectedDeck.length })}
-          </div>
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-2.5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {orderedCardPool.map((cardId) => {
-            const card = cardProfiles[cardId] ?? FRONTLINE_CARD_BY_ID[cardId];
-            const unlocked = isFrontlineCardUnlocked(frontlineCardUnlocks, card.id);
-            const active = selectedDeckSet.has(card.id);
-            const level = getFrontlineCardLevel(frontlineCardLevels, card.id);
-            const cost = frontlineCardUpgradeCost(level);
-            const canUpgrade = unlocked && level < FRONTLINE_CARD_MAX_LEVEL && resources.gold >= cost.gold && resources.dust >= cost.dust;
-            const unlockSource = getFrontlineCardUnlockSource(card.id);
-            const unlockHint = unlockSource
-              ? t("deckScreen.cardUpgrade.unlockAt", { chapter: unlockSource.chapter, index: unlockSource.index })
-              : t("deckScreen.cardUpgrade.unlockHint");
-            return (
-              <div
-                key={card.id}
-                className={cn(
-                  "rounded-[26px] border border-white/10 bg-black/18 p-2",
-                  !unlocked && "border-white/8 bg-black/22 opacity-82 grayscale-[0.08]",
-                  unlocked && !active && selectedDeck.length >= 8 && "opacity-70",
-                )}
-              >
-                <button
-                  onClick={() => {
-                    if (unlocked) toggleDeckCard(card.id);
-                  }}
-                  disabled={!unlocked}
-                  className="frontline-motion-action w-full rounded-[24px] text-left transition"
-                >
-                  <FrontlineCardView
-                    card={card}
-                    selected={active}
-                    disabled={!unlocked || (!active && selectedDeck.length >= 8)}
-                    status={active ? t("deckScreen.package.inPackage") : unlocked ? t("deckScreen.package.tapToAdd") : t("deckScreen.package.locked")}
-                  />
-                </button>
-                <CardUpgradeBar
-                  level={level}
-                  cost={cost}
-                  unlocked={unlocked}
-                  unlockHint={unlockHint}
-                  canUpgrade={canUpgrade}
-                  t={t}
-                  onUpgrade={() => upgradeFrontlineCard(card.id)}
-                />
-              </div>
-            );
-          })}
-        </div>
+        <DeckCardPoolSection
+          selectedDeck={selectedDeck}
+          cardProfiles={cardProfiles}
+          frontlineCardUnlocks={frontlineCardUnlocks}
+          frontlineCardLevels={frontlineCardLevels}
+          resources={resources}
+          onToggleCard={toggleDeckCard}
+          onUpgradeCard={upgradeFrontlineCard}
+          t={t}
+        />
 
         <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
           {FRONTLINE_HEROES.map((hero) => {
