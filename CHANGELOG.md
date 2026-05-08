@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.98] - 2026-05-08
+
+### Changed
+- Extraido `ResolutionFloat` a `components/game/frontline/FrontlineResolutionFloat.tsx`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando el render visual de eventos flotantes de resolucion.
+- Mantenidas intactas las reglas del engine, resolucion de eventos, SFX, audio, rewards y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.97] - 2026-05-08
 
 ### Changed

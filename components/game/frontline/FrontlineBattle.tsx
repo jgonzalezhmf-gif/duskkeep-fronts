@@ -78,6 +78,7 @@ import { HeroFxBadge } from "./FrontlineHeroFxBadge";
 import { LaneActionTrail, type FrontlineVisualFxTone } from "./FrontlineLaneActionTrail";
 import { LaneKoFx } from "./FrontlineLaneKoFx";
 import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
+import { ResolutionFloat, type ResolutionFloatItem } from "./FrontlineResolutionFloat";
 import { SupportToken } from "./FrontlineSupportToken";
 import { SynergyGlobalToast, SynergyProcBadge } from "./FrontlineSynergyFeedback";
 import { TraitProcBadge } from "./FrontlineTraitProcBadge";
@@ -598,6 +599,15 @@ function eventFloatClass(event: FrontlineEvent) {
   return event.side === "ally"
     ? "top-[25%] bg-[#ff6f7d] text-white shadow-[0_0_24px_rgba(240,95,114,0.38)]"
     : "top-[70%] bg-[#ff6f7d] text-white shadow-[0_0_24px_rgba(240,95,114,0.38)]";
+}
+
+function toResolutionFloatItems(events: FrontlineEvent[]): ResolutionFloatItem[] {
+  return events.slice(0, 5).map((event) => ({
+    id: event.id,
+    icon: combatIconForEvent(event),
+    label: eventFloatLabel(event),
+    className: eventFloatClass(event),
+  }));
 }
 
 function laneStatusMeta(t: TranslateFn, insight: LaneInsight) {
@@ -1504,7 +1514,7 @@ function FrontlineBattleInner({
                     tone={activeLaneEvent ? visualToneFromEvent(activeLaneEvent) : null}
                     icon={activeLaneEvent ? combatIconForEvent(activeLaneEvent) : null}
                   />
-                  <ResolutionFloat events={laneFx} />
+                  <ResolutionFloat items={toResolutionFloatItems(laneFx)} />
                   <CardCastFx fx={laneCardFx} />
                   <DeathGhost ghost={laneDeathGhost} />
                   <LaneKoFx event={activeLaneEvent} targetSide={activeLaneEvent ? eventPrimaryTargetSide(activeLaneEvent) : null} />
@@ -1887,29 +1897,6 @@ function FrontlineHandCard({
         </div>
       ) : null}
     </button>
-  );
-}
-
-function ResolutionFloat({ events }: { events: FrontlineEvent[] }) {
-  if (!events.length) return null;
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[4]">
-      {events.slice(0, 5).map((event, index) => (
-        <div
-          key={`${event.id}-fx`}
-          className={cn(
-            "frontline-float-fx absolute left-1/2 rounded-full border border-white/20 px-4 py-2 text-[13px] font-black uppercase tracking-[0.14em]",
-            eventFloatClass(event),
-          )}
-          style={{ animationDelay: `${index * 90}ms` }}
-        >
-          <span className="inline-flex items-center gap-1.5">
-            <CombatIcon name={combatIconForEvent(event)} size="xs" fallbackClassName="opacity-90" />
-            <span>{eventFloatLabel(event)}</span>
-          </span>
-        </div>
-      ))}
-    </div>
   );
 }
 
