@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.53] - 2026-05-08
+
+### Changed
+- Extraidos elementos de rutas del mapa de Adventure a `components/game/adventure/AdventureMapRouteElements.tsx`.
+- Separadas rutas SVG, runas de ruta y handles QA de `AdventureMapElements.tsx`.
+- Mantenidos re-exports de compatibilidad sin tocar coordenadas, nodos, props, interacciones, gameplay, rewards ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.52] - 2026-05-08
 
 ### Changed
