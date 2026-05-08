@@ -45,6 +45,7 @@ import {
   buildBossSegmentByLane,
   getCoreShockChange,
   getDisplayBattleState,
+  getResolutionPlaybackEvents,
   getSelectedBattleContext,
   getSortedLaneInsights,
   getTargetableBattleLanes,
@@ -68,7 +69,6 @@ import {
   collectDeathGhosts,
   collectNewEvents,
   eventDuration,
-  isResolutionEvent,
   resolutionSequenceDuration,
   truncateAtWinner,
 } from "./FrontlineResolutionFlow";
@@ -270,7 +270,7 @@ function FrontlineBattleInner({
   }, [state.allyCoreHp, state.enemyCoreHp]);
 
   function showResolutionFx(events: FrontlineEvent[]) {
-    const meaningfulEvents = events.filter(isResolutionEvent).slice(0, 12);
+    const meaningfulEvents = getResolutionPlaybackEvents(events);
     if (!meaningfulEvents.length) return;
     fxIdRef.current += 1;
     setResolutionFx({ id: fxIdRef.current, events: meaningfulEvents, activeIndex: 0 });

@@ -13,6 +13,9 @@ import { frontlineCardName } from "@/lib/i18n/frontlineText";
 import type { FrontlineLane } from "@/lib/types";
 import { cardEffectSummary, cardTargetLabel, laneLabel } from "./FrontlineBattleUiState";
 import { analyzeLane, laneStatusSubtitle, type LaneInsight } from "./FrontlineLaneInsights";
+import { isResolutionEvent } from "./FrontlineResolutionFlow";
+
+export const MAX_RESOLUTION_PLAYBACK_EVENTS = 12;
 
 type ResolutionPlayback = {
   events: FrontlineEvent[];
@@ -45,6 +48,10 @@ export function getCoreShockChange(previous: CoreTotals, current: CoreTotals, ke
     amount: side === "ally" ? allyLoss : enemyLoss,
     key,
   };
+}
+
+export function getResolutionPlaybackEvents(events: FrontlineEvent[]) {
+  return events.filter(isResolutionEvent).slice(0, MAX_RESOLUTION_PLAYBACK_EVENTS);
 }
 
 export function buildBossSegmentByLane(boss: FrontlineBossConfig | null): Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> {

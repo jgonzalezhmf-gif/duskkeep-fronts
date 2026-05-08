@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { getCoreShockChange } from "@/components/game/frontline/FrontlineBattleDerivedState";
+import {
+  getCoreShockChange,
+  getResolutionPlaybackEvents,
+  MAX_RESOLUTION_PLAYBACK_EVENTS,
+} from "@/components/game/frontline/FrontlineBattleDerivedState";
+import type { FrontlineEvent, FrontlineEventKind } from "@/features/frontline/types";
+
+function event(kind: FrontlineEventKind, id: string): FrontlineEvent {
+  return { id, kind, label: id };
+}
 
 describe("frontline battle derived state", () => {
   it("returns null when neither core loses hp", () => {
@@ -28,5 +37,24 @@ describe("frontline battle derived state", () => {
       amount: 3,
       key: 4,
     });
+  });
+
+  it("keeps only resolution playback events", () => {
+    const events = [
+      event("card", "card-1"),
+      event("damage", "damage-1"),
+      event("round", "round-1"),
+      event("breach", "breach-1"),
+      event("boss_signature", "boss-1"),
+    ];
+
+    expect(getResolutionPlaybackEvents(events).map((entry) => entry.id)).toEqual(["damage-1", "breach-1"]);
+  });
+
+  it("caps resolution playback events", () => {
+    const events = Array.from({ length: MAX_RESOLUTION_PLAYBACK_EVENTS + 3 }, (_, index) => event("damage", `damage-${index}`));
+
+    expect(getResolutionPlaybackEvents(events)).toHaveLength(MAX_RESOLUTION_PLAYBACK_EVENTS);
+    expect(getResolutionPlaybackEvents(events).at(-1)?.id).toBe(`damage-${MAX_RESOLUTION_PLAYBACK_EVENTS - 1}`);
   });
 });
