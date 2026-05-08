@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.129] - 2026-05-08
+
+### Changed
+- Extraida la aplicacion de recompensas de cartas Frontline a `lib/frontlineCardRewards.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando desbloqueo de cartas y deteccion de nuevas cartas desbloqueadas.
+
+### Added
+- Tests de recompensas de cartas Frontline para rewards vacios, cartas de progresion, cartas desconocidas y deteccion de nuevos unlocks.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.128] - 2026-05-08
 
 ### Changed

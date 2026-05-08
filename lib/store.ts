@@ -14,6 +14,7 @@ import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import type { LocaleCode } from "@/lib/i18n/locales";
 import { applyAccountXpReward } from "@/lib/accountProgression";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
+import { applyFrontlineCardRewards, getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import { applyHeroShardRewards } from "@/lib/heroShards";
 import { applyTeamXpReward } from "@/lib/heroXp";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
@@ -490,12 +491,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       awardRewards: (r, source) => {
-        const newlyUnlockedFrontlineCards =
-          r.frontlineCards?.filter(
-            (card) =>
-              isFrontlineProgressionCard(card.cardId) &&
-              !isFrontlineCardUnlocked(get().frontlineCardUnlocks, card.cardId),
-          ) ?? [];
+        const newlyUnlockedFrontlineCards = getNewlyUnlockedFrontlineCardRewards(get().frontlineCardUnlocks, r.frontlineCards);
 
         set((s) => {
           const next: Partial<GameState> = {};
@@ -519,13 +515,8 @@ export const useGameStore = create<GameState & GameActions>()(
             next.heroes = heroesWithXpReward;
           }
 
-          if (r.frontlineCards?.length) {
-            const frontlineCardUnlocks = { ...s.frontlineCardUnlocks };
-            for (const card of r.frontlineCards) {
-              if (isFrontlineProgressionCard(card.cardId)) {
-                frontlineCardUnlocks[card.cardId] = true;
-              }
-            }
+          const frontlineCardUnlocks = applyFrontlineCardRewards(s.frontlineCardUnlocks, r.frontlineCards);
+          if (frontlineCardUnlocks) {
             next.frontlineCardUnlocks = frontlineCardUnlocks;
           }
           return next;
