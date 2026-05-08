@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.188] - 2026-05-09
+
+### Changed
+- Extraido el CTA visual `FightCrystal` de HomeWorldMap a `components/game/home/HomeWorldMapWidgets.tsx`.
+- Reducido `components/game/HomeWorldMap.tsx` sin cambiar rutas, copy, SFX, estado Home, recursos ni editor QA.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.187] - 2026-05-09
 
 ### Changed

@@ -7,6 +7,7 @@ import { type HomeTone } from "@/components/game/home/types";
 import { ModeIcon, type ModeIconName } from "@/components/game/shared/ModeIcon";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/useI18n";
 
 export function CommanderBanner({
   level,
@@ -296,6 +297,38 @@ export function CornerAction({
       <div>
         <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/48">{label}</div>
         <div className={cn("mt-0.5 text-[11px] font-black", palette.text)}>{sublabel}</div>
+      </div>
+    </Link>
+  );
+}
+
+export function FightCrystal({ href }: { href: string }) {
+  const { t } = useI18n();
+
+  return (
+    <Link
+      href={href}
+      onMouseEnter={() => sfx.hover()}
+      onPointerDown={() => sfx.tap()}
+      className="group relative flex items-center gap-3 rounded-[28px] border border-[#f0c75a]/34 bg-[linear-gradient(180deg,rgba(45,23,16,0.84),rgba(10,11,18,0.98))] px-4 py-3.5 shadow-[0_26px_52px_rgba(0,0,0,0.34),0_0_34px_rgba(255,151,103,0.16)] backdrop-blur-xl transition hover:-translate-y-0.5 md:gap-4 md:rounded-[34px] md:px-6 md:py-4.5"
+    >
+      <span className="absolute -bottom-5 left-1/2 h-8 w-[76%] -translate-x-1/2 rounded-[999px] bg-[radial-gradient(circle_at_50%_50%,rgba(14,19,30,0.62),transparent_70%)] blur-2xl" />
+      <span className="absolute inset-x-[18%] -bottom-2 h-5 rounded-[0_0_20px_20px] border border-[#f0c75a]/16 border-t-0 bg-[linear-gradient(180deg,rgba(36,22,16,0.92),rgba(11,12,18,0.98))]" />
+      <span className="absolute left-[18%] bottom-1 h-6 w-10 rounded-[14px_14px_8px_8px] border border-[#f0c75a]/16 bg-[linear-gradient(180deg,rgba(18,21,31,0.92),rgba(8,10,16,0.98))] opacity-70" />
+      <span className="absolute right-[18%] bottom-1 h-6 w-10 rounded-[14px_14px_8px_8px] border border-[#f0c75a]/16 bg-[linear-gradient(180deg,rgba(18,21,31,0.92),rgba(8,10,16,0.98))] opacity-70" />
+      <span className="absolute inset-x-[14%] top-0 h-[48%] rounded-full bg-white/10 blur-lg opacity-80" />
+      <span className="absolute inset-x-[24%] top-[0.55rem] h-px bg-[linear-gradient(90deg,transparent,rgba(255,233,187,0.68),transparent)] opacity-76" />
+      <span className="relative flex h-16 w-16 items-end justify-center md:h-[4.9rem] md:w-[4.9rem]">
+        <span className="absolute inset-[-12%] rounded-full bg-[radial-gradient(circle_at_50%_30%,rgba(255,216,122,0.64),rgba(255,126,103,0.2)_58%,transparent_78%)] blur-2xl" />
+        <span className="absolute bottom-1 h-4 w-11 rounded-full bg-black/34 blur-md" />
+        <span className="relative z-10 h-[3.55rem] w-[3.55rem] transition group-hover:scale-[1.08] md:h-[4.2rem] md:w-[4.2rem]">
+          <ModeIcon name="campaign" size="xl" className="h-full w-full" />
+        </span>
+      </span>
+      <div className="relative z-[1]">
+        <div className="text-[9px] font-black uppercase tracking-[0.22em] text-[#ffdca1] md:text-[10px] md:tracking-[0.22em]">{t("home.mainQuest")}</div>
+        <div className="text-[1.15rem] font-black text-white md:text-[1.5rem]">{t("home.adventureFight")}</div>
+        <div className="mt-0.5 text-[10px] font-black uppercase tracking-[0.18em] text-white/54">{t("home.pushFrontier")}</div>
       </div>
     </Link>
   );
