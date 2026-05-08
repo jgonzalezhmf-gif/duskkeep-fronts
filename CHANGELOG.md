@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.175] - 2026-05-09
+
+### Changed
+- Movido `UnitStandee` y sus mapas visuales a `components/game/tactical/TacticalBoardPrimitives.tsx`.
+- Reducido `components/game/TacticalBoard.tsx` por debajo de 500 lineas.
+- Preservada la UI tactica existente sin cambiar seleccion, movimiento, ataques, habilidades ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.174] - 2026-05-09
 
 ### Changed

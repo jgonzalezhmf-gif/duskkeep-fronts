@@ -1,7 +1,27 @@
+import ArtPortrait from "@/components/ui/ArtPortrait";
 import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
+import type { TacticalUnit } from "@/features/tactical/types";
+import { getUnitPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
 
 export type TacticalFloaterKind = "hit" | "heal" | "shield" | "buff" | "summon" | "ability" | "death";
+
+const roleGlyph: Record<string, GlyphKind> = {
+  leader: "battle",
+  tank: "shield",
+  fighter: "attack",
+  archer: "attack",
+  mage: "skill",
+  support: "heal",
+  summoner: "power",
+};
+
+const rarityAccent: Record<string, string> = {
+  common: "from-white/70 to-white/0",
+  rare: "from-sky-300/88 to-sky-300/0",
+  epic: "from-fuchsia-300/88 to-fuchsia-300/0",
+  legendary: "from-amber-300/88 to-amber-300/0",
+};
 
 export function StatGem({
   kind,
@@ -85,6 +105,121 @@ export function FloatingText({
     >
       {label ? <div className="text-[9px] uppercase tracking-[0.16em] text-white/78">{label}</div> : null}
       <div className={cn("text-sm", (kind === "summon" || kind === "death") && "text-base")}>{text}</div>
+    </div>
+  );
+}
+
+export function UnitStandee({
+  unit,
+  selected,
+  active,
+}: {
+  unit: TacticalUnit;
+  selected?: boolean;
+  active?: boolean;
+}) {
+  const hpPct = Math.max(0, Math.min(1, unit.hp / unit.maxHp));
+  const portrait = getUnitPortrait(unit.heroId);
+  const fallbackGlyph = roleGlyph[unit.role] ?? "skill";
+  const ribbonTone =
+    unit.side === "ally"
+      ? "border-sky-200/22 bg-sky-400/16 text-sky-50"
+      : "border-rose-200/22 bg-rose-400/16 text-rose-50";
+  const frameTone =
+    unit.side === "ally"
+      ? "border-sky-100/30 shadow-[0_10px_22px_rgba(42,139,224,0.18)]"
+      : "border-rose-100/30 shadow-[0_10px_22px_rgba(211,63,56,0.18)]";
+  const plateTone =
+    unit.side === "ally"
+      ? "border-sky-200/26 bg-[linear-gradient(180deg,rgba(94,176,255,0.28),rgba(18,31,51,0.54)_40%,rgba(8,10,16,0.98))]"
+      : "border-rose-200/26 bg-[linear-gradient(180deg,rgba(255,132,132,0.28),rgba(58,22,31,0.54)_40%,rgba(8,10,16,0.98))]";
+  const glowTone = unit.side === "ally" ? "bg-sky-300/22" : "bg-rose-300/22";
+  const statusTone =
+    unit.buffs.stun > 0
+      ? "border-amber-300/26 bg-amber-400/14 text-amber-50"
+      : active
+        ? "border-emerald-300/24 bg-emerald-400/12 text-emerald-50"
+        : "border-white/10 bg-white/6 text-white/62";
+  const statusLabel = unit.buffs.stun > 0 ? "Stun" : active ? "Ready" : unit.hasActed ? "Spent" : unit.role;
+
+  return (
+    <div className="absolute inset-x-0 bottom-0 top-0 flex items-end justify-center">
+      <div className={cn("pointer-events-none absolute bottom-[8%] h-[24%] w-[88%] rounded-full blur-[28px]", glowTone)} />
+      <div className="pointer-events-none absolute inset-x-[4%] bottom-[1.5%] h-[18%] rounded-full bg-black/30 blur-md" />
+      <div className="relative h-full w-full">
+        <div
+          className={cn(
+            "absolute inset-x-[-5%] bottom-[5.5%] top-[-8%] overflow-hidden rounded-[30px] border bg-[linear-gradient(180deg,rgba(255,247,221,0.14),rgba(255,255,255,0.03)_24%,rgba(0,0,0,0.34)_100%)] transition",
+            frameTone,
+            selected && "ring-2 ring-[#f5c451]/28",
+          )}
+        >
+          <div className={cn("absolute inset-x-0 top-0 h-[13%] bg-gradient-to-b", rarityAccent[unit.rarity] ?? rarityAccent.common)} />
+          <div className="absolute inset-[4%] overflow-hidden rounded-[24px] bg-black/14">
+            <ArtPortrait
+              src={portrait}
+              alt={unit.name}
+              className="absolute inset-0"
+              imgClassName={cn(
+                "scale-[1.28] object-[center_10%] saturate-[1.1] contrast-[1.04]",
+                unit.side === "enemy" && "[transform:scaleX(-1)_scale(1.28)]",
+              )}
+              fallback={
+                <div className="grid h-full w-full place-items-center">
+                  <div className="grid h-[4.5rem] w-[4.5rem] place-items-center rounded-full border border-white/10 bg-black/24 p-3">
+                    <GameGlyph kind={fallbackGlyph} shell="none" />
+                  </div>
+                </div>
+              }
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_14%,rgba(255,255,255,0.18),transparent_24%),linear-gradient(180deg,transparent,rgba(8,10,16,0.12)_38%,rgba(8,10,16,0.88)_100%)]" />
+          </div>
+
+          <div className="absolute left-[4%] top-[5%]">
+            <StatGem kind="heart" value={`${unit.hp}`} tone={unit.side === "ally" ? "ally" : "enemy"} />
+          </div>
+          <div className="absolute right-[4%] top-[5%]">
+            {unit.buffs.shield > 0 ? (
+              <StatGem kind="shield" value={`${unit.buffs.shield}`} tone="shield" />
+            ) : (
+              <StatGem kind="attack" value={`${unit.atk}`} tone="gold" />
+            )}
+          </div>
+
+          <div className={cn("absolute top-[12%]", unit.side === "ally" ? "left-[-1%]" : "right-[-1%]")}>
+            <div className={cn("rounded-full border px-2.5 py-0.5 text-[7px] font-black uppercase tracking-[0.2em] shadow-[0_8px_14px_rgba(0,0,0,0.22)]", ribbonTone)}>
+              {unit.side === "ally" ? "Ally" : "Enemy"}
+            </div>
+          </div>
+
+          <div className="absolute inset-x-[2%] bottom-[4%]">
+            <div className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,14,22,0.56),rgba(8,10,16,0.9))] px-2.5 py-1.5 shadow-[0_14px_24px_rgba(0,0,0,0.24)]">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="truncate text-[8px] font-black uppercase tracking-[0.18em] text-white/42">{unit.role === "leader" ? "Core" : unit.role}</div>
+                  <div className="truncate text-[12px] font-black text-white">{unit.name}</div>
+                </div>
+                <div className={cn("rounded-full border px-2 py-0.5 text-[7px] font-black uppercase tracking-[0.18em]", statusTone)}>
+                  {statusLabel}
+                </div>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/40">
+                <div
+                  className={cn(
+                    "h-full rounded-full",
+                    hpPct > 0.5 ? "bg-emerald-400" : hpPct > 0.25 ? "bg-amber-300" : "bg-rose-400",
+                  )}
+                  style={{ width: `${hpPct * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={cn("absolute inset-x-[2%] bottom-[0.5%] h-[17%] rounded-full border shadow-[0_14px_24px_rgba(0,0,0,0.32)]", plateTone)}>
+          <div className="absolute inset-x-[10%] top-[18%] h-[30%] rounded-full bg-white/12" />
+        </div>
+      </div>
     </div>
   );
 }
