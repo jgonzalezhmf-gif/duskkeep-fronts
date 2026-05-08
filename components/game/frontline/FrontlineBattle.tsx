@@ -40,21 +40,26 @@ import {
   getFrontlineLeaderPortraitSrc,
 } from "@/lib/frontlineLeaderPortraitAssets";
 import {
-  frontlineCardEffectSummary,
   frontlineCardName,
-  frontlineCardShortTargetLabel,
   frontlineLeaderPowerDescription,
   frontlineLeaderPowerName,
   frontlinePresetName,
-  type TranslateFn,
 } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
-import type { FrontlineLane, FrontlineLoadout, FrontlineSide } from "@/lib/types";
+import type { FrontlineLane, FrontlineLoadout } from "@/lib/types";
 import { FrontlineErrorBoundary } from "./FrontlineErrorBoundary";
 import { BattleEndOverlay } from "./FrontlineBattleEndOverlay";
 import { CommandPips, CompactPressureBar, CoreShockOverlay } from "./FrontlineBattleMeters";
 import { CompactPill, StatusTag } from "./FrontlineBattlePills";
 import { laneSurfaceClass } from "./FrontlineBattleSurfaceClasses";
+import {
+  cardEffectSummary,
+  cardTargetLabel,
+  impactTone,
+  laneLabel,
+  nextActionLabel,
+  shouldCoreFlash,
+} from "./FrontlineBattleUiState";
 import { BossBanner } from "./FrontlineBossBanner";
 import { BossColossusOverlay } from "./FrontlineBossColossusOverlay";
 import { BossSegmentReadout } from "./FrontlineBossSegmentReadout";
@@ -136,18 +141,6 @@ type DeathGhostFx = FrontlineDeathGhostFx;
 
 type VisualFxTone = FrontlineVisualFxTone;
 
-function laneLabel(t: TranslateFn, lane: FrontlineLane) {
-  if (lane === "left") return t("frontline.left");
-  if (lane === "center") return t("frontline.center");
-  return t("frontline.right");
-}
-
-function impactTone(kind: FrontlineBattleState["events"][number]["kind"] | undefined) {
-  if (kind === "breach" || kind === "ko") return "high";
-  if (kind === "damage" || kind === "power" || kind === "stun") return "mid";
-  return "low";
-}
-
 function playFrontlineCardSfx(cardId: string, tone: VisualFxTone) {
   if (cardId.startsWith("leader:")) {
     sfx.leaderPower();
@@ -218,33 +211,6 @@ function playFrontlineResolutionSfx(event: FrontlineEvent, ghosts: DeathGhostFx[
     sfx.coreDamage();
     window.setTimeout(() => sfx.breach(), 220);
   }
-}
-
-function cardTargetLabel(t: TranslateFn, card: FrontlineCardDef) {
-  return frontlineCardShortTargetLabel(t, card);
-}
-
-function cardEffectSummary(t: TranslateFn, card: FrontlineCardDef) {
-  return frontlineCardEffectSummary(t, card);
-}
-
-function shouldCoreFlash(event: FrontlineEvent | null | undefined, attackerSide: FrontlineSide) {
-  if (!event || event.side !== attackerSide) return false;
-  return event.kind === "breach" || event.kind === "damage";
-}
-
-function nextActionLabel(
-  state: FrontlineBattleState,
-  t: TranslateFn,
-  allyLeaderName: string,
-  selectedCard: FrontlineCardDef | null,
-  selectedLeaderPower: boolean,
-) {
-  if (state.turn === "enemy") return { title: t("frontline.enemy"), subtitle: t("frontline.resolving") };
-  if (selectedLeaderPower) return { title: t("frontline.pickFront"), subtitle: allyLeaderName };
-  if (selectedCard) return { title: t("frontline.pickFront"), subtitle: frontlineCardName(t, selectedCard) };
-  if (state.allyDeck.command <= 0) return { title: t("frontline.resolve"), subtitle: t("frontline.clashReady") };
-  return { title: t("frontline.playCard"), subtitle: t("frontline.spendCommand") };
 }
 
 function FrontlineBattleInner({
