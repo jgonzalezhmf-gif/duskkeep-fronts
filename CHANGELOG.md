@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.69] - 2026-05-08
+
+### Changed
+- Extraido el panel de doctrina de lider de Deck a `app/deck/DeckLeaderDoctrinePanel.tsx`.
+- Reducida la responsabilidad de `app/deck/page.tsx` manteniendo ahi el estado de loadout, squad, cartas y seleccion de lider.
+- Mantenido el comportamiento de Deck, economia, progreso, rutas y audio sin cambios.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.68] - 2026-05-08
 
 ### Changed
