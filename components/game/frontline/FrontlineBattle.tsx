@@ -8,8 +8,6 @@ import {
 } from "@/features/frontline/data";
 import {
   activateLeaderPower,
-  createFrontlineBattleState,
-  getEnemyPreset,
   getFrontlineCard,
   playCard,
   resolveTurn,
@@ -44,6 +42,7 @@ import { FrontlineBattleLanes } from "./FrontlineBattleLanes";
 import { FrontlineBattleOverlays } from "./FrontlineBattleOverlays";
 import { FrontlineBattleShell } from "./FrontlineBattleShell";
 import { FrontlineBattleSidebar } from "./FrontlineBattleSidebar";
+import { createBattleStateFromProps } from "./FrontlineBattleStateFactory";
 import { nextActionLabel } from "./FrontlineBattleUiState";
 import { buildBossSegmentByLane, getSelectedBattleContext, isInfernoCastingEvent } from "./FrontlineBattleDerivedState";
 import { BossBanner } from "./FrontlineBossBanner";
@@ -192,10 +191,10 @@ function FrontlineBattleInner({
 }: Props) {
   const { t } = useI18n();
   const [state, setState] = useState<FrontlineBattleState>(() =>
-    createFrontlineBattleState({
+    createBattleStateFromProps({
       seed,
-      allyLoadout: loadout,
-      enemyPreset: getEnemyPreset(enemyPresetId),
+      loadout,
+      enemyPresetId,
       allyHeroProfiles,
       allyCardProfiles,
       allySupportProfiles,
@@ -236,10 +235,10 @@ function FrontlineBattleInner({
     if (finishOverlayTimerRef.current) clearTimeout(finishOverlayTimerRef.current);
     if (finishDoneTimerRef.current) clearTimeout(finishDoneTimerRef.current);
     setState(
-      createFrontlineBattleState({
+      createBattleStateFromProps({
         seed,
-        allyLoadout: loadout,
-        enemyPreset: getEnemyPreset(enemyPresetId),
+        loadout,
+        enemyPresetId,
         allyHeroProfiles,
         allyCardProfiles,
         allySupportProfiles,
