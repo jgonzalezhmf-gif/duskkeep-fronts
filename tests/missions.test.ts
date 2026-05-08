@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getMissionResetAt, missionNeedsReset } from "@/lib/store";
+import { getMissionResetAt, missionNeedsReset } from "@/lib/missionProgress";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
 import type { MissionProgress } from "@/lib/types";
 
