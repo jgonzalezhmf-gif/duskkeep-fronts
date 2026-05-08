@@ -11,7 +11,6 @@ import { ROADMAP, type RoadmapStep } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
 import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
-import type { LocaleCode } from "@/lib/i18n/locales";
 import {
   getAdventureProgressEntry,
   markAdventureLevelCleared,
@@ -27,6 +26,7 @@ import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
+import type { GameActions, GameState } from "@/lib/storeTypes";
 import {
   firstVisibleRoadmapStep,
   getDailyLoginClaimState,
@@ -40,8 +40,6 @@ import {
   isFrontlineCardUnlocked,
   isFrontlineProgressionCard,
   normalizeFrontlineCardLevel,
-  type FrontlineCardLevels,
-  type FrontlineCardUnlocks,
 } from "@/features/frontline/cardProgression";
 import {
   FRONTLINE_FORTRESS_BUILDING_BY_ID,
@@ -54,13 +52,10 @@ import {
   ADVENTURE_MAP_INTERACTIONS_BY_ID,
   getAdventureMapInteractionStatus,
   rollAdventureMapInteractionLoot,
-  type AdventureMapInteractionClaim,
-  type AdventureMapInteractionOpenResult,
 } from "@/features/adventure/mapInteractions";
 import {
   getAdventureChestClaimRewards,
   getAdventureNodeType,
-  type AdventureProgressEntry,
 } from "@/features/adventure/nodeResolution";
 import { isAdventureLevelUnlocked } from "@/features/adventure/progression";
 import {
@@ -70,159 +65,14 @@ import {
   SKILL_MULTIPLIER_BONUS,
 } from "./constants";
 import type {
-  AccountState,
   AdventureLevel,
   FortressState,
-  FrontlineFortressBuildingId,
   FrontlineFortressState,
   FrontlineLoadout,
-  Mission,
-  MissionProgress,
-  PlayerHero,
-  Resources,
   Rewards,
 } from "./types";
-import type { TacticalState } from "@/features/tactical/types";
 
-export type NotificationKind = "success" | "error" | "info";
-export type Notification = { id: string; kind: NotificationKind; message: string };
-export type TextScale = "normal" | "large";
-
-export type GameState = {
-  hydrated: boolean;
-  account: AccountState;
-  resources: Resources;
-  heroes: PlayerHero[];
-  team: (string | null)[]; // length TEAM_SIZE
-  activeDeck: (string | null)[];
-  activeLeaderId: string;
-  knownSpellIds: string[];
-  fortress: FortressState;
-  frontlineLoadout: FrontlineLoadout;
-  frontlineCardUnlocks: FrontlineCardUnlocks;
-  frontlineCardLevels: FrontlineCardLevels;
-  frontlineFortress: FrontlineFortressState;
-  adventureProgress: Record<string, AdventureProgressEntry>;
-  adventureMapClaims: Record<string, AdventureMapInteractionClaim>;
-  missionsProgress: Record<string, MissionProgress>;
-  arenaWins: number;
-  arenaLosses: number;
-  shopPurchases: Record<string, number>;
-  eventsPlayed: Record<string, number>;
-  battlesWon: number;
-  heroesUpgraded: number;
-  lastSeed: number;
-  notifications: Notification[];
-  /** Snapshot of a tactical battle in progress, so the player can resume. */
-  savedBattle: { levelId: string; state: TacticalState } | null;
-  /** Daily login state: streak + last claim date (YYYY-MM-DD). */
-  dailyLogin: { streak: number; lastClaim: string | null };
-  /** Roadmap step progress: once claimed, step is done forever. */
-  roadmapClaimed: Record<string, boolean>;
-  /** Milestone rewards claimed (keyed by account level). */
-  milestonesClaimed: Record<number, boolean>;
-  /** Last completion date (YYYY-MM-DD) for each event id — enables one-time-per-rotation gating. */
-  eventCompletions: Record<string, string>;
-  /** Purchases of each shop offer made on the current daily cycle. */
-  dailyShopPurchases: Record<string, number>;
-  /** YMD of the last shop daily refresh. */
-  shopRefreshedAt: string | null;
-  /** Global audio mute preference. */
-  audioMuted: boolean;
-  /** Music bus volume (0..1). */
-  musicVolume: number;
-  /** SFX bus volume (0..1). */
-  sfxVolume: number;
-  /** Current UI language. */
-  language: LocaleCode;
-  /** Reduce non-essential UI motion. */
-  reducedMotion: boolean;
-  /** Toggle decorative visual effects. */
-  visualEffects: boolean;
-  /** UI text scale preference. */
-  textScale: TextScale;
-  /** Lightweight onboarding progress. */
-  onboarding: { step: number; completed: boolean };
-  /** Queue of unlocks the player hasn't yet acknowledged (level reached but modal not shown). */
-  pendingUnlockLevel: number | null;
-  /** YMD of the last arena ticket daily refresh. */
-  arenaTicketsRefreshedAt: string | null;
-};
-
-export type GameActions = {
-  resetAll: () => void;
-  hydrate: () => void;
-  setName: (name: string) => void;
-  setTeamSlot: (slotIdx: number, heroId: string | null) => void;
-  setDeckSlot: (slotIdx: number, cardId: string | null) => void;
-  setActiveLeader: (leaderId: string) => void;
-  setFrontlineLeader: (leaderId: string) => void;
-  setFrontlineSquadSlot: (slotIdx: number, heroId: string | null) => void;
-  toggleFrontlineDeckCard: (cardId: string) => void;
-  unlockFrontlineCard: (cardId: string) => boolean;
-  upgradeFrontlineCard: (cardId: string) => boolean;
-  addHero: (heroId: string) => void;
-  collectFortressIncome: () => Rewards | null;
-  upgradeFortressBuilding: (buildingId: string) => boolean;
-  upgradeFrontlineFortress: (buildingId: FrontlineFortressBuildingId) => boolean;
-  setFrontlineGarrisonSlot: (slotIdx: number, heroId: string | null) => void;
-  resolveFrontlineFortressRaid: () => ReturnType<typeof resolveFrontlineFortressRaid>["report"] | null;
-  awardRewards: (r: Rewards, source?: string) => void;
-  spend: (cost: { gold?: number; gems?: number; dust?: number; adventureKeys?: number }) => boolean;
-  levelUpHero: (heroId: string) => boolean;
-  starUpHero: (heroId: string) => boolean;
-  skillUpHero: (heroId: string) => boolean;
-  recordBattleResult: (
-    won: boolean,
-    source: "adventure" | "arena" | "vsai" | "event",
-    meta?: Record<string, unknown>,
-  ) => void;
-  markAdventureCleared: (levelId: string) => { firstClear: boolean };
-  claimAdventureNode: (levelId: string) => Rewards | null;
-  claimAdventureMapInteraction: (interactionId: string) => AdventureMapInteractionOpenResult | null;
-  claimMission: (missionId: string) => Rewards | null;
-  purchaseOffer: (offerId: string) => { ok: boolean; reason?: string };
-  pushNotification: (kind: NotificationKind, message: string) => void;
-  dismissNotification: (id: string) => void;
-  nextSeed: () => number;
-  ensureMissionsInitialized: () => void;
-  updateMissionProgress: (metric: Mission["metric"], delta: number) => void;
-  saveBattle: (levelId: string, state: TacticalState) => void;
-  clearSavedBattle: () => void;
-  /** Claim today's daily login reward. Returns null if already claimed. */
-  claimDailyLogin: () => Rewards | null;
-  /** Claim a completed roadmap step. Returns null if not claimable. */
-  claimRoadmapStep: (id: string) => Rewards | null;
-  /** Claim a reached milestone reward. */
-  claimMilestone: (level: number) => Rewards | null;
-  /** Mark an event as completed for the current daily rotation. */
-  markEventCompleted: (eventId: string) => void;
-  /** Ensure today's shop rotation is current (resets daily counters). */
-  refreshShopIfNeeded: () => void;
-  /** Remaining purchases allowed for an offer today (null = unlimited / one-time uses oneTime gate). */
-  offerRemaining: (offerId: string) => number | null;
-  /** Toggle/set global mute. */
-  setAudioMuted: (m: boolean) => void;
-  /** Set music bus volume. */
-  setMusicVolume: (volume: number) => void;
-  /** Set SFX bus volume. */
-  setSfxVolume: (volume: number) => void;
-  /** Set UI language. */
-  setLanguage: (language: LocaleCode) => void;
-  /** Toggle reduced motion. */
-  setReducedMotion: (enabled: boolean) => void;
-  /** Toggle decorative visual effects. */
-  setVisualEffects: (enabled: boolean) => void;
-  /** Set UI text scale. */
-  setTextScale: (scale: TextScale) => void;
-  /** Advance onboarding. */
-  setOnboardingStep: (step: number) => void;
-  completeOnboarding: () => void;
-  /** Clear the pending level-up acknowledgement (called after the LevelUpModal shows). */
-  ackPendingUnlock: () => void;
-  /** Reset arena tickets to daily allowance if a new day has begun. */
-  refreshArenaTicketsIfNeeded: () => void;
-};
+export type { GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 
 function fortressLevel(state: FortressState, buildingId: string) {
   return state.buildings[buildingId] ?? 0;
