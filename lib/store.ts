@@ -12,9 +12,9 @@ import { CARD_BY_ID } from "@/data/cards";
 import {
   getAdventureProgressEntry,
   markAdventureLevelCleared,
-  markAdventureMapInteractionClaimed,
   markAdventureNodeClaimed,
 } from "@/lib/adventureProgressState";
+import { createAdventureMapInteractionClaimPlan } from "@/lib/adventureMapInteractionClaims";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import {
   applyFortressBuildingUpgrade,
@@ -58,11 +58,6 @@ import {
   resolveFrontlineFortressRaid,
 } from "@/features/frontline/fortress";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
-import {
-  ADVENTURE_MAP_INTERACTIONS_BY_ID,
-  getAdventureMapInteractionStatus,
-  rollAdventureMapInteractionLoot,
-} from "@/features/adventure/mapInteractions";
 import {
   getAdventureChestClaimRewards,
   getAdventureNodeType,
@@ -350,42 +345,25 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       claimAdventureMapInteraction: (interactionId) => {
-        const interaction = ADVENTURE_MAP_INTERACTIONS_BY_ID[interactionId];
-        if (!interaction) {
-          get().pushNotification("error", "Map interaction not found");
-          return null;
-        }
         const s = get();
-        const claim = s.adventureMapClaims[interactionId];
-        const status = getAdventureMapInteractionStatus({
-          interaction,
+        const plan = createAdventureMapInteractionClaimPlan({
+          interactionId,
           progress: s.adventureProgress,
           resources: s.resources,
-          claim,
+          claims: s.adventureMapClaims,
+          claimedAt: todayISO(),
         });
-        if (status === "claimed") {
-          get().pushNotification("info", "Map cache already claimed");
+        if (!plan.ok) {
+          get().pushNotification(plan.notification.kind, plan.notification.message);
           return null;
         }
-        if (status === "locked") {
-          get().pushNotification("error", "Map cache is still sealed");
-          return null;
-        }
-        if (status === "needs_key") {
+        if (!get().spend({ adventureKeys: plan.interaction.keyCost })) {
           get().pushNotification("error", "Adventure key required");
           return null;
         }
-        if (!get().spend({ adventureKeys: interaction.keyCost })) {
-          get().pushNotification("error", "Adventure key required");
-          return null;
-        }
-        const result = rollAdventureMapInteractionLoot(interaction);
-        const claimedAt = todayISO();
-        set((st) => ({
-          adventureMapClaims: markAdventureMapInteractionClaimed(st.adventureMapClaims, interaction, result, claimedAt),
-        }));
-        get().awardRewards(result.rewards, interaction.title);
-        return result;
+        set({ adventureMapClaims: plan.nextClaims });
+        get().awardRewards(plan.result.rewards, plan.interaction.title);
+        return plan.result;
       },
 
       claimMission: (missionId) => {
