@@ -9,7 +9,6 @@ import type {
   FrontlinePreset,
   FrontlineSnapshot,
   FrontlineTracedResult,
-  FrontlineSupportState,
   FrontlineSupportProfileMap,
 } from "./types";
 import { getFrontlineBoss } from "./bosses";
@@ -40,7 +39,6 @@ import { cloneState } from "./frontlineStateClone";
 import {
   breachBonus,
   heroDefinition,
-  initiativeForHero,
   leaderDefinition,
   livingAllyWithTrait,
   ralliedAllyCount,
@@ -55,9 +53,13 @@ import {
   emberCrownBonus,
   tickBossSignatures,
 } from "./frontlineBossSignatures";
+import { actorList } from "./frontlineStrikeOrder";
+import type { FrontlineActor } from "./frontlineStrikeOrder";
 
 export { getEffectiveCardCost, getFrontlineCard, playableCards, validCardTargets } from "./frontlineCardRules";
 export { frontPresenceScore } from "./frontlineCombatantRules";
+export { laneStrikeOrder } from "./frontlineStrikeOrder";
+export type { FrontlineStrikeOrderEntry } from "./frontlineStrikeOrder";
 
 const COMMAND_PER_TURN = 3;
 const DRAW_PER_TURN = 2;
@@ -137,36 +139,7 @@ function attackPower(state: FrontlineBattleState, hero: FrontlineHeroState) {
   return value;
 }
 
-type Actor =
-  | { side: FrontlineSide; lane: FrontlineLane; kind: "hero"; hero: FrontlineHeroState }
-  | { side: FrontlineSide; lane: FrontlineLane; kind: "support"; support: FrontlineSupportState };
-
-function actorList(state: FrontlineBattleState, lane: FrontlineLane): Actor[] {
-  const laneState = state.lanes[lane];
-  const actors: Actor[] = [];
-  const allyHero = laneState.allyHero;
-  const enemyHero = laneState.enemyHero;
-  const allySupport = laneState.allySupport;
-  const enemySupport = laneState.enemySupport;
-  if (allyHero?.alive) actors.push({ side: "ally", lane, kind: "hero", hero: allyHero });
-  if (enemyHero?.alive) actors.push({ side: "enemy", lane, kind: "hero", hero: enemyHero });
-  if (allySupport && allySupport.hp > 0 && allySupport.atk > 0) actors.push({ side: "ally", lane, kind: "support", support: allySupport });
-  if (enemySupport && enemySupport.hp > 0 && enemySupport.atk > 0) actors.push({ side: "enemy", lane, kind: "support", support: enemySupport });
-
-  actors.sort((left, right) => {
-    const leftValue = left.kind === "hero" ? initiativeForHero(left.hero) : 1;
-    const rightValue = right.kind === "hero" ? initiativeForHero(right.hero) : 1;
-    if (leftValue === rightValue) {
-      if (left.side === state.turn && right.side !== state.turn) return -1;
-      if (right.side === state.turn && left.side !== state.turn) return 1;
-      return left.side === "ally" ? -1 : 1;
-    }
-    return rightValue - leftValue;
-  });
-  return actors;
-}
-
-function resolveActorStrike(state: FrontlineBattleState, actor: Actor) {
+function resolveActorStrike(state: FrontlineBattleState, actor: FrontlineActor) {
   if (actor.kind === "hero") {
     const hero = getHeroInLane(state, actor.side, actor.lane);
     if (!hero?.alive || hero.stun > 0) return;
@@ -747,22 +720,6 @@ export function runEnemyTurnTraced(state: FrontlineBattleState): FrontlineTraced
   const { final, snapshots } = withTrace(state, (traced) => runEnemyTurn(traced));
   delete (final as { _trace?: FrontlineSnapshot[] })._trace;
   return { final, snapshots };
-}
-
-export type FrontlineStrikeOrderEntry = {
-  side: FrontlineSide;
-  kind: "hero" | "support";
-  initiative: number;
-  name: string;
-};
-
-export function laneStrikeOrder(state: FrontlineBattleState, lane: FrontlineLane): FrontlineStrikeOrderEntry[] {
-  return actorList(state, lane).map((actor) => ({
-    side: actor.side,
-    kind: actor.kind,
-    initiative: actor.kind === "hero" ? initiativeForHero(actor.hero) : 1,
-    name: actor.kind === "hero" ? actor.hero.name : actor.support.name,
-  }));
 }
 
 export function createDefaultFrontlineLoadout(): FrontlineLoadout {

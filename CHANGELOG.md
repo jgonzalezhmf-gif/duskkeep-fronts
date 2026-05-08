@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.159] - 2026-05-08
+
+### Changed
+- Extraida la ordenacion de actores y el readout de iniciativa a `features/frontline/frontlineStrikeOrder.ts`.
+- Reexportados `laneStrikeOrder` y `FrontlineStrikeOrderEntry` desde `features/frontline/engine.ts` para preservar consumidores existentes.
+- Reducido `features/frontline/engine.ts` sin cambiar desempates de iniciativa ni orden de resolucion por lane.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.158] - 2026-05-08
 
 ### Changed
