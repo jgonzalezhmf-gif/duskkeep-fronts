@@ -15,6 +15,7 @@ import type { LocaleCode } from "@/lib/i18n/locales";
 import { applyAccountXpReward } from "@/lib/accountProgression";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { applyHeroShardRewards } from "@/lib/heroShards";
+import { applyTeamXpReward } from "@/lib/heroXp";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardResources, canAfford, spendResources } from "@/lib/resourceMath";
@@ -513,14 +514,9 @@ export const useGameStore = create<GameState & GameActions>()(
             next.heroes = heroesWithShardRewards;
           }
 
-          if (r.xp) {
-            const heroes = (next.heroes ?? s.heroes).slice();
-            const teamIds = s.team.filter(Boolean) as string[];
-            for (const id of teamIds) {
-              const idx = heroes.findIndex((h) => h.heroId === id);
-              if (idx >= 0) heroes[idx] = { ...heroes[idx], xp: heroes[idx].xp + r.xp! };
-            }
-            next.heroes = heroes;
+          const heroesWithXpReward = applyTeamXpReward(next.heroes ?? s.heroes, s.team, r.xp);
+          if (heroesWithXpReward) {
+            next.heroes = heroesWithXpReward;
           }
 
           if (r.frontlineCards?.length) {
