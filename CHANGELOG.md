@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.131] - 2026-05-08
+
+### Changed
+- Extraidas las reglas de mejora de heroes a `lib/heroUpgrades.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando costes, limites y patches de `levelUpHero`, `starUpHero` y `skillUpHero`.
+
+### Added
+- Tests de mejoras de heroes para level-up, star-up, skill-up, recursos insuficientes, shards insuficientes, skill max y heroes bloqueados.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.130] - 2026-05-08
 
 ### Changed

@@ -14,6 +14,7 @@ import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import type { LocaleCode } from "@/lib/i18n/locales";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
+import { applyHeroLevelUp, applyHeroSkillUp, applyHeroStarUp } from "@/lib/heroUpgrades";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
@@ -61,13 +62,8 @@ import { isAdventureLevelUnlocked } from "@/features/adventure/progression";
 import {
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
-  LEVEL_UP_GOLD,
-  MAX_SKILL_LEVEL,
-  MAX_STARS,
-  SHARDS_FOR_STAR,
   SKILL_COOLDOWN_REDUCTION_AT_MAX,
   SKILL_MULTIPLIER_BONUS,
-  SKILL_UP_DUST,
 } from "./constants";
 import type {
   AccountState,
@@ -509,77 +505,57 @@ export const useGameStore = create<GameState & GameActions>()(
 
       levelUpHero: (heroId) => {
         const s = get();
-        const idx = s.heroes.findIndex((h) => h.heroId === heroId);
-        if (idx < 0 || s.heroes[idx].stars === 0) return false;
-        const ph = s.heroes[idx];
-        const cost = LEVEL_UP_GOLD(ph.level);
-        if (s.resources.gold < cost) {
-          get().pushNotification("error", "Not enough gold");
+        const result = applyHeroLevelUp(s.heroes, s.resources, heroId);
+        if (!result.ok) {
+          if (result.reason === "not_enough_gold") {
+            get().pushNotification("error", "Not enough gold");
+          }
           return false;
         }
-        set((st) => {
-          const heroes = st.heroes.slice();
-          heroes[idx] = { ...heroes[idx], level: heroes[idx].level + 1 };
-          return {
-            heroes,
-            resources: { ...st.resources, gold: st.resources.gold - cost },
-            heroesUpgraded: st.heroesUpgraded + 1,
-          };
-        });
+        set((st) => ({
+          heroes: result.heroes,
+          resources: result.resources,
+          heroesUpgraded: st.heroesUpgraded + 1,
+        }));
         get().updateMissionProgress("heroes_upgraded", 1);
         return true;
       },
 
       starUpHero: (heroId) => {
-        const s = get();
-        const idx = s.heroes.findIndex((h) => h.heroId === heroId);
-        if (idx < 0) return false;
-        const ph = s.heroes[idx];
-        if (ph.stars >= MAX_STARS || ph.stars === 0) return false;
-        const needed = SHARDS_FOR_STAR[ph.stars] ?? 0;
-        if (ph.shards < needed) {
-          get().pushNotification("error", "Not enough shards");
+        const result = applyHeroStarUp(get().heroes, heroId);
+        if (!result.ok) {
+          if (result.reason === "not_enough_shards") {
+            get().pushNotification("error", "Not enough shards");
+          }
           return false;
         }
-        set((st) => {
-          const heroes = st.heroes.slice();
-          heroes[idx] = {
-            ...heroes[idx],
-            stars: heroes[idx].stars + 1,
-            shards: heroes[idx].shards - needed,
-          };
-          return { heroes, heroesUpgraded: st.heroesUpgraded + 1 };
-        });
+        set((st) => ({
+          heroes: result.heroes,
+          heroesUpgraded: st.heroesUpgraded + 1,
+        }));
         get().updateMissionProgress("heroes_upgraded", 1);
         return true;
       },
 
       skillUpHero: (heroId) => {
         const s = get();
-        const idx = s.heroes.findIndex((h) => h.heroId === heroId);
-        if (idx < 0 || s.heroes[idx].stars === 0) return false;
-        const ph = s.heroes[idx];
-        const sl = ph.skillLevel ?? 1;
-        if (sl >= MAX_SKILL_LEVEL) {
-          get().pushNotification("error", "Skill already at max level");
+        const result = applyHeroSkillUp(s.heroes, s.resources, heroId);
+        if (!result.ok) {
+          if (result.reason === "max_skill_level") {
+            get().pushNotification("error", "Skill already at max level");
+          }
+          if (result.reason === "not_enough_dust") {
+            get().pushNotification("error", "Not enough Arcane Dust");
+          }
           return false;
         }
-        const cost = SKILL_UP_DUST[sl] ?? 0;
-        if (s.resources.dust < cost) {
-          get().pushNotification("error", "Not enough Arcane Dust");
-          return false;
-        }
-        set((st) => {
-          const heroes = st.heroes.slice();
-          heroes[idx] = { ...heroes[idx], skillLevel: (heroes[idx].skillLevel ?? 1) + 1 };
-          return {
-            heroes,
-            resources: { ...st.resources, dust: st.resources.dust - cost },
-            heroesUpgraded: st.heroesUpgraded + 1,
-          };
-        });
+        set((st) => ({
+          heroes: result.heroes,
+          resources: result.resources,
+          heroesUpgraded: st.heroesUpgraded + 1,
+        }));
         get().updateMissionProgress("heroes_upgraded", 1);
-        get().pushNotification("success", `Skill enhanced to level ${sl + 1}!`);
+        get().pushNotification("success", `Skill enhanced to level ${result.nextSkillLevel}!`);
         return true;
       },
 
