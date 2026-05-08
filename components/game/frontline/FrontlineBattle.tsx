@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import ArtPortrait from "@/components/ui/ArtPortrait";
-import GameAssetIcon from "@/components/ui/GameAssetIcon";
 import GameGlyph from "@/components/ui/GameGlyph";
 import { CardTypeIcon } from "@/components/game/shared/CardTypeIcon";
 import { ResourceIcon } from "@/components/game/shared/ResourceIcon";
@@ -45,7 +44,7 @@ import {
   getFrontlineEnemyLeaderPortraitForPreset,
   getFrontlineLeaderPortraitSrc,
 } from "@/lib/frontlineLeaderPortraitAssets";
-import type { CombatAssetIconName, GameAssetIconSize } from "@/lib/iconAssets";
+import type { CombatAssetIconName } from "@/lib/iconAssets";
 import {
   frontlineCardEffectSummary,
   frontlineCardDescription,
@@ -65,6 +64,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import type { FrontlineLane, FrontlineLoadout, FrontlineSide } from "@/lib/types";
 import { getFrontlineBossAssetSrc, getFrontlineCardVisualAsset, getFrontlineHeroVisualAsset } from "./frontlineVisualAssets";
 import { FrontlineErrorBoundary } from "./FrontlineErrorBoundary";
+import { CombatIcon } from "./FrontlineCombatIcon";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
 import type { FrontlineBossConfig, FrontlineBossSegmentConfig } from "@/features/frontline/types";
 
@@ -1751,35 +1751,6 @@ function FrontlineBattleInner({
         </section>
       </div>
     </section>
-  );
-}
-
-function CombatIcon({
-  name,
-  size = "sm",
-  className,
-  imgClassName,
-  fallbackClassName,
-  label,
-}: {
-  name: CombatAssetIconName;
-  size?: GameAssetIconSize;
-  className?: string;
-  imgClassName?: string;
-  fallbackClassName?: string;
-  label?: string;
-}) {
-  return (
-    <GameAssetIcon
-      category="combat"
-      name={name}
-      size={size}
-      label={label}
-      decorative={!label}
-      className={className}
-      imgClassName={imgClassName}
-      fallbackClassName={fallbackClassName}
-    />
   );
 }
 

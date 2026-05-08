@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.76] - 2026-05-08
+
+### Changed
+- Extraido el wrapper `CombatIcon` de `components/game/frontline/FrontlineBattle.tsx` a `components/game/frontline/FrontlineCombatIcon.tsx`.
+- Reducida ligeramente la responsabilidad del componente principal de Frontline manteniendo intacta la resolucion de turnos, cartas, command economy, rewards, SFX y audio.
+- Conservada la misma API visual para iconos de combate y sus fallbacks de assets.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.75] - 2026-05-08
 
 ### Changed
