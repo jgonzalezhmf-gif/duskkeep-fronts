@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.67] - 2026-05-08
+
+### Changed
+- Extraidas primitives visuales de Team a `app/team/TeamPrimitives.tsx`.
+- Reducida la responsabilidad de `app/team/page.tsx` moviendo botones de enlace, metricas y stats de build.
+- Mantenido el comportamiento de loadout, squad, cartas, lideres, economia, progreso, rutas y audio sin cambios.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.66] - 2026-05-08
 
 ### Changed
