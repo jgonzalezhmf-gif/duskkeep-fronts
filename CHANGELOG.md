@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.163] - 2026-05-08
+
+### Changed
+- Extraida la resolucion de dano directo a `features/frontline/frontlineDirectDamage.ts`.
+- Reducido `features/frontline/engine.ts` sin cambiar prioridad de dano a support, heroes, core, eventos KO ni resoluciones visibles.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.162] - 2026-05-08
 
 ### Changed
