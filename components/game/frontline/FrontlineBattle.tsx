@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FRONTLINE_CARD_BY_ID,
-  FRONTLINE_LANES,
   FRONTLINE_LEADER_BY_ID,
 } from "@/features/frontline/data";
 import {
@@ -14,7 +13,6 @@ import {
   resolveTurnTraced,
   runEnemyTurn,
   runEnemyTurnTraced,
-  validCardTargets,
   validLeaderPowerTargets,
 } from "@/features/frontline/engine";
 import type {
@@ -44,17 +42,20 @@ import { FrontlineBattleShell } from "./FrontlineBattleShell";
 import { FrontlineBattleSidebar } from "./FrontlineBattleSidebar";
 import { createBattleStateFromProps } from "./FrontlineBattleStateFactory";
 import { nextActionLabel } from "./FrontlineBattleUiState";
-import { buildBossSegmentByLane, getSelectedBattleContext, isInfernoCastingEvent } from "./FrontlineBattleDerivedState";
+import {
+  buildBossSegmentByLane,
+  getDisplayBattleState,
+  getSelectedBattleContext,
+  getSortedLaneInsights,
+  getTargetableBattleLanes,
+  isInfernoCastingEvent,
+} from "./FrontlineBattleDerivedState";
 import { BossBanner } from "./FrontlineBossBanner";
 import type { FrontlineCardPlayFx } from "./FrontlineCardCastFx";
 import type { FrontlineDeathGhostFx } from "./FrontlineDeathGhost";
 import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
 import { FrontlineHandSection } from "./FrontlineHandSection";
-import {
-  analyzeLane,
-  laneStatusTitle,
-  type LaneInsight,
-} from "./FrontlineLaneInsights";
+import { laneStatusTitle, type LaneInsight } from "./FrontlineLaneInsights";
 import type { FrontlineVisualFxTone } from "./FrontlineLaneActionTrail";
 import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
 import {
@@ -343,23 +344,11 @@ function FrontlineBattleInner({
 
   const allyLeader = FRONTLINE_LEADER_BY_ID[state.allyDeck.leaderId];
   const selectedCard = state.selectedCardId ? state.allyCardProfiles?.[state.selectedCardId] ?? FRONTLINE_CARD_BY_ID[state.selectedCardId] : null;
-  const displayState = useMemo<FrontlineBattleState>(() => {
-    if (!pendingResolution || !resolutionFx) return state;
-    const idx = resolutionFx.activeIndex;
-    const matchById = pendingResolution.snapshots.findIndex((snap) => snap.eventId === resolutionFx.events[idx]?.id);
-    if (matchById < 0) return state;
-    if (matchById === 0) return state;
-    return pendingResolution.snapshots[matchById - 1]?.state ?? state;
-  }, [state, pendingResolution, resolutionFx]);
-  const targetableLanes = useMemo(() => {
-    if (state.selectedLeaderPower) return validLeaderPowerTargets(state, "ally");
-    if (selectedCard) return validCardTargets(state, "ally", selectedCard.id);
-    return [];
-  }, [selectedCard, state]);
+  const displayState = useMemo<FrontlineBattleState>(() => getDisplayBattleState(state, pendingResolution, resolutionFx), [state, pendingResolution, resolutionFx]);
+  const targetableLanes = useMemo(() => getTargetableBattleLanes(state, selectedCard), [selectedCard, state]);
 
   const laneInsights = useMemo(
-    () =>
-      FRONTLINE_LANES.map((lane) => analyzeLane(displayState, lane)).sort((left, right) => right.priority - left.priority),
+    () => getSortedLaneInsights(displayState),
     [displayState.lanes], // eslint-disable-line react-hooks/exhaustive-deps
   );
   const priorityLane = laneInsights[0];

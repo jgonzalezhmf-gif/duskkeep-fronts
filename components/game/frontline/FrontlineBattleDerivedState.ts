@@ -1,14 +1,56 @@
-import type { FrontlineBossConfig, FrontlineBossSegmentConfig, FrontlineCardDef, FrontlineEvent } from "@/features/frontline/types";
+import { FRONTLINE_LANES } from "@/features/frontline/data";
+import { validCardTargets, validLeaderPowerTargets } from "@/features/frontline/engine";
+import type {
+  FrontlineBattleState,
+  FrontlineBossConfig,
+  FrontlineBossSegmentConfig,
+  FrontlineCardDef,
+  FrontlineEvent,
+  FrontlineSnapshot,
+} from "@/features/frontline/types";
 import type { TranslateFn } from "@/lib/i18n/frontlineText";
 import { frontlineCardName } from "@/lib/i18n/frontlineText";
 import type { FrontlineLane } from "@/lib/types";
 import { cardEffectSummary, cardTargetLabel, laneLabel } from "./FrontlineBattleUiState";
-import { laneStatusSubtitle, type LaneInsight } from "./FrontlineLaneInsights";
+import { analyzeLane, laneStatusSubtitle, type LaneInsight } from "./FrontlineLaneInsights";
+
+type ResolutionPlayback = {
+  events: FrontlineEvent[];
+  activeIndex: number;
+} | null;
+
+type PendingResolution = {
+  finalState: FrontlineBattleState;
+  snapshots: FrontlineSnapshot[];
+} | null;
 
 export function buildBossSegmentByLane(boss: FrontlineBossConfig | null): Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> {
   const map: Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> = {};
   if (boss) for (const segment of boss.segments) map[segment.lane] = segment;
   return map;
+}
+
+export function getDisplayBattleState(
+  state: FrontlineBattleState,
+  pendingResolution: PendingResolution,
+  resolutionFx: ResolutionPlayback,
+) {
+  if (!pendingResolution || !resolutionFx) return state;
+  const idx = resolutionFx.activeIndex;
+  const matchById = pendingResolution.snapshots.findIndex((snapshot) => snapshot.eventId === resolutionFx.events[idx]?.id);
+  if (matchById < 0) return state;
+  if (matchById === 0) return state;
+  return pendingResolution.snapshots[matchById - 1]?.state ?? state;
+}
+
+export function getTargetableBattleLanes(state: FrontlineBattleState, selectedCard: FrontlineCardDef | null) {
+  if (state.selectedLeaderPower) return validLeaderPowerTargets(state, "ally");
+  if (selectedCard) return validCardTargets(state, "ally", selectedCard.id);
+  return [];
+}
+
+export function getSortedLaneInsights(displayState: FrontlineBattleState) {
+  return FRONTLINE_LANES.map((lane) => analyzeLane(displayState, lane)).sort((left, right) => right.priority - left.priority);
 }
 
 export function getSelectedBattleContext({
