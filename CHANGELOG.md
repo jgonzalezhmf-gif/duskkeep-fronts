@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.150] - 2026-05-08
+
+### Changed
+- Extraidos helpers puros de clonacion de estado a `features/frontline/frontlineStateClone.ts`.
+- Extraidos helpers deterministas de mazo y robo a `features/frontline/frontlineDeckState.ts`.
+- Reducido `features/frontline/engine.ts` sin cambiar reglas, orden de robo, snapshots ni resolucion de combate.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.149] - 2026-05-08
 
 ### Changed
