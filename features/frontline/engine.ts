@@ -32,7 +32,7 @@ import {
   playableCards,
   validCardTargets,
 } from "./frontlineCardRules";
-import { drawInto, seededDeckState } from "./frontlineDeckState";
+import { seededDeckState } from "./frontlineDeckState";
 import { pushEvent, pushResolution } from "./frontlineEvents";
 import { createEmptyLanes, initBossState } from "./frontlineBattleSetup";
 import { cloneState } from "./frontlineStateClone";
@@ -48,21 +48,19 @@ import {
   applyCinderMarkOnHit,
   applyHeroDamageWithVeilArmor,
   applySoulDrain,
-  consumeCinderMark,
   emberCrownBonus,
   tickBossSignatures,
 } from "./frontlineBossSignatures";
 import { actorList } from "./frontlineStrikeOrder";
 import type { FrontlineActor } from "./frontlineStrikeOrder";
 import { applyBreach, livingPresence } from "./frontlineBreachRules";
+import { prepareTurn, setupEnemyPhase } from "./frontlineTurnPreparation";
 
 export { getEffectiveCardCost, getFrontlineCard, playableCards, validCardTargets } from "./frontlineCardRules";
 export { frontPresenceScore } from "./frontlineCombatantRules";
 export { laneStrikeOrder } from "./frontlineStrikeOrder";
 export type { FrontlineStrikeOrderEntry } from "./frontlineStrikeOrder";
 
-const COMMAND_PER_TURN = 3;
-const DRAW_PER_TURN = 2;
 const MAX_ROUNDS = 8;
 function battleResolved(state: FrontlineBattleState) {
   return state.allyCoreHp <= 0 || state.enemyCoreHp <= 0 || Boolean(state.winner);
@@ -262,32 +260,6 @@ function determineWinner(state: FrontlineBattleState) {
     return state.allyCoreHp > state.enemyCoreHp ? "ally" : "enemy";
   }
   return null;
-}
-
-function prepareTurn(state: FrontlineBattleState, side: FrontlineSide) {
-  const next = cloneState(state);
-  next.turn = side;
-  next.selectedCardId = null;
-  next.selectedLeaderPower = false;
-  const deck = drawInto(ownDeck(next, side), DRAW_PER_TURN, next.seed + next.round * (side === "ally" ? 23 : 47));
-  deck.command = COMMAND_PER_TURN;
-  if (side === "enemy" && next.enemyStartCommandBonus > 0) {
-    deck.command += next.enemyStartCommandBonus;
-    next.enemyStartCommandBonus = 0;
-  }
-  deck.usedLeaderPower = false;
-  deck.powerCooldown = Math.max(0, deck.powerCooldown - 1);
-  setOwnDeck(next, side, deck);
-  if (side === "ally") next.allyLeaderUsed = false;
-  else next.enemyLeaderUsed = false;
-  pushEvent(next, { kind: "round", side, label: `${side === "ally" ? "Player" : "Enemy"} turn ${next.round}`, emphasis: "low" });
-  if (side === "ally") consumeCinderMark(next);
-  if (side === "ally" && next.playerCardCostModTurnsLeft > 0) {
-    next.playerCardCostModTurnsLeft -= 1;
-    if (next.playerCardCostModTurnsLeft === 0) next.playerCardCostMod = 0;
-  }
-  if (side === "enemy") tickBossSignatures(next);
-  return next;
 }
 
 export function createFrontlineBattleState(input: {
@@ -561,25 +533,6 @@ export function activateLeaderPower(state: FrontlineBattleState, side: Frontline
   else next.enemyLeaderUsed = true;
   pushEvent(next, { kind: "power", side, lane, label: `${leader.name}: ${leader.power.name}`, emphasis: "mid" });
   pushResolution(next, `${leader.name} triggered ${leader.power.name}.`);
-  return next;
-}
-
-function setupEnemyPhase(state: FrontlineBattleState): FrontlineBattleState {
-  const next = cloneState(state);
-  next.turn = "enemy";
-  next.selectedCardId = null;
-  next.selectedLeaderPower = false;
-  const deck = drawInto(ownDeck(next, "enemy"), DRAW_PER_TURN, next.seed + next.round * 47);
-  deck.command = COMMAND_PER_TURN;
-  if (next.enemyStartCommandBonus > 0) {
-    deck.command += next.enemyStartCommandBonus;
-    next.enemyStartCommandBonus = 0;
-  }
-  deck.usedLeaderPower = false;
-  deck.powerCooldown = Math.max(0, deck.powerCooldown - 1);
-  setOwnDeck(next, "enemy", deck);
-  next.enemyLeaderUsed = false;
-  pushEvent(next, { kind: "round", side: "enemy", label: `Enemy turn ${next.round}`, emphasis: "low" });
   return next;
 }
 
