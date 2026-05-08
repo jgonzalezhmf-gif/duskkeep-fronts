@@ -22,7 +22,6 @@ import {
 import type {
   FrontlineBattleModifiers,
   FrontlineBattleState,
-  FrontlineBossSegmentConfig,
   FrontlineCardDef,
   FrontlineCardProfileMap,
   FrontlineEvent,
@@ -34,7 +33,6 @@ import { previewCardOutcome, type FrontlinePreview } from "@/features/frontline/
 import { getBattleBackdrop } from "@/lib/art";
 import { audio, sfx } from "@/lib/audio";
 import {
-  frontlineCardName,
   frontlineLeaderPowerDescription,
   frontlineLeaderPowerName,
 } from "@/lib/i18n/frontlineText";
@@ -46,12 +44,8 @@ import { FrontlineBattleLanes } from "./FrontlineBattleLanes";
 import { FrontlineBattleOverlays } from "./FrontlineBattleOverlays";
 import { FrontlineBattleShell } from "./FrontlineBattleShell";
 import { FrontlineBattleSidebar } from "./FrontlineBattleSidebar";
-import {
-  cardEffectSummary,
-  cardTargetLabel,
-  laneLabel,
-  nextActionLabel,
-} from "./FrontlineBattleUiState";
+import { nextActionLabel } from "./FrontlineBattleUiState";
+import { buildBossSegmentByLane, getSelectedBattleContext, isInfernoCastingEvent } from "./FrontlineBattleDerivedState";
 import { BossBanner } from "./FrontlineBossBanner";
 import type { FrontlineCardPlayFx } from "./FrontlineCardCastFx";
 import type { FrontlineDeathGhostFx } from "./FrontlineDeathGhost";
@@ -59,7 +53,6 @@ import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEn
 import { FrontlineHandSection } from "./FrontlineHandSection";
 import {
   analyzeLane,
-  laneStatusSubtitle,
   laneStatusTitle,
   type LaneInsight,
 } from "./FrontlineLaneInsights";
@@ -376,11 +369,7 @@ function FrontlineBattleInner({
   const latestImpact = state.events[0] ?? null;
   const latestFeed = state.events.slice(0, 4);
   const bossConfig = useMemo(() => getFrontlineBoss(state.bossState?.id), [state.bossState?.id]);
-  const bossSegmentByLane = useMemo(() => {
-    const map: Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> = {};
-    if (bossConfig) for (const seg of bossConfig.segments) map[seg.lane] = seg;
-    return map;
-  }, [bossConfig]);
+  const bossSegmentByLane = useMemo(() => buildBossSegmentByLane(bossConfig), [bossConfig]);
 
   const previewOutcome = useMemo<FrontlinePreview | null>(() => {
     if (state.selectedLeaderPower || !selectedCard) return null;
@@ -518,20 +507,17 @@ function FrontlineBattleInner({
     }
   }
 
-  const selectedContextTitle = state.selectedLeaderPower
-    ? allyLeaderPowerName
-    : selectedCard
-      ? frontlineCardName(t, selectedCard)
-      : `${laneLabel(t, displayLane)} ${t("frontline.front")}`;
+  const selectedContext = getSelectedBattleContext({
+    t,
+    selectedLeaderPower: state.selectedLeaderPower,
+    allyLeaderPowerName,
+    allyLeaderPowerDescription,
+    selectedCard,
+    displayLane,
+    displayInsight,
+  });
 
-  const selectedContextBody = state.selectedLeaderPower
-    ? allyLeaderPowerDescription
-    : selectedCard
-      ? `${cardEffectSummary(t, selectedCard)} - ${cardTargetLabel(t, selectedCard)}`
-      : laneStatusSubtitle(t, displayInsight.lane, displayInsight.status);
-
-  const infernoCasting =
-    activeResolutionEvent?.kind === "boss_signature" && activeResolutionEvent.signature === "cast";
+  const infernoCasting = isInfernoCastingEvent(activeResolutionEvent);
 
   return (
     <FrontlineBattleShell
@@ -544,7 +530,7 @@ function FrontlineBattleInner({
         resolutionIndex={resolutionFx?.activeIndex ?? 0}
         resolutionTotal={resolutionFx?.events.length ?? 0}
         previewOutcome={previewOutcome}
-        selectedCardName={selectedCard ? frontlineCardName(t, selectedCard) : null}
+        selectedCardName={selectedCard ? selectedContext.title : null}
         cardPlayFx={cardPlayFx}
         finishWinner={finishFx?.winner ?? null}
       />
@@ -606,8 +592,8 @@ function FrontlineBattleInner({
             focusedLane={focusedLane}
             selectedCard={selectedCard}
             selectedLeaderPower={state.selectedLeaderPower}
-            selectedContextTitle={selectedContextTitle}
-            selectedContextBody={selectedContextBody}
+            selectedContextTitle={selectedContext.title}
+            selectedContextBody={selectedContext.body}
             displayInsight={displayInsight}
             targetableLanes={targetableLanes}
             latestFeed={latestFeed}
