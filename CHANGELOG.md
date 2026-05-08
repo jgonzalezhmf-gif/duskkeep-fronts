@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.78] - 2026-05-08
+
+### Changed
+- Extraidos `CoreShockOverlay`, `CommandPips` y `CompactPressureBar` a `components/game/frontline/FrontlineBattleMeters.tsx`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando medidores y overlays visuales de combate.
+- Mantenidas intactas las reglas del engine, resolucion de turnos, cartas, command economy, rewards, SFX, audio y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.77] - 2026-05-08
 
 ### Changed
