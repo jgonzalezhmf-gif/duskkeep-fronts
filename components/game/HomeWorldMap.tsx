@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { HomeEffectsQaPanel, type HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
-import HomeIcon, { type HomeIconKind } from "@/components/game/home/HomeIcon";
+import { type HomeIconKind } from "@/components/game/home/HomeIcon";
 import HomeScene from "@/components/game/home/HomeScene";
 import {
   CommanderBanner,
+  CornerAction,
+  DockShrine,
   HomeVisualIcon,
+  MiniActionCharm,
+  SideCharm,
   TimedCharm,
 } from "@/components/game/home/HomeWorldMapWidgets";
 import {
@@ -542,175 +546,6 @@ export default function HomeWorldMap({
         />
       ) : null}
     </section>
-  );
-}
-
-function SideCharm({
-  href,
-  label,
-  sublabel,
-  icon,
-  modeIcon,
-  tone,
-  delay,
-}: {
-  href: string;
-  label: string;
-  sublabel: string;
-  icon: HomeIconKind;
-  modeIcon?: ModeIconName;
-  tone: HomeTone;
-  delay: string;
-}) {
-  const palette = TONE_STYLES[tone];
-  return (
-    <Link
-      href={href}
-      onMouseEnter={() => sfx.hover()}
-      onPointerDown={() => sfx.tap()}
-      className="group flex items-center gap-1.5 opacity-86 transition hover:opacity-100"
-      style={{ animation: `homeDockBreathe 5.4s ease-in-out ${delay} infinite` }}
-    >
-      <span className="relative flex h-[3.45rem] w-[3.25rem] items-end justify-center">
-        <span className="absolute bottom-0.5 h-3 w-8 rounded-full bg-black/30 blur-md" />
-        <span className={cn("absolute bottom-[0.25rem] h-[2.8rem] w-[2.8rem] rounded-full bg-gradient-to-br opacity-70 blur-xl", palette.wash)} />
-        <span className="relative z-[1] h-[2.75rem] w-[2.75rem] transition group-hover:-translate-y-0.5 group-hover:scale-[1.08]">
-          <HomeVisualIcon icon={icon} modeIcon={modeIcon} />
-        </span>
-      </span>
-      <span
-        className={cn(
-          "relative min-w-[5.8rem] rounded-[15px] border px-2.25 py-1.25 text-left shadow-[0_12px_22px_rgba(0,0,0,0.2)] backdrop-blur-xl transition group-hover:-translate-y-0.5",
-          "bg-[linear-gradient(180deg,rgba(11,15,23,0.74),rgba(7,10,16,0.96))]",
-          palette.ring,
-        )}
-      >
-        <span className={cn("absolute inset-y-[18%] left-0 top-auto w-[12%] rounded-full bg-gradient-to-b opacity-60 blur-sm", palette.wash)} />
-        <span className="relative block text-[6px] font-black uppercase tracking-[0.22em] text-white/40">{sublabel}</span>
-        <span className={cn("relative mt-0.5 block text-[9px] font-black uppercase tracking-[0.16em]", palette.text)}>{label}</span>
-      </span>
-    </Link>
-  );
-}
-
-function MiniActionCharm({
-  href,
-  label,
-  icon,
-  modeIcon,
-  tone,
-  delay,
-}: {
-  href: string;
-  label: string;
-  icon: HomeIconKind;
-  modeIcon?: ModeIconName;
-  tone: HomeTone;
-  delay: string;
-}) {
-  const palette = TONE_STYLES[tone];
-  return (
-    <Link
-      href={href}
-      title={label}
-      onMouseEnter={() => sfx.hover()}
-      onPointerDown={() => sfx.tap()}
-      className="relative flex h-[3rem] w-[2.8rem] items-end justify-center"
-      style={{ animation: `homeDockBreathe 5.2s ease-in-out ${delay} infinite` }}
-    >
-      <span className="absolute bottom-0.5 h-2.5 w-8 rounded-full bg-black/28 blur-md" />
-      <span className={cn("absolute bottom-[0.3rem] h-[2.7rem] w-[2.7rem] rounded-full bg-gradient-to-br opacity-72 blur-xl", palette.wash)} />
-      <span className="relative h-[2.65rem] w-[2.65rem]">
-        <HomeVisualIcon icon={icon} modeIcon={modeIcon} />
-      </span>
-    </Link>
-  );
-}
-
-function DockShrine({
-  href,
-  label,
-  icon,
-  tone,
-  delay,
-}: {
-  href: string;
-  label: string;
-  icon: HomeIconKind;
-  tone: HomeTone;
-  delay: string;
-}) {
-  const palette = TONE_STYLES[tone];
-  return (
-    <Link
-      href={href}
-      onMouseEnter={() => sfx.hover()}
-      onPointerDown={() => sfx.tap()}
-      className="group flex flex-col items-center gap-1"
-      style={{ animation: `homeDockBreathe 5.8s ease-in-out ${delay} infinite` }}
-    >
-      <span className="relative flex h-[4.35rem] w-[4.05rem] items-end justify-center md:h-[4.75rem] md:w-[4.35rem]">
-        <span className="absolute bottom-1 h-3.5 w-10 rounded-full bg-black/32 blur-md" />
-        <span className={cn("absolute bottom-[0.55rem] h-[3.35rem] w-[3.35rem] rounded-full bg-gradient-to-br opacity-76 blur-2xl md:h-[3.7rem] md:w-[3.7rem]", palette.wash)} />
-        <span className="relative h-[3.15rem] w-[3.15rem] transition group-hover:-translate-y-0.5 group-hover:scale-[1.08] md:h-[3.45rem] md:w-[3.45rem]">
-          <HomeIcon kind={icon} />
-        </span>
-      </span>
-      <span
-        className={cn(
-          "rounded-full border px-2 py-[0.25rem] text-[7px] font-black uppercase tracking-[0.16em] shadow-[0_10px_18px_rgba(0,0,0,0.24)] backdrop-blur-xl md:px-2.5 md:text-[8px]",
-          palette.ring,
-          palette.text,
-          "bg-[linear-gradient(180deg,rgba(12,16,24,0.76),rgba(7,10,16,0.96))]",
-        )}
-      >
-        {label}
-      </span>
-    </Link>
-  );
-}
-
-function CornerAction({
-  href,
-  label,
-  sublabel,
-  tone,
-  icon,
-  modeIcon,
-  compact = false,
-}: {
-  href: string;
-  label: string;
-  sublabel: string;
-  tone: HomeTone;
-  icon: HomeIconKind;
-  modeIcon?: ModeIconName;
-  compact?: boolean;
-}) {
-  const palette = TONE_STYLES[tone];
-  return (
-    <Link
-      href={href}
-      onMouseEnter={() => sfx.hover()}
-      onPointerDown={() => sfx.tap()}
-      className={cn(
-        "flex items-center gap-2 rounded-[22px] border bg-[linear-gradient(180deg,rgba(12,17,26,0.68),rgba(7,10,18,0.96))] px-2 py-1.5 shadow-[0_16px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl",
-        compact && "scale-[0.92] opacity-92",
-        palette.ring,
-      )}
-    >
-      <span className="relative flex h-12 w-12 items-end justify-center">
-        <span className="absolute bottom-1 h-3 w-9 rounded-full bg-black/28 blur-md" />
-        <span className={cn("absolute bottom-[0.25rem] h-[2.95rem] w-[2.95rem] rounded-full bg-gradient-to-br opacity-74 blur-xl", palette.wash)} />
-        <span className="relative h-[2.85rem] w-[2.85rem]">
-          <HomeVisualIcon icon={icon} modeIcon={modeIcon} />
-        </span>
-      </span>
-      <div>
-        <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/48">{label}</div>
-        <div className={cn("mt-0.5 text-[11px] font-black", palette.text)}>{sublabel}</div>
-      </div>
-    </Link>
   );
 }
 
