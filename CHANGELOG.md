@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.75] - 2026-05-08
+
+### Changed
+- Extraidos los props SVG decorativos de Home a `components/game/home/HomeSceneProps.tsx`.
+- Reducida la responsabilidad de `components/game/home/HomeScene.tsx` manteniendo las mismas formas, coordenadas, clases de animacion y estilos SVG.
+- Mantenidos sin cambios assets, landmarks, efectos, QA editor, gameplay, progreso, economia, rutas y audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.74] - 2026-05-08
 
 ### Changed
