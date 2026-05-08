@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.110] - 2026-05-08
+
+### Changed
+- Extraida la seccion de mano de Combat a `components/game/frontline/FrontlineHandSection.tsx`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando render de mano, estado de cartas jugables y recomendacion visual de lane.
+- Mantenidas intactas las reglas del engine, target validation, command economy, SFX, audio, rewards y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.109] - 2026-05-08
 
 ### Changed
