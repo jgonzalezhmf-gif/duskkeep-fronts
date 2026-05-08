@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.148] - 2026-05-08
+
+### Changed
+- Extraida la composicion visual de `FrontlineBattle` a `components/game/frontline/FrontlineBattleStage.tsx`.
+- Reducida la responsabilidad de `FrontlineBattle.tsx`, manteniendo en el archivo principal el estado, handlers y flujo de resolucion sin tocar reglas de combate.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.147] - 2026-05-08
 
 ### Changed

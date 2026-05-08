@@ -9,16 +9,12 @@ import {
   activateLeaderPower,
   getFrontlineCard,
   playCard,
-  resolveTurn,
   resolveTurnTraced,
-  runEnemyTurn,
-  runEnemyTurnTraced,
   validLeaderPowerTargets,
 } from "@/features/frontline/engine";
 import type {
   FrontlineBattleModifiers,
   FrontlineBattleState,
-  FrontlineCardDef,
   FrontlineCardProfileMap,
   FrontlineEvent,
   FrontlineSupportProfileMap,
@@ -34,11 +30,7 @@ import {
 import { useI18n } from "@/lib/i18n/useI18n";
 import type { FrontlineLane, FrontlineLoadout } from "@/lib/types";
 import { FrontlineErrorBoundary } from "./FrontlineErrorBoundary";
-import { FrontlineBattleHeader } from "./FrontlineBattleHeader";
-import { FrontlineBattleLanes } from "./FrontlineBattleLanes";
-import { FrontlineBattleOverlays } from "./FrontlineBattleOverlays";
-import { FrontlineBattleShell } from "./FrontlineBattleShell";
-import { FrontlineBattleSidebar } from "./FrontlineBattleSidebar";
+import { FrontlineBattleStage } from "./FrontlineBattleStage";
 import { createBattleStateFromProps } from "./FrontlineBattleStateFactory";
 import { nextActionLabel } from "./FrontlineBattleUiState";
 import {
@@ -51,8 +43,7 @@ import {
   getTargetableBattleLanes,
   isInfernoCastingEvent,
 } from "./FrontlineBattleDerivedState";
-import { BossBanner } from "./FrontlineBossBanner";
-import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
+import type { FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
 import type {
   FrontlineBattleFinishFx,
   FrontlineCardFxState,
@@ -62,9 +53,6 @@ import type {
   FrontlineResolutionFx,
   FrontlineVisualTone,
 } from "./FrontlineBattleFxState";
-import { FrontlineHandSection } from "./FrontlineHandSection";
-import { laneStatusTitle, type LaneInsight } from "./FrontlineLaneInsights";
-import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
 import {
   collectDeathGhosts,
   collectNewEvents,
@@ -494,94 +482,57 @@ function FrontlineBattleInner({
   const infernoCasting = isInfernoCastingEvent(activeResolutionEvent);
 
   return (
-    <FrontlineBattleShell
+    <FrontlineBattleStage
       backdrop={backdrop}
       hasCustomBackdrop={Boolean(battleBackgroundSrc)}
       infernoCasting={infernoCasting}
-    >
-      <FrontlineBattleOverlays
-        activeResolutionEvent={activeResolutionEvent}
-        resolutionIndex={resolutionFx?.activeIndex ?? 0}
-        resolutionTotal={resolutionFx?.events.length ?? 0}
-        previewOutcome={previewOutcome}
-        selectedCardName={selectedCard ? selectedContext.title : null}
-        cardPlayFx={cardPlayFx}
-        finishWinner={finishFx?.winner ?? null}
-      />
-
-      <div className="relative z-[1] flex flex-col gap-4 p-4 md:p-5">
-        {encounterKind && encounterKind !== "boss" ? <EncounterBanner kind={encounterKind} title={encounterTitle ?? null} /> : null}
-        <FrontlineBattleHeader
-          state={state}
-          displayState={displayState}
-          enemyPresetId={enemyPresetId}
-          allyLeader={allyLeader}
-          allyLeaderPowerName={allyLeaderPowerName}
-          allyLeaderPowerDescription={allyLeaderPowerDescription}
-          activeResolutionEvent={activeResolutionEvent}
-          latestImpact={latestImpact}
-          resolutionActive={Boolean(resolutionFx)}
-          coreShock={coreShock}
-          actionState={actionState}
-          actionsLocked={actionsLocked}
-          selectedCard={selectedCard}
-          focusedLaneActive={Boolean(focusedLane)}
-          onLeaderPowerClick={handleLeaderPowerClick}
-          onResolveClick={handleResolveClick}
-          onClearSelection={() => {
-            if (actionsLocked) return;
-            setFocusedLane(null);
-            setState((current) => ({ ...current, selectedCardId: null, selectedLeaderPower: false }));
-          }}
-        />
-
-        {bossConfig && state.bossState ? (
-          <BossBanner
-            boss={bossConfig}
-            bossState={state.bossState}
-            modifiers={modifiers ?? null}
-            cardCostMod={state.playerCardCostMod}
-          />
-        ) : null}
-
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_14.5rem]">
-          <FrontlineBattleLanes
-            state={state}
-            displayState={displayState}
-            bossConfig={bossConfig}
-            bossSegmentByLane={bossSegmentByLane}
-            targetableLanes={targetableLanes}
-            displayLane={displayLane}
-            laneInsights={laneInsights}
-            latestImpact={latestImpact}
-            activeResolutionEvent={activeResolutionEvent}
-            cardPlayFx={cardPlayFx}
-            deathGhosts={deathGhosts}
-            selectedTargetSide={selectedTargetSide}
-            onLaneClick={handleLaneClick}
-            onLaneFocus={setFocusedLane}
-          />
-
-          <FrontlineBattleSidebar
-            focusedLane={focusedLane}
-            selectedCard={selectedCard}
-            selectedLeaderPower={state.selectedLeaderPower}
-            selectedContextTitle={selectedContext.title}
-            selectedContextBody={selectedContext.body}
-            displayInsight={displayInsight}
-            targetableLanes={targetableLanes}
-            latestFeed={latestFeed}
-          />
-        </div>
-
-        <FrontlineHandSection
-          state={state}
-          actionsLocked={actionsLocked}
-          laneInsights={laneInsights}
-          onCardClick={handleCardClick}
-        />
-      </div>
-    </FrontlineBattleShell>
+      activeResolutionEvent={activeResolutionEvent}
+      resolutionIndex={resolutionFx?.activeIndex ?? 0}
+      resolutionTotal={resolutionFx?.events.length ?? 0}
+      previewOutcome={previewOutcome}
+      selectedCardName={selectedCard ? selectedContext.title : null}
+      cardPlayFx={cardPlayFx}
+      finishWinner={finishFx?.winner ?? null}
+      encounterKind={encounterKind}
+      encounterTitle={encounterTitle}
+      state={state}
+      displayState={displayState}
+      enemyPresetId={enemyPresetId}
+      allyLeader={allyLeader}
+      allyLeaderPowerName={allyLeaderPowerName}
+      allyLeaderPowerDescription={allyLeaderPowerDescription}
+      latestImpact={latestImpact}
+      resolutionActive={Boolean(resolutionFx)}
+      coreShock={coreShock}
+      actionState={actionState}
+      actionsLocked={actionsLocked}
+      selectedCard={selectedCard}
+      focusedLane={focusedLane}
+      focusedLaneActive={Boolean(focusedLane)}
+      bossConfig={bossConfig}
+      bossSegmentByLane={bossSegmentByLane}
+      modifiers={modifiers}
+      targetableLanes={targetableLanes}
+      displayLane={displayLane}
+      displayInsight={displayInsight}
+      laneInsights={laneInsights}
+      deathGhosts={deathGhosts}
+      selectedTargetSide={selectedTargetSide}
+      selectedLeaderPower={state.selectedLeaderPower}
+      selectedContextTitle={selectedContext.title}
+      selectedContextBody={selectedContext.body}
+      latestFeed={latestFeed}
+      onLeaderPowerClick={handleLeaderPowerClick}
+      onResolveClick={handleResolveClick}
+      onClearSelection={() => {
+        if (actionsLocked) return;
+        setFocusedLane(null);
+        setState((current) => ({ ...current, selectedCardId: null, selectedLeaderPower: false }));
+      }}
+      onLaneClick={handleLaneClick}
+      onLaneFocus={setFocusedLane}
+      onCardClick={handleCardClick}
+    />
   );
 }
 
