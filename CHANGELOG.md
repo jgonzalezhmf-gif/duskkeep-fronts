@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.127] - 2026-05-08
+
+### Changed
+- Extraida la aplicacion de shards de heroes a `lib/heroShards.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando creacion, acumulacion y desbloqueo de heroes por shards.
+
+### Added
+- Tests de shards de heroes para recompensas vacias, heroes nuevos bloqueados, heroes nuevos desbloqueados, desbloqueo por acumulacion y heroes ya desbloqueados.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.126] - 2026-05-08
 
 ### Changed

@@ -14,6 +14,7 @@ import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import type { LocaleCode } from "@/lib/i18n/locales";
 import { applyAccountXpReward } from "@/lib/accountProgression";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
+import { applyHeroShardRewards } from "@/lib/heroShards";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardResources, canAfford, spendResources } from "@/lib/resourceMath";
@@ -507,28 +508,9 @@ export const useGameStore = create<GameState & GameActions>()(
             }
           }
 
-          if (r.shards?.length) {
-            const heroes = s.heroes.slice();
-            for (const sh of r.shards) {
-              const idx = heroes.findIndex((h) => h.heroId === sh.heroId);
-              if (idx === -1) {
-                if (sh.amount >= 10) {
-                  heroes.push({ heroId: sh.heroId, level: 1, stars: 1, shards: sh.amount - 10, xp: 0, skillLevel: 1 });
-                } else {
-                  heroes.push({ heroId: sh.heroId, level: 0, stars: 0, shards: sh.amount, xp: 0, skillLevel: 1 });
-                }
-              } else {
-                const h = heroes[idx];
-                let combinedShards = h.shards + sh.amount;
-                // unlock if locked and enough shards
-                if (h.stars === 0 && combinedShards >= 10) {
-                  heroes[idx] = { ...h, stars: 1, level: 1, shards: combinedShards - 10 };
-                } else {
-                  heroes[idx] = { ...h, shards: combinedShards };
-                }
-              }
-            }
-            next.heroes = heroes;
+          const heroesWithShardRewards = applyHeroShardRewards(s.heroes, r.shards);
+          if (heroesWithShardRewards) {
+            next.heroes = heroesWithShardRewards;
           }
 
           if (r.xp) {
