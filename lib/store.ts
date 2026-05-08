@@ -15,6 +15,7 @@ import type { LocaleCode } from "@/lib/i18n/locales";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
+import { applyRewardResources, canAfford, spendResources } from "@/lib/resourceMath";
 import {
   firstVisibleRoadmapStep,
   getDailyLoginClaimState,
@@ -496,13 +497,7 @@ export const useGameStore = create<GameState & GameActions>()(
 
         set((s) => {
           const next: Partial<GameState> = {};
-          const resources = { ...s.resources };
-          if (r.gold) resources.gold += r.gold;
-          if (r.dust) resources.dust += r.dust;
-          if (r.gems) resources.gems += r.gems;
-          if (r.arenaTickets) resources.arenaTickets += r.arenaTickets;
-          if (r.adventureKeys) resources.adventureKeys = (resources.adventureKeys ?? 0) + r.adventureKeys;
-          next.resources = resources;
+          next.resources = applyRewardResources(s.resources, r);
 
           if (r.accountXp) {
             let xp = s.account.xp + r.accountXp;
@@ -571,18 +566,9 @@ export const useGameStore = create<GameState & GameActions>()(
 
       spend: (cost) => {
         const s = get();
-        if (cost.gold && s.resources.gold < cost.gold) return false;
-        if (cost.gems && s.resources.gems < cost.gems) return false;
-        if (cost.dust && s.resources.dust < cost.dust) return false;
-        if (cost.adventureKeys && (s.resources.adventureKeys ?? 0) < cost.adventureKeys) return false;
+        if (!canAfford(s.resources, cost)) return false;
         set((st) => ({
-          resources: {
-            ...st.resources,
-            gold: st.resources.gold - (cost.gold ?? 0),
-            gems: st.resources.gems - (cost.gems ?? 0),
-            dust: st.resources.dust - (cost.dust ?? 0),
-            adventureKeys: (st.resources.adventureKeys ?? 0) - (cost.adventureKeys ?? 0),
-          },
+          resources: spendResources(st.resources, cost),
         }));
         return true;
       },
