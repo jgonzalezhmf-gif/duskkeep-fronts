@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.68] - 2026-05-08
+
+### Changed
+- Extraidas primitives visuales de Roster a `app/roster/RosterPrimitives.tsx`.
+- Reducida la responsabilidad de `app/roster/page.tsx` moviendo metricas, filtros, chips y tags.
+- Mantenido el comportamiento de seleccion de heroes, filtros, modal, progreso, economia, rutas y audio sin cambios.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.67] - 2026-05-08
 
 ### Changed
