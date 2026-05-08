@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.91] - 2026-05-08
+
+### Changed
+- Extraido `ExhaustedPane` a `components/game/frontline/FrontlineExhaustedPane.tsx`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando el resumen visual de cartas agotadas.
+- Mantenidas intactas las reglas del engine, agotamiento de cartas, command economy, rewards, SFX, audio y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.90] - 2026-05-08
 
 ### Changed
