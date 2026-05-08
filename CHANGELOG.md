@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.63] - 2026-05-08
+
+### Changed
+- Extraido el inspector de edificios de Fortress a `app/fortress/FortressBuildingInspector.tsx`.
+- Reducida la responsabilidad de `app/fortress/page.tsx` manteniendo el calculo de coste y accion de upgrade en la pantalla.
+- Mantenido el comportamiento de raid, garrison, economia, progreso, rutas y audio sin cambios.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.62] - 2026-05-08
 
 ### Changed
