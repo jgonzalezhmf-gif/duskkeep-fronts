@@ -4,7 +4,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import GameGlyph from "@/components/ui/GameGlyph";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
-import { ActionButton, FloatingText, UnitStandee, type TacticalFloaterKind } from "@/components/game/tactical/TacticalBoardPrimitives";
+import {
+  ActionButton,
+  BoardSideFlag,
+  FloatingText,
+  LegendPill,
+  StatusPill,
+  TileHighlight,
+  UnitStandee,
+  type TacticalFloaterKind,
+  type TacticalHighlightKind,
+} from "@/components/game/tactical/TacticalBoardPrimitives";
 import {
   endSideTurn,
   endUnitTurn,
@@ -42,8 +52,6 @@ type FloaterEntry = {
   label?: string;
   kind: TacticalFloaterKind;
 };
-
-type HighlightKind = "move" | "attack" | "ability" | "summon" | "spell" | "power" | null;
 
 export default function TacticalBoard({
   state,
@@ -232,7 +240,7 @@ export default function TacticalBoard({
                 const tileUnit = unitAt(state, pos);
                 const isObstacle = obstacleSet.has(key);
                 const isSelectedTile = !!tileUnit && selected?.uid === tileUnit.uid;
-                const highlightKind: HighlightKind = highlights.move.has(key)
+                const highlightKind: TacticalHighlightKind = highlights.move.has(key)
                   ? "move"
                   : highlights.attack.has(key)
                     ? "attack"
@@ -403,100 +411,4 @@ function cycleMode(mode: TacticalState["mode"]): TacticalState["mode"] {
   if (mode === "move") return "attack";
   if (mode === "attack") return "ability";
   return "move";
-}
-
-function BoardSideFlag({ tone, label, compact }: { tone: "ally" | "enemy"; label: string; compact?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "inline-flex items-center rounded-full font-black uppercase tracking-[0.2em] shadow-[0_10px_18px_rgba(0,0,0,0.16)]",
-        compact ? "gap-1.5 px-2.5 py-1 text-[8px]" : "gap-2 px-3 py-1.5 text-[9px]",
-        tone === "ally"
-          ? "bg-[linear-gradient(180deg,rgba(64,129,196,0.18),rgba(12,18,28,0.62))] text-sky-50"
-          : "bg-[linear-gradient(180deg,rgba(156,74,88,0.18),rgba(18,12,20,0.62))] text-rose-50",
-      )}
-    >
-      <span className={cn("h-2.5 w-2.5 rounded-full", tone === "ally" ? "bg-sky-300" : "bg-rose-300")} />
-      {label}
-    </div>
-  );
-}
-
-function StatusPill({
-  label,
-  value,
-  tone,
-  compact,
-}: {
-  label: string;
-  value: string;
-  tone: "ally" | "enemy" | "neutral";
-  compact?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-full font-black uppercase tracking-[0.18em] shadow-[0_10px_18px_rgba(0,0,0,0.18)]",
-        compact ? "px-2 py-1 text-[8px]" : "px-3 py-1.5 text-[9px]",
-        tone === "ally"
-          ? "bg-[linear-gradient(180deg,rgba(63,124,194,0.16),rgba(12,17,26,0.68))] text-sky-50"
-          : tone === "enemy"
-            ? "bg-[linear-gradient(180deg,rgba(152,72,86,0.16),rgba(18,12,20,0.68))] text-rose-50"
-            : "bg-[linear-gradient(180deg,rgba(255,244,216,0.08),rgba(11,13,19,0.68))] text-white/72",
-      )}
-    >
-      <span className="mr-1.5 text-white/44">{label}</span>
-      {value}
-    </div>
-  );
-}
-
-function TileHighlight({ kind }: { kind: NonNullable<HighlightKind> }) {
-  const palette =
-    kind === "move"
-      ? "ring-1 ring-emerald-300/42 bg-[radial-gradient(circle_at_50%_50%,rgba(52,211,153,0.22),rgba(52,211,153,0.08)_42%,transparent_84%)]"
-      : kind === "attack"
-        ? "ring-1 ring-rose-300/42 bg-[radial-gradient(circle_at_50%_50%,rgba(251,113,133,0.22),rgba(251,113,133,0.08)_42%,transparent_84%)]"
-        : kind === "ability"
-          ? "ring-1 ring-fuchsia-300/42 bg-[radial-gradient(circle_at_50%_50%,rgba(217,70,239,0.22),rgba(217,70,239,0.08)_42%,transparent_84%)]"
-          : kind === "spell"
-            ? "ring-1 ring-sky-300/42 bg-[radial-gradient(circle_at_50%_50%,rgba(125,211,252,0.2),rgba(125,211,252,0.08)_42%,transparent_84%)]"
-            : "ring-1 ring-amber-300/42 bg-[radial-gradient(circle_at_50%_50%,rgba(252,211,77,0.22),rgba(252,211,77,0.08)_42%,transparent_84%)]";
-  const icon =
-    kind === "move"
-      ? "move"
-      : kind === "attack"
-        ? "attack"
-        : kind === "ability"
-          ? "skill"
-          : kind === "spell"
-            ? "skill"
-            : "power";
-  return (
-    <>
-      <div className={cn("pointer-events-none absolute inset-[6%] rounded-[20px] shadow-[0_0_24px_rgba(0,0,0,0.14)]", palette)} />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 z-[1] grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[radial-gradient(circle_at_50%_35%,rgba(255,247,225,0.14),rgba(0,0,0,0.46)_72%)] text-white shadow-[0_12px_20px_rgba(0,0,0,0.28)]">
-        <span className="h-4 w-4">
-          <GameGlyph kind={icon} shell="none" />
-        </span>
-      </div>
-    </>
-  );
-}
-
-function LegendPill({ kind, label }: { kind: "move" | "attack" | "ability"; label: string }) {
-  const tone =
-    kind === "move"
-      ? "border-emerald-200/18 bg-emerald-400/10 text-emerald-50"
-      : kind === "attack"
-        ? "border-rose-200/18 bg-rose-400/10 text-rose-50"
-        : "border-fuchsia-200/18 bg-fuchsia-400/10 text-fuchsia-50";
-  return (
-    <div className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.25 py-0.9 text-[8px] font-black uppercase tracking-[0.16em]", tone)}>
-      <span className="h-3.5 w-3.5">
-        <GameGlyph kind={kind === "move" ? "move" : kind === "attack" ? "attack" : "skill"} shell="none" />
-      </span>
-      {label}
-    </div>
-  );
 }
