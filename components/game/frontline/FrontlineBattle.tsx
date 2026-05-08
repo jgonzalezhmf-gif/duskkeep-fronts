@@ -44,6 +44,7 @@ import { createBattleStateFromProps } from "./FrontlineBattleStateFactory";
 import { nextActionLabel } from "./FrontlineBattleUiState";
 import {
   buildBossSegmentByLane,
+  getCoreShockChange,
   getDisplayBattleState,
   getSelectedBattleContext,
   getSortedLaneInsights,
@@ -266,18 +267,14 @@ function FrontlineBattleInner({
       prevCoreRef.current = { ally, enemy };
       return;
     }
-    const allyLoss = Math.max(0, prev.ally - ally);
-    const enemyLoss = Math.max(0, prev.enemy - enemy);
-    if (allyLoss > 0 || enemyLoss > 0) {
+    const nextShock = getCoreShockChange(prev, { ally, enemy }, coreShockIdRef.current + 1);
+    if (nextShock) {
       coreShockIdRef.current += 1;
-      const id = coreShockIdRef.current;
-      const side: "ally" | "enemy" = allyLoss >= enemyLoss ? "ally" : "enemy";
-      const amount = side === "ally" ? allyLoss : enemyLoss;
-      setCoreShock({ side, amount, key: id });
+      setCoreShock(nextShock);
       sfx.coreDamage();
       if (coreShockTimerRef.current) clearTimeout(coreShockTimerRef.current);
       coreShockTimerRef.current = setTimeout(() => {
-        setCoreShock((current) => (current?.key === id ? null : current));
+        setCoreShock((current) => (current?.key === nextShock.key ? null : current));
       }, 950);
     }
     prevCoreRef.current = { ally, enemy };

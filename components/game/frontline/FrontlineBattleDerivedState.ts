@@ -24,6 +24,29 @@ type PendingResolution = {
   snapshots: FrontlineSnapshot[];
 } | null;
 
+type CoreTotals = {
+  ally: number;
+  enemy: number;
+};
+
+export type CoreShockChange = {
+  side: "ally" | "enemy";
+  amount: number;
+  key: number;
+};
+
+export function getCoreShockChange(previous: CoreTotals, current: CoreTotals, key: number): CoreShockChange | null {
+  const allyLoss = Math.max(0, previous.ally - current.ally);
+  const enemyLoss = Math.max(0, previous.enemy - current.enemy);
+  if (allyLoss <= 0 && enemyLoss <= 0) return null;
+  const side: "ally" | "enemy" = allyLoss >= enemyLoss ? "ally" : "enemy";
+  return {
+    side,
+    amount: side === "ally" ? allyLoss : enemyLoss,
+    key,
+  };
+}
+
 export function buildBossSegmentByLane(boss: FrontlineBossConfig | null): Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> {
   const map: Partial<Record<FrontlineLane, FrontlineBossSegmentConfig>> = {};
   if (boss) for (const segment of boss.segments) map[segment.lane] = segment;

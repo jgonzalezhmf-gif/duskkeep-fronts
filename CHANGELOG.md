@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.119] - 2026-05-08
+
+### Changed
+- Extraido el calculo puro de core shock de Combat a `components/game/frontline/FrontlineBattleDerivedState.ts`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` dejando el efecto React solo como orquestador de estado visual y SFX.
+
+### Added
+- Cobertura de tests para `getCoreShockChange` en `tests/frontline.battleDerivedState.test.ts`.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.118] - 2026-05-08
 
 ### Changed
