@@ -73,6 +73,7 @@ import { CoreTotem } from "./FrontlineCoreTotem";
 import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
 import { ExhaustedPane } from "./FrontlineExhaustedPane";
 import { HeroFxBadge } from "./FrontlineHeroFxBadge";
+import { LaneActionTrail, type FrontlineVisualFxTone } from "./FrontlineLaneActionTrail";
 import { LaneKoFx } from "./FrontlineLaneKoFx";
 import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
 import { SupportToken } from "./FrontlineSupportToken";
@@ -135,7 +136,7 @@ type DeathGhostFx = {
   actor: NonNullable<FrontlineBattleState["lanes"]["left"]["allyHero"]>;
 };
 
-type VisualFxTone = "damage" | "heal" | "shield" | "breach" | "ko" | "summon" | "stun" | "power";
+type VisualFxTone = FrontlineVisualFxTone;
 
 function combatIconForTone(tone: VisualFxTone): CombatAssetIconName {
   if (tone === "heal") return "heal";
@@ -1507,7 +1508,12 @@ function FrontlineBattleInner({
                   {breachFx ? (
                     <div className="frontline-breach-fx pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 rounded-full border-2 border-[#f5c451]/70 bg-[#f5c451]/14 shadow-[0_0_48px_rgba(245,196,81,0.42)]" />
                   ) : null}
-                  <LaneActionTrail event={activeLaneEvent} />
+                  <LaneActionTrail
+                    event={activeLaneEvent}
+                    targetSide={activeLaneEvent ? eventPrimaryTargetSide(activeLaneEvent) : null}
+                    tone={activeLaneEvent ? visualToneFromEvent(activeLaneEvent) : null}
+                    icon={activeLaneEvent ? combatIconForEvent(activeLaneEvent) : null}
+                  />
                   <ResolutionFloat events={laneFx} />
                   <CardCastFx fx={laneCardFx} />
                   <DeathGhost ghost={laneDeathGhost} />
@@ -2147,52 +2153,6 @@ function CardUseToast({ fx }: { fx: CardPlayFx | null }) {
             <span>{card ? cardTargetLabel(t, card) : fx.lane ?? t("frontline.front")}</span>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function LaneActionTrail({ event }: { event: FrontlineEvent | null }) {
-  if (!event || !event.side) return null;
-  const targetSide = eventPrimaryTargetSide(event);
-  if (!targetSide) return null;
-  const tone = visualToneFromEvent(event);
-  const isAttack = event.kind === "damage" || event.kind === "stun" || event.kind === "ko";
-  const direction = isAttack && event.side === "ally" ? "up" : "down";
-  const targetTop = targetSide === "enemy" ? "top-[25%]" : "top-[72%]";
-  const trailClass =
-    tone === "heal"
-      ? "from-emerald-200/0 via-emerald-200/85 to-emerald-200/0 shadow-[0_0_28px_rgba(75,224,141,0.36)]"
-      : tone === "shield"
-        ? "from-cyan-100/0 via-cyan-100/85 to-cyan-100/0 shadow-[0_0_28px_rgba(101,210,200,0.36)]"
-        : tone === "breach" || tone === "ko"
-          ? "from-[#f5c451]/0 via-[#f5c451]/90 to-[#f5c451]/0 shadow-[0_0_34px_rgba(245,196,81,0.42)]"
-          : "from-rose-200/0 via-rose-200/90 to-rose-200/0 shadow-[0_0_34px_rgba(240,95,114,0.38)]";
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[6]">
-      {isAttack ? (
-        <div
-          className={cn(
-            "absolute left-1/2 top-[31%] h-[38%] w-4 rounded-full bg-gradient-to-b",
-            trailClass,
-            direction === "up" ? "frontline-action-trail-up-fx" : "frontline-action-trail-down-fx",
-          )}
-        />
-      ) : null}
-      <div
-        className={cn(
-          "frontline-action-impact-fx absolute left-1/2 grid h-24 w-24 place-items-center rounded-full border-2 backdrop-blur-sm",
-          targetTop,
-          tone === "heal"
-            ? "border-emerald-100/55 bg-emerald-300/14 text-emerald-50 shadow-[0_0_44px_rgba(75,224,141,0.34)]"
-            : tone === "shield"
-              ? "border-cyan-100/55 bg-cyan-300/14 text-cyan-50 shadow-[0_0_44px_rgba(101,210,200,0.34)]"
-              : tone === "breach" || tone === "ko"
-                ? "border-[#f5c451]/62 bg-[#f5c451]/16 text-[#fff0bd] shadow-[0_0_52px_rgba(245,196,81,0.4)]"
-                : "border-rose-100/58 bg-rose-400/16 text-rose-50 shadow-[0_0_50px_rgba(240,95,114,0.38)]",
-        )}
-      >
-        <CombatIcon name={combatIconForEvent(event)} size="lg" className="h-12 w-12" fallbackClassName="h-12 w-12" />
       </div>
     </div>
   );
