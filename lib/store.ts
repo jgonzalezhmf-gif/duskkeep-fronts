@@ -27,6 +27,13 @@ import {
 } from "@/lib/fortressState";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import { applyHeroLevelUp, applyHeroSkillUp, applyHeroStarUp } from "@/lib/heroUpgrades";
+import {
+  setDeckSlotState,
+  setFrontlineLeaderState,
+  setFrontlineSquadSlotState,
+  setTeamSlotState,
+  toggleFrontlineDeckCardState,
+} from "@/lib/loadoutState";
 import { claimDailyLoginReward, claimMilestoneReward, claimRoadmapReward } from "@/lib/metaRewardClaims";
 import { applyMissionMetricProgress, claimMissionProgress, ensureMissionProgress } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
@@ -66,7 +73,6 @@ import {
   SKILL_COOLDOWN_REDUCTION_AT_MAX,
   SKILL_MULTIPLIER_BONUS,
 } from "./constants";
-import type { FrontlineLoadout } from "./types";
 
 export type { GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressState";
@@ -94,64 +100,28 @@ export const useGameStore = create<GameState & GameActions>()(
       setName: (name) => set((s) => ({ account: { ...s.account, name } })),
 
       setTeamSlot: (slotIdx, heroId) =>
-        set((s) => {
-          const team = s.team.slice();
-          if (heroId) {
-            for (let i = 0; i < team.length; i++) {
-              if (i !== slotIdx && team[i] === heroId) team[i] = null;
-            }
-          }
-          team[slotIdx] = heroId;
-          return { team };
-        }),
+        set((s) => ({
+          team: setTeamSlotState(s.team, slotIdx, heroId),
+        })),
 
       setDeckSlot: (slotIdx, cardId) =>
-        set((s) => {
-          const activeDeck = s.activeDeck.slice();
-          if (cardId) {
-            for (let i = 0; i < activeDeck.length; i++) {
-              if (i !== slotIdx && activeDeck[i] === cardId) activeDeck[i] = null;
-            }
-          }
-          activeDeck[slotIdx] = cardId;
-          return { activeDeck };
-        }),
+        set((s) => ({
+          activeDeck: setDeckSlotState(s.activeDeck, slotIdx, cardId),
+        })),
 
       setActiveLeader: (leaderId) => set({ activeLeaderId: leaderId }),
 
       setFrontlineLeader: (leaderId) =>
-        set((s) => ({ frontlineLoadout: { ...s.frontlineLoadout, leaderId } })),
+        set((s) => ({ frontlineLoadout: setFrontlineLeaderState(s.frontlineLoadout, leaderId) })),
 
       setFrontlineSquadSlot: (slotIdx, heroId) =>
-        set((s) => {
-          const squad = [...s.frontlineLoadout.squad];
-          if (heroId) {
-            for (let i = 0; i < squad.length; i += 1) {
-              if (i !== slotIdx && squad[i] === heroId) squad[i] = null;
-            }
-          }
-          squad[slotIdx] = heroId;
-          return { frontlineLoadout: { ...s.frontlineLoadout, squad: squad as FrontlineLoadout["squad"] } };
-        }),
+        set((s) => ({ frontlineLoadout: setFrontlineSquadSlotState(s.frontlineLoadout, slotIdx, heroId) })),
 
       toggleFrontlineDeckCard: (cardId) =>
         set((s) => {
           if (!isFrontlineCardUnlocked(s.frontlineCardUnlocks, cardId)) return {};
-          const current = s.frontlineLoadout.deck.filter(Boolean) as string[];
-          const hasCard = current.includes(cardId);
-          let nextDeck = current;
-          if (hasCard) {
-            nextDeck = current.filter((entry) => entry !== cardId);
-          } else if (current.length < DECK_SIZE) {
-            nextDeck = [...current, cardId];
-          } else {
-            nextDeck = [...current.slice(0, DECK_SIZE - 1), cardId];
-          }
           return {
-            frontlineLoadout: {
-              ...s.frontlineLoadout,
-              deck: nextDeck,
-            },
+            frontlineLoadout: toggleFrontlineDeckCardState(s.frontlineLoadout, cardId, DECK_SIZE),
           };
         }),
 

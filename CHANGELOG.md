@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.139] - 2026-05-08
+
+### Changed
+- Extraidas transformaciones de team/deck/loadout a `lib/loadoutState.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando seleccion de slots, lider de Frontline y toggle de deck.
+
+### Added
+- Tests de loadout para evitar duplicados y fijar la politica de toggle/reemplazo de cartas.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.138] - 2026-05-08
 
 ### Changed
