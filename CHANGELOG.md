@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.164] - 2026-05-08
+
+### Changed
+- Extraidos efectos de clash, aftermath, expiracion de supports y limpieza de temporales a `features/frontline/frontlineClashEffects.ts`.
+- Reducido `features/frontline/engine.ts` sin cambiar orden de efectos de support, traits `bulwark`/`mend`, stuns ni escudos temporales.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.163] - 2026-05-08
 
 ### Changed
