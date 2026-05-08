@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.138] - 2026-05-08
+
+### Changed
+- Extraidos helpers de Fortress a `lib/fortressState.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando income, costes de upgrade, patches de edificios y garrison.
+
+### Added
+- Tests de Fortress para income, upgrades, bonuses de combate y exclusividad de garrison.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.137] - 2026-05-08
 
 ### Changed

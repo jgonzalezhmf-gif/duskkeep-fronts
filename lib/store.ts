@@ -9,7 +9,6 @@ import { DAILY_LOGIN } from "@/data/dailyLogin";
 import { ROADMAP } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
-import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
 import {
   getAdventureProgressEntry,
   markAdventureLevelCleared,
@@ -17,6 +16,15 @@ import {
   markAdventureNodeClaimed,
 } from "@/lib/adventureProgressState";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
+import {
+  applyFortressBuildingUpgrade,
+  applyFrontlineFortressUpgrade,
+  getFortressBuildingUpgradePlan,
+  getFortressIncomeRewards,
+  getFrontlineFortressUpgradePlan,
+  markFortressIncomeCollected,
+  setFrontlineFortressGarrisonSlot,
+} from "@/lib/fortressState";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import { applyHeroLevelUp, applyHeroSkillUp, applyHeroStarUp } from "@/lib/heroUpgrades";
 import { claimDailyLoginReward, claimMilestoneReward, claimRoadmapReward } from "@/lib/metaRewardClaims";
@@ -39,9 +47,7 @@ import {
   normalizeFrontlineCardLevel,
 } from "@/features/frontline/cardProgression";
 import {
-  FRONTLINE_FORTRESS_BUILDING_BY_ID,
   frontlineFortressRaidReady,
-  frontlineFortressUpgradeCost,
   resolveFrontlineFortressRaid,
 } from "@/features/frontline/fortress";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
@@ -60,46 +66,10 @@ import {
   SKILL_COOLDOWN_REDUCTION_AT_MAX,
   SKILL_MULTIPLIER_BONUS,
 } from "./constants";
-import type { FortressState, FrontlineFortressState, FrontlineLoadout, Rewards } from "./types";
+import type { FrontlineLoadout } from "./types";
 
 export type { GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
-
-function fortressLevel(state: FortressState, buildingId: string) {
-  return state.buildings[buildingId] ?? 0;
-}
-
-export function fortressIncomePreview(state: FortressState, now: Date = new Date()) {
-  const last = state.lastCollectedAt ? Date.parse(state.lastCollectedAt) : now.getTime();
-  const elapsedHours = Math.max(0, Math.min(8, (now.getTime() - last) / 3_600_000));
-  const treasury = fortressLevel(state, "treasury");
-  const arcane = fortressLevel(state, "arcane_spire");
-  const market = fortressLevel(state, "market_square");
-  return {
-    hours: elapsedHours,
-    gold: Math.floor(elapsedHours * treasury * 40),
-    dust: Math.floor(elapsedHours * arcane * 8),
-    gems: Math.floor((elapsedHours / 3) * Math.max(0, Math.floor(market / 2))),
-  };
-}
-
-export function fortressBattleBonuses(state: FortressState) {
-  const walls = fortressLevel(state, "bastion_walls");
-  const academy = fortressLevel(state, "war_academy");
-  return {
-    leaderHpBonus: walls * 10,
-    startingHandBonus: Math.floor(academy / 3),
-  };
-}
-
-function buildingUpgradeCost(state: FortressState, buildingId: string) {
-  const def = FORTRESS_BUILDING_BY_ID[buildingId];
-  const nextLevel = fortressLevel(state, buildingId) + 1;
-  return {
-    gold: def.baseCost.gold ? Math.round(def.baseCost.gold * Math.pow(def.scaling, nextLevel - 1)) : undefined,
-    dust: def.baseCost.dust ? Math.round(def.baseCost.dust * Math.pow(def.scaling, nextLevel - 1)) : undefined,
-    gems: def.baseCost.gems ? Math.round(def.baseCost.gems * Math.pow(def.scaling, nextLevel - 1)) : undefined,
-  };
-}
+export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressState";
 
 const noopStorage = {
   getItem: () => null,
@@ -225,90 +195,52 @@ export const useGameStore = create<GameState & GameActions>()(
         }),
 
       collectFortressIncome: () => {
-        const s = get();
-        const preview = fortressIncomePreview(s.fortress);
-        if (preview.gold <= 0 && preview.dust <= 0 && preview.gems <= 0) return null;
-        const rewards: Rewards = {};
-        if (preview.gold > 0) rewards.gold = preview.gold;
-        if (preview.dust > 0) rewards.dust = preview.dust;
-        if (preview.gems > 0) rewards.gems = preview.gems;
+        const rewards = getFortressIncomeRewards(get().fortress);
+        if (!rewards) return null;
         set((st) => ({
-          fortress: { ...st.fortress, lastCollectedAt: new Date().toISOString() },
+          fortress: markFortressIncomeCollected(st.fortress, new Date().toISOString()),
         }));
         get().awardRewards(rewards, "fortress income");
         return rewards;
       },
 
       upgradeFortressBuilding: (buildingId) => {
-        const s = get();
-        const def = FORTRESS_BUILDING_BY_ID[buildingId];
-        if (!def) return false;
-        const currentLevel = fortressLevel(s.fortress, buildingId);
-        if (currentLevel >= def.maxLevel) {
-          get().pushNotification("error", "Building already at max level");
+        const plan = getFortressBuildingUpgradePlan(get().fortress, buildingId);
+        if (!plan.ok) {
+          if (plan.reason === "max_level") {
+            get().pushNotification("error", "Building already at max level");
+          }
           return false;
         }
-        const cost = buildingUpgradeCost(s.fortress, buildingId);
-        if (!get().spend(cost)) {
-          get().pushNotification("error", "Not enough resources");
-          return false;
-        }
-        set((st) => {
-          const nextBuildings = {
-            ...st.fortress.buildings,
-            [buildingId]: (st.fortress.buildings[buildingId] ?? 0) + 1,
-          };
-          const totalLevels = Object.values(nextBuildings).reduce((sum, level) => sum + level, 0);
-          return {
-            fortress: {
-              ...st.fortress,
-              buildings: nextBuildings,
-              level: Math.max(st.fortress.level, 1 + Math.floor(totalLevels / 5)),
-            },
-          };
-        });
-        get().pushNotification("success", `${def.name} upgraded`);
-        return true;
-      },
-
-      upgradeFrontlineFortress: (buildingId) => {
-        const s = get();
-        const def = FRONTLINE_FORTRESS_BUILDING_BY_ID[buildingId];
-        if (!def) return false;
-        const cost = frontlineFortressUpgradeCost(s.frontlineFortress, buildingId);
-        if (!get().spend(cost)) {
+        if (!get().spend(plan.cost)) {
           get().pushNotification("error", "Not enough resources");
           return false;
         }
         set((st) => ({
-          frontlineFortress: {
-            ...st.frontlineFortress,
-            buildings: {
-              ...st.frontlineFortress.buildings,
-              [buildingId]: st.frontlineFortress.buildings[buildingId] + 1,
-            },
-          },
+          fortress: applyFortressBuildingUpgrade(st.fortress, buildingId),
         }));
-        get().pushNotification("success", `${def.name} upgraded`);
+        get().pushNotification("success", `${plan.name} upgraded`);
+        return true;
+      },
+
+      upgradeFrontlineFortress: (buildingId) => {
+        const plan = getFrontlineFortressUpgradePlan(get().frontlineFortress, buildingId);
+        if (!plan.ok) return false;
+        if (!get().spend(plan.cost)) {
+          get().pushNotification("error", "Not enough resources");
+          return false;
+        }
+        set((st) => ({
+          frontlineFortress: applyFrontlineFortressUpgrade(st.frontlineFortress, buildingId),
+        }));
+        get().pushNotification("success", `${plan.name} upgraded`);
         return true;
       },
 
       setFrontlineGarrisonSlot: (slotIdx, heroId) =>
-        set((s) => {
-          const garrison = [...s.frontlineFortress.garrison];
-          if (heroId) {
-            for (let i = 0; i < garrison.length; i += 1) {
-              if (i !== slotIdx && garrison[i] === heroId) garrison[i] = null;
-            }
-          }
-          garrison[slotIdx] = heroId;
-          return {
-            frontlineFortress: {
-              ...s.frontlineFortress,
-              garrison: garrison as FrontlineFortressState["garrison"],
-            },
-          };
-        }),
+        set((s) => ({
+          frontlineFortress: setFrontlineFortressGarrisonSlot(s.frontlineFortress, slotIdx, heroId),
+        })),
 
       resolveFrontlineFortressRaid: () => {
         const s = get();
