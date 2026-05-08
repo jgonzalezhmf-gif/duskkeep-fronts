@@ -14,12 +14,11 @@ import type { AdventureMapEditorSelection, AdventureNodeState, AdventureVisualNo
 import {
   buildRoutes,
   clamp,
-  getDefaultPropDimensions,
-  getDefaultPropEffect,
   getEditableRoutes,
   getPropHeight,
   getPropWidth,
 } from "./AdventureMapGeometry";
+import { createEditorNode, createEditorProp, createEditorRouteFromSelection } from "./AdventureMapEditorFactories";
 import { deriveNodeStatus, deriveNodeType, isCompletedPartyNode } from "./AdventureMapStateHelpers";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
@@ -261,51 +260,16 @@ export function useAdventureCampaignMapState({
   }
 
   function addProp(type: AdventureMapPropType) {
-    const id = `${type}-${Date.now().toString(36)}`;
-    const dimensions = getDefaultPropDimensions(type);
-    const next: AdventureMapPropLayout = {
-      id,
-      type,
-      x: cursor?.x ?? Math.round(DESIGN_WIDTH * 0.42),
-      y: cursor?.y ?? Math.round(DESIGN_HEIGHT * 0.5),
-      width: dimensions.width,
-      height: dimensions.height,
-      zIndex: 35,
-      opacity: 1,
-      enabled: true,
-      ...(getDefaultPropEffect(type) ? { effect: getDefaultPropEffect(type) } : {}),
-      ...(type === "key_chest"
-        ? {
-            interaction: {
-              id: "c1-lower-cache",
-              kind: "keyChest" as const,
-              keyCost: 1,
-              unlockAfter: ["c1l2"],
-              rewardId: "c1-lower-cache",
-              enabled: true,
-            },
-          }
-        : {}),
-    };
+    const next = createEditorProp(type, cursor);
     setEditorLayout((current) => ({ ...current, props: [...(current.props ?? []), next] }));
-    setSelectedEditor({ kind: "prop", id });
-    setCopyStatus(`${id} created`);
+    setSelectedEditor({ kind: "prop", id: next.id });
+    setCopyStatus(`${next.id} created`);
   }
 
   function addNode() {
-    const id = `qa-node-${Date.now().toString(36)}`;
-    const next: AdventureNodeLayout = {
-      id,
-      x: cursor?.x ?? DESIGN_WIDTH / 2,
-      y: cursor?.y ?? DESIGN_HEIGHT / 2,
-      type: "battle",
-      status: "available",
-      size: 48,
-      zIndex: 20,
-      connectsTo: [],
-    };
+    const next = createEditorNode(cursor);
     setEditorLayout((current) => ({ ...current, nodes: [...current.nodes, next] }));
-    setSelectedEditor({ kind: "node", id });
+    setSelectedEditor({ kind: "node", id: next.id ?? "" });
   }
 
   function duplicateSelection(selection: EditorSelection | null) {
@@ -381,23 +345,10 @@ export function useAdventureCampaignMapState({
   }
 
   function addRouteFromSelection(selection: EditorSelection | null) {
-    const from = selection?.kind === "node" ? selection.id : visualNodes[0]?.id;
-    const to = visualNodes.find((node) => node.id !== from)?.id;
-    if (!from || !to) return;
-    const fromNode = visualNodes.find((node) => node.id === from);
-    const toNode = visualNodes.find((node) => node.id === to);
-    if (!fromNode || !toNode) return;
-    const id = `${from}-${to}-${Date.now().toString(36)}`;
-    const route: AdventureMapRouteLayout = {
-      id,
-      from,
-      to,
-      state: "available",
-      control1: { x: Math.round(fromNode.x + (toNode.x - fromNode.x) * 0.34), y: Math.round(fromNode.y - 60) },
-      control2: { x: Math.round(fromNode.x + (toNode.x - fromNode.x) * 0.66), y: Math.round(toNode.y + 60) },
-    };
+    const route = createEditorRouteFromSelection(selection, visualNodes);
+    if (!route) return;
     setEditorLayout((current) => ({ ...current, routes: [...getEditableRoutes(current, visualNodes), route] }));
-    setSelectedEditor({ kind: "routeControl", id, handle: "control1" });
+    setSelectedEditor({ kind: "routeControl", id: route.id, handle: "control1" });
     setShowRouteHandles(true);
   }
 
