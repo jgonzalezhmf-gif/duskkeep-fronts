@@ -3,7 +3,6 @@ import { FRONTLINE_LANES, FRONTLINE_PRESET_BY_ID } from "./data";
 import type {
   FrontlineBattleModifiers,
   FrontlineBattleState,
-  FrontlineCardDef,
   FrontlineCardProfileMap,
   FrontlineEvent,
   FrontlineHeroState,
@@ -47,6 +46,7 @@ import {
   ralliedAllyCount,
 } from "./frontlineCombatantRules";
 import { addShield, dealHeroDamage, dealSupportDamage, healHero } from "./frontlineHealthRules";
+import { chooseEnemyAction } from "./frontlineEnemyAi";
 
 export { getEffectiveCardCost, getFrontlineCard, playableCards, validCardTargets } from "./frontlineCardRules";
 export { frontPresenceScore } from "./frontlineCombatantRules";
@@ -602,7 +602,7 @@ export function playCard(
   if (card.effect.type === "hero_strike" && lane) {
     const hero = getHeroInLane(next, side, lane);
     if (hero) {
-      // Affinity — Twin Slash + Blade Striker: target ally with flurry trait gets +2 ATK extra.
+      // Affinity - Twin Slash + Blade Striker: target ally with flurry trait gets +2 ATK extra.
       const bladeAffinity =
         side === "ally" && card.id === "order_twin_slash" && heroDefinition(hero).trait.type === "flurry";
       const atkBonus = bladeAffinity ? 2 : 0;
@@ -612,7 +612,7 @@ export function playCard(
       if (bladeAffinity) emitSynergy(next, side, "blade_strike_affinity", "Blade Strike Affinity", lane);
     }
   } else if (card.effect.type === "front_shot" && lane) {
-    // Affinity — Archer's Focus: focus_fire while a breach (archer) ally is alive deals +2 damage.
+    // Affinity - Archer's Focus: focus_fire while a breach (archer) ally is alive deals +2 damage.
     const archerAffinity =
       side === "ally" && card.id === "order_focus_fire" && livingAllyWithTrait(next, side, "breach");
     const damageBonus = archerAffinity ? 2 : 0;
@@ -657,7 +657,7 @@ export function playCard(
         pushEvent(next, { kind: "heal", side, lane, label: `${card.name} steadies the core`, amount: next[coreKey] - before, emphasis: "low" });
       }
     }
-    // Affinity — Sanctified Healing: Sanctuary on a mend (healer) hero spreads a softer heal to lateral lanes.
+    // Affinity - Sanctified Healing: Sanctuary on a mend (healer) hero spreads a softer heal to lateral lanes.
     if (
       side === "ally" &&
       card.id === "tactic_sanctuary" &&
@@ -707,7 +707,7 @@ export function playCard(
   } else if (card.effect.type === "summon" && lane) {
     const supportDef = getStateSupport(next, side, card.effect.supportId);
     if (supportDef) {
-      // Howling Pack (forward): summon_wolf with ≥2 rallied allies → wolf enters with +2 HP / +1 ATK.
+      // Howling Pack (forward): summon_wolf with 2+ rallied allies -> wolf enters with +2 HP / +1 ATK.
       const howlingPack =
         side === "ally" && card.id === "summon_wolf" && ralliedAllyCount(next, side) >= 2;
       const hpBonus = howlingPack ? 2 : 0;
@@ -811,7 +811,7 @@ export function resolveTurn(state: FrontlineBattleState) {
     return next;
   }
 
-  // 3. Enemy plays cards & leader power (silent visually — no snapshots from card events).
+  // 3. Enemy plays cards & leader power (silent visually - no snapshots from card events).
   next = runEnemyTurn(next);
   if (battleResolved(next)) {
     next.winner = determineWinner(next) ?? next.winner;
@@ -859,111 +859,8 @@ export function resolveTurn(state: FrontlineBattleState) {
   return prepareTurn(next, "ally");
 }
 
-function enemyPreferredLanes(state: FrontlineBattleState) {
-  return [...FRONTLINE_LANES].sort((left, right) => {
-    const leftTarget = getHeroInLane(state, "ally", left);
-    const rightTarget = getHeroInLane(state, "ally", right);
-    const leftScore = left === "center" ? 4 : 0;
-    const rightScore = right === "center" ? 4 : 0;
-    const leftHp = leftTarget?.hp ?? 0;
-    const rightHp = rightTarget?.hp ?? 0;
-    return leftHp - rightHp || rightScore - leftScore;
-  });
-}
-
-function chooseEnemyTarget(state: FrontlineBattleState, card: FrontlineCardDef): FrontlineLane | null {
-  const valid = validCardTargets(state, "enemy", card.id);
-  if (!valid.length) return null;
-  const preferred = enemyPreferredLanes(state);
-  for (const lane of preferred) {
-    if (valid.includes(lane)) return lane;
-  }
-  return valid[0];
-}
-
 function enemyShouldUsePower(state: FrontlineBattleState) {
   return validLeaderPowerTargets(state, "enemy")[0] ?? null;
-}
-
-function findOpenAllyLane(state: FrontlineBattleState): FrontlineLane | undefined {
-  return FRONTLINE_LANES.find(
-    (lane) => !getHeroInLane(state, "ally", lane) && !getSupportInLane(state, "ally", lane),
-  );
-}
-
-function findHighestThreatAllyLane(state: FrontlineBattleState, minAtk = 5): FrontlineLane | undefined {
-  let bestLane: FrontlineLane | undefined;
-  let bestScore = -Infinity;
-  for (const lane of FRONTLINE_LANES) {
-    const hero = getHeroInLane(state, "ally", lane);
-    if (!hero?.alive || hero.stun > 0) continue;
-    const atk = hero.atk + hero.tempAtk;
-    if (atk < minAtk) continue;
-    if (atk > bestScore) {
-      bestScore = atk;
-      bestLane = lane;
-    }
-  }
-  return bestLane;
-}
-
-function chooseEnemyAction(
-  state: FrontlineBattleState,
-  playable: FrontlineCardDef[],
-): { card: FrontlineCardDef; lane: FrontlineLane | undefined } | null {
-  // Priority 1 — Execute on an already-open ally lane: free core damage.
-  const executeCard = playable.find((card) => card.effect.type === "execute_front");
-  if (executeCard) {
-    const openLane = findOpenAllyLane(state);
-    if (openLane) return { card: executeCard, lane: openLane };
-  }
-
-  // Priority 2 — Heal a wounded enemy hero (existing rule).
-  const healCard = playable.find((card) => card.effect.type === "heal_front");
-  if (healCard) {
-    const lowLane = FRONTLINE_LANES.find((lane) => {
-      const hero = getHeroInLane(state, "enemy", lane);
-      return hero && hero.hp <= hero.maxHp / 2;
-    });
-    if (lowLane) return { card: healCard, lane: lowLane };
-  }
-
-  // Priority 3 — Stun the most threatening ally hero (high ATK).
-  const stunCard = playable.find((card) => card.effect.type === "stun_front");
-  if (stunCard) {
-    const threatLane = findHighestThreatAllyLane(state);
-    if (threatLane) return { card: stunCard, lane: threatLane };
-  }
-
-  // Priority 4 — Buff first if there's a damage follow-up still in hand.
-  const buffCard = playable.find((card) => card.effect.type === "rally");
-  if (buffCard) {
-    const hasDamageFollowup = playable.some(
-      (card) =>
-        card !== buffCard &&
-        (card.effect.type === "front_shot" || card.effect.type === "execute_front" || card.effect.type === "hero_strike"),
-    );
-    if (hasDamageFollowup) return { card: buffCard, lane: undefined };
-  }
-
-  // Priority 5 — Summon in an empty enemy support slot (existing rule).
-  const summonCard = playable.find((card) => card.kind === "summon");
-  if (summonCard) {
-    const openSummonLane = FRONTLINE_LANES.find((lane) => !getSupportInLane(state, "enemy", lane));
-    if (openSummonLane) return { card: summonCard, lane: openSummonLane };
-  }
-
-  // Fallback — most expensive card with a valid target.
-  const ranked = [...playable].sort(
-    (left, right) => right.cost - left.cost || left.id.localeCompare(right.id),
-  );
-  for (const card of ranked) {
-    const target = card.target === "none" ? undefined : chooseEnemyTarget(state, card) ?? undefined;
-    if (card.target !== "none" && !target) continue;
-    return { card, lane: target };
-  }
-
-  return null;
 }
 
 export function runEnemyTurn(state: FrontlineBattleState) {
