@@ -55,6 +55,7 @@ import { actorList } from "./frontlineStrikeOrder";
 import type { FrontlineActor } from "./frontlineStrikeOrder";
 import { applyBreach, livingPresence } from "./frontlineBreachRules";
 import { prepareTurn, setupEnemyPhase } from "./frontlineTurnPreparation";
+import { battleResolved, determineWinner } from "./frontlineBattleOutcome";
 
 export { getEffectiveCardCost, getFrontlineCard, playableCards, validCardTargets } from "./frontlineCardRules";
 export { frontPresenceScore } from "./frontlineCombatantRules";
@@ -62,10 +63,6 @@ export { laneStrikeOrder } from "./frontlineStrikeOrder";
 export type { FrontlineStrikeOrderEntry } from "./frontlineStrikeOrder";
 
 const MAX_ROUNDS = 8;
-function battleResolved(state: FrontlineBattleState) {
-  return state.allyCoreHp <= 0 || state.enemyCoreHp <= 0 || Boolean(state.winner);
-}
-
 function applyDirectDamage(
   state: FrontlineBattleState,
   side: FrontlineSide,
@@ -249,17 +246,6 @@ function clearClashTemps(state: FrontlineBattleState) {
       if (hero.stun > 0) hero.stun -= 1;
     }
   }
-}
-
-function determineWinner(state: FrontlineBattleState) {
-  if (state.allyCoreHp <= 0 && state.enemyCoreHp <= 0) return "draw";
-  if (state.enemyCoreHp <= 0) return "ally";
-  if (state.allyCoreHp <= 0) return "enemy";
-  if (state.round >= state.maxRounds && state.turn === "enemy") {
-    if (state.allyCoreHp === state.enemyCoreHp) return "draw";
-    return state.allyCoreHp > state.enemyCoreHp ? "ally" : "enemy";
-  }
-  return null;
 }
 
 export function createFrontlineBattleState(input: {
