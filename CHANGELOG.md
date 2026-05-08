@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.106] - 2026-05-08
+
+### Changed
+- Extraidos los helpers de estado visual de combatientes a `components/game/frontline/FrontlineVisualState.ts`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando targeting visual, tono de efectos, evento primario y estado visual de heroes.
+- Mantenidas intactas las reglas del engine, resolucion de combate, command economy, SFX, audio, rewards y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.105] - 2026-05-08
 
 ### Changed
