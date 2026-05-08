@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.141] - 2026-05-08
+
+### Changed
+- Extraidos helpers de housekeeping del store a `lib/storeHousekeeping.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando notificaciones, seed, guardado de batalla, eventos, refrescos diarios y onboarding.
+
+### Added
+- Tests de housekeeping para notificaciones, seed, eventos, shop diario, arena tickets, batalla guardada y onboarding.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.140] - 2026-05-08
 
 ### Changed

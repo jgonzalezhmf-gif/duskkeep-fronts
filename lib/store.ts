@@ -40,6 +40,7 @@ import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
+import { addNotificationState, completeOnboardingState, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import type { GameActions, GameState } from "@/lib/storeTypes";
 import {
@@ -390,18 +391,17 @@ export const useGameStore = create<GameState & GameActions>()(
 
       pushNotification: (kind, message) => {
         const id = `${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
-        set((s) => ({ notifications: [...s.notifications, { id, kind, message }] }));
+        set((s) => ({ notifications: addNotificationState(s.notifications, kind, message, id) }));
         if (typeof window !== "undefined") {
           setTimeout(() => get().dismissNotification(id), 3500);
         }
       },
 
       dismissNotification: (id) =>
-        set((s) => ({ notifications: s.notifications.filter((n) => n.id !== id) })),
+        set((s) => ({ notifications: dismissNotificationState(s.notifications, id) })),
 
       nextSeed: () => {
-        const s = get();
-        const next = (s.lastSeed * 1664525 + 1013904223) >>> 0;
+        const next = nextStoreSeed(get().lastSeed);
         set({ lastSeed: next });
         return next;
       },
@@ -411,14 +411,7 @@ export const useGameStore = create<GameState & GameActions>()(
         if (missionsProgress) set({ missionsProgress });
       },
 
-      saveBattle: (levelId, state) => {
-        // Don't persist already-finished battles.
-        if (state.winner) {
-          set({ savedBattle: null });
-          return;
-        }
-        set({ savedBattle: { levelId, state } });
-      },
+      saveBattle: (levelId, state) => set(saveBattleState(levelId, state)),
 
       clearSavedBattle: () => set({ savedBattle: null }),
 
@@ -452,18 +445,14 @@ export const useGameStore = create<GameState & GameActions>()(
 
       markEventCompleted: (eventId) => {
         const today = todayYMD();
-        set((st) => ({
-          eventCompletions: { ...st.eventCompletions, [eventId]: today },
-          eventsPlayed: { ...st.eventsPlayed, [eventId]: (st.eventsPlayed[eventId] ?? 0) + 1 },
-        }));
+        set((st) => markEventCompletedState({ eventCompletions: st.eventCompletions, eventsPlayed: st.eventsPlayed, eventId, today }));
       },
 
       refreshShopIfNeeded: () => {
         const s = get();
         const today = todayYMD();
-        if (s.shopRefreshedAt !== today) {
-          set({ shopRefreshedAt: today, dailyShopPurchases: {} });
-        }
+        const patch = refreshShopState(s.shopRefreshedAt, today);
+        if (patch) set(patch);
       },
 
       offerRemaining: (offerId) => {
@@ -480,20 +469,16 @@ export const useGameStore = create<GameState & GameActions>()(
       setVisualEffects: (enabled) => set({ visualEffects: enabled }),
       setTextScale: (scale) => set({ textScale: scale }),
       setOnboardingStep: (step) =>
-        set((st) => ({ onboarding: { ...st.onboarding, step } })),
+        set((st) => ({ onboarding: setOnboardingStepState(st.onboarding, step) })),
       completeOnboarding: () =>
-        set({ onboarding: { step: 99, completed: true } }),
+        set({ onboarding: completeOnboardingState() }),
       ackPendingUnlock: () => set({ pendingUnlockLevel: null }),
 
       refreshArenaTicketsIfNeeded: () => {
         const s = get();
         const today = todayYMD();
-        if (s.arenaTicketsRefreshedAt !== today) {
-          set({
-            arenaTicketsRefreshedAt: today,
-            resources: { ...s.resources, arenaTickets: Math.max(s.resources.arenaTickets, DAILY_ARENA_TICKETS) },
-          });
-        }
+        const patch = refreshArenaTicketsState({ arenaTicketsRefreshedAt: s.arenaTicketsRefreshedAt, resources: s.resources, today, dailyArenaTickets: DAILY_ARENA_TICKETS });
+        if (patch) set(patch);
       },
 
       updateMissionProgress: (metric, delta) => {
