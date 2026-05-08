@@ -42,9 +42,9 @@ import {
 import { useI18n } from "@/lib/i18n/useI18n";
 import type { FrontlineLane, FrontlineLoadout } from "@/lib/types";
 import { FrontlineErrorBoundary } from "./FrontlineErrorBoundary";
-import { BattleEndOverlay } from "./FrontlineBattleEndOverlay";
 import { FrontlineBattleHeader } from "./FrontlineBattleHeader";
 import { FrontlineBattleLanes } from "./FrontlineBattleLanes";
+import { FrontlineBattleOverlays } from "./FrontlineBattleOverlays";
 import { FrontlineBattleSidebar } from "./FrontlineBattleSidebar";
 import {
   cardEffectSummary,
@@ -54,11 +54,8 @@ import {
 } from "./FrontlineBattleUiState";
 import { BossBanner } from "./FrontlineBossBanner";
 import type { FrontlineCardPlayFx } from "./FrontlineCardCastFx";
-import { CardUseToast } from "./FrontlineCardUseToast";
-import { ClashSpotlight } from "./FrontlineClashSpotlight";
 import type { FrontlineDeathGhostFx } from "./FrontlineDeathGhost";
 import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
-import { combatIconForEvent } from "./FrontlineEventFloats";
 import { FrontlineHandSection } from "./FrontlineHandSection";
 import {
   analyzeLane,
@@ -69,7 +66,6 @@ import {
 import { FrontlineBattleStyles } from "./FrontlineBattleStyles";
 import type { FrontlineVisualFxTone } from "./FrontlineLaneActionTrail";
 import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
-import { PreviewSpotlight } from "./FrontlinePreviewSpotlight";
 import {
   collectDeathGhosts,
   collectNewEvents,
@@ -78,13 +74,10 @@ import {
   resolutionSequenceDuration,
   truncateAtWinner,
 } from "./FrontlineResolutionFlow";
-import { SynergyGlobalToast } from "./FrontlineSynergyFeedback";
 import {
-  eventPrimaryTargetSide,
   visualTargetSideForCard,
   visualTargetSideForLeader,
   visualToneFromCard,
-  visualToneFromEvent,
 } from "./FrontlineVisualState";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
 
@@ -564,20 +557,15 @@ function FrontlineBattleInner({
       <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,213,128,0.1),transparent)]" />
       <div className="absolute inset-x-8 top-[39%] h-24 -skew-y-3 rounded-[999px] bg-[linear-gradient(90deg,rgba(101,210,200,0.04),rgba(245,196,81,0.1),rgba(240,95,114,0.04))] blur-xl" />
       <div className="absolute inset-x-10 bottom-[13rem] h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.16),transparent)]" />
-      <ClashSpotlight
-        event={activeResolutionEvent}
-        index={resolutionFx?.activeIndex ?? 0}
-        total={resolutionFx?.events.length ?? 0}
-        tone={activeResolutionEvent ? visualToneFromEvent(activeResolutionEvent) : null}
-        icon={activeResolutionEvent ? combatIconForEvent(activeResolutionEvent) : null}
-        targetSide={activeResolutionEvent ? eventPrimaryTargetSide(activeResolutionEvent) : null}
+      <FrontlineBattleOverlays
+        activeResolutionEvent={activeResolutionEvent}
+        resolutionIndex={resolutionFx?.activeIndex ?? 0}
+        resolutionTotal={resolutionFx?.events.length ?? 0}
+        previewOutcome={previewOutcome}
+        selectedCardName={selectedCard ? frontlineCardName(t, selectedCard) : null}
+        cardPlayFx={cardPlayFx}
+        finishWinner={finishFx?.winner ?? null}
       />
-      {!activeResolutionEvent && !cardPlayFx && !finishFx ? (
-        <PreviewSpotlight preview={previewOutcome} cardName={selectedCard ? frontlineCardName(t, selectedCard) : null} />
-      ) : null}
-      <CardUseToast fx={cardPlayFx} />
-      <SynergyGlobalToast event={activeResolutionEvent} />
-      {finishFx ? <BattleEndOverlay winner={finishFx.winner} /> : null}
 
       <div className="relative z-[1] flex flex-col gap-4 p-4 md:p-5">
         {encounterKind && encounterKind !== "boss" ? <EncounterBanner kind={encounterKind} title={encounterTitle ?? null} /> : null}
