@@ -1,20 +1,12 @@
 import type { FrontlineLane, FrontlineLoadout, FrontlineSide } from "@/lib/types";
-import {
-  FRONTLINE_LANES,
-  FRONTLINE_LEADER_BY_ID,
-  FRONTLINE_PRESET_BY_ID,
-  FRONTLINE_UNIT_BY_ID,
-} from "./data";
+import { FRONTLINE_LANES, FRONTLINE_PRESET_BY_ID } from "./data";
 import type {
   FrontlineBattleModifiers,
   FrontlineBattleState,
   FrontlineCardDef,
   FrontlineCardProfileMap,
   FrontlineEvent,
-  FrontlineHeroDef,
   FrontlineHeroState,
-  FrontlineHeroTrait,
-  FrontlineLeaderDef,
   FrontlinePreset,
   FrontlineSnapshot,
   FrontlineTracedResult,
@@ -46,8 +38,17 @@ import { drawInto, seededDeckState } from "./frontlineDeckState";
 import { pushEvent, pushResolution } from "./frontlineEvents";
 import { createEmptyLanes, initBossState } from "./frontlineBattleSetup";
 import { cloneState } from "./frontlineStateClone";
+import {
+  breachBonus,
+  heroDefinition,
+  initiativeForHero,
+  leaderDefinition,
+  livingAllyWithTrait,
+  ralliedAllyCount,
+} from "./frontlineCombatantRules";
 
 export { getEffectiveCardCost, getFrontlineCard, playableCards, validCardTargets } from "./frontlineCardRules";
+export { frontPresenceScore } from "./frontlineCombatantRules";
 
 const COMMAND_PER_TURN = 3;
 const DRAW_PER_TURN = 2;
@@ -56,20 +57,6 @@ const BREACH_DAMAGE: Record<FrontlineLane, number> = { left: 2, center: 3, right
 
 function battleResolved(state: FrontlineBattleState) {
   return state.allyCoreHp <= 0 || state.enemyCoreHp <= 0 || Boolean(state.winner);
-}
-
-function heroDefinition(hero: FrontlineHeroState) {
-  const definition = FRONTLINE_UNIT_BY_ID[hero.heroId];
-  if (!definition) {
-    throw new Error(`Unknown frontline combatant in lane ${hero.lane}: ${hero.heroId}`);
-  }
-  return definition as FrontlineHeroDef;
-}
-
-function leaderDefinition(leaderId: string) {
-  const leader = FRONTLINE_LEADER_BY_ID[leaderId];
-  if (!leader) throw new Error(`Unknown frontline leader ${leaderId}`);
-  return leader as FrontlineLeaderDef;
 }
 
 function dealHeroDamage(hero: FrontlineHeroState, amount: number) {
@@ -196,16 +183,6 @@ function applyCinderMarkOnHit(state: FrontlineBattleState, attackerSide: Frontli
   const isSegmentLane = boss.segments.some((seg) => seg.lane === lane);
   if (!isSegmentLane) return;
   state.bossState.scorch[lane] = (state.bossState.scorch[lane] ?? 0) + 1;
-}
-
-function breachBonus(hero: FrontlineHeroState | null) {
-  if (!hero) return 0;
-  const trait = heroDefinition(hero).trait;
-  return trait.type === "breach" ? trait.extra : 0;
-}
-
-function initiativeForHero(hero: FrontlineHeroState) {
-  return (hero.strikeFirst ? 100 : 0) + hero.speed;
 }
 
 type Actor =
@@ -614,25 +591,6 @@ export function validLeaderPowerTargets(state: FrontlineBattleState, side: Front
     return FRONTLINE_LANES.filter((lane) => Boolean(getHeroInLane(state, otherSide(side), lane) || getSupportInLane(state, otherSide(side), lane)));
   }
   return [...FRONTLINE_LANES];
-}
-
-function livingAllyWithTrait(
-  state: FrontlineBattleState,
-  side: FrontlineSide,
-  traitType: Exclude<FrontlineHeroTrait["type"], "none">,
-): boolean {
-  return FRONTLINE_LANES.some((lane) => {
-    const hero = getHeroInLane(state, side, lane);
-    if (!hero?.alive) return false;
-    return heroDefinition(hero).trait.type === traitType;
-  });
-}
-
-function ralliedAllyCount(state: FrontlineBattleState, side: FrontlineSide): number {
-  return FRONTLINE_LANES.reduce((count, lane) => {
-    const hero = getHeroInLane(state, side, lane);
-    return count + (hero?.alive && hero.tempAtk > 0 ? 1 : 0);
-  }, 0);
 }
 
 function emitSynergy(
@@ -1104,12 +1062,6 @@ export function laneStrikeOrder(state: FrontlineBattleState, lane: FrontlineLane
     initiative: actor.kind === "hero" ? initiativeForHero(actor.hero) : 1,
     name: actor.kind === "hero" ? actor.hero.name : actor.support.name,
   }));
-}
-
-export function frontPresenceScore(heroId: string, heroProfiles?: FrontlineHeroProfileMap) {
-  const hero = heroProfiles?.[heroId] ?? FRONTLINE_UNIT_BY_ID[heroId];
-  if (!hero) return 0;
-  return hero.maxHp + hero.atk * 2 + hero.def * 2 + hero.speed;
 }
 
 export function createDefaultFrontlineLoadout(): FrontlineLoadout {
