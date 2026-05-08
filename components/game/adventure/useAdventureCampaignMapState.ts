@@ -18,7 +18,7 @@ import {
   getPropHeight,
   getPropWidth,
 } from "./AdventureMapGeometry";
-import { createEditorNode, createEditorProp, createEditorRouteFromSelection } from "./AdventureMapEditorFactories";
+import { createEditorNode, createEditorProp, createEditorRouteFromSelection, duplicateEditorNode, duplicateEditorProp } from "./AdventureMapEditorFactories";
 import { deriveNodeStatus, deriveNodeType, isCompletedPartyNode } from "./AdventureMapStateHelpers";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
@@ -274,44 +274,26 @@ export function useAdventureCampaignMapState({
 
   function duplicateSelection(selection: EditorSelection | null) {
     if (!selection) return;
-    const suffix = Date.now().toString(36);
     if (selection.kind === "node") {
       const source = editorLayout.nodes.find((entry, index) => (entry.id ?? nodes[index]?.lvl.id) === selection.id);
       if (!source) return;
-      const id = `${selection.id}-copy-${suffix}`;
+      const next = duplicateEditorNode(source, selection.id);
       setEditorLayout((current) => ({
         ...current,
-        nodes: [
-          ...current.nodes,
-          {
-            ...source,
-            id,
-            x: clamp(source.x + 42, 0, DESIGN_WIDTH),
-            y: clamp(source.y + 42, 0, DESIGN_HEIGHT),
-            connectsTo: [],
-          },
-        ],
+        nodes: [...current.nodes, next],
       }));
-      setSelectedEditor({ kind: "node", id });
+      setSelectedEditor({ kind: "node", id: next.id ?? "" });
       return;
     }
     if (selection.kind === "prop") {
       const source = editorLayout.props?.find((entry) => entry.id === selection.id);
       if (!source) return;
-      const id = `${selection.id}-copy-${suffix}`;
+      const next = duplicateEditorProp(source, selection.id);
       setEditorLayout((current) => ({
         ...current,
-        props: [
-          ...(current.props ?? []),
-          {
-            ...source,
-            id,
-            x: clamp(source.x + 36, 0, DESIGN_WIDTH),
-            y: clamp(source.y + 36, 0, DESIGN_HEIGHT),
-          },
-        ],
+        props: [...(current.props ?? []), next],
       }));
-      setSelectedEditor({ kind: "prop", id });
+      setSelectedEditor({ kind: "prop", id: next.id });
     }
   }
 

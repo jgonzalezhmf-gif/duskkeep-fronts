@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.59] - 2026-05-08
+
+### Changed
+- Movida la duplicacion de nodos y props del editor QA de Adventure a `AdventureMapEditorFactories.ts`.
+- Reducida la responsabilidad de `useAdventureCampaignMapState.ts` en construccion de copias del editor.
+- Mantenidos los offsets, clamps y seleccion tras duplicar sin tocar coordenadas existentes, rewards, progreso, gameplay ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.58] - 2026-05-08
 
 ### Changed

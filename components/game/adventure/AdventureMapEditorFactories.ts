@@ -1,7 +1,7 @@
 import type { AdventureMapPropLayout, AdventureMapPropType, AdventureMapRouteLayout, AdventureNodeLayout } from "./adventureMapLayout";
 import type { AdventureMapEditorSelection, AdventureVisualNode } from "./AdventureCampaignTypes";
 import { ADVENTURE_MAP_DESIGN } from "./adventureMapLayout";
-import { getDefaultPropDimensions, getDefaultPropEffect } from "./AdventureMapGeometry";
+import { clamp, getDefaultPropDimensions, getDefaultPropEffect } from "./AdventureMapGeometry";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
 const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;
@@ -66,5 +66,24 @@ export function createEditorRouteFromSelection(
     state: "available",
     control1: { x: Math.round(fromNode.x + (toNode.x - fromNode.x) * 0.34), y: Math.round(fromNode.y - 60) },
     control2: { x: Math.round(fromNode.x + (toNode.x - fromNode.x) * 0.66), y: Math.round(toNode.y + 60) },
+  };
+}
+
+export function duplicateEditorNode(source: AdventureNodeLayout, sourceId: string, suffix = Date.now().toString(36)): AdventureNodeLayout {
+  return {
+    ...source,
+    id: `${sourceId}-copy-${suffix}`,
+    x: clamp(source.x + 42, 0, DESIGN_WIDTH),
+    y: clamp(source.y + 42, 0, DESIGN_HEIGHT),
+    connectsTo: [],
+  };
+}
+
+export function duplicateEditorProp(source: AdventureMapPropLayout, sourceId: string, suffix = Date.now().toString(36)): AdventureMapPropLayout {
+  return {
+    ...source,
+    id: `${sourceId}-copy-${suffix}`,
+    x: clamp(source.x + 36, 0, DESIGN_WIDTH),
+    y: clamp(source.y + 36, 0, DESIGN_HEIGHT),
   };
 }
