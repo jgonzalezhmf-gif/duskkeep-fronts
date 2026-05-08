@@ -25,6 +25,7 @@ import { freshMissionProgress, missionNeedsReset } from "@/lib/missionProgress";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
+import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
 import {
   firstVisibleRoadmapStep,
   getDailyLoginClaimState,
@@ -53,7 +54,6 @@ import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile"
 import {
   ADVENTURE_MAP_INTERACTIONS_BY_ID,
   getAdventureMapInteractionStatus,
-  isAdventureKeySystemUnlocked,
   rollAdventureMapInteractionLoot,
   type AdventureMapInteractionClaim,
   type AdventureMapInteractionOpenResult,
@@ -666,21 +666,10 @@ export const useGameStore = create<GameState & GameActions>()(
         const s = get();
         const offer = SHOP_OFFERS_BY_ID[offerId];
         if (!offer) return { ok: false, reason: "Offer not found" };
-        if (offer.contents.adventureKeys && !isAdventureKeySystemUnlocked(s.adventureProgress)) {
-          return { ok: false, reason: "Adventure keys are not unlocked yet" };
-        }
-        if (offer.oneTime && (s.shopPurchases[offerId] ?? 0) > 0)
-          return { ok: false, reason: "Already purchased" };
-        if (offer.dailyLimit && (s.dailyShopPurchases[offerId] ?? 0) >= offer.dailyLimit)
-          return { ok: false, reason: "Daily limit reached" };
+        const validation = validateShopOfferPurchase(offer, s, s.adventureProgress);
+        if (!validation.ok) return validation;
         if (!get().spend(offer.cost)) return { ok: false, reason: "Not enough resources" };
-        set((st) => ({
-          shopPurchases: { ...st.shopPurchases, [offerId]: (st.shopPurchases[offerId] ?? 0) + 1 },
-          dailyShopPurchases: {
-            ...st.dailyShopPurchases,
-            [offerId]: (st.dailyShopPurchases[offerId] ?? 0) + 1,
-          },
-        }));
+        set((st) => applyShopOfferPurchase(st, offerId));
         get().awardRewards(offer.contents, `shop: ${offer.name}`);
         return { ok: true };
       },
@@ -780,14 +769,7 @@ export const useGameStore = create<GameState & GameActions>()(
       offerRemaining: (offerId) => {
         const s = get();
         const offer = SHOP_OFFERS_BY_ID[offerId];
-        if (!offer) return 0;
-        if (offer.oneTime) {
-          return (s.shopPurchases[offerId] ?? 0) > 0 ? 0 : 1;
-        }
-        if (offer.dailyLimit) {
-          return Math.max(0, offer.dailyLimit - (s.dailyShopPurchases[offerId] ?? 0));
-        }
-        return null;
+        return getShopOfferRemaining(offer, s);
       },
 
       setAudioMuted: (m) => set({ audioMuted: m }),

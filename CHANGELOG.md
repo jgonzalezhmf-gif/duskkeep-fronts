@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.133] - 2026-05-08
+
+### Changed
+- Extraida la politica de compra de tienda a `lib/shopPurchases.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando validacion de llaves, limites one-time/daily, contadores y stock restante.
+
+### Added
+- Tests de compras de tienda para desbloqueo de llaves, limites diarios, compras one-time, contadores y stock restante.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.132] - 2026-05-08
 
 ### Changed
