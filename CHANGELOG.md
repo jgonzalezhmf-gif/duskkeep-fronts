@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.66] - 2026-05-08
+
+### Changed
+- Extraido el panel de entrada y squad de Events a `app/events/EventEntryPanel.tsx`.
+- Reducida la responsabilidad de `app/events/page.tsx` manteniendo ahi el estado de operacion, batalla, resultados y rewards.
+- Mantenido el comportamiento de eventos, economia, progreso, rutas, combate y audio sin cambios.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.65] - 2026-05-08
 
 ### Changed
