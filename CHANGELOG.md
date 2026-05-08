@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.137] - 2026-05-08
+
+### Changed
+- Extraidos los selectors/helpers publicos del store a `lib/storeSelectors.ts`.
+- Reducida la responsabilidad de `lib/store.ts` dejando reexports compatibles para pantallas existentes.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.136] - 2026-05-08
 
 ### Changed

@@ -2,12 +2,11 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { HEROES } from "@/data/heroes";
 import { ALL_MISSIONS } from "@/data/missions";
 import { ADVENTURE } from "@/data/adventure";
 import { SHOP_OFFERS, SHOP_OFFERS_BY_ID } from "@/data/shop";
 import { DAILY_LOGIN } from "@/data/dailyLogin";
-import { ROADMAP, type RoadmapStep } from "@/data/roadmap";
+import { ROADMAP } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
 import { FORTRESS_BUILDING_BY_ID } from "@/data/fortress";
@@ -26,12 +25,10 @@ import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
+import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import type { GameActions, GameState } from "@/lib/storeTypes";
 import {
-  firstVisibleRoadmapStep,
-  getDailyLoginClaimState,
   isAdventureFirstClearRewardAvailable,
-  isDailyRotationRewardClaimedToday,
   localDayKey,
 } from "@/lib/rewardVisibility";
 import {
@@ -57,20 +54,13 @@ import {
   getAdventureChestClaimRewards,
   getAdventureNodeType,
 } from "@/features/adventure/nodeResolution";
-import { isAdventureLevelUnlocked } from "@/features/adventure/progression";
 import {
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
   SKILL_COOLDOWN_REDUCTION_AT_MAX,
   SKILL_MULTIPLIER_BONUS,
 } from "./constants";
-import type {
-  AdventureLevel,
-  FortressState,
-  FrontlineFortressState,
-  FrontlineLoadout,
-  Rewards,
-} from "./types";
+import type { FortressState, FrontlineFortressState, FrontlineLoadout, Rewards } from "./types";
 
 export type { GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 
@@ -650,75 +640,19 @@ export const useGameStore = create<GameState & GameActions>()(
   ),
 );
 
-// Selectors / helpers (used by screens)
-export function selectAvailableHeroes(state: GameState) {
-  return state.heroes.filter((h) => h.stars > 0);
-}
-export function findAdventureLevel(id: string): AdventureLevel | undefined {
-  return ADVENTURE.find((l) => l.id === id);
-}
-export function nextUnlockedLevel(state: GameState): AdventureLevel | undefined {
-  for (const lvl of ADVENTURE) {
-    const progress = state.adventureProgress[lvl.id];
-    if (progress?.cleared || progress?.claimed) continue;
-    if (isAdventureLevelUnlocked(lvl, state.adventureProgress, state.account.level)) return lvl;
-  }
-  return undefined;
-}
-
-export function heroKnown(state: GameState, heroId: string): boolean {
-  return state.heroes.some((h) => h.heroId === heroId);
-}
-export const heroDefsById = Object.fromEntries(HEROES.map((h) => [h.id, h]));
-
-export function ownedHeroCardIds(state: GameState) {
-  return state.heroes
-    .filter((hero) => hero.stars > 0)
-    .map((hero) => `card_${hero.heroId}`);
-}
-
-// --- Roadmap helpers ------------------------------------------------------
-
-export function roadmapMetricValue(state: GameState, metric: RoadmapStep["metric"]): number {
-  switch (metric) {
-    case "adventure_clears":
-      return Object.values(state.adventureProgress).filter((p) => p.cleared).length;
-    case "heroes_upgraded":
-      return state.heroesUpgraded;
-    case "hero_stars":
-      return state.heroes.reduce((m, h) => Math.max(m, h.stars), 0);
-    case "collection_size":
-      return state.heroes.filter((h) => h.stars > 0).length;
-    case "battles_won":
-      return state.battlesWon;
-    case "arena_battles":
-      return state.arenaWins + state.arenaLosses;
-    case "events_played":
-      return Object.values(state.eventsPlayed).reduce((a, b) => a + b, 0);
-    case "shop_purchases":
-      return Object.values(state.shopPurchases).reduce((a, b) => a + b, 0);
-    case "account_level":
-      return state.account.level;
-  }
-}
-
-export function isRoadmapStepComplete(state: GameState, step: RoadmapStep): boolean {
-  return roadmapMetricValue(state, step.metric) >= step.goal;
-}
-
-/** The next visible roadmap step: first unclaimed step. */
-export function activeRoadmapStep(state: GameState): RoadmapStep | undefined {
-  return firstVisibleRoadmapStep(ROADMAP, state.roadmapClaimed);
-}
-
 /** True when the event's last completion matches today (YMD) — locked until rotation. */
-export function isEventCompletedToday(state: GameState, eventId: string): boolean {
-  return isDailyRotationRewardClaimedToday(state.eventCompletions, eventId);
-}
-
-export function dailyLoginStatus(state: GameState) {
-  const { claimed, streak, nextDay } = getDailyLoginClaimState(state.dailyLogin);
-  return { claimed, streak, nextDay };
-}
+export {
+  activeRoadmapStep,
+  dailyLoginStatus,
+  findAdventureLevel,
+  heroDefsById,
+  heroKnown,
+  isEventCompletedToday,
+  isRoadmapStepComplete,
+  nextUnlockedLevel,
+  ownedHeroCardIds,
+  roadmapMetricValue,
+  selectAvailableHeroes,
+} from "@/lib/storeSelectors";
 
 export { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
