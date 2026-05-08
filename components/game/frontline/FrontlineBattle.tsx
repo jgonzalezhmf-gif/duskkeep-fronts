@@ -73,6 +73,7 @@ import { CoreTotem } from "./FrontlineCoreTotem";
 import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
 import { ExhaustedPane } from "./FrontlineExhaustedPane";
 import { HeroFxBadge } from "./FrontlineHeroFxBadge";
+import { LaneKoFx } from "./FrontlineLaneKoFx";
 import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
 import { SupportToken } from "./FrontlineSupportToken";
 import { SynergyGlobalToast, SynergyProcBadge } from "./FrontlineSynergyFeedback";
@@ -1510,7 +1511,7 @@ function FrontlineBattleInner({
                   <ResolutionFloat events={laneFx} />
                   <CardCastFx fx={laneCardFx} />
                   <DeathGhost ghost={laneDeathGhost} />
-                  <LaneKoFx event={activeLaneEvent} />
+                  <LaneKoFx event={activeLaneEvent} targetSide={activeLaneEvent ? eventPrimaryTargetSide(activeLaneEvent) : null} />
 
                   <div className="relative z-[1] flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em]">
@@ -2226,27 +2227,6 @@ function DeathGhost({ ghost }: { ghost: DeathGhostFx | null }) {
           <div className="absolute left-1/2 top-1/2 grid h-20 w-20 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[#f5c451]/48 bg-[#f5c451]/16 text-[#fff0bd] shadow-[0_0_46px_rgba(245,196,81,0.42)]">
             <CombatIcon name="danger" size="lg" className="h-12 w-12" fallbackClassName="h-12 w-12" />
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LaneKoFx({ event }: { event: FrontlineEvent | null }) {
-  if (event?.kind !== "ko") return null;
-  const targetSide = eventPrimaryTargetSide(event);
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[7]">
-      <div
-        className={cn(
-          "frontline-ko-burst-fx absolute left-1/2 grid h-28 w-28 place-items-center rounded-full border-2 border-[#f5c451]/64 bg-[#f5c451]/16 text-[#fff0bd] shadow-[0_0_58px_rgba(245,196,81,0.42)] backdrop-blur-sm",
-          targetSide === "ally" ? "top-[72%]" : "top-[25%]",
-        )}
-      >
-        <div className="absolute h-40 w-40 rounded-full border border-[#f5c451]/28" />
-        <div className="grid place-items-center gap-1">
-          <CombatIcon name="danger" size="lg" className="h-12 w-12" fallbackClassName="h-12 w-12" />
-          <div className="rounded-full bg-black/40 px-3 py-1 text-sm font-black uppercase tracking-[0.2em] text-white">KO</div>
         </div>
       </div>
     </div>
