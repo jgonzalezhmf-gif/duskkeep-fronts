@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.74] - 2026-05-08
+
+### Changed
+- Extraidos `ZoneAura`, `AssetLandmarkGrounds` y los pads de zonas de Home a `components/game/home/HomeZoneAura.tsx`.
+- Reducida la responsabilidad de `components/game/home/HomeScene.tsx` manteniendo las mismas coordenadas SVG, colores y estados activos.
+- Mantenidos sin cambios landmarks, efectos, QA editor, gameplay, progreso, economia, rutas y audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.73] - 2026-05-08
 
 ### Changed
