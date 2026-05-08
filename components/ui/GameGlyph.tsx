@@ -2,62 +2,8 @@
 
 import { useId } from "react";
 import { cn } from "@/lib/cn";
-
-export type GlyphKind =
-  | "gem"
-  | "gold"
-  | "dust"
-  | "tickets"
-  | "heart"
-  | "offers"
-  | "rewards"
-  | "events"
-  | "shop"
-  | "team"
-  | "missions"
-  | "heroes"
-  | "deck"
-  | "battle"
-  | "quests"
-  | "pass"
-  | "fortress"
-  | "arena"
-  | "adventure"
-  | "market"
-  | "sound-on"
-  | "sound-off"
-  | "move"
-  | "attack"
-  | "heal"
-  | "shield"
-  | "skill"
-  | "power"
-  | "cfg";
-
-type GlyphProps = {
-  kind: GlyphKind;
-  className?: string;
-  shell?: "plate" | "none";
-};
-
-type GlyphIds = {
-  gold: string;
-  goldDeep: string;
-  gem: string;
-  gemDeep: string;
-  violet: string;
-  emerald: string;
-  ember: string;
-  steel: string;
-  ivory: string;
-  shellOuter: string;
-  shellInner: string;
-  glowGold: string;
-  glowGem: string;
-  glowViolet: string;
-  glowEmerald: string;
-  glowEmber: string;
-};
+import type { GlyphIds, GlyphKind, GlyphProps } from "./gameGlyphTypes";
+export type { GlyphKind } from "./gameGlyphTypes";
 
 function refUrl(id: string) {
   return `url(#${id})`;
