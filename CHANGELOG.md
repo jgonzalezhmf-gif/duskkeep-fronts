@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.55] - 2026-05-08
+
+### Changed
+- Extraido el party marker del mapa de Adventure a `components/game/adventure/AdventurePartyMarkerElement.tsx`.
+- Separada la UI del marcador actual y su soporte QA de `AdventureMapElements.tsx`.
+- Mantenido re-export de compatibilidad sin tocar posicionamiento, nodos, props, interacciones, gameplay, rewards ni audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.54] - 2026-05-08
 
 ### Changed
