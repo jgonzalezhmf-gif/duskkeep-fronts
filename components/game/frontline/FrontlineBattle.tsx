@@ -69,6 +69,7 @@ import { CompactPill, StatusTag } from "./FrontlineBattlePills";
 import { cardSurfaceClass, laneSurfaceClass } from "./FrontlineBattleSurfaceClasses";
 import { CombatIcon } from "./FrontlineCombatIcon";
 import { EncounterBanner, type FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
+import { HeroFxBadge } from "./FrontlineHeroFxBadge";
 import { LaneInitiativeReadout } from "./FrontlineLaneInitiativeReadout";
 import { VisualAssetImage } from "./FrontlineVisualAssetImage";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
@@ -2754,7 +2755,11 @@ function FrontlineHeroPiece({
           {fx.healed ? (
             <div className="frontline-heal-fx pointer-events-none absolute -inset-4 z-[2] rounded-[34px] border border-emerald-200/36 bg-emerald-200/10 shadow-[0_0_30px_rgba(75,224,141,0.28)]" />
           ) : null}
-          {fx.floatLabel ? <HeroFxBadge tone={fx.floatTone ?? "damage"}>{fx.floatLabel}</HeroFxBadge> : null}
+          {fx.floatLabel ? (
+            <HeroFxBadge tone={fx.floatTone ?? "damage"} icon={combatIconForTone(fx.floatTone ?? "damage")}>
+              {fx.floatLabel}
+            </HeroFxBadge>
+          ) : null}
           {fx.trait ? <TraitProcBadge trait={fx.trait} side={accent} /> : null}
           {fx.synergy ? <SynergyProcBadge label={fx.synergy.label} /> : null}
           <VisualAssetImage
@@ -2940,30 +2945,6 @@ function SynergyProcBadge({ label }: { label: string }) {
     >
       <StatusIcon name="buff" size="sm" className="h-4 w-4 text-amber-100" fallbackClassName="opacity-95 h-4 w-4" />
       <span>{label}</span>
-    </div>
-  );
-}
-
-function HeroFxBadge({ tone, children }: { tone: VisualFxTone; children: ReactNode }) {
-  return (
-    <div
-      className={cn(
-        "frontline-float-fx pointer-events-none absolute left-1/2 top-2 z-[5] -translate-x-1/2 rounded-full border border-white/20 px-3.5 py-1.5 text-[12px] font-black uppercase tracking-[0.14em]",
-        tone === "heal"
-          ? "bg-emerald-300 text-[#06140b] shadow-[0_0_24px_rgba(75,224,141,0.42)]"
-          : tone === "shield"
-            ? "bg-cyan-200 text-[#051417] shadow-[0_0_24px_rgba(101,210,200,0.4)]"
-            : tone === "breach" || tone === "ko"
-              ? "bg-[#f5c451] text-[#221509] shadow-[0_0_28px_rgba(245,196,81,0.48)]"
-              : tone === "summon"
-                ? "bg-emerald-200 text-[#06140b] shadow-[0_0_24px_rgba(75,224,141,0.34)]"
-                : "bg-[#ff6f7d] text-white shadow-[0_0_24px_rgba(240,95,114,0.42)]",
-      )}
-    >
-      <span className="inline-flex items-center gap-1.5">
-        <CombatIcon name={combatIconForTone(tone)} size="xs" fallbackClassName="opacity-90" />
-        <span>{children}</span>
-      </span>
     </div>
   );
 }
