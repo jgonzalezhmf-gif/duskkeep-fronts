@@ -34,6 +34,7 @@ export function createAdventureMapInteractionClaimPlan({
   claims,
   claimedAt,
   seed,
+  now,
 }: {
   interactionId: string;
   progress: Record<string, AdventureProgressEntry>;
@@ -41,6 +42,7 @@ export function createAdventureMapInteractionClaimPlan({
   claims: Record<string, AdventureMapInteractionClaim>;
   claimedAt: string;
   seed?: number;
+  now?: Date;
 }): ClaimFailure | ClaimSuccess {
   const interaction = ADVENTURE_MAP_INTERACTIONS_BY_ID[interactionId];
   if (!interaction) {
@@ -52,6 +54,7 @@ export function createAdventureMapInteractionClaimPlan({
     progress,
     resources,
     claim: claims[interactionId],
+    now,
   });
   if (status === "claimed") {
     return { ok: false, notification: { kind: "info", message: "Map cache already claimed" } };

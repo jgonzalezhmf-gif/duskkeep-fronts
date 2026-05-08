@@ -47,17 +47,12 @@ import {
   isAdventureFirstClearRewardAvailable,
   localDayKey,
 } from "@/lib/rewardVisibility";
-import {
-  FRONTLINE_CARD_MAX_LEVEL,
-  frontlineCardUpgradeCost,
-  isFrontlineCardUnlocked,
-  isFrontlineProgressionCard,
-  normalizeFrontlineCardLevel,
-} from "@/features/frontline/cardProgression";
+import { isFrontlineCardUnlocked } from "@/features/frontline/cardProgression";
 import {
   frontlineFortressRaidReady,
   resolveFrontlineFortressRaid,
 } from "@/features/frontline/fortress";
+import { planFrontlineCardUnlock, planFrontlineCardUpgrade } from "@/lib/frontlineCardState";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import {
   getAdventureChestClaimRewards,
@@ -122,34 +117,28 @@ export const useGameStore = create<GameState & GameActions>()(
         }),
 
       unlockFrontlineCard: (cardId) => {
-        if (!isFrontlineProgressionCard(cardId)) return false;
-        const s = get();
-        if (isFrontlineCardUnlocked(s.frontlineCardUnlocks, cardId)) return false;
-        set((st) => ({ frontlineCardUnlocks: { ...st.frontlineCardUnlocks, [cardId]: true } }));
+        const plan = planFrontlineCardUnlock(get().frontlineCardUnlocks, cardId);
+        if (!plan.ok) return false;
+        set({ frontlineCardUnlocks: plan.frontlineCardUnlocks });
         get().pushNotification("success", "New Frontline card unlocked");
         return true;
       },
 
       upgradeFrontlineCard: (cardId) => {
-        if (!isFrontlineProgressionCard(cardId)) return false;
-        const s = get();
-        if (!isFrontlineCardUnlocked(s.frontlineCardUnlocks, cardId)) return false;
-        const currentLevel = normalizeFrontlineCardLevel(s.frontlineCardLevels[cardId]);
-        if (currentLevel >= FRONTLINE_CARD_MAX_LEVEL) {
-          get().pushNotification("error", "Card already at max level");
+        const plan = planFrontlineCardUpgrade({
+          unlocks: get().frontlineCardUnlocks,
+          levels: get().frontlineCardLevels,
+          cardId,
+        });
+        if (!plan.ok) {
+          if (plan.reason) get().pushNotification("error", plan.reason);
           return false;
         }
-        const cost = frontlineCardUpgradeCost(currentLevel);
-        if (!get().spend(cost)) {
+        if (!get().spend(plan.cost)) {
           get().pushNotification("error", "Not enough resources");
           return false;
         }
-        set((st) => ({
-          frontlineCardLevels: {
-            ...st.frontlineCardLevels,
-            [cardId]: currentLevel + 1,
-          },
-        }));
+        set({ frontlineCardLevels: plan.frontlineCardLevels });
         get().pushNotification("success", "Frontline card upgraded");
         return true;
       },

@@ -59,6 +59,7 @@ describe("adventure map interaction claim planning", () => {
           "c1-lower-cache": { claimed: true, claimedAt },
         },
         claimedAt,
+        now: new Date("2026-05-08T12:00:00.000Z"),
       }),
     ).toEqual({
       ok: false,

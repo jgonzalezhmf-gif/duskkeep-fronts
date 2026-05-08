@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.142] - 2026-05-08
+
+### Changed
+- Extraida la planificacion de unlock/upgrade de cartas Frontline a `lib/frontlineCardState.ts`.
+- Reducida la responsabilidad de `lib/store.ts` separando validacion de cartas, coste de upgrade y patch de niveles/unlocks.
+
+### Added
+- Tests de planes de cartas Frontline para unlocks, costes, bloqueos y max level.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.141] - 2026-05-08
 
 ### Changed
