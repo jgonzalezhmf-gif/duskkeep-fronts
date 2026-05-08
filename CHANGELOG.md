@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.105] - 2026-05-08
+
+### Changed
+- Extraidos los helpers de floats de resolucion a `components/game/frontline/FrontlineEventFloats.ts`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando labels, clases e iconos visuales de eventos de combate.
+- Mantenidas intactas las reglas del engine, secuencia de eventos, timings, SFX, audio, rewards y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.104] - 2026-05-08
 
 ### Changed
