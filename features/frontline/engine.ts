@@ -29,6 +29,16 @@ import type {
 } from "./types";
 import { getFrontlineBoss } from "./bosses";
 import type { FrontlineHeroProfileMap } from "./heroProfile";
+import {
+  getHeroInLane,
+  getSupportInLane,
+  otherSide,
+  ownDeck,
+  setHeroInLane,
+  setOwnDeck,
+  setSupportInLane,
+  sideCoreKey,
+} from "./frontlineBattleAccessors";
 import { drawInto, seededDeckState } from "./frontlineDeckState";
 import { pushEvent, pushResolution } from "./frontlineEvents";
 import { cloneState } from "./frontlineStateClone";
@@ -127,48 +137,6 @@ function leaderDefinition(leaderId: string) {
   const leader = FRONTLINE_LEADER_BY_ID[leaderId];
   if (!leader) throw new Error(`Unknown frontline leader ${leaderId}`);
   return leader as FrontlineLeaderDef;
-}
-
-function otherSide(side: FrontlineSide): FrontlineSide {
-  return side === "ally" ? "enemy" : "ally";
-}
-
-function ownDeck(state: FrontlineBattleState, side: FrontlineSide) {
-  return side === "ally" ? state.allyDeck : state.enemyDeck;
-}
-
-function setOwnDeck(state: FrontlineBattleState, side: FrontlineSide, deckState: FrontlineDeckState) {
-  if (side === "ally") state.allyDeck = deckState;
-  else state.enemyDeck = deckState;
-}
-
-function sideCoreKey(side: FrontlineSide) {
-  return side === "ally" ? "allyCoreHp" : "enemyCoreHp";
-}
-
-function getHeroInLane(state: FrontlineBattleState, side: FrontlineSide, lane: FrontlineLane) {
-  const laneState = state.lanes[lane];
-  return side === "ally" ? laneState.allyHero : laneState.enemyHero;
-}
-
-function getSupportInLane(state: FrontlineBattleState, side: FrontlineSide, lane: FrontlineLane) {
-  const laneState = state.lanes[lane];
-  return side === "ally" ? laneState.allySupport : laneState.enemySupport;
-}
-
-function setHeroInLane(state: FrontlineBattleState, side: FrontlineSide, lane: FrontlineLane, hero: FrontlineHeroState | null) {
-  if (side === "ally") state.lanes[lane].allyHero = hero;
-  else state.lanes[lane].enemyHero = hero;
-}
-
-function setSupportInLane(
-  state: FrontlineBattleState,
-  side: FrontlineSide,
-  lane: FrontlineLane,
-  support: FrontlineSupportState | null,
-) {
-  if (side === "ally") state.lanes[lane].allySupport = support;
-  else state.lanes[lane].enemySupport = support;
 }
 
 function dealHeroDamage(hero: FrontlineHeroState, amount: number) {

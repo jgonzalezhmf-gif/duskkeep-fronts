@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.152] - 2026-05-08
+
+### Changed
+- Extraidos accessors de estado de batalla a `features/frontline/frontlineBattleAccessors.ts`.
+- Reducido `features/frontline/engine.ts` separando acceso a mazos, nucleo, heroes y supports por lane sin alterar reglas de combate.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.151] - 2026-05-08
 
 ### Changed
