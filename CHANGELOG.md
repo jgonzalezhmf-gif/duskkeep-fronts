@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.170] - 2026-05-08
+
+### Changed
+- Extraidos presets de combate Frontline a `features/frontline/frontlinePresetData.ts`.
+- Convertido `features/frontline/data.ts` en fachada de exports de datos Frontline.
+- Mantenidos ids, squads, decks, recompensas seed y bosses sin cambios.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.169] - 2026-05-08
 
 ### Changed
