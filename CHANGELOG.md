@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.73] - 2026-05-08
+
+### Changed
+- Extraidas las capas de landmarks y efectos globales de Home a `components/game/home/HomeSceneLayers.tsx`.
+- Reducida la responsabilidad de `components/game/home/HomeScene.tsx` separando posicionamiento de landmarks, estilos de assets y render de efectos world.
+- Mantenidos sin cambios los efectos, posiciones, QA editor, rutas, gameplay, progreso, economia y audio.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.72] - 2026-05-08
 
 ### Changed
