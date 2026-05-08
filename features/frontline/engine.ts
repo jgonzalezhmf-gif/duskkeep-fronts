@@ -37,7 +37,6 @@ import { pushEvent, pushResolution } from "./frontlineEvents";
 import { createEmptyLanes, initBossState } from "./frontlineBattleSetup";
 import { cloneState } from "./frontlineStateClone";
 import {
-  breachBonus,
   heroDefinition,
   leaderDefinition,
   livingAllyWithTrait,
@@ -55,6 +54,7 @@ import {
 } from "./frontlineBossSignatures";
 import { actorList } from "./frontlineStrikeOrder";
 import type { FrontlineActor } from "./frontlineStrikeOrder";
+import { applyBreach, livingPresence } from "./frontlineBreachRules";
 
 export { getEffectiveCardCost, getFrontlineCard, playableCards, validCardTargets } from "./frontlineCardRules";
 export { frontPresenceScore } from "./frontlineCombatantRules";
@@ -64,8 +64,6 @@ export type { FrontlineStrikeOrderEntry } from "./frontlineStrikeOrder";
 const COMMAND_PER_TURN = 3;
 const DRAW_PER_TURN = 2;
 const MAX_ROUNDS = 8;
-const BREACH_DAMAGE: Record<FrontlineLane, number> = { left: 2, center: 3, right: 2 };
-
 function battleResolved(state: FrontlineBattleState) {
   return state.allyCoreHp <= 0 || state.enemyCoreHp <= 0 || Boolean(state.winner);
 }
@@ -115,10 +113,6 @@ function cleanupExpiredSupport(state: FrontlineBattleState, side: FrontlineSide,
   if (support.duration <= 0 || support.hp <= 0) {
     setSupportInLane(state, side, lane, null);
   }
-}
-
-function livingPresence(state: FrontlineBattleState, side: FrontlineSide, lane: FrontlineLane) {
-  return Boolean(getHeroInLane(state, side, lane)?.alive || getSupportInLane(state, side, lane));
 }
 
 function chantAura(state: FrontlineBattleState, side: FrontlineSide) {
@@ -255,24 +249,6 @@ function clearClashTemps(state: FrontlineBattleState) {
       hero.tempAtk = 0;
       hero.strikeFirst = false;
       if (hero.stun > 0) hero.stun -= 1;
-    }
-  }
-}
-
-function applyBreach(state: FrontlineBattleState) {
-  for (const lane of FRONTLINE_LANES) {
-    const allyPresent = livingPresence(state, "ally", lane);
-    const enemyPresent = livingPresence(state, "enemy", lane);
-    if (allyPresent && !enemyPresent) {
-      const amount = BREACH_DAMAGE[lane] + breachBonus(getHeroInLane(state, "ally", lane));
-      state.enemyCoreHp = Math.max(0, state.enemyCoreHp - amount);
-      pushEvent(state, { kind: "breach", side: "ally", lane, label: `${lane} breach`, amount, emphasis: "high" });
-      pushResolution(state, `Ally breaches ${lane} for ${amount}.`);
-    } else if (enemyPresent && !allyPresent) {
-      const amount = BREACH_DAMAGE[lane] + breachBonus(getHeroInLane(state, "enemy", lane));
-      state.allyCoreHp = Math.max(0, state.allyCoreHp - amount);
-      pushEvent(state, { kind: "breach", side: "enemy", lane, label: `${lane} breach`, amount, emphasis: "high" });
-      pushResolution(state, `Enemy breaches ${lane} for ${amount}.`);
     }
   }
 }
