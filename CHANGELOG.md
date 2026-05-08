@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.88] - 2026-05-08
+
+### Changed
+- Extraidos `SynergyGlobalToast` y `SynergyProcBadge` a `components/game/frontline/FrontlineSynergyFeedback.tsx`.
+- Reducida la responsabilidad de `components/game/frontline/FrontlineBattle.tsx` separando el feedback visual de sinergias.
+- Mantenidas intactas las reglas del engine, cartas, command economy, rewards, SFX, audio y persistencia.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.87] - 2026-05-08
 
 ### Changed
