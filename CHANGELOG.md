@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.158] - 2026-05-08
+
+### Changed
+- Extraida la logica de firmas de boss a `features/frontline/frontlineBossSignatures.ts`.
+- Reducido `features/frontline/engine.ts` manteniendo en el engine solo los puntos de llamada de cinder, inferno, veil, armor y soul drain.
+- Conservado el orden de ejecucion de boss signatures durante preparacion de turno, golpes y cinder marks.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.157] - 2026-05-08
 
 ### Changed
