@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
+import { BattlePageMatchupPanel } from "@/components/game/frontline/BattlePageMatchupPanel";
 import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePackagePanel";
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import { BattlePageSetupSidebar } from "@/components/game/frontline/BattlePageSetupSidebar";
@@ -34,8 +35,6 @@ import {
   projectAccountProgress,
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
-import { BattlePageMatchupGrid } from "@/components/game/frontline/BattlePageMatchup";
-import { Panel } from "@/components/game/frontline/BattlePagePanels";
 import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import {
@@ -290,9 +289,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
 
           <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem]">
             <div className="grid gap-4">
-              <Panel title={t("frontline.frontlineMatchup")} variant="stage">
-                <BattlePageMatchupGrid allyHeroes={allyHeroes} enemyHeroes={enemyHeroes} />
-              </Panel>
+              <BattlePageMatchupPanel allyHeroes={allyHeroes} enemyHeroes={enemyHeroes} />
 
               <BattlePagePackagePanel cards={allyCards} />
             </div>
