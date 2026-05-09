@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.238] - 2026-05-09
+
+### Changed
+- Optimizado Fortress para prerenderizar una shell ligera hasta que el reloj cliente este listo, evitando serializar garrison, raids, upgrades y reportes placeholder en HTML estatico.
+- Actualizada la linea base de build: `fortress.html` baja de 66.6 KB a 25.3 KB y `.next/server/app` queda en 0.80 MB.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.237] - 2026-05-09
 
 ### Changed

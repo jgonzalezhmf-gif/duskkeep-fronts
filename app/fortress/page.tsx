@@ -74,6 +74,32 @@ export default function FortressPage() {
     setNow(Date.now());
   }
 
+  if (now === null) {
+    return (
+      <ScreenScaffold scene="fortress" dock={false} hud={false} homeNav={false}>
+        <FortressTopChrome resources={resources} />
+        <main className="mx-auto grid w-full max-w-[1500px] gap-3 px-3 pb-16 pt-36 sm:pt-[7.5rem] md:px-6 md:pt-[5.75rem] xl:grid-cols-[minmax(0,1fr)_21rem] xl:px-8" aria-busy="true">
+          <section className="relative isolate min-h-[45rem] overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_16%,rgba(255,219,143,0.08),transparent_30%),linear-gradient(180deg,rgba(14,18,28,0.24),rgba(6,8,14,0.74))] shadow-[0_24px_62px_rgba(0,0,0,0.32)] backdrop-blur-sm md:min-h-[34rem]">
+            <SceneLight />
+            <div className="relative z-[2] grid gap-3 p-3 md:p-4 lg:grid-cols-[minmax(0,1fr)_17rem]">
+              <div className="h-36 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+              <div className="h-36 rounded-[26px] border border-white/10 bg-white/[0.04]" />
+            </div>
+            <div className="relative z-[2] mx-auto mt-12 h-60 w-[min(34rem,80vw)] rounded-[32px] border border-[#f5c451]/12 bg-[#f5c451]/[0.045]" />
+            <div className="relative z-[2] mt-10 grid gap-3 p-3 md:p-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+              <div className="h-40 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+              <div className="h-40 rounded-[26px] border border-white/10 bg-white/[0.04]" />
+            </div>
+          </section>
+          <aside className="grid gap-4 xl:content-start">
+            <div className="h-72 rounded-[28px] border border-white/10 bg-white/[0.04]" />
+            <div className="h-44 rounded-[28px] border border-white/10 bg-white/[0.035]" />
+          </aside>
+        </main>
+      </ScreenScaffold>
+    );
+  }
+
   return (
     <ScreenScaffold scene="fortress" dock={false} hud={false} homeNav={false}>
       <FortressTopChrome resources={resources} />
