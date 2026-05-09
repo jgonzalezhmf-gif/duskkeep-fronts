@@ -55,6 +55,7 @@ Usar:
 npm.cmd run audit:assets
 npm.cmd run audit:asset-refs
 npm.cmd run audit:build
+npm.cmd run check:performance
 ```
 
 `audit:assets` lista:
@@ -71,6 +72,12 @@ npm.cmd run audit:build
 - peso total de `.next/server/app`
 - top de chunks estaticos
 - top de HTML prerenderizado por ruta
+
+`check:performance` requiere una build previa para revisar `.next/static` y HTML prerenderizado. Presupuestos actuales:
+
+- `public/assets` <= 112 MB.
+- `.next/static` <= 3 MB.
+- HTML prerenderizado por ruta <= 150 KB.
 
 ## Auditoria De Build Actual
 

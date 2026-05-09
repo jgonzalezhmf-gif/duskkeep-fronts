@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.230] - 2026-05-09
+
+### Added
+- Anadido `scripts/check-performance-budget.mjs` y el comando `npm.cmd run check:performance` para detectar regresiones grandes de peso en assets publicos, build estatica y HTML prerenderizado.
+- Documentados presupuestos actuales de rendimiento: `public/assets` <= 112 MB, `.next/static` <= 3 MB y HTML por ruta <= 150 KB.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.229] - 2026-05-09
 
 ### Added
