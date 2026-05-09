@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.214] - 2026-05-09
+
+### Changed
+- Extraido el marcador central de lanes de Frontline a `components/game/frontline/FrontlineLaneCenterMarker.tsx`.
+- Reducido `components/game/frontline/FrontlineBattleLanes.tsx` manteniendo clases, iconos, labels accesibles y comportamiento visual.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.213] - 2026-05-09
 
 ### Changed
