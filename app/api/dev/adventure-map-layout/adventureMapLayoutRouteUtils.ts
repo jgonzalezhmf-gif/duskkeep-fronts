@@ -69,13 +69,15 @@ function normalizeRoute(value: unknown) {
   const to = cleanString(route.to);
   if (!id || !from || !to) return null;
   const state = VALID_ROUTE_STATES.has(route.state as AdventureMapRouteState) ? (route.state as AdventureMapRouteState) : undefined;
+  const control1 = normalizePoint(route.control1);
+  const control2 = normalizePoint(route.control2);
   return {
     id,
     from,
     to,
     ...(state ? { state } : {}),
-    ...(normalizePoint(route.control1) ? { control1: normalizePoint(route.control1) } : {}),
-    ...(normalizePoint(route.control2) ? { control2: normalizePoint(route.control2) } : {}),
+    ...(control1 ? { control1 } : {}),
+    ...(control2 ? { control2 } : {}),
   };
 }
 
@@ -85,6 +87,7 @@ function normalizeProp(value: unknown) {
   const id = cleanString(prop.id);
   if (!id || !VALID_PROP_TYPES.has(prop.type as AdventureMapPropType) || !isFiniteNumber(prop.x) || !isFiniteNumber(prop.y)) return null;
   const effect = normalizePropEffect(prop.effect);
+  const interaction = normalizeInteraction(prop.interaction);
   const fallbackSize = isFiniteNumber(prop.size) ? Math.max(1, round(prop.size)) : undefined;
   const width = isFiniteNumber(prop.width) ? Math.max(1, round(prop.width)) : fallbackSize;
   const height = isFiniteNumber(prop.height) ? Math.max(1, round(prop.height)) : fallbackSize;
@@ -102,7 +105,7 @@ function normalizeProp(value: unknown) {
     ...(isFiniteNumber(prop.opacity) ? { opacity: Math.round(Math.min(1, Math.max(0, prop.opacity)) * 100) / 100 } : {}),
     enabled: typeof prop.enabled === "boolean" ? prop.enabled : true,
     ...(effect ? { effect } : {}),
-    ...(normalizeInteraction(prop.interaction) ? { interaction: normalizeInteraction(prop.interaction) } : {}),
+    ...(interaction ? { interaction } : {}),
   };
 }
 
@@ -174,11 +177,12 @@ export function normalizeLayout(value: unknown): AdventureMapChapterLayout | nul
   if (routes.some((route) => route === null)) return null;
   const props = Array.isArray(layout.props) ? layout.props.map(normalizeProp) : [];
   if (props.some((prop) => prop === null)) return null;
+  const partyMarker = normalizeParty(layout.partyMarker);
   return {
     nodes: nodes as AdventureMapChapterLayout["nodes"],
     ...(routes.length ? { routes: routes as AdventureMapChapterLayout["routes"] } : {}),
     ...(props.length ? { props: props as AdventureMapChapterLayout["props"] } : {}),
-    ...(normalizeParty(layout.partyMarker) ? { partyMarker: normalizeParty(layout.partyMarker) } : {}),
+    ...(partyMarker ? { partyMarker } : {}),
   };
 }
 

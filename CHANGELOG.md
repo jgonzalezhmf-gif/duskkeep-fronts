@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.221] - 2026-05-09
+
+### Changed
+- Eliminadas normalizaciones duplicadas en las utilidades dev de Adventure Map Layout.
+- Simplificado el retorno de rutas, props e indicador de party sin cambiar la forma serializada.
+
+### Tested
+- `npx.cmd vitest run tests/devRouteUtils.test.ts tests/devRouteGuards.test.ts`
+- `npm.cmd run check:full`
+
 ## [0.25.220] - 2026-05-09
 
 ### Changed
