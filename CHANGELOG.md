@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.242] - 2026-05-09
+
+### Changed
+- Diferida la carga del editor QA `AdventureMapEditorOverlay` para que el mapa normal de Adventure no importe el panel de edicion salvo al abrir `?qa=adventure-map` o `?qa=map-editor`.
+- Mantenida intacta la configuracion de nodos, props, rutas, interacciones y comportamiento de Adventure; el cambio solo separa codigo de herramientas QA.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.241] - 2026-05-09
 
 ### Changed

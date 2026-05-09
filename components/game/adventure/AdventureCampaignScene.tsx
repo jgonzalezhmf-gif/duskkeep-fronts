@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/cn";
 import { getScreenBackgroundAsset } from "@/lib/screenBackgroundAssets";
 import {
@@ -22,7 +23,6 @@ import {
   RouteControlHandle,
   RouteRune,
 } from "./AdventureMapElements";
-import { AdventureMapEditorOverlay } from "./AdventureMapEditorOverlay";
 import { getRouteControls } from "./AdventureMapGeometry";
 import { useAdventureCampaignMapState } from "./useAdventureCampaignMapState";
 import type {
@@ -32,6 +32,11 @@ import type {
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
 const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;
+
+const AdventureMapEditorOverlay = dynamic(
+  () => import("./AdventureMapEditorOverlay").then((module) => module.AdventureMapEditorOverlay),
+  { ssr: false },
+);
 
 export type {
   AdventureMapChapterLayout,
