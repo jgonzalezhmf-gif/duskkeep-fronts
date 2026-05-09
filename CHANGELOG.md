@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.227] - 2026-05-09
+
+### Changed
+- Movidas fuera de `public/assets` dos versiones intermedias no registradas del brillo del key chest.
+- Conservada la version activa `gold_shine_loop_core_aligned.png` registrada en el manifest de interacciones de Adventure.
+- Actualizada la linea base de rendimiento: `public/assets` queda en 259 archivos y 106.54 MB.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run check:full`
+
 ## [0.25.226] - 2026-05-09
 
 ### Changed
