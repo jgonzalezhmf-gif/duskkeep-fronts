@@ -33,6 +33,7 @@ import { FrontlineErrorBoundary } from "./FrontlineErrorBoundary";
 import { playFrontlineCardSfx, playFrontlineResolutionSfx } from "./FrontlineBattleSfx";
 import { FrontlineBattleStage } from "./FrontlineBattleStage";
 import { createBattleStateFromProps } from "./FrontlineBattleStateFactory";
+import { clearFrontlineTimer } from "./FrontlineBattleTimers";
 import { nextActionLabel } from "./FrontlineBattleUiState";
 import {
   buildBossSegmentByLane,
@@ -140,8 +141,8 @@ function FrontlineBattleInner({
     setCardPlayFx(null);
     setFinishFx(null);
     setDeathGhosts([]);
-    if (finishOverlayTimerRef.current) clearTimeout(finishOverlayTimerRef.current);
-    if (finishDoneTimerRef.current) clearTimeout(finishDoneTimerRef.current);
+    clearFrontlineTimer(finishOverlayTimerRef);
+    clearFrontlineTimer(finishDoneTimerRef);
     setState(
       createBattleStateFromProps({
         seed,
@@ -157,11 +158,11 @@ function FrontlineBattleInner({
 
   useEffect(() => {
     return () => {
-      if (fxTimerRef.current) clearTimeout(fxTimerRef.current);
-      if (cardFxTimerRef.current) clearTimeout(cardFxTimerRef.current);
-      if (finishOverlayTimerRef.current) clearTimeout(finishOverlayTimerRef.current);
-      if (finishDoneTimerRef.current) clearTimeout(finishDoneTimerRef.current);
-      if (coreShockTimerRef.current) clearTimeout(coreShockTimerRef.current);
+      clearFrontlineTimer(fxTimerRef);
+      clearFrontlineTimer(cardFxTimerRef);
+      clearFrontlineTimer(finishOverlayTimerRef);
+      clearFrontlineTimer(finishDoneTimerRef);
+      clearFrontlineTimer(coreShockTimerRef);
     };
   }, []);
 
@@ -178,7 +179,7 @@ function FrontlineBattleInner({
       coreShockIdRef.current += 1;
       setCoreShock(nextShock);
       sfx.coreDamage();
-      if (coreShockTimerRef.current) clearTimeout(coreShockTimerRef.current);
+      clearFrontlineTimer(coreShockTimerRef);
       coreShockTimerRef.current = setTimeout(() => {
         setCoreShock((current) => (current?.key === nextShock.key ? null : current));
       }, 950);
@@ -200,7 +201,7 @@ function FrontlineBattleInner({
       setResolutionFx(null);
       return;
     }
-    if (fxTimerRef.current) clearTimeout(fxTimerRef.current);
+    clearFrontlineTimer(fxTimerRef);
     fxTimerRef.current = setTimeout(() => {
       setResolutionFx((current) => {
         if (!current || current.id !== resolutionFx.id) return current;
@@ -209,7 +210,7 @@ function FrontlineBattleInner({
       });
     }, eventDuration(activeEvent));
     return () => {
-      if (fxTimerRef.current) clearTimeout(fxTimerRef.current);
+      clearFrontlineTimer(fxTimerRef);
     };
   }, [resolutionFx]);
 
@@ -239,8 +240,8 @@ function FrontlineBattleInner({
     const winner = state.winner;
     const finalState = state;
     const delay = finishDelayRef.current;
-    if (finishOverlayTimerRef.current) clearTimeout(finishOverlayTimerRef.current);
-    if (finishDoneTimerRef.current) clearTimeout(finishDoneTimerRef.current);
+    clearFrontlineTimer(finishOverlayTimerRef);
+    clearFrontlineTimer(finishDoneTimerRef);
     finishOverlayTimerRef.current = setTimeout(() => setFinishFx({ winner }), Math.max(500, delay - 1750));
     finishDoneTimerRef.current = setTimeout(() => onFinished(winner, finalState), delay);
   }, [onFinished, state, state.winner]);
@@ -301,7 +302,7 @@ function FrontlineBattleInner({
     tone: FrontlineVisualTone,
     events: FrontlineEvent[],
   ) {
-    if (cardFxTimerRef.current) clearTimeout(cardFxTimerRef.current);
+    clearFrontlineTimer(cardFxTimerRef);
     fxIdRef.current += 1;
     setCardPlayFx({ id: fxIdRef.current, cardId, lane, targetSide, tone, events: events.slice(0, 4) });
     playFrontlineCardSfx(cardId, tone);
