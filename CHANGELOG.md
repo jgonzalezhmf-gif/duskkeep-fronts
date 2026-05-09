@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.233] - 2026-05-09
+
+### Changed
+- Optimizado Roster para prerenderizar una shell ligera hasta la hidratacion cliente, evitando serializar hero grid, filtros y ownership placeholder en HTML estatico.
+- Actualizada la linea base de build: `roster.html` baja de 94.0 KB a 24.0 KB y `.next/server/app` queda en 1.08 MB.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.232] - 2026-05-09
 
 ### Changed

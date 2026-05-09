@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SceneBackdrop from "@/components/game/screens/SceneBackdrop";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
@@ -50,6 +50,7 @@ function heroProgressLabel({
 
 export default function RosterPage() {
   const { t } = useI18n();
+  const [clientReady, setClientReady] = useState(false);
   const heroes = useGameStore((state) => state.heroes);
   const resources = useGameStore((state) => state.resources);
   const accountLevel = useGameStore((state) => state.account.level);
@@ -82,6 +83,10 @@ export default function RosterPage() {
     [playerByHero],
   );
 
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
+
   return (
     <div className="relative isolate min-h-dvh overflow-hidden px-3 pb-24 pt-56 sm:pt-40 md:px-6 md:pb-28 md:pt-28">
       <ScreenBackground screen="heroes" overlayIntensity="soft" fallback={<SceneBackdrop scene="roster" />} />
@@ -89,7 +94,23 @@ export default function RosterPage() {
       <GameBackNav />
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />
       <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-5">
-        <section className="relative overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(135deg,rgba(35,24,47,0.84),rgba(13,16,25,0.96)_46%,rgba(7,9,14,0.98)_100%)] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.38)] md:p-6">
+        {!clientReady ? (
+          <section className="relative overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(135deg,rgba(35,24,47,0.78),rgba(13,16,25,0.94)_48%,rgba(7,9,14,0.96)_100%)] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.38)] md:p-6" aria-busy="true">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,196,81,0.1),transparent_24%),radial-gradient(circle_at_82%_12%,rgba(137,196,255,0.1),transparent_22%)]" />
+            <div className="relative z-[1]">
+              <div className="h-7 w-32 rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10" />
+              <div className="mt-5 h-12 max-w-[34rem] rounded-full bg-white/[0.07]" />
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="h-44 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-44 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-44 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-44 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+              </div>
+            </div>
+          </section>
+        ) : (
+          <>
+          <section className="relative overflow-hidden rounded-[36px] border border-white/10 bg-[linear-gradient(135deg,rgba(35,24,47,0.84),rgba(13,16,25,0.96)_46%,rgba(7,9,14,0.98)_100%)] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.38)] md:p-6">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(245,196,81,0.12),transparent_24%),radial-gradient(circle_at_82%_12%,rgba(137,196,255,0.12),transparent_22%)]" />
           <div className="relative z-[1] grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(28rem,0.9fr)]">
             <div>
@@ -207,6 +228,8 @@ export default function RosterPage() {
             {t("rosterScreen.labels.empty")}
           </section>
         ) : null}
+          </>
+        )}
       </div>
 
       {selected ? <HeroDetailModal heroId={selected} onClose={() => setSelected(null)} /> : null}
