@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SceneBackdrop from "@/components/game/screens/SceneBackdrop";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import GameBackNav from "@/components/game/shared/GameBackNav";
@@ -26,6 +26,7 @@ import { buildPlan } from "./deckPageHelpers";
 
 export default function DeckPage() {
   const { t } = useI18n();
+  const [clientReady, setClientReady] = useState(false);
   const loadout = useGameStore((state) => state.frontlineLoadout);
   const resources = useGameStore((state) => state.resources);
   const playerHeroes = useGameStore((state) => state.heroes);
@@ -46,6 +47,10 @@ export default function DeckPage() {
   const deckReady = selectedDeck.length === 8;
   const plan = buildPlan(loadout.leaderId, loadout.squad, selectedDeck, t);
 
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
+
   return (
     <div className="relative isolate min-h-dvh overflow-hidden bg-[#071019]">
       <ScreenBackground screen="deck" overlayIntensity="medium" fallback={<SceneBackdrop scene="deck" />} />
@@ -53,7 +58,21 @@ export default function DeckPage() {
       <GameBackNav />
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />
       <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-3 px-3 pb-16 pt-28 sm:pt-28 md:px-6 md:pb-20 md:pt-[5.5rem] xl:px-8">
-      <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(45,34,29,0.68),rgba(15,18,28,0.82)_36%,rgba(8,10,16,0.9)_76%)] shadow-[0_22px_56px_rgba(0,0,0,0.3)]">
+        {!clientReady ? (
+          <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(45,34,29,0.64),rgba(15,18,28,0.82)_42%,rgba(8,10,16,0.9)_78%)] p-4 shadow-[0_22px_56px_rgba(0,0,0,0.3)]" aria-busy="true">
+            <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
+              {t("deckScreen.frontlineLoadout")}
+            </div>
+            <div className="mt-3 h-8 max-w-[26rem] rounded-full bg-white/[0.07]" />
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="h-44 rounded-[22px] border border-white/10 bg-white/[0.04]" />
+              <div className="h-44 rounded-[22px] border border-white/10 bg-white/[0.04]" />
+              <div className="h-44 rounded-[22px] border border-white/10 bg-white/[0.04]" />
+            </div>
+          </section>
+        ) : (
+          <>
+          <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(45,34,29,0.68),rgba(15,18,28,0.82)_36%,rgba(8,10,16,0.9)_76%)] shadow-[0_22px_56px_rgba(0,0,0,0.3)]">
         <div className="relative z-[1] px-3 py-3 md:px-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="max-w-[46rem]">
@@ -150,6 +169,8 @@ export default function DeckPage() {
           })}
         </div>
       </section>
+          </>
+        )}
       </div>
     </div>
   );
