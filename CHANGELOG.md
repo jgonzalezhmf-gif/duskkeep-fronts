@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.241] - 2026-05-09
+
+### Changed
+- Diferida la carga de `FrontlineBattle` en Arena y Events hasta entrar realmente en fase de combate, evitando cargar el bundle de batalla durante el listado inicial.
+- Aniadida una shell ligera compartida para cubrir el estado de carga del combate diferido sin tocar el engine ni las reglas de Frontline.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.240] - 2026-05-09
 
 ### Changed

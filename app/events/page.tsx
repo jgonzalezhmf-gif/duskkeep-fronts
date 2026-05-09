@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
+import dynamic from "next/dynamic";
+import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon from "@/components/game/shared/GameIcon";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
@@ -24,6 +25,11 @@ import { EventMetric, ResultMetric, RewardChips } from "./EventsPrimitives";
 import { EventEntryPanel } from "./EventEntryPanel";
 import { EventOperationCard } from "./EventOperationCard";
 import { eventOperations, todayKey, type FrontlineEventOperation, type TranslateFn } from "./eventsPageHelpers";
+
+const FrontlineBattle = dynamic(() => import("@/components/game/frontline/FrontlineBattle"), {
+  ssr: false,
+  loading: FrontlineBattleLoadingShell,
+});
 
 type EventPhase = "list" | "battle" | "post";
 

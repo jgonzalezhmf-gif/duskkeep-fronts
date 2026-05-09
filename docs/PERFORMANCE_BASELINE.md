@@ -84,19 +84,20 @@ npm.cmd run check:performance
 
 Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 
-- `.next/static`: 39 archivos, 2.31 MB.
+- `.next/static`: 41 archivos, 2.31 MB.
 - `.next/server/app`: 245 archivos, 0.77 MB.
 - Chunk estatico mayor: CSS de 342.5 KB.
-- Rutas HTML mas pesadas: `adventure.html` 30.3 KB, `arena.html` 30.2 KB, `_not-found.html` 28.1 KB, `team.html` 26.4 KB.
+- Rutas HTML mas pesadas: `adventure.html` 30.3 KB, `arena.html` 29.9 KB, `_not-found.html` 28.1 KB, `team.html` 26.4 KB.
 - `deck.html` queda en 23.7 KB tras renderizar una shell ligera hasta la hidratacion cliente; Deck depende de estado local persistido y no necesita prerenderizar todo el card pool/roster en HTML estatico.
 - `shop.html` queda en 25.0 KB tras renderizar una shell ligera hasta la hidratacion cliente; Shop depende de estado local persistido, stock diario y desbloqueo de Adventure Keys.
 - `roster.html` queda en 24.0 KB tras renderizar una shell ligera hasta la hidratacion cliente; Roster depende de ownership, filtros y detalle de heroes persistidos en cliente.
 - `missions.html` queda en 24.2 KB tras renderizar una shell ligera hasta la hidratacion cliente; Missions depende de progreso local, resets y rewards claimables.
-- `arena.html` queda en 30.2 KB tras renderizar una shell ligera hasta la hidratacion cliente; Arena depende de tickets, loadout, ranking y seleccion de rival persistidos en cliente.
+- `arena.html` queda en 29.9 KB tras renderizar una shell ligera hasta la hidratacion cliente; Arena depende de tickets, loadout, ranking y seleccion de rival persistidos en cliente.
 - `team.html` queda en 26.4 KB tras renderizar una shell ligera hasta la hidratacion cliente; Team depende de loadout, niveles de cartas y squad persistidos en cliente.
 - `adventure.html` queda en 30.3 KB tras renderizar una shell ligera hasta la hidratacion cliente; Adventure depende de progreso local, layout interactivo, interacciones de mapa y modo QA.
 - `fortress.html` queda en 25.3 KB tras renderizar una shell ligera hasta la hidratacion cliente; Fortress depende de reloj local, garrison, raids, upgrades y reportes persistidos en cliente.
-- `events.html` queda en 25.7 KB tras renderizar una shell ligera hasta la hidratacion cliente; Events depende de nivel, completions diarios, loadout y seleccion de operacion.
+- `events.html` queda en 25.5 KB tras renderizar una shell ligera hasta la hidratacion cliente; Events depende de nivel, completions diarios, loadout y seleccion de operacion.
+- `FrontlineBattle` queda cargado de forma diferida en Arena y Events: los listados iniciales no importan el combate hasta que el usuario entra en fase `battle`. Esto no reduce necesariamente el total de `.next/static`, pero protege la carga inicial de pantallas que normalmente se abren como hub/listado.
 
 ## Siguientes Focos
 
