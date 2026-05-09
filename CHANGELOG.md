@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.234] - 2026-05-09
+
+### Changed
+- Optimizado Missions para prerenderizar una shell ligera hasta la hidratacion cliente, evitando serializar contratos diarios/semanales y progreso placeholder en HTML estatico.
+- Actualizada la linea base de build: `missions.html` baja de 92.3 KB a 24.2 KB y `.next/server/app` queda en 1.01 MB.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.233] - 2026-05-09
 
 ### Changed

@@ -20,6 +20,7 @@ import { LogMetric, MiniBadge } from "./MissionsPrimitives";
 
 export default function MissionsPage() {
   const { t } = useI18n();
+  const [clientReady, setClientReady] = useState(false);
   const [claimFx, setClaimFx] = useState<ClaimFx | null>(null);
   const claimFxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const claimFxNonce = useRef(0);
@@ -29,6 +30,7 @@ export default function MissionsPage() {
   const claimRaw = useGameStore((state) => state.claimMission);
 
   useEffect(() => {
+    setClientReady(true);
     ensureMissionsInitialized();
     return () => {
       if (claimFxTimer.current) clearTimeout(claimFxTimer.current);
@@ -62,7 +64,24 @@ export default function MissionsPage() {
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />
       <RewardFlightOverlay rewards={claimFx?.rewards} active={Boolean(claimFx)} nonce={claimFx?.nonce} origin="center" />
       <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-4">
-        <section className="relative overflow-hidden rounded-[28px] border border-[#f5d498]/12 bg-[linear-gradient(135deg,rgba(18,30,27,0.76),rgba(10,13,19,0.94)_48%,rgba(5,7,12,0.98)_100%)] p-3 shadow-[0_28px_74px_rgba(0,0,0,0.42)] md:rounded-[34px] md:p-4">
+        {!clientReady ? (
+          <section className="relative overflow-hidden rounded-[28px] border border-[#f5d498]/12 bg-[linear-gradient(135deg,rgba(18,30,27,0.7),rgba(10,13,19,0.92)_48%,rgba(5,7,12,0.96)_100%)] p-3 shadow-[0_28px_74px_rgba(0,0,0,0.42)] md:rounded-[34px] md:p-4" aria-busy="true">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(93,211,158,0.1),transparent_22%),radial-gradient(circle_at_82%_10%,rgba(245,196,81,0.1),transparent_22%)]" />
+            <div className="relative z-[1]">
+              <div className="flex flex-wrap gap-2">
+                <div className="h-7 w-36 rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10" />
+                <div className="h-7 w-24 rounded-full border border-white/10 bg-white/[0.05]" />
+              </div>
+              <div className="mt-4 h-10 max-w-[28rem] rounded-full bg-white/[0.07]" />
+              <div className="mt-4 grid gap-4 xl:grid-cols-2">
+                <div className="h-44 rounded-[24px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-44 rounded-[24px] border border-white/10 bg-white/[0.045]" />
+              </div>
+            </div>
+          </section>
+        ) : (
+          <>
+          <section className="relative overflow-hidden rounded-[28px] border border-[#f5d498]/12 bg-[linear-gradient(135deg,rgba(18,30,27,0.76),rgba(10,13,19,0.94)_48%,rgba(5,7,12,0.98)_100%)] p-3 shadow-[0_28px_74px_rgba(0,0,0,0.42)] md:rounded-[34px] md:p-4">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(93,211,158,0.13),transparent_22%),radial-gradient(circle_at_82%_10%,rgba(245,196,81,0.12),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.018),transparent_42%)]" />
           <div className="relative z-[1] grid gap-3 xl:grid-cols-[minmax(0,0.88fr)_minmax(25rem,1.12fr)]">
             <div>
@@ -93,6 +112,8 @@ export default function MissionsPage() {
           <MissionColumn title={t("missionsScreen.columns.dailyTitle")} cadence={t("missionsScreen.columns.dailyCadence")} missions={DAILY_MISSIONS} progress={progress} claim={claim} claimFx={claimFx} t={t} />
           <MissionColumn title={t("missionsScreen.columns.weeklyTitle")} cadence={t("missionsScreen.columns.weeklyCadence")} missions={WEEKLY_MISSIONS} progress={progress} claim={claim} claimFx={claimFx} t={t} />
         </section>
+          </>
+        )}
       </div>
     </div>
   );
