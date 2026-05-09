@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.228] - 2026-05-09
+
+### Changed
+- Movidas fuera de `public/assets` variantes Home no referenciadas de spritesheets intermedios y pruebas de banner.
+- Conservados los sprites activos registrados en `lib/homeEffectAssets.ts`, incluidos los pipelines normalizados que si usa Home.
+- Actualizada la linea base de rendimiento: `public/assets` queda en 252 archivos y 103.61 MB.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run check:full`
+
 ## [0.25.227] - 2026-05-09
 
 ### Changed
