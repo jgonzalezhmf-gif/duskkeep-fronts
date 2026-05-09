@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
+import { BattlePageBossSignaturesPanel } from "@/components/game/frontline/BattlePageBossSignaturesPanel";
 import { BattlePageEnemySelector } from "@/components/game/frontline/BattlePageEnemySelector";
 import { BattlePageEnemyTricksPanel } from "@/components/game/frontline/BattlePageEnemyTricksPanel";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
@@ -37,7 +38,7 @@ import {
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
 import { BattlePageMatchupGrid } from "@/components/game/frontline/BattlePageMatchup";
-import { BossSignaturePreview, Panel } from "@/components/game/frontline/BattlePagePanels";
+import { Panel } from "@/components/game/frontline/BattlePagePanels";
 import { BattlePageResultPanel, type BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import {
@@ -308,15 +309,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                 />
               ) : null}
 
-              {bossConfig ? (
-                <Panel title={t("frontline.bossSignaturesTitle")} variant="enemy">
-                  <div className="grid gap-2">
-                    {bossConfig.signatures.map((signature, index) => (
-                      <BossSignaturePreview key={`sig-${index}-${signature.type}`} signature={signature} />
-                    ))}
-                  </div>
-                </Panel>
-              ) : null}
+              <BattlePageBossSignaturesPanel bossConfig={bossConfig} />
 
               <BattlePageEnemyTricksPanel cards={enemyCards} />
 
