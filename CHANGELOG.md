@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.223] - 2026-05-09
+
+### Changed
+- Movidos fuera de `public/assets` los borradores y backups historicos de musica que no usa el juego en runtime.
+- Anadida regla `.gitignore` para evitar que `public/assets/audio/**/archive/` vuelva a entrar al repo.
+- Actualizada la linea base de rendimiento: `public/assets` queda en 415 archivos y 167.93 MB.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run check:full`
+
 ## [0.25.222] - 2026-05-09
 
 ### Added

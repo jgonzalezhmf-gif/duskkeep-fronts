@@ -24,6 +24,7 @@ tmp/ip-risk-terms.txt
 .junie
 skills-lock.json
 public/assets/audio/**/_drafts/
+public/assets/audio/**/archive/
 
 # Local source sheets / raw generated boards. Commit only cropped registered assets.
 public/assets/frontline/Icons/

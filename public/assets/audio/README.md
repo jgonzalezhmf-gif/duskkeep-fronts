@@ -21,3 +21,4 @@ Drafts:
 - Do not register `_drafts/` files directly.
 - Copy or rename the approved candidate to the final filename first.
 - `_drafts/` is ignored by Git; final approved files are the only audio assets to version.
+- Historical backups/archives should live outside `public/assets` and are ignored if temporarily restored under `archive/`.
