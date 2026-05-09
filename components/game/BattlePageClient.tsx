@@ -8,6 +8,7 @@ import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePa
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import { BattlePageSetupLayout } from "@/components/game/frontline/BattlePageSetupLayout";
 import { BattlePageSetupSidebar } from "@/components/game/frontline/BattlePageSetupSidebar";
+import { useBattlePageRewardReveal } from "@/components/game/frontline/useBattlePageRewardReveal";
 import {
   FRONTLINE_CARD_BY_ID,
   FRONTLINE_PRESETS,
@@ -77,7 +78,10 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const [selectedEnemyPresetId, setSelectedEnemyPresetId] = useState(forcedPresetId ?? FRONTLINE_PRESETS[0].id);
   const [battleSeed, setBattleSeed] = useState(1);
   const [resultContext, setResultContext] = useState<BattlePageResultContext | null>(null);
-  const [rewardReveal, setRewardReveal] = useState({ gold: 0, dust: 0, gems: 0, accountXp: 0, adventureKeys: 0, progress: 0 });
+  const { rewardReveal, resetRewardReveal } = useBattlePageRewardReveal({
+    active: phase === "result",
+    resultContext,
+  });
 
   const selectedPreset = useMemo(
     () =>
@@ -139,34 +143,14 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     setBattleSeed(nextSeed());
     setPhase("battle");
     setResultContext(null);
-    setRewardReveal({ gold: 0, dust: 0, gems: 0, accountXp: 0, adventureKeys: 0, progress: 0 });
-  }, [deckReady, nextSeed, squadReady]);
+    resetRewardReveal();
+  }, [deckReady, nextSeed, resetRewardReveal, squadReady]);
 
   useEffect(() => {
     if (autostart && phase === "setup" && squadReady && deckReady) {
       startBattle();
     }
   }, [autostart, deckReady, phase, squadReady, startBattle]);
-
-  useEffect(() => {
-    if (phase !== "result" || !resultContext) return;
-    let frame = 0;
-    const steps = 16;
-    const interval = window.setInterval(() => {
-      frame += 1;
-      const ratio = Math.min(1, frame / steps);
-      setRewardReveal({
-        gold: Math.round(resultContext.rewards.gold * ratio),
-        dust: Math.round(resultContext.rewards.dust * ratio),
-        gems: Math.round(resultContext.rewards.gems * ratio),
-        accountXp: Math.round(resultContext.rewards.accountXp * ratio),
-        adventureKeys: Math.round(resultContext.rewards.adventureKeys * ratio),
-        progress: ratio,
-      });
-      if (ratio >= 1) window.clearInterval(interval);
-    }, 28);
-    return () => window.clearInterval(interval);
-  }, [phase, resultContext]);
 
   function finishBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
     const won = winner === "ally";

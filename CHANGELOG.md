@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.207] - 2026-05-09
+
+### Changed
+- Extraida la animacion local de reward reveal Frontline a `components/game/frontline/useBattlePageRewardReveal.ts`.
+- Reducido `components/game/BattlePageClient.tsx` sin cambiar concesion de rewards, economia, audio ni reglas.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.206] - 2026-05-09
 
 ### Changed
