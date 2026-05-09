@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.193] - 2026-05-09
+
+### Changed
+- Extraida la presentacion de la mano de cartas de DeckBattle a `components/game/deckbattle/DeckBattleHand.tsx`.
+- Reducido `components/game/DeckBattle.tsx` sin cambiar reglas, seleccion de cartas, mana, SFX ni flujo de turno.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.192] - 2026-05-09
 
 ### Changed
