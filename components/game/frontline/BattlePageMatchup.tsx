@@ -5,6 +5,7 @@ import type { FrontlineHeroDef } from "@/features/frontline/types";
 import { cn } from "@/lib/cn";
 import { frontlineHeroName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { FrontlineHeroStandee } from "./FrontlineVisualPrimitives";
 import { heroPreviewPower } from "./frontlineBattlePageLogic";
 import { getFrontlineHeroVisualAsset } from "./frontlineVisualAssets";
 
@@ -110,6 +111,41 @@ export function LaneMatchupForecast({ ally, enemy }: { ally: FrontlineHeroDef | 
         ) : null}
       </div>
     </details>
+  );
+}
+
+export function BattlePageMatchupGrid({
+  allyHeroes,
+  enemyHeroes,
+}: {
+  allyHeroes: (FrontlineHeroDef | null)[];
+  enemyHeroes: (FrontlineHeroDef | null)[];
+}) {
+  const { t } = useI18n();
+
+  return (
+    <div className="grid gap-3 lg:grid-cols-3">
+      {allyHeroes.map((hero, index) => (
+        <div key={`matchup-${index}`} className="relative overflow-hidden rounded-[32px] border border-white/9 bg-[radial-gradient(ellipse_at_50%_50%,rgba(245,196,81,0.13),transparent_56%),linear-gradient(180deg,rgba(19,24,34,0.68),rgba(7,8,13,0.9))] p-3 shadow-[0_20px_38px_rgba(0,0,0,0.24)]">
+          <div className="pointer-events-none absolute inset-x-4 top-1/2 h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.34),transparent)]" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 z-[2] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#f5c451]/24 bg-[#120d08]/88 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-[#f5d498] shadow-[0_10px_20px_rgba(0,0,0,0.36)]">
+            VS
+          </div>
+          <div className="relative z-[1] mb-2 flex items-center justify-between gap-2">
+            <span className="rounded-full border border-cyan-200/14 bg-cyan-200/8 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-100/72">
+              {index === 0 ? t("frontline.left") : index === 1 ? t("frontline.center") : t("frontline.right")}
+            </span>
+            <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/34">{t("frontline.front")}</span>
+          </div>
+          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-2">
+            <FrontlineHeroStandee hero={hero} side="ally" compact label={t("frontline.yourHero")} className="min-h-[13rem] border-cyan-200/18 bg-[radial-gradient(circle_at_50%_22%,rgba(103,232,249,0.16),transparent_40%),linear-gradient(180deg,rgba(16,46,54,0.66),rgba(6,9,14,0.9))]" />
+            <FrontlineHeroStandee hero={enemyHeroes[index]} side="enemy" compact label={t("frontline.enemy")} className="min-h-[13rem] border-rose-200/18 bg-[radial-gradient(circle_at_50%_22%,rgba(251,113,133,0.18),transparent_40%),linear-gradient(180deg,rgba(72,24,34,0.66),rgba(8,7,12,0.92))]" />
+          </div>
+          <LanePowerReadout ally={hero} enemy={enemyHeroes[index]} />
+          <LaneMatchupForecast ally={hero} enemy={enemyHeroes[index]} />
+        </div>
+      ))}
+    </div>
   );
 }
 
