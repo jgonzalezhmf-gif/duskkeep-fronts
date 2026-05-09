@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.239] - 2026-05-09
+
+### Changed
+- Optimizado Events para prerenderizar una shell ligera hasta la hidratacion cliente, evitando serializar operaciones, completions diarios y estado de loadout placeholder en HTML estatico.
+- Actualizada la linea base de build: `events.html` baja de 55.8 KB a 25.7 KB y `.next/server/app` queda en 0.77 MB.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.238] - 2026-05-09
 
 ### Changed

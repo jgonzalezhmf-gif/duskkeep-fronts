@@ -39,6 +39,7 @@ type EventResult = {
 
 export default function EventsPage() {
   const { locale, t } = useI18n();
+  const [clientReady, setClientReady] = useState(false);
   const resources = useGameStore((state) => state.resources);
   const level = useGameStore((state) => state.account.level);
   const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
@@ -58,6 +59,10 @@ export default function EventsPage() {
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;
   const deckReady = frontlineLoadout.deck.filter(Boolean).length === 8;
   const loadoutReady = squadReady && deckReady;
+
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
 
   useEffect(() => {
     if (!activeOperation && operations[0]) setActiveOperation(operations[0]);
@@ -174,6 +179,30 @@ export default function EventsPage() {
   return (
     <ScreenScaffold scene="events" dock={false} homeNav={false} hud={false}>
       <EventsTopChrome resources={resources} t={t} />
+      {!clientReady ? (
+        <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-hidden md:inset-x-8 md:top-[5.5rem]" aria-busy="true">
+          <div className="mx-auto flex max-w-[88rem] flex-col gap-2.5 pb-5">
+            <ScreenPanel className="overflow-hidden p-3">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_12%,rgba(217,165,255,0.14),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(245,196,81,0.1),transparent_24%)]" />
+              <div className="relative z-[1]">
+                <div className="h-7 w-32 rounded-full border border-violet-200/20 bg-violet-300/10" />
+                <div className="mt-3 h-10 max-w-[28rem] rounded-full bg-white/[0.07]" />
+                <div className="mt-3 grid gap-2 md:grid-cols-4">
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                </div>
+              </div>
+            </ScreenPanel>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="h-72 rounded-[28px] border border-white/10 bg-white/[0.04]" />
+              <div className="h-72 rounded-[28px] border border-white/10 bg-white/[0.04]" />
+              <div className="h-72 rounded-[28px] border border-white/10 bg-white/[0.04]" />
+            </div>
+          </div>
+        </div>
+      ) : (
       <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-[5.5rem]">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-2.5 pb-5">
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_19rem]">
@@ -221,6 +250,7 @@ export default function EventsPage() {
           </div>
         </div>
       </div>
+      )}
     </ScreenScaffold>
   );
 }
