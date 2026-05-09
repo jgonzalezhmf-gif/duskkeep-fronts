@@ -3,8 +3,9 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { HomeEffectSprite } from "@/components/game/home/HomeEffectSprite";
-import { HomeEffectQaHandles, type HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
+import { HomeEffectQaHandles } from "@/components/game/home/HomeEffectQaHandles";
 import { HOME_LANDMARK_EFFECTS, type HomeEffectAnchorId, type HomeLandmarkEffectConfig } from "@/components/game/home/homeEffectLayout";
+import type { HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaTypes";
 import { getHomeLandmarkAsset, type HomeLandmarkId } from "@/lib/homeLandmarkAssets";
 
 type HomeLandmarkAssetProps = {

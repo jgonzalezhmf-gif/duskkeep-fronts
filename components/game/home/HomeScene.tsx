@@ -1,6 +1,6 @@
 "use client";
 
-import type { HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
+import type { HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaTypes";
 import { HomeLandmarkLayer, HomeWorldEffectLayer } from "@/components/game/home/HomeSceneLayers";
 import {
   BrazierProp,

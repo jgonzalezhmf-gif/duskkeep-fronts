@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { HomeEffectsQaPanel, type HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
+import dynamic from "next/dynamic";
 import HomeScene from "@/components/game/home/HomeScene";
 import HomeWorldMapStyles from "@/components/game/home/HomeWorldMapStyles";
 import {
@@ -19,6 +19,7 @@ import {
   createDuplicateEffectId,
   mergeHomeEffectQaEdits,
 } from "@/components/game/home/homeEffectsQaState";
+import type { HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaTypes";
 import { HOME_CTA_LAYOUT, HOME_DESIGN_HEIGHT, HOME_DESIGN_WIDTH } from "@/components/game/home/homeComposition";
 import { HOME_LANDMARK_EFFECT_DEFS, getHomeWorldEffects, groupHomeLandmarkEffects, type HomeLandmarkEffectConfig } from "@/components/game/home/homeEffectLayout";
 import { type HomeHotspot, type HomeZoneId } from "@/components/game/home/types";
@@ -39,6 +40,11 @@ import { cn } from "@/lib/cn";
 import { getHomeEffectAsset, type HomeEffectId } from "@/lib/homeEffectAssets";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
+
+const HomeEffectsQaPanel = dynamic(
+  () => import("@/components/game/home/HomeEffectsQaEditor").then((module) => module.HomeEffectsQaPanel),
+  { ssr: false },
+);
 
 type HomeWorldFrame = {
   left: number;

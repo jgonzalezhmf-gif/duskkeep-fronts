@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.243] - 2026-05-10
+
+### Changed
+- Separados los handles QA de Home en un componente pequeno (`HomeEffectQaHandles`) y movido el contrato de tipos a `HomeEffectsQaTypes`.
+- Diferida la carga de `HomeEffectsQaPanel` para que el panel completo de edicion de efectos solo se importe cuando se usa `?qa=effects`.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.242] - 2026-05-09
 
 ### Changed

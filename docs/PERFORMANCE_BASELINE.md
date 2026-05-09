@@ -84,7 +84,7 @@ npm.cmd run check:performance
 
 Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 
-- `.next/static`: 43 archivos, 2.31 MB.
+- `.next/static`: 44 archivos, 2.31 MB.
 - `.next/server/app`: 245 archivos, 0.80 MB.
 - Chunk estatico mayor: CSS de 342.5 KB.
 - Rutas HTML mas pesadas: `adventure.html` 30.9 KB, `arena.html` 30.5 KB, `_not-found.html` 28.6 KB, `team.html` 27.0 KB.
@@ -99,6 +99,7 @@ Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 - `events.html` queda en 26.1 KB tras renderizar una shell ligera hasta la hidratacion cliente; Events depende de nivel, completions diarios, loadout y seleccion de operacion.
 - `FrontlineBattle` queda cargado de forma diferida en Arena y Events: los listados iniciales no importan el combate hasta que el usuario entra en fase `battle`. Esto no reduce necesariamente el total de `.next/static`, pero protege la carga inicial de pantallas que normalmente se abren como hub/listado.
 - `AdventureMapEditorOverlay` queda cargado de forma diferida: el mapa normal de Adventure no importa el panel de edicion QA salvo cuando se usa el query param del editor.
+- `HomeEffectsQaPanel` queda cargado de forma diferida y los handles QA de Home viven en un componente pequeno separado; Home normal no necesita importar el panel completo de edicion de efectos.
 
 ## Siguientes Focos
 

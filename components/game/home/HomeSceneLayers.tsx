@@ -3,10 +3,11 @@
 import type { CSSProperties } from "react";
 
 import { HomeEffectSprite } from "@/components/game/home/HomeEffectSprite";
-import { HomeEffectQaHandles, type HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaEditor";
+import { HomeEffectQaHandles } from "@/components/game/home/HomeEffectQaHandles";
 import { HomeLandmarkAsset } from "@/components/game/home/HomeLandmarkAsset";
 import { HOME_LANDMARK_LAYOUT, type HomeLandmarkLayout } from "@/components/game/home/homeComposition";
 import type { HomeLandmarkEffectConfig } from "@/components/game/home/homeEffectLayout";
+import type { HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaTypes";
 import type { HomeZoneId } from "@/components/game/home/types";
 import type { HomeLandmarkId } from "@/lib/homeLandmarkAssets";
 
