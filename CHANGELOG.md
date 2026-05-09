@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.220] - 2026-05-09
+
+### Changed
+- Centralizado el bloqueo en produccion de endpoints dev de guardado en `app/api/dev/devRouteGuards.ts`.
+- Reutilizado el guard en Adventure Map Layout y Home Effects sin cambiar mensajes ni codigos HTTP.
+
+### Tested
+- `npx.cmd vitest run tests/devRouteGuards.test.ts tests/devRouteUtils.test.ts`
+- `npm.cmd run check:full`
+
 ## [0.25.219] - 2026-05-09
 
 ### Added

@@ -3,6 +3,7 @@ import { writeFile } from "node:fs/promises";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/components/game/adventure/adventureMapLayout";
+import { getDevSaveRouteDisabledResponse } from "../devRouteGuards";
 import {
   isFiniteNumber,
   normalizeLayout,
@@ -14,9 +15,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ ok: false, message: "Saving Adventure map layout is disabled in production." }, { status: 403 });
-  }
+  const disabledResponse = getDevSaveRouteDisabledResponse("Adventure map layout");
+  if (disabledResponse) return disabledResponse;
 
   const payload = (await request.json()) as { chapter?: unknown; layout?: unknown };
   if (!isFiniteNumber(payload.chapter)) {

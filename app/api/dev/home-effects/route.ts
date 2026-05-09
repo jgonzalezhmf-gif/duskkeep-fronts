@@ -2,6 +2,7 @@ import { writeFile } from "node:fs/promises";
 
 import { NextResponse, type NextRequest } from "next/server";
 
+import { getDevSaveRouteDisabledResponse } from "../devRouteGuards";
 import {
   normalizeHomeEffect,
   renderHomeEffectLayout,
@@ -13,9 +14,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ ok: false, message: "Saving Home effects is disabled in production." }, { status: 403 });
-  }
+  const disabledResponse = getDevSaveRouteDisabledResponse("Home effects");
+  if (disabledResponse) return disabledResponse;
 
   const payload = (await request.json()) as { effects?: unknown };
   if (!Array.isArray(payload.effects)) {
