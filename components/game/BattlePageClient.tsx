@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
+import { BattlePageEnemySelector } from "@/components/game/frontline/BattlePageEnemySelector";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import {
@@ -19,7 +20,6 @@ import { getFrontlineBoss } from "@/features/frontline/bosses";
 import { summarizeBattleStats } from "@/lib/frontlineBattleStats";
 import type { FrontlineEncounterBadgeKind } from "@/components/game/frontline/FrontlineBattle";
 import { audio } from "@/lib/audio";
-import { cn } from "@/lib/cn";
 import {
   frontlineCardKindLabel,
   frontlineCardName,
@@ -38,7 +38,7 @@ import {
   projectAccountProgress,
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
-import { BattlePageMatchupGrid, EnemyMini } from "@/components/game/frontline/BattlePageMatchup";
+import { BattlePageMatchupGrid } from "@/components/game/frontline/BattlePageMatchup";
 import { BossSignaturePreview, EmptyCard, Panel, RewardPreview } from "@/components/game/frontline/BattlePagePanels";
 import { BattlePageResultPanel, type BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
@@ -313,46 +313,11 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
 
             <div className="grid gap-4 content-start">
               {!adventureLevel ? (
-                <Panel title={t("frontline.chooseEnemy")} variant="enemy">
-                  <div className="grid gap-3">
-                    {FRONTLINE_PRESETS.map((preset) => {
-                      const leaderPortrait = getFrontlineEnemyLeaderPortraitForPreset(preset);
-                      return (
-                        <button
-                          key={preset.id}
-                          className={cn(
-                            "rounded-[24px] border px-4 py-3 text-left transition hover:-translate-y-0.5",
-                            preset.id === selectedPreset.id
-                              ? "border-[#f5c451]/28 bg-[linear-gradient(180deg,rgba(245,196,81,0.14),rgba(20,16,18,0.9))] shadow-[0_14px_32px_rgba(245,196,81,0.08)]"
-                              : "border-white/10 bg-white/[0.035]",
-                          )}
-                          onClick={() => setSelectedEnemyPresetId(preset.id)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={leaderPortrait}
-                              alt=""
-                              className="h-12 w-10 shrink-0 rounded-[14px] border border-rose-200/16 bg-black/24 object-cover shadow-[0_10px_22px_rgba(0,0,0,0.24)]"
-                              loading="lazy"
-                              aria-hidden
-                            />
-                            <div className="min-w-0">
-                              <div className="truncate text-base font-black text-white">{frontlinePresetName(t, preset)}</div>
-                              <div className="mt-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#f5d498]/72">
-                                {t("frontline.enemy")}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-3 flex -space-x-3">
-                            {preset.squad.map((combatantId, index) => (
-                              <EnemyMini key={`${preset.id}-${combatantId}-${index}`} combatantId={combatantId} />
-                            ))}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </Panel>
+                <BattlePageEnemySelector
+                  presets={FRONTLINE_PRESETS}
+                  selectedPresetId={selectedPreset.id}
+                  onSelect={setSelectedEnemyPresetId}
+                />
               ) : null}
 
               {bossConfig ? (

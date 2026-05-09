@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.198] - 2026-05-09
+
+### Changed
+- Extraido el selector de enemigos de setup Frontline a `components/game/frontline/BattlePageEnemySelector.tsx`.
+- Reducido `components/game/BattlePageClient.tsx` sin cambiar seleccion de preset, portraits, audio, rewards ni reglas.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.197] - 2026-05-09
 
 ### Changed
