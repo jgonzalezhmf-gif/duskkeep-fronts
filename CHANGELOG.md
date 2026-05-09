@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.235] - 2026-05-09
+
+### Changed
+- Optimizado Arena para prerenderizar una shell ligera hasta la hidratacion cliente, evitando serializar rivales, gates y ranking placeholder en HTML estatico.
+- Actualizada la linea base de build: `arena.html` baja de 89.9 KB a 30.2 KB y `.next/server/app` queda en 0.95 MB.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.234] - 2026-05-09
 
 ### Changed

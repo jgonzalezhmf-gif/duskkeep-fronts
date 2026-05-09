@@ -37,6 +37,7 @@ type ArenaResult = {
 
 export default function ArenaPage() {
   const { t } = useI18n();
+  const [clientReady, setClientReady] = useState(false);
   const tickets = useGameStore((state) => state.resources.arenaTickets);
   const resources = useGameStore((state) => state.resources);
   const wins = useGameStore((state) => state.arenaWins);
@@ -53,6 +54,7 @@ export default function ArenaPage() {
   const [result, setResult] = useState<ArenaResult | null>(null);
 
   useEffect(() => {
+    setClientReady(true);
     refreshTickets();
   }, [refreshTickets]);
 
@@ -149,6 +151,33 @@ export default function ArenaPage() {
   return (
     <ScreenScaffold scene="arena" dock={false} homeNav={false} hud={false}>
       <ArenaTopChrome resources={resources} t={t} />
+      {!clientReady ? (
+        <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-hidden md:inset-x-8 md:top-24" aria-busy="true">
+          <div className="mx-auto flex max-w-[88rem] flex-col gap-3 pb-6">
+            <ScreenPanel className="overflow-hidden p-3 md:p-4">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,151,92,0.14),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(245,196,81,0.1),transparent_22%)]" />
+              <div className="relative z-[1]">
+                <div className="h-7 w-32 rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10" />
+                <div className="mt-4 h-10 max-w-[30rem] rounded-full bg-white/[0.07]" />
+                <div className="mt-4 grid gap-3 md:grid-cols-4">
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                </div>
+              </div>
+            </ScreenPanel>
+            <ScreenPanel className="p-3 md:p-4">
+              <div className="h-7 w-40 rounded-full bg-white/[0.06]" />
+              <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <div className="h-64 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-64 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-64 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+              </div>
+            </ScreenPanel>
+          </div>
+        </div>
+      ) : (
       <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-24">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-3 pb-6">
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_19rem]">
@@ -217,6 +246,7 @@ export default function ArenaPage() {
           </ScreenPanel>
         </div>
       </div>
+      )}
     </ScreenScaffold>
   );
 }
