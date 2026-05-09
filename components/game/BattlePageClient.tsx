@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
+import { BattlePageBattleView } from "@/components/game/frontline/BattlePageBattleView";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
 import { BattlePageMatchupPanel } from "@/components/game/frontline/BattlePageMatchupPanel";
 import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePackagePanel";
@@ -21,7 +21,6 @@ import {
 } from "@/features/frontline/adventure";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
 import { summarizeBattleStats } from "@/lib/frontlineBattleStats";
-import type { FrontlineEncounterBadgeKind } from "@/components/game/frontline/FrontlineBattle";
 import { audio } from "@/lib/audio";
 import { frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -239,21 +238,19 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       resolveBattleBackgroundKey(adventureLevel, encounterKind, selectedPreset.bossId),
     );
     return (
-      <div className="mx-auto flex w-full max-w-[1840px] flex-col gap-3 px-2 pb-3 pt-2 md:px-3 md:pb-4 md:pt-3 xl:px-4">
-        <FrontlineBattle
-          seed={battleSeed}
-          loadout={frontlineLoadout}
-          enemyPresetId={selectedPreset.id}
-          allyHeroProfiles={allyHeroProfiles}
-          allyCardProfiles={allyCardProfiles}
-          allySupportProfiles={allySupportProfiles}
-          modifiers={modifiers}
-          encounterKind={encounterKind}
-          encounterTitle={adventureLevel?.name ?? null}
-          battleBackgroundSrc={battleBackgroundSrc}
-          onFinished={(winner, battleState) => finishBattle(winner, battleState)}
-        />
-      </div>
+      <BattlePageBattleView
+        seed={battleSeed}
+        loadout={frontlineLoadout}
+        enemyPresetId={selectedPreset.id}
+        allyHeroProfiles={allyHeroProfiles}
+        allyCardProfiles={allyCardProfiles}
+        allySupportProfiles={allySupportProfiles}
+        modifiers={modifiers}
+        encounterKind={encounterKind}
+        encounterTitle={adventureLevel?.name ?? null}
+        battleBackgroundSrc={battleBackgroundSrc}
+        onFinished={(winner, battleState) => finishBattle(winner, battleState)}
+      />
     );
   }
 
