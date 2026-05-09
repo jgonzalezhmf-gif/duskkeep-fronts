@@ -8,18 +8,14 @@ import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePa
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import { BattlePageSetupLayout } from "@/components/game/frontline/BattlePageSetupLayout";
 import { BattlePageSetupSidebar } from "@/components/game/frontline/BattlePageSetupSidebar";
+import { useBattlePageLoadoutPreview } from "@/components/game/frontline/useBattlePageLoadoutPreview";
 import { useBattlePageRewardReveal } from "@/components/game/frontline/useBattlePageRewardReveal";
-import {
-  FRONTLINE_CARD_BY_ID,
-  FRONTLINE_PRESETS,
-  FRONTLINE_UNIT_BY_ID,
-} from "@/features/frontline/data";
+import { FRONTLINE_PRESETS } from "@/features/frontline/data";
 import {
   getAdventureLevelForFrontline,
   getFrontlineAdventureRewardPreview,
   getFrontlineAdventureVictoryRewards,
 } from "@/features/frontline/adventure";
-import { getFrontlineBoss } from "@/features/frontline/bosses";
 import { summarizeBattleStats } from "@/lib/frontlineBattleStats";
 import { audio } from "@/lib/audio";
 import { frontlinePresetName } from "@/lib/i18n/frontlineText";
@@ -32,7 +28,6 @@ import {
   accountProgressPercent,
   deriveEncounterBadge,
   encounterModifiers,
-  heroPreviewPower,
   projectAccountProgress,
   resolveBattleBackgroundKey,
   resolveForcedEnemyPresetId,
@@ -40,14 +35,6 @@ import {
 } from "@/components/game/frontline/frontlineBattlePageLogic";
 import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
-import {
-  createFrontlineHeroProfileMap,
-  getFrontlineHeroProfileById,
-} from "@/features/frontline/heroProfile";
-import {
-  createFrontlineCardProfileMap,
-  createFrontlineSupportProfileMap,
-} from "@/features/frontline/cardProgression";
 
 type Props = {
   autostart?: boolean;
@@ -94,29 +81,23 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     : 0;
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;
   const deckReady = frontlineLoadout.deck.filter(Boolean).length === 8;
-  const playerHeroById = useMemo(() => new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)), [playerHeroes]);
-  const allyHeroProfiles = useMemo(() => createFrontlineHeroProfileMap(playerHeroes), [playerHeroes]);
-  const allyCardProfiles = useMemo(() => createFrontlineCardProfileMap(frontlineCardLevels), [frontlineCardLevels]);
-  const allySupportProfiles = useMemo(() => createFrontlineSupportProfileMap(frontlineCardLevels), [frontlineCardLevels]);
-  const allyHeroes = useMemo(
-    () => frontlineLoadout.squad.map((heroId) => (heroId ? getFrontlineHeroProfileById(heroId, playerHeroById.get(heroId)) : null)),
-    [frontlineLoadout.squad, playerHeroById],
-  );
-  const allyCards = useMemo(
-    () => frontlineLoadout.deck.map((cardId) => (cardId ? allyCardProfiles[cardId] ?? FRONTLINE_CARD_BY_ID[cardId] ?? null : null)),
-    [allyCardProfiles, frontlineLoadout.deck],
-  );
-  const enemyHeroes = useMemo(
-    () => selectedPreset.squad.map((heroId) => FRONTLINE_UNIT_BY_ID[heroId] ?? null),
-    [selectedPreset.squad],
-  );
-  const enemyCards = useMemo(
-    () => selectedPreset.deck.map((cardId) => FRONTLINE_CARD_BY_ID[cardId]).filter(Boolean),
-    [selectedPreset.deck],
-  );
-  const bossConfig = useMemo(() => getFrontlineBoss(selectedPreset.bossId), [selectedPreset.bossId]);
-  const allyPower = allyHeroes.reduce((sum, hero) => sum + heroPreviewPower(hero), 0);
-  const enemyPower = enemyHeroes.reduce((sum, hero) => sum + heroPreviewPower(hero), 0);
+  const {
+    allyHeroProfiles,
+    allyCardProfiles,
+    allySupportProfiles,
+    allyHeroes,
+    allyCards,
+    enemyHeroes,
+    enemyCards,
+    bossConfig,
+    allyPower,
+    enemyPower,
+  } = useBattlePageLoadoutPreview({
+    frontlineLoadout,
+    playerHeroes,
+    frontlineCardLevels,
+    selectedPreset,
+  });
   const rewardPreview: Rewards = adventureLevel
     ? getFrontlineAdventureRewardPreview(adventureLevel, adventureProgress[adventureLevel.id])
     : selectedPreset.rewardSeed;
