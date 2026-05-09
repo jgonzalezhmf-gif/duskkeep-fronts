@@ -29,7 +29,7 @@ export const HOME_LANDMARK_ASSETS: Partial<Record<HomeLandmarkId, HomeLandmarkAs
   },
   deck: {
     src: "/assets/home/landmarks/deck_hall_clean.png",
-    expectedFile: "deck_hall.png",
+    expectedFile: "deck_hall_clean.png",
   },
 };
 

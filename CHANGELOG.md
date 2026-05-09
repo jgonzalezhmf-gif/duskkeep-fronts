@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.226] - 2026-05-09
+
+### Changed
+- Movidos fuera de `public/assets` duplicados de fondos de batalla Chapter 1 y el landmark legacy `deck_hall.png`.
+- Alineado `lib/homeLandmarkAssets.ts` para que el expectedFile de Deck coincida con `deck_hall_clean.png`.
+- Actualizada la linea base de rendimiento: `public/assets` queda en 261 archivos y 109.11 MB.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run check:full`
+
 ## [0.25.225] - 2026-05-09
 
 ### Added

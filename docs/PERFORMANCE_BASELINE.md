@@ -9,7 +9,7 @@ Este documento marca el inicio del bloque de rendimiento. No sustituye profiling
 - `npm.cmd run check:full` pasa de forma estable antes de iniciar este bloque.
 - La app usa Next.js App Router con rutas mayoritariamente estaticas y algunas rutas dinamicas para Battle, Adventure level y endpoints dev.
 - El mayor riesgo inmediato de peso no esta en codigo JS, sino en assets publicos grandes y en evitar que laminas fuente/raw entren en `public/assets`.
-- Tras mover raw/drafts fuera de `public/assets`, la auditoria queda en 265 archivos y 117.34 MB.
+- Tras mover raw/drafts y duplicados fuera de `public/assets`, la auditoria queda en 261 archivos y 109.11 MB.
 
 ## Assets Raw Movidos Fuera Del Proyecto
 
@@ -31,12 +31,14 @@ Los archivos movidos no aparecian referenciados por manifests o componentes. Los
 
 Tambien se movieron fuera de `public/assets` laminas fuente PNG ignoradas y no referenciadas de Adventure, Frontline icons/cards, modos, recursos y landmarks legacy locales. Los PNG finales registrados en `lib/iconAssets.ts`, manifests de cartas, Home y fondos se mantienen dentro del proyecto.
 
+Se eliminaron duplicados publicos de fondos de batalla de Chapter 1 bajo `public/assets/backgrounds/`; el runtime usa los registrados en `public/assets/frontline/backgrounds/`. Tambien se retiro `deck_hall.png` legacy tras alinear el manifest de Home con `deck_hall_clean.png`.
+
 ## Auditoria Actual
 
 Resultado de `npm.cmd run audit:assets`:
 
-- `public/assets`: 265 archivos.
-- Peso total: 117.34 MB.
+- `public/assets`: 261 archivos.
+- Peso total: 109.11 MB.
 - Los assets activos mas pesados son musica aprobada y landmarks/fondos registrados.
 
 ## Script De Auditoria
