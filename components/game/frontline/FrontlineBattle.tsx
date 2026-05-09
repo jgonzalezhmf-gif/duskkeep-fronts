@@ -2,10 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FRONTLINE_CARD_BY_ID,
-  FRONTLINE_LEADER_BY_ID,
-} from "@/features/frontline/data";
-import {
   activateLeaderPower,
   getFrontlineCard,
   playCard,
@@ -20,30 +16,17 @@ import type {
   FrontlineSupportProfileMap,
 } from "@/features/frontline/types";
 import type { FrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
-import { previewCardOutcome, type FrontlinePreview } from "@/features/frontline/preview";
 import { getBattleBackdrop } from "@/lib/art";
 import { audio, sfx } from "@/lib/audio";
-import {
-  frontlineLeaderPowerDescription,
-  frontlineLeaderPowerName,
-} from "@/lib/i18n/frontlineText";
-import { useI18n } from "@/lib/i18n/useI18n";
 import type { FrontlineLane, FrontlineLoadout } from "@/lib/types";
 import { FrontlineErrorBoundary } from "./FrontlineErrorBoundary";
 import { playFrontlineCardSfx, playFrontlineResolutionSfx } from "./FrontlineBattleSfx";
 import { FrontlineBattleStage } from "./FrontlineBattleStage";
 import { createBattleStateFromProps } from "./FrontlineBattleStateFactory";
 import { clearFrontlineTimer } from "./FrontlineBattleTimers";
-import { nextActionLabel } from "./FrontlineBattleUiState";
 import {
-  buildBossSegmentByLane,
   getCoreShockChange,
-  getDisplayBattleState,
   getResolutionPlaybackEvents,
-  getSelectedBattleContext,
-  getSortedLaneInsights,
-  getTargetableBattleLanes,
-  isInfernoCastingEvent,
 } from "./FrontlineBattleDerivedState";
 import type { FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
 import type {
@@ -67,7 +50,7 @@ import {
   visualTargetSideForLeader,
   visualToneFromCard,
 } from "./FrontlineVisualState";
-import { getFrontlineBoss } from "@/features/frontline/bosses";
+import { useFrontlineBattleViewModel } from "./useFrontlineBattleViewModel";
 
 export type { FrontlineEncounterBadgeKind } from "./FrontlineEncounterBanner";
 
@@ -98,7 +81,6 @@ function FrontlineBattleInner({
   battleBackgroundSrc,
   onFinished,
 }: Props) {
-  const { t } = useI18n();
   const [state, setState] = useState<FrontlineBattleState>(() =>
     createBattleStateFromProps({
       seed,
@@ -246,42 +228,34 @@ function FrontlineBattleInner({
     finishDoneTimerRef.current = setTimeout(() => onFinished(winner, finalState), delay);
   }, [onFinished, state, state.winner]);
 
-  const allyLeader = FRONTLINE_LEADER_BY_ID[state.allyDeck.leaderId];
-  const selectedCard = state.selectedCardId ? state.allyCardProfiles?.[state.selectedCardId] ?? FRONTLINE_CARD_BY_ID[state.selectedCardId] : null;
-  const displayState = useMemo<FrontlineBattleState>(() => getDisplayBattleState(state, pendingResolution, resolutionFx), [state, pendingResolution, resolutionFx]);
-  const targetableLanes = useMemo(() => getTargetableBattleLanes(state, selectedCard), [selectedCard, state]);
-
-  const laneInsights = useMemo(
-    () => getSortedLaneInsights(displayState),
-    [displayState.lanes], // eslint-disable-line react-hooks/exhaustive-deps
-  );
-  const priorityLane = laneInsights[0];
-  const displayLane = focusedLane ?? priorityLane.lane;
-  const displayInsight = laneInsights.find((entry) => entry.lane === displayLane) ?? priorityLane;
-  const latestImpact = state.events[0] ?? null;
-  const latestFeed = state.events.slice(0, 4);
-  const bossConfig = useMemo(() => getFrontlineBoss(state.bossState?.id), [state.bossState?.id]);
-  const bossSegmentByLane = useMemo(() => buildBossSegmentByLane(bossConfig), [bossConfig]);
-
-  const previewOutcome = useMemo<FrontlinePreview | null>(() => {
-    if (state.selectedLeaderPower || !selectedCard) return null;
-    if (selectedCard.target === "none") {
-      return previewCardOutcome(state, "ally", selectedCard.id);
-    }
-    const lane = focusedLane && targetableLanes.includes(focusedLane) ? focusedLane : null;
-    if (!lane) return null;
-    return previewCardOutcome(state, "ally", selectedCard.id, lane);
-  }, [focusedLane, selectedCard, state, targetableLanes]);
-  const allyLeaderPowerName = frontlineLeaderPowerName(t, allyLeader);
-  const allyLeaderPowerDescription = frontlineLeaderPowerDescription(t, allyLeader);
-  const actionState = nextActionLabel(state, t, allyLeaderPowerName, selectedCard, state.selectedLeaderPower);
-  const activeResolutionEvent = resolutionFx?.events[resolutionFx.activeIndex] ?? null;
-  const selectedTargetSide = selectedCard
-    ? visualTargetSideForCard(selectedCard)
-    : state.selectedLeaderPower
-      ? visualTargetSideForLeader(allyLeader.power.effect.type)
-      : null;
-  const actionsLocked = Boolean(resolutionFx || finishFx) || state.turn !== "ally" || !!state.winner;
+  const {
+    allyLeader,
+    selectedCard,
+    displayState,
+    targetableLanes,
+    laneInsights,
+    displayLane,
+    displayInsight,
+    latestImpact,
+    latestFeed,
+    bossConfig,
+    bossSegmentByLane,
+    previewOutcome,
+    allyLeaderPowerName,
+    allyLeaderPowerDescription,
+    actionState,
+    activeResolutionEvent,
+    selectedTargetSide,
+    actionsLocked,
+    selectedContext,
+    infernoCasting,
+  } = useFrontlineBattleViewModel({
+    state,
+    pendingResolution,
+    resolutionFx,
+    focusedLane,
+    finishFx,
+  });
 
   useEffect(() => {
     if (!activeResolutionEvent) return;
@@ -335,14 +309,13 @@ function FrontlineBattleInner({
 
   function handleLeaderPowerClick() {
     if (actionsLocked) return;
-    const leader = FRONTLINE_LEADER_BY_ID[state.allyDeck.leaderId];
-    if (leader.power.effect.type === "rally") {
+    if (allyLeader.power.effect.type === "rally") {
       const lane = validLeaderPowerTargets(state, "ally")[0];
       if (lane) {
         const next = activateLeaderPower(state, "ally", lane);
         const newEvents = collectNewEvents(state, next);
         setDeathGhosts(collectDeathGhosts(state, newEvents));
-        showCardPlayFx(`leader:${leader.id}`, lane, "ally", "power", newEvents);
+        showCardPlayFx(`leader:${allyLeader.id}`, lane, "ally", "power", newEvents);
         resetSelection(next, lane);
       }
       return;
@@ -364,11 +337,10 @@ function FrontlineBattleInner({
         setFocusedLane(lane);
         return;
       }
-      const leader = FRONTLINE_LEADER_BY_ID[state.allyDeck.leaderId];
       const next = activateLeaderPower(state, "ally", lane);
       const newEvents = collectNewEvents(state, next);
       setDeathGhosts(collectDeathGhosts(state, newEvents));
-      showCardPlayFx(`leader:${leader.id}`, lane, visualTargetSideForLeader(leader.power.effect.type), "power", newEvents);
+      showCardPlayFx(`leader:${allyLeader.id}`, lane, visualTargetSideForLeader(allyLeader.power.effect.type), "power", newEvents);
       resetSelection(next, lane);
       return;
     }
@@ -398,18 +370,6 @@ function FrontlineBattleInner({
       window.setTimeout(() => sfx.turnStart(), Math.max(380, resolutionSequenceDuration(newEvents) - 420));
     }
   }
-
-  const selectedContext = getSelectedBattleContext({
-    t,
-    selectedLeaderPower: state.selectedLeaderPower,
-    allyLeaderPowerName,
-    allyLeaderPowerDescription,
-    selectedCard,
-    displayLane,
-    displayInsight,
-  });
-
-  const infernoCasting = isInfernoCastingEvent(activeResolutionEvent);
 
   return (
     <FrontlineBattleStage
