@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BattlePageBattleView } from "@/components/game/frontline/BattlePageBattleView";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
 import { BattlePageMatchupPanel } from "@/components/game/frontline/BattlePageMatchupPanel";
@@ -8,11 +8,11 @@ import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePa
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import { BattlePageSetupLayout } from "@/components/game/frontline/BattlePageSetupLayout";
 import { BattlePageSetupSidebar } from "@/components/game/frontline/BattlePageSetupSidebar";
+import { useBattlePageEnemySelection } from "@/components/game/frontline/useBattlePageEnemySelection";
 import { useBattlePageLoadoutPreview } from "@/components/game/frontline/useBattlePageLoadoutPreview";
 import { useBattlePageRewardReveal } from "@/components/game/frontline/useBattlePageRewardReveal";
 import { FRONTLINE_PRESETS } from "@/features/frontline/data";
 import {
-  getAdventureLevelForFrontline,
   getFrontlineAdventureRewardPreview,
   getFrontlineAdventureVictoryRewards,
 } from "@/features/frontline/adventure";
@@ -30,8 +30,6 @@ import {
   encounterModifiers,
   projectAccountProgress,
   resolveBattleBackgroundKey,
-  resolveForcedEnemyPresetId,
-  resolveSelectedEnemyPreset,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
 import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
@@ -57,14 +55,16 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const frontlineCardLevels = useGameStore((state) => state.frontlineCardLevels);
   const adventureProgress = useGameStore((state) => state.adventureProgress);
 
-  const adventureLevel = useMemo(() => getAdventureLevelForFrontline(adventureLevelId), [adventureLevelId]);
-  const forcedPresetId = resolveForcedEnemyPresetId({
+  const {
     adventureLevel,
+    selectedEnemyPresetId,
+    setSelectedEnemyPresetId,
+    selectedPreset,
+  } = useBattlePageEnemySelection({
+    adventureLevelId,
     enemyPresetId,
-    presets: FRONTLINE_PRESETS,
   });
   const [phase, setPhase] = useState<BattlePhase>("setup");
-  const [selectedEnemyPresetId, setSelectedEnemyPresetId] = useState(forcedPresetId ?? FRONTLINE_PRESETS[0].id);
   const [battleSeed, setBattleSeed] = useState(1);
   const [resultContext, setResultContext] = useState<BattlePageResultContext | null>(null);
   const { rewardReveal, resetRewardReveal } = useBattlePageRewardReveal({
@@ -72,10 +72,6 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     resultContext,
   });
 
-  const selectedPreset = useMemo(
-    () => resolveSelectedEnemyPreset({ forcedPresetId, selectedEnemyPresetId, presets: FRONTLINE_PRESETS }),
-    [forcedPresetId, selectedEnemyPresetId],
-  );
   const animatedAccountProgress = resultContext
     ? accountProgressPercent(resultContext.accountAfter.level, resultContext.accountAfter.xp)
     : 0;
