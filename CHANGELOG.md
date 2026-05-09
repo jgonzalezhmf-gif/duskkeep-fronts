@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.194] - 2026-05-09
+
+### Changed
+- Extraida la cabecera de comandos de DeckBattle a `components/game/deckbattle/DeckBattleCommandPanel.tsx`.
+- Reducido `components/game/DeckBattle.tsx` sin cambiar calculo de foco, hints, SFX, reglas ni flujo de turno.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.193] - 2026-05-09
 
 ### Changed

@@ -1,6 +1,6 @@
 {
   "name": "duskkeep-fronts",
-  "version": "0.25.193",
+  "version": "0.25.194",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
