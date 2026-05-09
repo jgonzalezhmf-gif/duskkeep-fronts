@@ -84,14 +84,15 @@ npm.cmd run check:performance
 Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 
 - `.next/static`: 39 archivos, 2.31 MB.
-- `.next/server/app`: 245 archivos, 0.95 MB.
-- Chunk estatico mayor: CSS de 340.9 KB.
-- Rutas HTML mas pesadas: `team.html` 84.3 KB, `adventure.html` 83.7 KB, `fortress.html` 66.6 KB, `events.html` 55.8 KB.
+- `.next/server/app`: 245 archivos, 0.89 MB.
+- Chunk estatico mayor: CSS de 341.2 KB.
+- Rutas HTML mas pesadas: `adventure.html` 83.7 KB, `fortress.html` 66.6 KB, `events.html` 55.8 KB, `arena.html` 30.2 KB.
 - `deck.html` queda en 23.7 KB tras renderizar una shell ligera hasta la hidratacion cliente; Deck depende de estado local persistido y no necesita prerenderizar todo el card pool/roster en HTML estatico.
 - `shop.html` queda en 25.0 KB tras renderizar una shell ligera hasta la hidratacion cliente; Shop depende de estado local persistido, stock diario y desbloqueo de Adventure Keys.
 - `roster.html` queda en 24.0 KB tras renderizar una shell ligera hasta la hidratacion cliente; Roster depende de ownership, filtros y detalle de heroes persistidos en cliente.
 - `missions.html` queda en 24.2 KB tras renderizar una shell ligera hasta la hidratacion cliente; Missions depende de progreso local, resets y rewards claimables.
 - `arena.html` queda en 30.2 KB tras renderizar una shell ligera hasta la hidratacion cliente; Arena depende de tickets, loadout, ranking y seleccion de rival persistidos en cliente.
+- `team.html` queda en 26.4 KB tras renderizar una shell ligera hasta la hidratacion cliente; Team depende de loadout, niveles de cartas y squad persistidos en cliente.
 
 ## Siguientes Focos
 

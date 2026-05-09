@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FrontlineCardView, FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon from "@/components/game/shared/GameIcon";
@@ -51,6 +51,7 @@ function packageProfile(deckIds: string[], cardProfiles: ReturnType<typeof creat
 
 export default function TeamPage() {
   const { t } = useI18n();
+  const [clientReady, setClientReady] = useState(false);
   const resources = useGameStore((state) => state.resources);
   const loadout = useGameStore((state) => state.frontlineLoadout);
   const playerHeroes = useGameStore((state) => state.heroes);
@@ -68,9 +69,40 @@ export default function TeamPage() {
   const leaderPowerName = frontlineLeaderPowerName(t, leader);
   const leaderPowerDescription = frontlineLeaderPowerDescription(t, leader);
 
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
+
   return (
     <ScreenScaffold scene="roster" dock={false} homeNav={false} hud={false}>
       <TeamTopChrome resources={resources} t={t} />
+      {!clientReady ? (
+        <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-hidden md:inset-x-8 md:top-24" aria-busy="true">
+          <div className="mx-auto flex max-w-[88rem] flex-col gap-4 pb-6">
+            <ScreenPanel className="overflow-hidden p-4 md:p-5">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_12%,rgba(101,210,200,0.12),transparent_24%),radial-gradient(circle_at_86%_20%,rgba(245,196,81,0.1),transparent_24%)]" />
+              <div className="relative z-[1]">
+                <div className="h-7 w-28 rounded-full border border-cyan-200/20 bg-cyan-300/10" />
+                <div className="mt-4 h-11 max-w-[34rem] rounded-full bg-white/[0.07]" />
+                <div className="mt-4 grid gap-3 md:grid-cols-4">
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                  <div className="h-20 rounded-[22px] border border-white/10 bg-white/[0.045]" />
+                </div>
+              </div>
+            </ScreenPanel>
+            <ScreenPanel className="p-4 md:p-5">
+              <div className="h-7 w-40 rounded-full bg-white/[0.06]" />
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="h-56 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-56 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+                <div className="h-56 rounded-[26px] border border-white/10 bg-white/[0.045]" />
+              </div>
+            </ScreenPanel>
+          </div>
+        </div>
+      ) : (
       <div className="absolute inset-x-3 bottom-4 top-20 z-20 overflow-y-auto md:inset-x-8 md:top-24">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-4 pb-6">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
@@ -172,6 +204,7 @@ export default function TeamPage() {
           </div>
         </div>
       </div>
+      )}
     </ScreenScaffold>
   );
 }
