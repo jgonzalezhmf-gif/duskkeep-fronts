@@ -15,6 +15,10 @@ export function dismissNotificationState(notifications: Notification[], id: stri
   return notifications.filter((notification) => notification.id !== id);
 }
 
+export function createNotificationId(now = Date.now(), random = Math.random()) {
+  return `${now}:${random.toString(36).slice(2, 8)}`;
+}
+
 export function nextStoreSeed(lastSeed: number) {
   return (lastSeed * 1664525 + 1013904223) >>> 0;
 }

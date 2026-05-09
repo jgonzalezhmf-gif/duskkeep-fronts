@@ -35,7 +35,7 @@ import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
-import { addNotificationState, completeOnboardingState, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
+import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import type { GameActions, GameState } from "@/lib/storeTypes";
 import {
@@ -357,7 +357,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       pushNotification: (kind, message) => {
-        const id = `${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+        const id = createNotificationId();
         set((s) => ({ notifications: addNotificationState(s.notifications, kind, message, id) }));
         if (typeof window !== "undefined") {
           setTimeout(() => get().dismissNotification(id), 3500);

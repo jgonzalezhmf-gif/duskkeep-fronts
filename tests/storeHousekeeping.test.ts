@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   addNotificationState,
   completeOnboardingState,
+  createNotificationId,
   dismissNotificationState,
   markEventCompletedState,
   nextStoreSeed,
@@ -39,6 +40,10 @@ describe("store housekeeping helpers", () => {
 
     expect(notifications).toEqual([{ id: "n1", kind: "success", message: "Saved" }]);
     expect(dismissNotificationState(notifications, "n1")).toEqual([]);
+  });
+
+  it("creates stable notification ids from injected entropy", () => {
+    expect(createNotificationId(1234, 0.5)).toBe("1234:i");
   });
 
   it("advances the deterministic store seed", () => {

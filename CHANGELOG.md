@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.217] - 2026-05-09
+
+### Changed
+- Extraida la generacion de IDs de notificacion a `createNotificationId` en `lib/storeHousekeeping.ts`.
+- Reducido el inline de `pushNotification` en `lib/store.ts` sin cambiar timeout, notificaciones ni flujo de UI.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.216] - 2026-05-09
 
 ### Changed
