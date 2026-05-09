@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.205] - 2026-05-09
+
+### Changed
+- Extraido el frame/layout visual de setup Frontline a `components/game/frontline/BattlePageSetupLayout.tsx`.
+- Reducido `components/game/BattlePageClient.tsx` sin cambiar flujo de setup, batalla, audio, rewards ni reglas.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.204] - 2026-05-09
 
 ### Changed
