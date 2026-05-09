@@ -45,17 +45,34 @@ Usar:
 
 ```powershell
 npm.cmd run audit:assets
+npm.cmd run audit:build
 ```
 
-El script lista:
+`audit:assets` lista:
 
 - numero total de archivos en `public/assets`
 - peso total de assets publicos
 - top de assets mas pesados
 
+`audit:build` requiere una build previa y lista:
+
+- peso total de `.next/static`
+- peso total de `.next/server/app`
+- top de chunks estaticos
+- top de HTML prerenderizado por ruta
+
+## Auditoria De Build Actual
+
+Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
+
+- `.next/static`: 39 archivos, 2.31 MB.
+- `.next/server/app`: 245 archivos, 1.31 MB.
+- Chunk estatico mayor: CSS de 338.7 KB.
+- Rutas HTML mas pesadas: `deck.html` 123.3 KB, `shop.html` 100.7 KB, `roster.html` 94.0 KB, `missions.html` 92.3 KB.
+
 ## Siguientes Focos
 
 1. Revisar imagenes publicas pesadas que si estan registradas y decidir si conviene comprimir, redimensionar o mantener calidad.
-2. Medir bundle/rutas tras build para detectar pantallas con coste alto.
+2. Investigar rutas HTML pesadas empezando por Deck y Shop antes de tocar componentes.
 3. Revisar carga de musica/audio sin tocar el sistema de reproduccion actual.
 4. Definir una politica de assets: source/raw fuera del repo, solo PNGs finales recortados en `public/assets`.

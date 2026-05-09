@@ -1,6 +1,6 @@
 {
   "name": "duskkeep-fronts",
-  "version": "0.25.224",
+  "version": "0.25.225",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -13,6 +13,7 @@
     "check": "npm run lint && npm run typecheck",
     "check:full": "npm run check && npm run test && npm run build",
     "audit:assets": "node scripts/audit-public-assets.mjs",
+    "audit:build": "node scripts/audit-build-output.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:reset": "node scripts/reset.mjs",

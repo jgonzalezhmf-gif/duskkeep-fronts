@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.225] - 2026-05-09
+
+### Added
+- Anadido `scripts/audit-build-output.mjs` y el comando `npm.cmd run audit:build` para medir `.next/static`, `.next/server/app`, chunks grandes y HTML prerenderizado.
+
+### Changed
+- Actualizada la linea base de rendimiento con pesos de build: `.next/static` 2.31 MB y `.next/server/app` 1.31 MB.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:full`
+
 ## [0.25.224] - 2026-05-09
 
 ### Changed
