@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.232] - 2026-05-09
+
+### Changed
+- Optimizado Shop para prerenderizar una shell ligera hasta la hidratacion cliente, evitando serializar ofertas, stock diario y rewards placeholder en HTML estatico.
+- Actualizada la linea base de build: `shop.html` baja de 100.7 KB a 25.0 KB y `.next/server/app` queda en 1.14 MB.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.231] - 2026-05-09
 
 ### Changed

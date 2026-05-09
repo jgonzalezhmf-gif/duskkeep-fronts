@@ -84,10 +84,11 @@ npm.cmd run check:performance
 Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 
 - `.next/static`: 39 archivos, 2.31 MB.
-- `.next/server/app`: 245 archivos, 1.22 MB.
-- Chunk estatico mayor: CSS de 339.0 KB.
-- Rutas HTML mas pesadas: `shop.html` 100.7 KB, `roster.html` 94.0 KB, `missions.html` 92.3 KB, `arena.html` 89.9 KB.
+- `.next/server/app`: 245 archivos, 1.14 MB.
+- Chunk estatico mayor: CSS de 339.6 KB.
+- Rutas HTML mas pesadas: `roster.html` 94.0 KB, `missions.html` 92.3 KB, `arena.html` 89.9 KB, `team.html` 84.3 KB.
 - `deck.html` queda en 23.7 KB tras renderizar una shell ligera hasta la hidratacion cliente; Deck depende de estado local persistido y no necesita prerenderizar todo el card pool/roster en HTML estatico.
+- `shop.html` queda en 25.0 KB tras renderizar una shell ligera hasta la hidratacion cliente; Shop depende de estado local persistido, stock diario y desbloqueo de Adventure Keys.
 
 ## Siguientes Focos
 

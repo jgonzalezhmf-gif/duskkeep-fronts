@@ -116,7 +116,25 @@ export default function ShopPage() {
       <MarketTopChrome resources={displayResources} showAdventureKeys={adventureKeysUnlocked} />
       <RewardFlightOverlay rewards={purchaseFlightRewards} active={Boolean(purchaseFx && purchaseFlightRewards)} nonce={purchaseFx?.nonce} origin="center" />
       <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-3 pb-20 pt-40 sm:pt-32 md:px-6 md:pb-24 md:pt-24 xl:px-8">
-        <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.74),rgba(39,24,24,0.86)_34%,rgba(11,12,18,0.94)_72%)] shadow-[0_30px_80px_rgba(0,0,0,0.34)]">
+        {!clientReady ? (
+          <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.68),rgba(39,24,24,0.84)_38%,rgba(11,12,18,0.92)_74%)] p-4 shadow-[0_30px_80px_rgba(0,0,0,0.34)]" aria-busy="true">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_16%,rgba(255,226,172,0.18),transparent_20%),radial-gradient(circle_at_83%_18%,rgba(130,193,255,0.12),transparent_17%)]" />
+            <div className="relative z-[1]">
+              <div className="flex flex-wrap gap-2">
+                <div className="h-7 w-28 rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10" />
+                <div className="h-7 w-24 rounded-full border border-sky-200/15 bg-sky-200/10" />
+                <div className="h-7 w-20 rounded-full border border-white/10 bg-white/[0.05]" />
+              </div>
+              <div className="mt-4 h-10 max-w-[24rem] rounded-full bg-white/[0.07]" />
+              <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_17rem]">
+                <div className="h-[23rem] rounded-[28px] border border-white/10 bg-white/[0.045]" />
+                <div className="hidden h-[23rem] rounded-[28px] border border-white/10 bg-white/[0.04] xl:block" />
+              </div>
+            </div>
+          </section>
+        ) : (
+          <>
+          <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.74),rgba(39,24,24,0.86)_34%,rgba(11,12,18,0.94)_72%)] shadow-[0_30px_80px_rgba(0,0,0,0.34)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_16%,rgba(255,226,172,0.26),transparent_20%),radial-gradient(circle_at_83%_18%,rgba(130,193,255,0.16),transparent_17%),radial-gradient(circle_at_56%_82%,rgba(255,144,94,0.14),transparent_21%)]" />
           <div className="pointer-events-none absolute left-[-4%] top-[12%] h-56 w-56 rounded-full bg-[#f5c451]/14 blur-[88px]" />
           <div className="pointer-events-none absolute right-[-2%] top-[10%] h-52 w-52 rounded-full bg-sky-300/10 blur-[84px]" />
@@ -239,6 +257,8 @@ export default function ShopPage() {
             </div>
           </section>
         ) : null}
+          </>
+        )}
       </div>
     </ScreenScaffold>
   );
