@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.224] - 2026-05-09
+
+### Changed
+- Movidas fuera del proyecto laminas PNG fuente ignoradas y no referenciadas de Adventure, Frontline icons/cards, modos, recursos y landmarks legacy locales.
+- Actualizada la linea base de rendimiento: `public/assets` queda en 265 archivos y 117.34 MB.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run check:full`
+
 ## [0.25.223] - 2026-05-09
 
 ### Changed
