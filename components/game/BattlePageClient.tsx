@@ -5,6 +5,7 @@ import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
 import { BattlePageEnemySelector } from "@/components/game/frontline/BattlePageEnemySelector";
 import { BattlePageEnemyTricksPanel } from "@/components/game/frontline/BattlePageEnemyTricksPanel";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
+import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePackagePanel";
 import { BattlePageRewardsPanel } from "@/components/game/frontline/BattlePageRewardsPanel";
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import {
@@ -27,7 +28,6 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
-import { FrontlineCardView } from "@/components/game/frontline/FrontlineVisualPrimitives";
 import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   accountProgressPercent,
@@ -37,7 +37,7 @@ import {
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
 import { BattlePageMatchupGrid } from "@/components/game/frontline/BattlePageMatchup";
-import { BossSignaturePreview, EmptyCard, Panel } from "@/components/game/frontline/BattlePagePanels";
+import { BossSignaturePreview, Panel } from "@/components/game/frontline/BattlePagePanels";
 import { BattlePageResultPanel, type BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import {
@@ -296,17 +296,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
                 <BattlePageMatchupGrid allyHeroes={allyHeroes} enemyHeroes={enemyHeroes} />
               </Panel>
 
-              <Panel title={t("frontline.battlePackage")}>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {allyCards.map((card, index) =>
-                    card ? (
-                      <FrontlineCardView key={`ally-card-${index}-${card.id}`} card={card} compact className="min-h-[12rem]" />
-                    ) : (
-                      <EmptyCard key={`ally-card-${index}-empty`} />
-                    ),
-                  )}
-                </div>
-              </Panel>
+              <BattlePagePackagePanel cards={allyCards} />
             </div>
 
             <div className="grid gap-4 content-start">
