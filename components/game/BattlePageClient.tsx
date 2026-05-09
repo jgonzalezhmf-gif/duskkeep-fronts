@@ -5,6 +5,7 @@ import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
 import { BattlePageEnemySelector } from "@/components/game/frontline/BattlePageEnemySelector";
 import { BattlePageEnemyTricksPanel } from "@/components/game/frontline/BattlePageEnemyTricksPanel";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
+import { BattlePageRewardsPanel } from "@/components/game/frontline/BattlePageRewardsPanel";
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import {
   FRONTLINE_CARD_BY_ID,
@@ -36,7 +37,7 @@ import {
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
 import { BattlePageMatchupGrid } from "@/components/game/frontline/BattlePageMatchup";
-import { BossSignaturePreview, EmptyCard, Panel, RewardPreview } from "@/components/game/frontline/BattlePagePanels";
+import { BossSignaturePreview, EmptyCard, Panel } from "@/components/game/frontline/BattlePagePanels";
 import { BattlePageResultPanel, type BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import {
@@ -329,26 +330,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
 
               <BattlePageEnemyTricksPanel cards={enemyCards} />
 
-              {!adventureLevel || rewardPreview.frontlineCards?.length || rewardPreview.adventureKeys ? (
-                <Panel title={t("frontline.rewards")}>
-                  <div className="grid grid-cols-2 gap-2">
-                    {!adventureLevel ? (
-                      <>
-                        <RewardPreview label={t("resources.gold")} value={rewardPreview.gold ?? 0} icon="gold" tone="gold" />
-                        <RewardPreview label={t("resources.dust")} value={rewardPreview.dust ?? 0} icon="dust" tone="dust" />
-                        <RewardPreview label={t("resources.gems")} value={rewardPreview.gems ?? 0} icon="gems" tone="gems" />
-                        <RewardPreview label="XP" value={rewardPreview.accountXp ?? 0} progressionIcon="level_up" tone="xp" />
-                      </>
-                    ) : null}
-                    {rewardPreview.frontlineCards?.length ? (
-                      <RewardPreview label={t("frontline.cardUnlocks")} value={rewardPreview.frontlineCards.length} progressionIcon="unlock" tone="card" />
-                    ) : null}
-                    {rewardPreview.adventureKeys ? (
-                      <RewardPreview label={t("resources.adventureKeys")} value={rewardPreview.adventureKeys} progressionIcon="reward_chest" tone="card" />
-                    ) : null}
-                  </div>
-                </Panel>
-              ) : null}
+              <BattlePageRewardsPanel rewardPreview={rewardPreview} adventureLevelActive={Boolean(adventureLevel)} />
 
               {phase === "result" && resultContext ? (
                 <BattlePageResultPanel
