@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FrontlineBattle from "@/components/game/frontline/FrontlineBattle";
-import { BattlePageBossSignaturesPanel } from "@/components/game/frontline/BattlePageBossSignaturesPanel";
-import { BattlePageEnemySelector } from "@/components/game/frontline/BattlePageEnemySelector";
-import { BattlePageEnemyTricksPanel } from "@/components/game/frontline/BattlePageEnemyTricksPanel";
 import { BattlePageLaunchPanel } from "@/components/game/frontline/BattlePageLaunchPanel";
 import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePackagePanel";
-import { BattlePageRewardsPanel } from "@/components/game/frontline/BattlePageRewardsPanel";
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
+import { BattlePageSetupSidebar } from "@/components/game/frontline/BattlePageSetupSidebar";
 import {
   FRONTLINE_CARD_BY_ID,
   FRONTLINE_PRESETS,
@@ -39,7 +36,7 @@ import {
 } from "@/components/game/frontline/frontlineBattlePageLogic";
 import { BattlePageMatchupGrid } from "@/components/game/frontline/BattlePageMatchup";
 import { Panel } from "@/components/game/frontline/BattlePagePanels";
-import { BattlePageResultPanel, type BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
+import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import {
   createFrontlineHeroProfileMap,
@@ -300,31 +297,19 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
               <BattlePagePackagePanel cards={allyCards} />
             </div>
 
-            <div className="grid gap-4 content-start">
-              {!adventureLevel ? (
-                <BattlePageEnemySelector
-                  presets={FRONTLINE_PRESETS}
-                  selectedPresetId={selectedPreset.id}
-                  onSelect={setSelectedEnemyPresetId}
-                />
-              ) : null}
-
-              <BattlePageBossSignaturesPanel bossConfig={bossConfig} />
-
-              <BattlePageEnemyTricksPanel cards={enemyCards} />
-
-              <BattlePageRewardsPanel rewardPreview={rewardPreview} adventureLevelActive={Boolean(adventureLevel)} />
-
-              {phase === "result" && resultContext ? (
-                <BattlePageResultPanel
-                  resultContext={resultContext}
-                  rewardReveal={rewardReveal}
-                  animatedAccountProgress={animatedAccountProgress}
-                  adventureLevelActive={Boolean(adventureLevel)}
-                  onRunItBack={startBattle}
-                />
-              ) : null}
-            </div>
+            <BattlePageSetupSidebar
+              presets={FRONTLINE_PRESETS}
+              selectedPresetId={selectedPreset.id}
+              onSelectEnemy={setSelectedEnemyPresetId}
+              adventureLevelActive={Boolean(adventureLevel)}
+              bossConfig={bossConfig}
+              enemyCards={enemyCards}
+              rewardPreview={rewardPreview}
+              resultContext={phase === "result" ? resultContext : null}
+              rewardReveal={rewardReveal}
+              animatedAccountProgress={animatedAccountProgress}
+              onRunItBack={startBattle}
+            />
           </div>
         </div>
       </section>
