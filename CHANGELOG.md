@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.240] - 2026-05-09
+
+### Changed
+- Endurecido `npm.cmd run check:performance` tras la optimizacion de prerender: ahora valida `.next/server/app` <= 1 MB y HTML por ruta <= 80 KB.
+- Documentados los nuevos presupuestos para detectar regresiones reales de peso en rutas estaticas y server app.
+
+### Tested
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.239] - 2026-05-09
 
 ### Changed

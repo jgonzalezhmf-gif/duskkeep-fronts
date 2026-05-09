@@ -77,7 +77,8 @@ npm.cmd run check:performance
 
 - `public/assets` <= 112 MB.
 - `.next/static` <= 3 MB.
-- HTML prerenderizado por ruta <= 150 KB.
+- `.next/server/app` <= 1 MB.
+- HTML prerenderizado por ruta <= 80 KB.
 
 ## Auditoria De Build Actual
 

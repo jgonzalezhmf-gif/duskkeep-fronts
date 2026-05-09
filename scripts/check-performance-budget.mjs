@@ -9,7 +9,8 @@ const SERVER_APP_ROOT = path.join(ROOT, ".next", "server", "app");
 const BUDGETS = {
   publicAssetsBytes: 112 * 1024 * 1024,
   nextStaticBytes: 3 * 1024 * 1024,
-  maxRouteHtmlBytes: 150 * 1024,
+  serverAppBytes: 1 * 1024 * 1024,
+  maxRouteHtmlBytes: 80 * 1024,
 };
 
 async function exists(target) {
@@ -65,6 +66,7 @@ const routeHtml = serverApp.filter((file) => file.path.endsWith(".html"));
 
 const publicAssetsTotal = publicAssets.reduce((sum, file) => sum + file.bytes, 0);
 const nextStaticTotal = nextStatic.reduce((sum, file) => sum + file.bytes, 0);
+const serverAppTotal = serverApp.reduce((sum, file) => sum + file.bytes, 0);
 const largestRouteHtml = routeHtml.reduce((largest, file) => (file.bytes > largest.bytes ? file : largest), {
   path: "",
   bytes: 0,
@@ -73,6 +75,7 @@ const largestRouteHtml = routeHtml.reduce((largest, file) => (file.bytes > large
 const checks = [
   checkBudget("public/assets total", publicAssetsTotal, BUDGETS.publicAssetsBytes),
   checkBudget(".next/static total", nextStaticTotal, BUDGETS.nextStaticBytes),
+  checkBudget(".next/server/app total", serverAppTotal, BUDGETS.serverAppBytes),
   checkBudget(
     `largest route HTML${largestRouteHtml.path ? ` (${relative(largestRouteHtml.path)})` : ""}`,
     largestRouteHtml.bytes,
