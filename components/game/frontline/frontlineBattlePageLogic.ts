@@ -1,5 +1,6 @@
 import { getAdventureNodeType } from "@/features/adventure/nodeResolution";
-import type { FrontlineBattleModifiers, FrontlineHeroDef } from "@/features/frontline/types";
+import { getFrontlinePresetForAdventure } from "@/features/frontline/adventure";
+import type { FrontlineBattleModifiers, FrontlineHeroDef, FrontlinePreset } from "@/features/frontline/types";
 import { ACCOUNT_XP_PER_LEVEL } from "@/lib/constants";
 import type { AdventureLevel } from "@/lib/types";
 import type { FrontlineEncounterBadgeKind } from "./FrontlineBattle";
@@ -46,4 +47,30 @@ export function accountProgressPercent(level: number, xp: number) {
 
 export function heroPreviewPower(hero: Pick<FrontlineHeroDef, "maxHp" | "atk" | "def" | "speed"> | null) {
   return hero ? hero.maxHp + hero.atk * 3 + hero.def * 2 + hero.speed : 0;
+}
+
+export function resolveForcedEnemyPresetId({
+  adventureLevel,
+  enemyPresetId,
+  presets,
+}: {
+  adventureLevel: AdventureLevel | null | undefined;
+  enemyPresetId: string | null | undefined;
+  presets: FrontlinePreset[];
+}) {
+  if (adventureLevel) return getFrontlinePresetForAdventure(adventureLevel).id;
+  if (enemyPresetId && presets.some((entry) => entry.id === enemyPresetId)) return enemyPresetId;
+  return null;
+}
+
+export function resolveSelectedEnemyPreset({
+  forcedPresetId,
+  selectedEnemyPresetId,
+  presets,
+}: {
+  forcedPresetId: string | null;
+  selectedEnemyPresetId: string;
+  presets: FrontlinePreset[];
+}) {
+  return presets.find((entry) => entry.id === (forcedPresetId ?? selectedEnemyPresetId)) ?? presets[0];
 }

@@ -18,7 +18,6 @@ import {
   getAdventureLevelForFrontline,
   getFrontlineAdventureRewardPreview,
   getFrontlineAdventureVictoryRewards,
-  getFrontlinePresetForAdventure,
 } from "@/features/frontline/adventure";
 import { getFrontlineBoss } from "@/features/frontline/bosses";
 import { summarizeBattleStats } from "@/lib/frontlineBattleStats";
@@ -33,8 +32,11 @@ import {
   accountProgressPercent,
   deriveEncounterBadge,
   encounterModifiers,
+  heroPreviewPower,
   projectAccountProgress,
   resolveBattleBackgroundKey,
+  resolveForcedEnemyPresetId,
+  resolveSelectedEnemyPreset,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
 import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
@@ -69,11 +71,11 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const adventureProgress = useGameStore((state) => state.adventureProgress);
 
   const adventureLevel = useMemo(() => getAdventureLevelForFrontline(adventureLevelId), [adventureLevelId]);
-  const forcedPresetId = adventureLevel
-    ? getFrontlinePresetForAdventure(adventureLevel).id
-    : enemyPresetId && FRONTLINE_PRESETS.some((entry) => entry.id === enemyPresetId)
-      ? enemyPresetId
-      : null;
+  const forcedPresetId = resolveForcedEnemyPresetId({
+    adventureLevel,
+    enemyPresetId,
+    presets: FRONTLINE_PRESETS,
+  });
   const [phase, setPhase] = useState<BattlePhase>("setup");
   const [selectedEnemyPresetId, setSelectedEnemyPresetId] = useState(forcedPresetId ?? FRONTLINE_PRESETS[0].id);
   const [battleSeed, setBattleSeed] = useState(1);
@@ -84,9 +86,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   });
 
   const selectedPreset = useMemo(
-    () =>
-      FRONTLINE_PRESETS.find((entry) => entry.id === (forcedPresetId ?? selectedEnemyPresetId)) ??
-      FRONTLINE_PRESETS[0],
+    () => resolveSelectedEnemyPreset({ forcedPresetId, selectedEnemyPresetId, presets: FRONTLINE_PRESETS }),
     [forcedPresetId, selectedEnemyPresetId],
   );
   const animatedAccountProgress = resultContext
@@ -115,8 +115,8 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     [selectedPreset.deck],
   );
   const bossConfig = useMemo(() => getFrontlineBoss(selectedPreset.bossId), [selectedPreset.bossId]);
-  const allyPower = allyHeroes.reduce((sum, hero) => sum + (hero ? hero.maxHp + hero.atk * 3 + hero.def * 2 + hero.speed : 0), 0);
-  const enemyPower = enemyHeroes.reduce((sum, hero) => sum + (hero ? hero.maxHp + hero.atk * 3 + hero.def * 2 + hero.speed : 0), 0);
+  const allyPower = allyHeroes.reduce((sum, hero) => sum + heroPreviewPower(hero), 0);
+  const enemyPower = enemyHeroes.reduce((sum, hero) => sum + heroPreviewPower(hero), 0);
   const rewardPreview: Rewards = adventureLevel
     ? getFrontlineAdventureRewardPreview(adventureLevel, adventureProgress[adventureLevel.id])
     : selectedPreset.rewardSeed;
