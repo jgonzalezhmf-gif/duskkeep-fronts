@@ -9,7 +9,7 @@ Este documento marca el inicio del bloque de rendimiento. No sustituye profiling
 - `npm.cmd run check:full` pasa de forma estable antes de iniciar este bloque.
 - La app usa Next.js App Router con rutas mayoritariamente estaticas y algunas rutas dinamicas para Battle, Adventure level y endpoints dev.
 - El mayor riesgo inmediato de peso no esta en codigo JS, sino en assets publicos grandes y en evitar que laminas fuente/raw entren en `public/assets`.
-- Tras mover raw/drafts, duplicados y efectos intermedios fuera de `public/assets`, la auditoria queda en 252 archivos y 103.61 MB.
+- Tras mover raw/drafts, duplicados y efectos intermedios fuera de `public/assets`, la auditoria queda en 251 archivos y 103.48 MB.
 
 ## Assets Raw Movidos Fuera Del Proyecto
 
@@ -37,12 +37,14 @@ Tambien se movieron fuera de `public/assets` versiones intermedias no registrada
 
 Tambien se movieron fuera de `public/assets` variantes Home no referenciadas (`*_aligned` intermedias, `banner_red_cloth_loop.png` y `banner_red_static.png`). Se conservaron los sprites activos registrados por `lib/homeEffectAssets.ts`, incluidos `flag_red_cloth_loop.png`, `blue_flame_loop_aligned.png` y `purple_flame_loop_base_aligned.png`.
 
+Se anadio `npm.cmd run audit:asset-refs` para listar candidatos sin referencias textuales en codigo/docs/tests. Es una herramienta de revision manual, no un gate automatico, porque los paths dinamicos pueden producir falsos positivos. Tras revisar el primer reporte se movio fuera de `public/assets` `banner_red_pole.png`; Home usa `flag_red_pole.png`.
+
 ## Auditoria Actual
 
 Resultado de `npm.cmd run audit:assets`:
 
-- `public/assets`: 252 archivos.
-- Peso total: 103.61 MB.
+- `public/assets`: 251 archivos.
+- Peso total: 103.48 MB.
 - Los assets activos mas pesados son musica aprobada y landmarks/fondos registrados.
 
 ## Script De Auditoria
@@ -51,6 +53,7 @@ Usar:
 
 ```powershell
 npm.cmd run audit:assets
+npm.cmd run audit:asset-refs
 npm.cmd run audit:build
 ```
 
@@ -59,6 +62,8 @@ npm.cmd run audit:build
 - numero total de archivos en `public/assets`
 - peso total de assets publicos
 - top de assets mas pesados
+
+`audit:asset-refs` lista candidatos no referenciados textualmente y debe revisarse manualmente antes de mover o borrar archivos.
 
 `audit:build` requiere una build previa y lista:
 
