@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.216] - 2026-05-09
+
+### Changed
+- Extraida la construccion de nodos visuales de Adventure a `components/game/adventure/AdventureCampaignVisualNodes.ts`.
+- Reducido `useAdventureCampaignMapState` sin cambiar coordenadas, editor QA, rutas, props, progreso ni recompensas.
+
+### Tested
+- `npm.cmd run check:full`
+
 ## [0.25.215] - 2026-05-09
 
 ### Changed
