@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.222] - 2026-05-09
+
+### Added
+- Iniciado el bloque de rendimiento con `scripts/audit-public-assets.mjs` y el comando `npm.cmd run audit:assets`.
+- Documentada la linea base en `docs/PERFORMANCE_BASELINE.md`, incluyendo assets raw movidos fuera del proyecto y siguientes focos.
+
+### Changed
+- Movidas fuera del proyecto laminas raw ignoradas y no referenciadas de Frontline para evitar que sigan dentro de `public/assets` local.
+
+### Tested
+- `npm.cmd run audit:assets`
+- `npm.cmd run check:full`
+
 ## [0.25.221] - 2026-05-09
 
 ### Changed
