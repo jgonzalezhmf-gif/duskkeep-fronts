@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { isAdventureChapterDemoLocked } from "@/features/adventure/progression";
 import { AdventureCampaignMap } from "@/components/game/adventure/AdventureCampaignScene";
 import { getLocalizedChapterMeta } from "@/components/game/adventure/AdventureChapterMeta";
@@ -14,8 +15,42 @@ import { useI18n } from "@/lib/i18n/useI18n";
 
 export default function AdventureMapPage() {
   const { t } = useI18n();
+  const [clientReady, setClientReady] = useState(false);
   const state = useAdventureMapPageState(t);
-  if (!state.ready) return null;
+
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
+
+  if (!clientReady || !state.ready) {
+    return (
+      <ScreenScaffold scene="adventureAsh" dock={false}>
+        <div className="relative box-border h-dvh overflow-hidden px-3 pb-4 pt-36 sm:pt-32 md:px-6 md:pt-24 xl:px-8" aria-busy="true">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.34),rgba(4,7,13,0.72)),url('/assets/backgrounds/adventure_bg.png')] bg-cover bg-center" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,transparent_0%,rgba(4,7,13,0.08)_50%,rgba(4,7,13,0.68)_100%)]" />
+          <div className="relative z-10 mx-auto flex h-full max-w-[1680px] flex-col justify-between">
+            <div className="w-[min(28rem,calc(100vw-1.5rem))] rounded-[18px] border border-[#f5d498]/12 bg-[linear-gradient(180deg,rgba(10,13,20,0.34),rgba(7,9,14,0.58))] px-2.5 py-2 shadow-[0_12px_28px_rgba(0,0,0,0.2)] backdrop-blur-xl">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10" />
+                <div className="min-w-0 flex-1">
+                  <div className="h-2 w-24 rounded-full bg-white/[0.08]" />
+                  <div className="mt-2 h-3 w-36 rounded-full bg-white/[0.1]" />
+                </div>
+              </div>
+            </div>
+            <div className="mx-auto mb-3 w-[min(62rem,calc(100vw-1.5rem))] rounded-[24px] border border-white/10 bg-black/30 p-3 backdrop-blur-md">
+              <div className="h-4 w-44 rounded-full bg-white/[0.08]" />
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <div className="h-12 rounded-[16px] bg-white/[0.05]" />
+                <div className="h-12 rounded-[16px] bg-white/[0.05]" />
+                <div className="h-12 rounded-[16px] bg-white/[0.05]" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </ScreenScaffold>
+    );
+  }
 
   const {
     active,

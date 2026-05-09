@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.237] - 2026-05-09
+
+### Changed
+- Optimizado Adventure para prerenderizar una shell ligera hasta la hidratacion cliente, evitando serializar mapa, nodos, paneles e interacciones placeholder en HTML estatico.
+- Actualizada la linea base de build: `adventure.html` baja de 83.7 KB a 30.3 KB y `.next/server/app` queda en 0.84 MB.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.236] - 2026-05-09
 
 ### Changed
