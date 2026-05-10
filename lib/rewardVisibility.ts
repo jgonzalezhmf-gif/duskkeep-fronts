@@ -1,3 +1,4 @@
+import { getRewardDisplayEntries } from "@/lib/rewardDisplayEntries";
 import type { Rewards } from "@/lib/types";
 
 export type DailyLoginProgress = {
@@ -19,17 +20,7 @@ export function daysBetweenLocalDayKeys(from: string, to: string) {
 }
 
 export function hasRewardEntries(rewards: Rewards | null | undefined) {
-  return Boolean(
-    rewards?.gold ||
-      rewards?.dust ||
-      rewards?.gems ||
-      rewards?.xp ||
-      rewards?.accountXp ||
-      rewards?.arenaTickets ||
-      rewards?.adventureKeys ||
-      rewards?.shards?.length ||
-      rewards?.frontlineCards?.length,
-  );
+  return getRewardDisplayEntries(rewards).length > 0;
 }
 
 export function isAdventureFirstClearRewardAvailable(progress: AdventureFirstClearProgress | undefined): boolean {

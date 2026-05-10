@@ -15,6 +15,9 @@ describe("reward visibility rules", () => {
     expect(hasRewardEntries({})).toBe(false);
     expect(hasRewardEntries({ gold: 0, dust: 0 })).toBe(false);
     expect(hasRewardEntries({ gold: 1 })).toBe(true);
+    expect(hasRewardEntries({ xp: 1 })).toBe(true);
+    expect(hasRewardEntries({ adventureKeys: 1 })).toBe(true);
+    expect(hasRewardEntries({ shards: [{ heroId: "kara", amount: 0 }] })).toBe(false);
     expect(hasRewardEntries({ shards: [{ heroId: "kara", amount: 1 }] })).toBe(true);
     expect(hasRewardEntries({ frontlineCards: [{ cardId: "order_shadow_dive" }] })).toBe(true);
   });

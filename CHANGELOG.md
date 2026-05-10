@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.247] - 2026-05-10
+
+### Changed
+- Alineada la deteccion de rewards visibles con `getRewardDisplayEntries` para evitar dos reglas distintas entre visibilidad y overlays.
+- Cubiertos los casos de XP, llaves de aventura y shards sin cantidad visible en los tests de `rewardVisibility`.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run test -- rewardVisibility rewardDisplayEntries`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.246] - 2026-05-10
 
 ### Changed
