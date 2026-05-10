@@ -38,89 +38,89 @@ export function HomeEffectSpriteStyles() {
   return (
     <style jsx global>{`
       @keyframes homeEffectSpriteLoop {
-        from { left: 0; }
-        to { left: var(--home-effect-strip-end); }
+        from { transform: translate3d(0, 0, 0); }
+        to { transform: translate3d(var(--home-effect-strip-end-transform), 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopFlame {
-        0%, 16.666% { left: -25.86%; }
-        16.667%, 33.333% { left: -108.13%; }
-        33.334%, 50% { left: -198.52%; }
-        50.001%, 66.666% { left: -284.18%; }
-        66.667%, 83.333% { left: -375.43%; }
-        83.334%, 100% { left: -472.62%; }
+        0%, 16.666% { transform: translate3d(-4.31%, 0, 0); }
+        16.667%, 33.333% { transform: translate3d(-18.02%, 0, 0); }
+        33.334%, 50% { transform: translate3d(-33.09%, 0, 0); }
+        50.001%, 66.666% { transform: translate3d(-47.36%, 0, 0); }
+        66.667%, 83.333% { transform: translate3d(-62.57%, 0, 0); }
+        83.334%, 100% { transform: translate3d(-78.77%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopCrystal {
-        0%, 16.666% { left: -13.28%; }
-        16.667%, 33.333% { left: -109.96%; }
-        33.334%, 50% { left: -209.34%; }
-        50.001%, 66.666% { left: -311.29%; }
-        66.667%, 83.333% { left: -407.11%; }
-        83.334%, 100% { left: -501.09%; }
+        0%, 16.666% { transform: translate3d(-2.21%, 0, 0); }
+        16.667%, 33.333% { transform: translate3d(-18.33%, 0, 0); }
+        33.334%, 50% { transform: translate3d(-34.89%, 0, 0); }
+        50.001%, 66.666% { transform: translate3d(-51.88%, 0, 0); }
+        66.667%, 83.333% { transform: translate3d(-67.85%, 0, 0); }
+        83.334%, 100% { transform: translate3d(-83.52%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopFlagRed {
-        0%, 20% { left: 0%; }
-        20.001%, 40% { left: -100%; }
-        40.001%, 60% { left: -200%; }
-        60.001%, 80% { left: -300%; }
-        80.001%, 100% { left: -400%; }
+        0%, 20% { transform: translate3d(0%, 0, 0); }
+        20.001%, 40% { transform: translate3d(-20%, 0, 0); }
+        40.001%, 60% { transform: translate3d(-40%, 0, 0); }
+        60.001%, 80% { transform: translate3d(-60%, 0, 0); }
+        80.001%, 100% { transform: translate3d(-80%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopSixFixed {
-        0%, 16.666% { left: 0%; }
-        16.667%, 33.333% { left: -100%; }
-        33.334%, 50% { left: -200%; }
-        50.001%, 66.666% { left: -300%; }
-        66.667%, 83.333% { left: -400%; }
-        83.334%, 100% { left: -500%; }
+        0%, 16.666% { transform: translate3d(0%, 0, 0); }
+        16.667%, 33.333% { transform: translate3d(-16.666%, 0, 0); }
+        33.334%, 50% { transform: translate3d(-33.333%, 0, 0); }
+        50.001%, 66.666% { transform: translate3d(-50%, 0, 0); }
+        66.667%, 83.333% { transform: translate3d(-66.666%, 0, 0); }
+        83.334%, 100% { transform: translate3d(-83.333%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopSevenFixed {
-        0%, 14.285% { left: 0%; }
-        14.286%, 28.571% { left: -100%; }
-        28.572%, 42.857% { left: -200%; }
-        42.858%, 57.142% { left: -300%; }
-        57.143%, 71.428% { left: -400%; }
-        71.429%, 85.714% { left: -500%; }
-        85.715%, 100% { left: -600%; }
+        0%, 14.285% { transform: translate3d(0%, 0, 0); }
+        14.286%, 28.571% { transform: translate3d(-14.285%, 0, 0); }
+        28.572%, 42.857% { transform: translate3d(-28.571%, 0, 0); }
+        42.858%, 57.142% { transform: translate3d(-42.857%, 0, 0); }
+        57.143%, 71.428% { transform: translate3d(-57.142%, 0, 0); }
+        71.429%, 85.714% { transform: translate3d(-71.428%, 0, 0); }
+        85.715%, 100% { transform: translate3d(-85.714%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopPortalBlue {
-        0%, 16.666% { left: -7.27%; }
-        16.667%, 33.333% { left: -107.73%; }
-        33.334%, 50% { left: -207.23%; }
-        50.001%, 66.666% { left: -309.11%; }
-        66.667%, 83.333% { left: -406.45%; }
-        83.334%, 100% { left: -498.20%; }
+        0%, 16.666% { transform: translate3d(-1.21%, 0, 0); }
+        16.667%, 33.333% { transform: translate3d(-17.96%, 0, 0); }
+        33.334%, 50% { transform: translate3d(-34.54%, 0, 0); }
+        50.001%, 66.666% { transform: translate3d(-51.52%, 0, 0); }
+        66.667%, 83.333% { transform: translate3d(-67.74%, 0, 0); }
+        83.334%, 100% { transform: translate3d(-83.03%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopCandle {
-        0%, 16.666% { left: -12.89%; }
-        16.667%, 33.333% { left: -104.30%; }
-        33.334%, 50% { left: -199.80%; }
-        50.001%, 66.666% { left: -299.80%; }
-        66.667%, 83.333% { left: -395.12%; }
-        83.334%, 100% { left: -491.41%; }
+        0%, 16.666% { transform: translate3d(-2.15%, 0, 0); }
+        16.667%, 33.333% { transform: translate3d(-17.38%, 0, 0); }
+        33.334%, 50% { transform: translate3d(-33.3%, 0, 0); }
+        50.001%, 66.666% { transform: translate3d(-49.97%, 0, 0); }
+        66.667%, 83.333% { transform: translate3d(-65.85%, 0, 0); }
+        83.334%, 100% { transform: translate3d(-81.9%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopLanternWarm {
-        0%, 16.666% { left: -6.25%; }
-        16.667%, 33.333% { left: -108.59%; }
-        33.334%, 50% { left: -199.80%; }
-        50.001%, 66.666% { left: -299.61%; }
-        66.667%, 83.333% { left: -392.19%; }
-        83.334%, 100% { left: -493.36%; }
+        0%, 16.666% { transform: translate3d(-1.04%, 0, 0); }
+        16.667%, 33.333% { transform: translate3d(-18.1%, 0, 0); }
+        33.334%, 50% { transform: translate3d(-33.3%, 0, 0); }
+        50.001%, 66.666% { transform: translate3d(-49.94%, 0, 0); }
+        66.667%, 83.333% { transform: translate3d(-65.37%, 0, 0); }
+        83.334%, 100% { transform: translate3d(-82.23%, 0, 0); }
       }
 
       @keyframes homeEffectSpriteLoopBannerRed {
-        0%, 16.666% { left: -9.18%; }
-        16.667%, 33.333% { left: -105.08%; }
-        33.334%, 50% { left: -199.80%; }
-        50.001%, 66.666% { left: -299.80%; }
-        66.667%, 83.333% { left: -399.80%; }
-        83.334%, 100% { left: -494.34%; }
+        0%, 16.666% { transform: translate3d(-1.53%, 0, 0); }
+        16.667%, 33.333% { transform: translate3d(-17.51%, 0, 0); }
+        33.334%, 50% { transform: translate3d(-33.3%, 0, 0); }
+        50.001%, 66.666% { transform: translate3d(-49.97%, 0, 0); }
+        66.667%, 83.333% { transform: translate3d(-66.63%, 0, 0); }
+        83.334%, 100% { transform: translate3d(-82.39%, 0, 0); }
       }
 
       @keyframes homeCloudLayerDrift {
@@ -212,7 +212,7 @@ export function HomeEffectSpriteStyles() {
         animation-duration: var(--home-effect-duration);
         animation-timing-function: steps(var(--home-effect-step-count));
         animation-iteration-count: infinite;
-        will-change: left;
+        will-change: transform;
       }
 
       .home-effect-sprite-static {
@@ -240,17 +240,17 @@ export function HomeEffectSpriteStyles() {
 
       .home-effect-sprite[data-home-effect-frames="1"] .home-effect-sprite-strip {
         animation: none !important;
-        left: 0 !important;
+        transform: translate3d(0, 0, 0) !important;
       }
 
       .home-effect-sprite[data-home-effect-render-mode="staticFirstFrame"] .home-effect-sprite-strip {
         animation: none !important;
-        left: 0 !important;
+        transform: translate3d(0, 0, 0) !important;
       }
 
       .home-effect-sprite[data-home-effect-render-mode="staticWithLocalAnimation"] .home-effect-sprite-strip {
         animation: none !important;
-        left: 0 !important;
+        transform: translate3d(0, 0, 0) !important;
       }
 
       .home-effect-local-animation {
@@ -354,7 +354,7 @@ export function HomeEffectSpriteStyles() {
       @media (prefers-reduced-motion: reduce) {
         .home-effect-sprite-strip {
           animation: none !important;
-          left: 0 !important;
+          transform: translate3d(0, 0, 0) !important;
         }
 
         .home-effect-local-animation {
@@ -394,7 +394,7 @@ export function HomeEffectSprite({
 
   const { asset, requestedAsset, effect: renderEffect } = renderAsset;
   const frameStepCount = Math.max(1, asset.frameCount);
-  const stripEnd = `-${(asset.frameCount - 1) * 100}%`;
+  const stripEndTransform = `-${(((asset.frameCount - 1) / asset.frameCount) * 100).toFixed(3)}%`;
   const hasLocalAnimation = requestedAsset.renderMode === "staticWithLocalAnimation";
   const animatedSrc = asset.animatedSrc ?? asset.src;
   const animatedWebpSrc = asset.animatedWebpSrc ?? asset.webpSrc;
@@ -432,7 +432,7 @@ export function HomeEffectSprite({
       <span
         className="home-effect-sprite-strip"
         style={{
-          ["--home-effect-strip-end" as string]: stripEnd,
+          ["--home-effect-strip-end-transform" as string]: stripEndTransform,
           ["--home-effect-duration" as string]: `${durationMs}ms`,
           ["--home-effect-step-count" as string]: frameStepCount,
         }}

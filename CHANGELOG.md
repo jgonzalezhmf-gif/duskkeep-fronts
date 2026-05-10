@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.251] - 2026-05-10
+
+### Changed
+- Migradas las animaciones frame-by-frame de `HomeEffectSprite` de `left` a `transform: translate3d(...)` para reducir animaciones no compuestas reportadas por Lighthouse.
+- Mantenidos los offsets calibrados de spritesheets, render modes y fallbacks WebP/PNG sin cambiar la identidad visual de Home.
+
+### Tested
+- `npm.cmd run lint`
+- `npm.cmd run typecheck`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.250] - 2026-05-10
 
 ### Changed
