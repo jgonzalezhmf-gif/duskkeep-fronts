@@ -1,170 +1,170 @@
-# Art Pipeline for Codex
+# Pipeline de Arte para Codex
 
-This project should treat art production as a layered pipeline, not a single tool choice.
+El proyecto debe tratar la produccion de arte como un pipeline por capas, no como una unica decision de herramienta.
 
-## Core Rule
+## Regla Principal
 
-Use three layers together:
+Usar tres capas combinadas:
 
-1. Key art / illustration:
-   - Primary painted scene for `Home`, campaign splash art, card portraits, enemies, bosses.
-   - Generated or authored as bitmap art.
-   - This is the emotional anchor and the main source of visual appeal.
+1. Ilustracion principal:
+   - Escena pintada para `Home`, splash art de campania, portraits de cartas, enemigos y bosses.
+   - Generada o creada como bitmap art.
+   - Es el ancla emocional y la principal fuente de atractivo visual.
 
-2. UI composition:
-   - HTML/CSS/React layout for navigation, labels, rewards, CTA buttons, overlays, deck management.
-   - Keeps the game readable, responsive and easy to maintain.
+2. Composicion UI:
+   - Layout HTML/CSS/React para navegacion, labels, recompensas, CTAs, overlays y gestion de mazo.
+   - Mantiene el juego legible, responsive y facil de mantener.
 
-3. Live effects layer:
-   - PixiJS canvas for particles, glows, floating embers, pulses, sparks, rune loops, parallax props, reward bursts.
-   - Used to make scenes feel alive without repainting the whole screen.
+3. Capa de efectos vivos:
+   - Canvas PixiJS para particulas, brillos, brasas, pulsos, chispas, runas, props con parallax y bursts de recompensa.
+   - Se usa para dar vida a escenas sin repintar toda la pantalla.
 
-PixiJS should not replace the main illustration. It should amplify it.
+PixiJS no debe sustituir la ilustracion principal. Debe amplificarla.
 
-## Recommended Use in Duskkeep Fronts
+## Uso Recomendado en Duskkeep Fronts
 
 ### Home
 
-Use a painted key art background plus a lightweight live layer:
+Usar una ilustracion principal pintada y una capa viva ligera:
 
-- painted fortress valley scene
-- localized glow around castle, shrine, arena and shop
-- drifting fog, sparks, fireflies, magical dust
-- gentle camera parallax on desktop
-- stronger click feedback on hotspots
+- escena de valle con fortaleza
+- brillo localizado alrededor de castillo, shrine, arena y shop
+- niebla suave, chispas, luciernagas y polvo magico
+- parallax leve de camara en desktop
+- feedback de click mas claro en hotspots
 
 ### Deck
 
-Use HTML/CSS for structure, then layer in high-value motion:
+Usar HTML/CSS para la estructura y anadir motion de alto valor:
 
-- foil shimmer on rare or legendary cards
-- subtle particle burst when selecting a card
-- animated mana-cost gem
-- leader power pulse when active
+- brillo foil en cartas raras o legendarias
+- burst sutil al seleccionar una carta
+- gema de coste animada
+- pulso del poder de lider cuando esta activo
 
 ### Battle
 
-Keep battle readable first. Use art only where it reinforces clarity:
+Mantener la batalla legible por encima de todo. Usar arte solo donde refuerce claridad:
 
-- summon burst
-- spell impact decal
-- leader power wave
-- victory reward burst
+- burst de summon
+- impacto de hechizo
+- onda de poder de lider
+- burst de recompensa de victoria
 
-Do not overload the battlefield with constant particles.
+No sobrecargar el campo de batalla con particulas constantes.
 
 ## Web vs Mobile
 
-The project needs distinct art framing for each target:
+El proyecto necesita encuadres visuales distintos por objetivo:
 
 ### Web
 
-- target wide composition first
-- preserve lateral scenery
-- allow more environmental detail
-- stronger parallax depth
-- side rails can coexist with art
+- priorizar composicion ancha
+- conservar escenario lateral
+- permitir mas detalle ambiental
+- usar mayor profundidad de parallax
+- permitir railes laterales junto al arte
 
 ### Mobile
 
-- center the fortress and critical landmarks
-- avoid small unreadable props
-- keep hotspot spacing generous
-- reduce overdraw and particle density
+- centrar fortaleza y landmarks criticos
+- evitar props pequenos ilegibles
+- mantener separacion generosa entre hotspots
+- reducir overdraw y densidad de particulas
 
-The same illustration can be reused only if it is composed with safe crop zones.
+La misma ilustracion solo puede reutilizarse si esta compuesta con zonas de recorte seguras.
 
-## Asset Strategy
+## Estrategia de Assets
 
-### For Key Art
+### Ilustraciones Principales
 
-Prepare at least:
+Preparar al menos:
 
-- `Home` master illustration
-- mobile crop
-- web crop
-- overlay-safe version with soft negative space for UI
+- ilustracion master de `Home`
+- recorte mobile
+- recorte web
+- version segura para overlay, con espacio negativo suave para UI
 
-### For Cards
+### Cartas
 
-Split assets into:
+Dividir assets en:
 
-- card frame
+- marco de carta
 - portrait art
-- rarity treatment
-- effect overlay
-- faction/school icon
+- tratamiento de rareza
+- overlay de efecto
+- icono de faccion/escuela
 
-This makes the card system scalable and easier to theme.
+Esto hace que el sistema de cartas escale mejor y sea mas facil de tematizar.
 
-### For Enemies
+### Enemigos
 
-Prepare silhouette-first designs:
+Preparar disenos con silueta primero:
 
-- one strong shape read
-- one dominant color family
-- one special VFX signature
+- una forma fuerte y legible
+- una familia cromatica dominante
+- una firma VFX especial
 
-Enemies should be readable even at small portrait size.
+Los enemigos deben leerse bien incluso en portrait pequeno.
 
-### For Mode/Event Icons
+### Iconos de Modo/Evento
 
-Mode and event icons live in `public/assets/icons/modes/` and must be registered in `lib/iconAssets.ts` under the `modes` manifest before any component can load them. Use `components/game/shared/ModeIcon.tsx` for UI integration so missing or unregistered assets fall back to the existing glyph system without browser 404s.
+Los iconos de modo y evento viven en `public/assets/icons/modes/` y deben registrarse en `lib/iconAssets.ts` dentro del manifest `modes` antes de que cualquier componente pueda cargarlos. Usar `components/game/shared/ModeIcon.tsx` para integracion UI, de forma que assets ausentes o no registrados caigan al sistema de glyphs existente sin 404.
 
-Official keys:
+Claves oficiales:
 
-- `campaign` -> campaign/adventure map and campaign entry points.
-- `ladder` -> ranked or ladder progression.
-- `arena_draft` -> Arena entry and draft-like arena cards.
-- `daily_event` -> rotating daily events.
-- `boss_event` -> boss or special event cards.
-- `fortress_raid` -> fortress raid mode surfaces.
-- `challenge` -> challenge modifiers or special tasks.
-- `dungeon_run` -> dungeon/route-based future modes.
-- `boss_rush` -> boss-rush future mode.
+- `campaign` -> mapa/entrada de campania.
+- `ladder` -> progresion clasificada o ladder.
+- `arena_draft` -> entrada de Arena y cartas de arena draft.
+- `daily_event` -> eventos diarios rotativos.
+- `boss_event` -> cartas de boss o evento especial.
+- `fortress_raid` -> superficies de modo raid de Fortress.
+- `challenge` -> modificadores de desafio o tareas especiales.
+- `dungeon_run` -> modos futuros basados en ruta.
+- `boss_rush` -> modo futuro de cadena de bosses.
 
-Do not register source sheets such as `Modes.png`; register only final cropped PNGs that should be requested by the browser.
+No registrar laminas fuente como `Modes.png`; registrar solo PNGs finales recortados que deba pedir el navegador.
 
-## Codex Workflow
+## Flujo de Trabajo para Codex
 
-When working on art-heavy tasks in this repo:
+Cuando se trabaje en tareas con mucho arte en este repo:
 
-1. Define the screen goal:
-   - retention
-   - readability
-   - fantasy payoff
+1. Definir el objetivo de pantalla:
+   - retencion
+   - legibilidad
+   - payoff de fantasia
 
-2. Decide what belongs to each layer:
-   - bitmap illustration
+2. Decidir que pertenece a cada capa:
+   - ilustracion bitmap
    - DOM/UI
-   - PixiJS effects
+   - efectos PixiJS
 
-3. Build responsive composition first.
+3. Construir primero la composicion responsive.
 
-4. Add motion second.
+4. Anadir motion despues.
 
-5. Add spectacle last.
+5. Anadir espectaculo al final.
 
-If a screen looks noisy, remove effects before removing layout clarity.
+Si una pantalla se ve ruidosa, quitar efectos antes que sacrificar claridad de layout.
 
-## Using the Local Pixi Skill
+## Uso de la Skill Local de Pixi
 
-The local `.agents/skills/pixijs-2d` material is useful as a technical reference for:
+El material local `.agents/skills/pixijs-2d` es util como referencia tecnica para:
 
-- particle containers
-- filters
-- performance limits
+- contenedores de particulas
+- filtros
+- limites de rendimiento
 - sprite batching
-- overlay architecture
+- arquitectura de overlays
 
-Treat it as implementation guidance, not as product direction.
+Tratarlo como guia de implementacion, no como direccion de producto.
 
-## Current Direction for This Project
+## Direccion Actual del Proyecto
 
-Near-term plan:
+Plan a corto plazo:
 
-1. Replace the current `Home` pseudo-map look with a proper key art backed layout.
-2. Keep hotspot navigation in React/HTML for reliability.
-3. Add a PixiJS live layer only after the static art composition is approved.
-4. Rebuild the deck screen to feel collectible and premium.
-5. Standardize card art and enemy art briefs before mass production.
+1. Mantener `Home` como referencia visual principal con layout basado en key art.
+2. Mantener navegacion por hotspots en React/HTML por fiabilidad.
+3. Anadir capa viva tipo PixiJS solo cuando la composicion estatica este aprobada.
+4. Mejorar Deck para que se sienta coleccionable y premium.
+5. Estandarizar briefs de card art y enemy art antes de produccion masiva.

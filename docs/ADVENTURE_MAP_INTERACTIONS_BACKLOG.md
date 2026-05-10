@@ -1,29 +1,29 @@
-# Adventure Map Interactions Backlog
+# Backlog de Interacciones del Mapa Adventure
 
-Notes for post-demo Adventure map mechanics. These are intentionally not implemented in the current demo lock pass.
+Notas para mecanicas del mapa Adventure posteriores al alcance demo. Estas ideas no forman parte del bloqueo actual de la demo salvo que se indique lo contrario.
 
-## Demo Scope
+## Alcance Demo
 
-- Chapter 2 stays visible in the chapter list but locked until its background, music, layout and encounter pacing are designed.
-- Completing the Chapter 1 boss should mark Chapter 1 progress complete without redirecting to Chapter 2.
+- Chapter 2 permanece visible en el listado de capitulos, pero bloqueado hasta que existan fondo, musica, layout y ritmo de encuentros.
+- Completar el boss de Chapter 1 debe marcar el progreso de Chapter 1 como completado sin redirigir a Chapter 2.
 
-## Branching Routes
+## Rutas Ramificadas
 
-- Nodes can unlock multiple targets through `unlocks` in Adventure data or `connectsTo` in the Adventure QA map layout.
-- The first Chapter 1 branch example is `c1l2 -> c1l3, c1l7`.
-- Future branch pairs should keep difficulty comparable across parallel routes, then converge into elite, event or boss gates.
+- Un nodo puede desbloquear varios objetivos mediante `unlocks` en los datos de Adventure o `connectsTo` en el layout QA del mapa.
+- El primer ejemplo de bifurcacion en Chapter 1 es `c1l2 -> c1l3, c1l7`.
+- Las bifurcaciones futuras deben mantener dificultad comparable entre rutas paralelas y converger despues en gates elite, event o boss.
 
-## Future Interactables
+## Interactuables Futuros
 
-- Map chest: use the visible chest near the lower-right path as an interactable cache once conditions are met.
-- Keys: optional key rewards from fights, shop offers or events can open special map caches.
-- Timed caches: daily or chapter-progress caches can pulse when claimable, but must not become infinite farming.
-- Hidden nodes: mechanisms, lore objects or elite clears can reveal secret nodes or hidden reward caches.
-- Lore scraps: non-combat nodes can unlock short world documents instead of rewards.
-- Special fights: triggered nodes can spawn danger/elite encounters without changing the base route.
+- Cofre de mapa: usar el cofre visible cerca del camino inferior derecho como cache interactuable cuando se cumplan condiciones.
+- Llaves: rewards opcionales de combates, ofertas de Shop o Events pueden abrir caches especiales del mapa.
+- Caches temporizadas: caches diarias o por progreso de capitulo pueden pulsar cuando sean reclamables, pero no deben convertirse en farmeo infinito.
+- Nodos ocultos: mecanismos, objetos de lore o victorias elite pueden revelar nodos secretos o caches ocultas.
+- Fragmentos de lore: nodos sin combate pueden desbloquear documentos breves del mundo en lugar de recompensas.
+- Combates especiales: nodos activados pueden generar encuentros danger/elite sin cambiar la ruta base.
 
-## Visual Rules
+## Reglas Visuales
 
-- Interactables should live in the same 1920x1080 Adventure map coordinate system.
-- Claimable objects can use small localized sprite/light effects, not large generic glows.
-- All future interactables should be editable/exportable from `?qa=adventure-map`.
+- Los interactuables deben vivir en el mismo sistema de coordenadas 1920x1080 del mapa Adventure.
+- Los objetos reclamables pueden usar efectos pequenos y localizados de sprite/luz, no glows genericos grandes.
+- Todos los interactuables futuros deben poder editarse y exportarse desde `?qa=adventure-map`.

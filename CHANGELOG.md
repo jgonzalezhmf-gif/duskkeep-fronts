@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.260] - 2026-05-10
+
+### Changed
+- Traducidos al espanol documentos secundarios de proyecto: `ADVENTURE_MAP_INTERACTIONS_BACKLOG.md`, `ART_PIPELINE_CODEX.md`, `ASSET_RIGHTS_NOTES.md`, `IMPECCABLE_ANIMATION_USAGE.md` y `REWARD_VISIBILITY_RULES.md`.
+- Revisada de nuevo la documentacion versionada principal para evitar referencias a juegos externos o competidores.
+
+### Tested
+- `npm.cmd run typecheck`
+- `git diff --check`
+- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md -g "!docs/skills/**"`
+
 ## [0.25.259] - 2026-05-10
 
 ### Changed
