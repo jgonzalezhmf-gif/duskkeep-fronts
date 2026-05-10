@@ -4,27 +4,34 @@ import { GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { getRewardDisplayEntries, type RewardDisplayEntryKind } from "@/lib/rewardDisplayEntries";
 import type { Rewards } from "@/lib/types";
 
 type RewardBurstEntry = {
+  kind: RewardDisplayEntryKind;
   icon: "gold" | "dust" | "gem" | "tickets" | "power" | "heroes" | "rewards" | "adventure_key";
   tone: "gold" | "violet" | "sky" | "ember" | "emerald";
   label: string;
   value: number;
 };
 
+const BURST_META: Record<RewardDisplayEntryKind, Pick<RewardBurstEntry, "icon" | "tone">> = {
+  gold: { icon: "gold", tone: "gold" },
+  dust: { icon: "dust", tone: "violet" },
+  gems: { icon: "gem", tone: "sky" },
+  tickets: { icon: "tickets", tone: "ember" },
+  keys: { icon: "adventure_key", tone: "gold" },
+  xp: { icon: "power", tone: "emerald" },
+  shards: { icon: "heroes", tone: "violet" },
+  cards: { icon: "power", tone: "emerald" },
+};
+
 function rewardEntries(rewards: Rewards, t: (key: string) => string): RewardBurstEntry[] {
-  const entries: RewardBurstEntry[] = [];
-  if (rewards.gold) entries.push({ icon: "gold", tone: "gold", label: t("resources.gold"), value: rewards.gold });
-  if (rewards.dust) entries.push({ icon: "dust", tone: "violet", label: t("resources.dust"), value: rewards.dust });
-  if (rewards.gems) entries.push({ icon: "gem", tone: "sky", label: t("resources.gems"), value: rewards.gems });
-  if (rewards.arenaTickets) entries.push({ icon: "tickets", tone: "ember", label: t("resources.tickets"), value: rewards.arenaTickets });
-  if (rewards.adventureKeys) entries.push({ icon: "adventure_key", tone: "gold", label: t("resources.adventureKeys"), value: rewards.adventureKeys });
-  if (rewards.accountXp || rewards.xp) entries.push({ icon: "power", tone: "emerald", label: t("frontline.accountXp"), value: rewards.accountXp ?? rewards.xp ?? 0 });
-  const shardTotal = rewards.shards?.reduce((sum, shard) => sum + shard.amount, 0) ?? 0;
-  if (shardTotal) entries.push({ icon: "heroes", tone: "violet", label: t("shop.categoryShort.shards"), value: shardTotal });
-  if (rewards.frontlineCards?.length) entries.push({ icon: "power", tone: "emerald", label: t("frontline.cardUnlocks"), value: rewards.frontlineCards.length });
-  return entries;
+  return getRewardDisplayEntries(rewards).map((entry) => ({
+    ...entry,
+    ...BURST_META[entry.kind],
+    label: t(entry.labelKey),
+  }));
 }
 
 export type RewardBurstOverlayProps = {
@@ -57,7 +64,7 @@ export function RewardBurstOverlay({
         <div className="flex flex-wrap justify-center gap-2">
           {entries.slice(0, compact ? 3 : 5).map((entry) => (
             <GameRewardToken
-              key={`${entry.icon}-${entry.value}`}
+              key={`${entry.kind}-${entry.value}`}
               icon={entry.icon}
               tone={entry.tone}
               label={entry.label}

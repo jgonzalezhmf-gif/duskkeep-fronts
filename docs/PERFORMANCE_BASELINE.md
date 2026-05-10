@@ -102,6 +102,7 @@ Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 - `HomeEffectsQaPanel` queda cargado de forma diferida y los handles QA de Home viven en un componente pequeno separado; Home normal no necesita importar el panel completo de edicion de efectos.
 - `RewardFlightOverlay` queda cargado mediante `LazyRewardFlightOverlay` en pantallas donde solo aparece tras una accion de recompensa. Esto mantiene el feedback visual, pero evita imports estaticos del overlay en los listados normales.
 - `RewardBurstOverlay` queda cargado mediante `LazyRewardBurstOverlay` en claims, raids y resultados; las pantallas normales no importan el burst visual completo hasta necesitarlo.
+- Los overlays de recompensa comparten `getRewardDisplayEntries`, evitando duplicacion en la normalizacion de rewards y dejando esa regla cubierta por tests unitarios.
 
 ## Siguientes Focos
 

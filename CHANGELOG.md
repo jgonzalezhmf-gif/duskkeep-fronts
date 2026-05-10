@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.246] - 2026-05-10
+
+### Changed
+- Extraida la normalizacion visual de rewards a `getRewardDisplayEntries`, compartida por `RewardFlightOverlay` y `RewardBurstOverlay`.
+- Eliminada duplicacion en el formateo de oro, polvo, gemas, tickets, llaves, XP, shards y cartas dentro de los overlays de recompensa.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run test -- rewardDisplayEntries`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.245] - 2026-05-10
 
 ### Changed

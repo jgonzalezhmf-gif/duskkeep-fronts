@@ -5,9 +5,10 @@ import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
 import { cn } from "@/lib/cn";
 import { translate, useI18n } from "@/lib/i18n/useI18n";
+import { getRewardDisplayEntries, type RewardDisplayEntryKind } from "@/lib/rewardDisplayEntries";
 import type { Rewards } from "@/lib/types";
 
-type FlightKind = "gold" | "dust" | "gems" | "tickets" | "keys" | "xp" | "shards" | "cards";
+type FlightKind = RewardDisplayEntryKind;
 
 type FlightEntry = {
   kind: FlightKind;
@@ -42,21 +43,6 @@ const FLIGHT_STYLE: Record<FlightKind, string> = {
   shards: "border-violet-200/36 bg-[linear-gradient(180deg,rgba(236,212,255,0.95),rgba(91,48,134,0.92))] text-white",
   cards: "border-[#f5d498]/36 bg-[linear-gradient(180deg,rgba(255,229,164,0.95),rgba(117,75,22,0.92))] text-[#241204]",
 };
-
-function buildFlightEntries(rewards: Rewards, t: (key: string) => string): FlightEntry[] {
-  const entries: FlightEntry[] = [];
-  if (rewards.gold) entries.push({ kind: "gold", label: t("resources.gold"), value: rewards.gold });
-  if (rewards.dust) entries.push({ kind: "dust", label: t("resources.dust"), value: rewards.dust });
-  if (rewards.gems) entries.push({ kind: "gems", label: t("resources.gems"), value: rewards.gems });
-  if (rewards.arenaTickets) entries.push({ kind: "tickets", label: t("resources.tickets"), value: rewards.arenaTickets });
-  if (rewards.adventureKeys) entries.push({ kind: "keys", label: t("resources.adventureKeys"), value: rewards.adventureKeys });
-  const xp = rewards.accountXp ?? rewards.xp ?? 0;
-  if (xp) entries.push({ kind: "xp", label: t("frontline.accountXp"), value: xp });
-  const shards = rewards.shards?.reduce((sum, shard) => sum + shard.amount, 0) ?? 0;
-  if (shards) entries.push({ kind: "shards", label: t("shop.categoryShort.shards"), value: shards });
-  if (rewards.frontlineCards?.length) entries.push({ kind: "cards", label: t("frontline.cardUnlocks"), value: rewards.frontlineCards.length });
-  return entries;
-}
 
 function targetPoint(kind: FlightKind, index: number) {
   const resourceKind = RESOURCE_TARGET[kind];
@@ -102,7 +88,7 @@ export function RewardFlightOverlay({
   const cardUnlocks = rewards?.frontlineCards?.length ?? 0;
   const entries = useMemo(
     () =>
-      buildFlightEntries(
+      getRewardDisplayEntries(
         {
           gold,
           dust,
@@ -113,8 +99,7 @@ export function RewardFlightOverlay({
           shards: shards ? [{ heroId: "any", amount: shards }] : undefined,
           frontlineCards: cardUnlocks ? Array.from({ length: cardUnlocks }, (_, index) => ({ cardId: `card-${index}` })) : undefined,
         },
-        (key) => translate(locale, key),
-      ),
+      ).map((entry) => ({ kind: entry.kind, label: translate(locale, entry.labelKey), value: entry.value })),
     [adventureKeys, arenaTickets, cardUnlocks, dust, gems, gold, locale, shards, xp],
   );
   const [items, setItems] = useState<FlightItem[]>([]);
