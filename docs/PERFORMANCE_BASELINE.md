@@ -107,6 +107,7 @@ Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 - Los overlays de recompensa comparten `getRewardDisplayEntries`, evitando duplicacion en la normalizacion de rewards y dejando esa regla cubierta por tests unitarios.
 - Las animaciones frame-by-frame de `HomeEffectSprite` usan `transform: translate3d(...)` en lugar de `left`, reduciendo animaciones no compuestas en Home sin alterar offsets ni render modes.
 - Home difiere atmosfera decorativa y efectos hasta idle/timeout corto para que el primer render priorice background y landmarks principales. El modo `?qa=effects` mantiene render inmediato.
+- El aleteo de cuervos de `HomeSkyAtmosphere` tambien usa `transform: translate3d(...)` y los assets atmosfericos de Home tienen WebP preferente con PNG fallback.
 
 ## Siguientes Focos
 

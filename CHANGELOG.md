@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.253] - 2026-05-10
+
+### Changed
+- Migrado el aleteo de cuervos de `HomeSkyAtmosphere` de `left` a `transform: translate3d(...)` para reducir animaciones no compuestas.
+- Registrados WebP preferentes para los assets atmosfericos de Home usados por nubes/cuervos, manteniendo PNG fallback.
+
+### Tested
+- `npm.cmd run lint`
+- `npm.cmd run typecheck`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:asset-refs`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.252] - 2026-05-10
 
 ### Changed
