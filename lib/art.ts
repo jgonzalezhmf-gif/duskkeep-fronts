@@ -1,4 +1,4 @@
-import { getFrontlineLeaderPortraitSrc } from "@/lib/frontlineLeaderPortraitAssets";
+import { getFrontlineLeaderPortraitAsset, getFrontlineLeaderPortraitSrc } from "@/lib/frontlineLeaderPortraitAssets";
 
 export const LEADER_PORTRAITS = {
   leader_aurora: "/art/portraits/leader-aurora.png",
@@ -24,6 +24,13 @@ const BATTLE_BACKDROPS = [
 
 export function getLeaderPortrait(id: string) {
   return getFrontlineLeaderPortraitSrc(id) ?? LEADER_PORTRAITS[id as keyof typeof LEADER_PORTRAITS] ?? null;
+}
+
+export function getLeaderPortraitAsset(id: string) {
+  const frontlineAsset = getFrontlineLeaderPortraitAsset(id);
+  if (frontlineAsset) return frontlineAsset;
+  const src = LEADER_PORTRAITS[id as keyof typeof LEADER_PORTRAITS] ?? null;
+  return src ? { src } : null;
 }
 
 export function getHeroPortrait(id: string) {

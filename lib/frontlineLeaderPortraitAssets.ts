@@ -9,14 +9,19 @@ export type FrontlineLeaderPortraitId =
   | "enemy_shadow_commander"
   | "crown_of_ashes";
 
-export const FRONTLINE_LEADER_PORTRAIT_ASSETS: Record<FrontlineLeaderPortraitId, string> = {
-  leader_aurora: "/assets/frontline/leaders/aurora_valeborn.png",
-  leader_morrow: "/assets/frontline/leaders/morrow_blackveil.png",
-  enemy_warlord: "/assets/frontline/leaders/enemy_warlord.png",
-  enemy_cultist: "/assets/frontline/leaders/enemy_cultist.png",
-  enemy_plague_lord: "/assets/frontline/leaders/enemy_plague_lord.png",
-  enemy_shadow_commander: "/assets/frontline/leaders/enemy_shadow_commander.png",
-  crown_of_ashes: "/assets/frontline/leaders/crown_of_ashes_leader.png",
+export type FrontlineLeaderPortraitAsset = {
+  src: string;
+  webpSrc?: string;
+};
+
+export const FRONTLINE_LEADER_PORTRAIT_ASSETS: Record<FrontlineLeaderPortraitId, FrontlineLeaderPortraitAsset> = {
+  leader_aurora: { src: "/assets/frontline/leaders/aurora_valeborn.png", webpSrc: "/assets/frontline/leaders/aurora_valeborn.webp" },
+  leader_morrow: { src: "/assets/frontline/leaders/morrow_blackveil.png", webpSrc: "/assets/frontline/leaders/morrow_blackveil.webp" },
+  enemy_warlord: { src: "/assets/frontline/leaders/enemy_warlord.png", webpSrc: "/assets/frontline/leaders/enemy_warlord.webp" },
+  enemy_cultist: { src: "/assets/frontline/leaders/enemy_cultist.png", webpSrc: "/assets/frontline/leaders/enemy_cultist.webp" },
+  enemy_plague_lord: { src: "/assets/frontline/leaders/enemy_plague_lord.png", webpSrc: "/assets/frontline/leaders/enemy_plague_lord.webp" },
+  enemy_shadow_commander: { src: "/assets/frontline/leaders/enemy_shadow_commander.png", webpSrc: "/assets/frontline/leaders/enemy_shadow_commander.webp" },
+  crown_of_ashes: { src: "/assets/frontline/leaders/crown_of_ashes_leader.png", webpSrc: "/assets/frontline/leaders/crown_of_ashes_leader.webp" },
 };
 
 const ENEMY_PRESET_PORTRAITS: Partial<Record<string, FrontlineLeaderPortraitId>> = {
@@ -35,14 +40,18 @@ const ENEMY_PRESET_PORTRAITS: Partial<Record<string, FrontlineLeaderPortraitId>>
 };
 
 export function getFrontlineLeaderPortraitSrc(id: string | null | undefined) {
+  return getFrontlineLeaderPortraitAsset(id)?.src ?? null;
+}
+
+export function getFrontlineLeaderPortraitAsset(id: string | null | undefined) {
   if (!id) return null;
   return FRONTLINE_LEADER_PORTRAIT_ASSETS[id as FrontlineLeaderPortraitId] ?? null;
 }
 
 export function getFrontlineEnemyLeaderPortraitForPreset(preset: Pick<FrontlinePreset, "id" | "name" | "bossId"> | null | undefined) {
-  if (!preset) return FRONTLINE_LEADER_PORTRAIT_ASSETS.enemy_warlord;
+  if (!preset) return FRONTLINE_LEADER_PORTRAIT_ASSETS.enemy_warlord.src;
   const portraitId = resolveEnemyLeaderPortraitId(preset);
-  return FRONTLINE_LEADER_PORTRAIT_ASSETS[portraitId];
+  return FRONTLINE_LEADER_PORTRAIT_ASSETS[portraitId].src;
 }
 
 export function resolveEnemyLeaderPortraitId(preset: Pick<FrontlinePreset, "id" | "name" | "bossId">): FrontlineLeaderPortraitId {

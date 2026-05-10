@@ -10,6 +10,11 @@ import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
 
+type PortraitAsset = {
+  src: string;
+  webpSrc?: string;
+};
+
 export function CommanderBanner({
   level,
   name,
@@ -25,7 +30,7 @@ export function CommanderBanner({
   name: string;
   power: string;
   progress: number;
-  portrait: string | null;
+  portrait: PortraitAsset | null;
   leaderTitle: string;
   groupLabel: string;
   levelLabel: string;
@@ -44,11 +49,14 @@ export function CommanderBanner({
         <span className="absolute inset-0 rounded-[26px] border border-[#f0c75a]/34 bg-[linear-gradient(180deg,rgba(58,34,17,0.92),rgba(18,13,12,0.98))] shadow-[0_14px_28px_rgba(0,0,0,0.34)]" />
         <span className="absolute inset-[8%] rounded-[22px] bg-[radial-gradient(circle_at_50%_28%,rgba(255,213,122,0.46),transparent_62%)] blur-md" />
         {portrait ? (
-          <img
-            src={portrait}
-            alt=""
-            className="relative z-[1] h-[3.7rem] w-[3.7rem] rounded-[18px] object-cover object-top brightness-[1.04] contrast-[1.06]"
-          />
+          <picture className="relative z-[1] block h-[3.7rem] w-[3.7rem] overflow-hidden rounded-[18px]">
+            {portrait.webpSrc ? <source srcSet={portrait.webpSrc} type="image/webp" /> : null}
+            <img
+              src={portrait.src}
+              alt=""
+              className="h-full w-full object-cover object-top brightness-[1.04] contrast-[1.06]"
+            />
+          </picture>
         ) : (
           <span className="relative z-[1] h-[3.3rem] w-[3.3rem]">
             <HomeIcon kind="heroes" />

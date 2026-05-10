@@ -35,7 +35,7 @@ import GameOptionsButton from "@/components/game/options/GameOptionsButton";
 import MuteButton from "@/components/ui/MuteButton";
 import { getLeader } from "@/data/leaders";
 import { teamPower } from "@/features/tactical/engine";
-import { getLeaderPortrait } from "@/lib/art";
+import { getLeaderPortraitAsset } from "@/lib/art";
 import { cn } from "@/lib/cn";
 import { getHomeEffectAsset, type HomeEffectId } from "@/lib/homeEffectAssets";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -77,7 +77,7 @@ export default function HomeWorldMap({
   const team = useGameStore((state) => state.team);
   const activeLeaderId = useGameStore((state) => state.activeLeaderId);
   const leader = getLeader(activeLeaderId);
-  const portrait = getLeaderPortrait(activeLeaderId);
+  const portrait = getLeaderPortraitAsset(activeLeaderId);
   const [now, setNow] = useState<number | null>(null);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const [activeZone, setActiveZone] = useState<HomeZoneId | null>(null);
