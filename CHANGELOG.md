@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.257] - 2026-05-10
+
+### Added
+- Aniadido `docs/DOCUMENTATION_INDEX.md` como puerta de entrada a la documentacion por area: arquitectura, gameplay, assets, rewards, seguridad, backend, rendimiento y release.
+- Aniadido `docs/ENGINEERING_STANDARDS.md` con estandares de arquitectura, calidad, seguridad, rendimiento, assets, testing, release y preparacion backend.
+
+### Changed
+- Actualizado `README.md` y el handoff funcional para incluir los nuevos documentos en la ruta de lectura recomendada.
+
+### Tested
+- `npm.cmd run typecheck`
+- `git diff --check`
+
 ## [0.25.256] - 2026-05-10
 
 ### Changed

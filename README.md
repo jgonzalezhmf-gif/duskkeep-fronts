@@ -5,8 +5,9 @@ Duskkeep Fronts: Home hub, Adventure flow, pre-combat, three-front card combat,
 Deck progression, Fortress, Market, Missions, Events and Arena. Runs fully offline
 on first boot; Supabase integration is prepared for a future persistence pass.
 
-> Source of truth: `AGENTS.md`, `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`,
-> `docs/ARCHITECTURE.md`, `docs/GAMEPLAY_GUIDE.md`,
+> Source of truth: `AGENTS.md`, `docs/DOCUMENTATION_INDEX.md`,
+> `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`, `docs/ARCHITECTURE.md`,
+> `docs/ENGINEERING_STANDARDS.md`, `docs/GAMEPLAY_GUIDE.md`,
 > `docs/QUALITY_AND_RELEASE.md` and `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
 
 ## Stack
@@ -20,6 +21,8 @@ on first boot; Supabase integration is prepared for a future persistence pass.
 ## Documentation
 
 - `docs/ARCHITECTURE.md`: codebase layers, data flow, boundaries and extension rules.
+- `docs/DOCUMENTATION_INDEX.md`: reading order by area and current documentation gaps.
+- `docs/ENGINEERING_STANDARDS.md`: architecture, quality, security, performance and release standards.
 - `docs/GAMEPLAY_GUIDE.md`: player-facing loop, screens and gameplay expectations.
 - `docs/QUALITY_AND_RELEASE.md`: release checklist, test commands, browser smoke routes and quality gates.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: online persistence, backend validation and security roadmap.

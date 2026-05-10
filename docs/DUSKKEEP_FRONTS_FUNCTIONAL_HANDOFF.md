@@ -8,6 +8,8 @@ Este documento resume el estado funcional y visual del juego para que una futura
 
 Leer primero:
 - `AGENTS.md`
+- `docs/DOCUMENTATION_INDEX.md`
+- `docs/ENGINEERING_STANDARDS.md`
 - `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`
 - `docs/GAME_ARCHITECTURE_AND_VISUAL_SYSTEM.md`
 - `docs/FRONTLINE_COMBAT_HANDOFF.md`
