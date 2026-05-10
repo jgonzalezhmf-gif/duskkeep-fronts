@@ -84,8 +84,8 @@ npm.cmd run check:performance
 
 Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 
-- `.next/static`: 47 archivos, 2.33 MB.
-- `.next/server/app`: 245 archivos, 0.83 MB.
+- `.next/static`: 48 archivos, 2.32 MB.
+- `.next/server/app`: 245 archivos, 0.84 MB.
 - Chunk estatico mayor: CSS de 342.5 KB.
 - Rutas HTML mas pesadas: `adventure.html` 31.5 KB, `arena.html` 31.1 KB, `_not-found.html` 29.1 KB, `team.html` 27.6 KB.
 - `deck.html` queda en 24.9 KB tras renderizar una shell ligera hasta la hidratacion cliente; Deck depende de estado local persistido y no necesita prerenderizar todo el card pool/roster en HTML estatico.
@@ -101,6 +101,7 @@ Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 - `AdventureMapEditorOverlay` queda cargado de forma diferida: el mapa normal de Adventure no importa el panel de edicion QA salvo cuando se usa el query param del editor.
 - `HomeEffectsQaPanel` queda cargado de forma diferida y los handles QA de Home viven en un componente pequeno separado; Home normal no necesita importar el panel completo de edicion de efectos.
 - `RewardFlightOverlay` queda cargado mediante `LazyRewardFlightOverlay` en pantallas donde solo aparece tras una accion de recompensa. Esto mantiene el feedback visual, pero evita imports estaticos del overlay en los listados normales.
+- `RewardBurstOverlay` queda cargado mediante `LazyRewardBurstOverlay` en claims, raids y resultados; las pantallas normales no importan el burst visual completo hasta necesitarlo.
 
 ## Siguientes Focos
 

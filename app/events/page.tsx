@@ -6,9 +6,9 @@ import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBa
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon from "@/components/game/shared/GameIcon";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
+import { LazyRewardBurstOverlay } from "@/components/game/shared/LazyRewardBurstOverlay";
 import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
-import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import {
   SceneButton,
   ScreenBadge,
@@ -137,7 +137,7 @@ export default function EventsPage() {
         <LazyRewardFlightOverlay rewards={result.rewards} active={hasRewardEntries(result.rewards)} nonce={`${result.operation.id}-${result.rounds}`} origin="center" />
         <div className="absolute inset-0 grid place-items-center px-4 py-24">
           <ScreenPanel className="w-full max-w-[42rem] p-5 text-center md:p-7" accent={won}>
-            <RewardBurstOverlay rewards={result.rewards} active={hasRewardEntries(result.rewards)} compact />
+            <LazyRewardBurstOverlay rewards={result.rewards} active={hasRewardEntries(result.rewards)} compact />
             <div className="mx-auto w-fit">
               {won ? <ModeIcon name={result.operation.icon} size="xl" /> : <GameIcon kind="battle" tone="ember" size="lg" />}
             </div>

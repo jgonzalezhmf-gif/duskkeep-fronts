@@ -27,17 +27,19 @@ function rewardEntries(rewards: Rewards, t: (key: string) => string): RewardBurs
   return entries;
 }
 
+export type RewardBurstOverlayProps = {
+  rewards?: Rewards | null;
+  active?: boolean;
+  compact?: boolean;
+  className?: string;
+};
+
 export function RewardBurstOverlay({
   rewards,
   active = true,
   compact,
   className,
-}: {
-  rewards?: Rewards | null;
-  active?: boolean;
-  compact?: boolean;
-  className?: string;
-}) {
+}: RewardBurstOverlayProps) {
   const { t } = useI18n();
   if (!active || !rewards) return null;
   const entries = rewardEntries(rewards, t);

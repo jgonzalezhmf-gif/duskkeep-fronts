@@ -7,9 +7,9 @@ import type { FrontlineBattleStats } from "@/lib/frontlineBattleStats";
 import { frontlineCardName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { BattleStatsPanel, Panel, ResultMetric } from "./BattlePagePanels";
+import { LazyRewardBurstOverlay } from "../shared/LazyRewardBurstOverlay";
 import { ProgressionIcon } from "../shared/ProgressionIcon";
 import { ResourceIcon } from "../shared/ResourceIcon";
-import { RewardBurstOverlay } from "../shared/RewardBurstOverlay";
 import { LazyRewardFlightOverlay } from "../shared/LazyRewardFlightOverlay";
 
 export type BattlePageResultContext = {
@@ -80,7 +80,7 @@ export function BattlePageResultPanel({
             </div>
           </div>
         ) : null}
-        <RewardBurstOverlay rewards={resultContext.rewards} />
+        <LazyRewardBurstOverlay rewards={resultContext.rewards} />
         <LazyRewardFlightOverlay rewards={resultContext.rewards} active nonce={`${resultContext.winner}-${resultContext.rounds}`} origin="lower" />
         <div className="flex items-start gap-3">
           <img

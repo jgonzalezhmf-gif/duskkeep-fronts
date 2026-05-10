@@ -2,7 +2,7 @@
 
 import { FortressIcon } from "@/components/game/shared/FortressIcon";
 import GameIcon from "@/components/game/shared/GameIcon";
-import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
+import { LazyRewardBurstOverlay } from "@/components/game/shared/LazyRewardBurstOverlay";
 import { cn } from "@/lib/cn";
 import type { FrontlineFortressOutcome, Rewards } from "@/lib/types";
 import { integrityMeta, outcomeMeta, type TranslateFn } from "./fortressPageHelpers";
@@ -43,7 +43,7 @@ export function FortressStatus({
       </div>
 
       <div className={cn("relative overflow-hidden rounded-[24px] border p-3 backdrop-blur-xl transition", lastState ? lastState.panel : "border-white/10 bg-[linear-gradient(180deg,rgba(15,20,31,0.58),rgba(6,8,14,0.84))]", reportPulse && "frontline-reward-success animate-[rewardPop_0.85s_ease-out_1] ring-2 ring-[#f5c451]/24")}>
-        <RewardBurstOverlay rewards={lastReport?.rewards} active={reportPulse} compact />
+        <LazyRewardBurstOverlay rewards={lastReport?.rewards} active={reportPulse} compact />
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <FortressIcon name={lastReport && lastReport.integrityDelta < 0 ? "repair" : "raid"} size="md" />

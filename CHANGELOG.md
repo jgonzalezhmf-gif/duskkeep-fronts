@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.245] - 2026-05-10
+
+### Changed
+- Aniadido `LazyRewardBurstOverlay` para diferir el burst visual de recompensas hasta que hay un claim, raid o resultado que mostrar.
+- Sustituidos imports estaticos de `RewardBurstOverlay` en Arena, Events, Missions, Fortress y resultado de Frontline, manteniendo intacta la logica de rewards.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.244] - 2026-05-10
 
 ### Changed

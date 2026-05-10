@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import GameIcon from "@/components/game/shared/GameIcon";
+import { LazyRewardBurstOverlay } from "@/components/game/shared/LazyRewardBurstOverlay";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
-import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
 import { cn } from "@/lib/cn";
 import type { Mission, MissionProgress, Rewards } from "@/lib/types";
 import {
@@ -62,7 +62,7 @@ export function NextContract({
         activeClaim && "frontline-reward-success",
       )}
     >
-      <RewardBurstOverlay key={`next-claim-${activeClaim?.nonce ?? 0}`} rewards={activeClaim?.rewards} active={Boolean(activeClaim)} />
+      <LazyRewardBurstOverlay key={`next-claim-${activeClaim?.nonce ?? 0}`} rewards={activeClaim?.rewards} active={Boolean(activeClaim)} />
       <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
       <div className="relative z-[1] flex items-start justify-between gap-3">
         <GameIcon kind={meta.icon} tone={meta.tone} size="md" className="h-12 w-12" />
@@ -190,7 +190,7 @@ function MissionContract({
         activeClaim && "frontline-reward-success",
       )}
     >
-      <RewardBurstOverlay key={`mission-claim-${activeClaim?.nonce ?? 0}`} rewards={activeClaim?.rewards} active={Boolean(activeClaim)} compact />
+      <LazyRewardBurstOverlay key={`mission-claim-${activeClaim?.nonce ?? 0}`} rewards={activeClaim?.rewards} active={Boolean(activeClaim)} compact />
       <div className="flex gap-2.5">
         <GameIcon kind={meta.icon} tone={meta.tone} size="sm" className="mt-0.5 h-10 w-10 rounded-[13px]" />
         <div className="min-w-0 flex-1">
