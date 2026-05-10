@@ -6,9 +6,9 @@ import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBa
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon from "@/components/game/shared/GameIcon";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
+import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
 import { RewardBurstOverlay } from "@/components/game/shared/RewardBurstOverlay";
-import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
 import {
   SceneButton,
   ScreenBadge,
@@ -119,7 +119,7 @@ export default function ArenaPage() {
     return (
       <ScreenScaffold scene="arena" dock={false} homeNav={false} hud={false}>
         <ArenaTopChrome resources={resources} t={t} />
-        <RewardFlightOverlay rewards={result.rewards} active nonce={`${result.rival.id}-${result.rounds}`} origin="center" />
+        <LazyRewardFlightOverlay rewards={result.rewards} active nonce={`${result.rival.id}-${result.rounds}`} origin="center" />
         <div className="absolute inset-0 grid place-items-center px-4 py-24">
           <ScreenPanel className="w-full max-w-[42rem] p-5 text-center md:p-7" accent={won}>
             <RewardBurstOverlay rewards={result.rewards} compact />

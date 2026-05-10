@@ -10,7 +10,7 @@ import { BattleStatsPanel, Panel, ResultMetric } from "./BattlePagePanels";
 import { ProgressionIcon } from "../shared/ProgressionIcon";
 import { ResourceIcon } from "../shared/ResourceIcon";
 import { RewardBurstOverlay } from "../shared/RewardBurstOverlay";
-import { RewardFlightOverlay } from "../shared/RewardFlightOverlay";
+import { LazyRewardFlightOverlay } from "../shared/LazyRewardFlightOverlay";
 
 export type BattlePageResultContext = {
   winner: "ally" | "enemy" | "draw";
@@ -81,7 +81,7 @@ export function BattlePageResultPanel({
           </div>
         ) : null}
         <RewardBurstOverlay rewards={resultContext.rewards} />
-        <RewardFlightOverlay rewards={resultContext.rewards} active nonce={`${resultContext.winner}-${resultContext.rounds}`} origin="lower" />
+        <LazyRewardFlightOverlay rewards={resultContext.rewards} active nonce={`${resultContext.winner}-${resultContext.rounds}`} origin="lower" />
         <div className="flex items-start gap-3">
           <img
             src={resultContext.enemyPortraitSrc}

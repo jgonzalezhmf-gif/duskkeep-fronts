@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
+import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
 import { ScreenScaffold } from "@/components/game/screens/ScreenChrome";
 import {
   FRONTLINE_FORTRESS_BUILDINGS,
@@ -103,7 +103,7 @@ export default function FortressPage() {
   return (
     <ScreenScaffold scene="fortress" dock={false} hud={false} homeNav={false}>
       <FortressTopChrome resources={resources} />
-      <RewardFlightOverlay rewards={fortress.lastReport?.rewards} active={reportPulse} nonce={fortress.raidsResolved} origin="center" />
+      <LazyRewardFlightOverlay rewards={fortress.lastReport?.rewards} active={reportPulse} nonce={fortress.raidsResolved} origin="center" />
 
       <main className="mx-auto grid w-full max-w-[1500px] gap-3 px-3 pb-16 pt-36 sm:pt-[7.5rem] md:px-6 md:pt-[5.75rem] xl:grid-cols-[minmax(0,1fr)_21rem] xl:px-8">
         <section className="relative isolate min-h-[45rem] overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_16%,rgba(255,219,143,0.08),transparent_30%),linear-gradient(180deg,rgba(14,18,28,0.26),rgba(6,8,14,0.76))] shadow-[0_24px_62px_rgba(0,0,0,0.32)] backdrop-blur-sm md:min-h-[34rem]">

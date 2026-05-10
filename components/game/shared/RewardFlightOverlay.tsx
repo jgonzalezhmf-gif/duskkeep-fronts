@@ -76,19 +76,21 @@ function targetPoint(kind: FlightKind, index: number) {
   };
 }
 
+export type RewardFlightOverlayProps = {
+  rewards?: Rewards | null;
+  active?: boolean;
+  nonce?: string | number | null;
+  origin?: "center" | "lower" | "upper";
+  className?: string;
+};
+
 export function RewardFlightOverlay({
   rewards,
   active = true,
   nonce,
   origin = "center",
   className,
-}: {
-  rewards?: Rewards | null;
-  active?: boolean;
-  nonce?: string | number | null;
-  origin?: "center" | "lower" | "upper";
-  className?: string;
-}) {
+}: RewardFlightOverlayProps) {
   const { locale } = useI18n();
   const gold = rewards?.gold ?? 0;
   const dust = rewards?.dust ?? 0;

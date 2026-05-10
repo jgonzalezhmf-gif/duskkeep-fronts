@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.244] - 2026-05-10
+
+### Changed
+- Aniadido `LazyRewardFlightOverlay` para diferir el overlay de vuelo de recompensas hasta que realmente hay una compra, claim, raid o resultado que mostrar.
+- Sustituidos imports estaticos de `RewardFlightOverlay` en Shop, Missions, Fortress, Arena, Events y el panel de resultado de Frontline sin cambiar la logica de rewards.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run build`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- `npm.cmd run check:full`
+
 ## [0.25.243] - 2026-05-10
 
 ### Changed

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
+import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import {
@@ -114,7 +114,7 @@ export default function ShopPage() {
   return (
     <ScreenScaffold scene="shop" dock={false} hud={false} homeNav={false}>
       <MarketTopChrome resources={displayResources} showAdventureKeys={adventureKeysUnlocked} />
-      <RewardFlightOverlay rewards={purchaseFlightRewards} active={Boolean(purchaseFx && purchaseFlightRewards)} nonce={purchaseFx?.nonce} origin="center" />
+      <LazyRewardFlightOverlay rewards={purchaseFlightRewards} active={Boolean(purchaseFx && purchaseFlightRewards)} nonce={purchaseFx?.nonce} origin="center" />
       <div className="relative z-20 mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-3 pb-20 pt-40 sm:pt-32 md:px-6 md:pb-24 md:pt-24 xl:px-8">
         {!clientReady ? (
           <section className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(92,63,36,0.68),rgba(39,24,24,0.84)_38%,rgba(11,12,18,0.92)_74%)] p-4 shadow-[0_30px_80px_rgba(0,0,0,0.34)]" aria-busy="true">

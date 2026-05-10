@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import SceneBackdrop from "@/components/game/screens/SceneBackdrop";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
-import { RewardFlightOverlay } from "@/components/game/shared/RewardFlightOverlay";
+import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import { DAILY_MISSIONS, WEEKLY_MISSIONS } from "@/data/missions";
 import { sfx } from "@/lib/audio";
@@ -62,7 +62,7 @@ export default function MissionsPage() {
       <div className="pointer-events-none absolute inset-0 z-[1] opacity-[0.028] [background-image:linear-gradient(90deg,rgba(245,212,152,0.8)_1px,transparent_1px),linear-gradient(180deg,rgba(245,212,152,0.45)_1px,transparent_1px)] [background-size:72px_72px]" />
       <GameBackNav />
       <GameResourceBar resources={resources} size="sm" className="pointer-events-auto fixed right-3 top-3 z-40 max-w-[calc(100vw-9rem)] md:right-5 md:top-4 md:max-w-none" />
-      <RewardFlightOverlay rewards={claimFx?.rewards} active={Boolean(claimFx)} nonce={claimFx?.nonce} origin="center" />
+      <LazyRewardFlightOverlay rewards={claimFx?.rewards} active={Boolean(claimFx)} nonce={claimFx?.nonce} origin="center" />
       <div className="relative z-10 mx-auto flex w-full max-w-[1480px] flex-col gap-4">
         {!clientReady ? (
           <section className="relative overflow-hidden rounded-[28px] border border-[#f5d498]/12 bg-[linear-gradient(135deg,rgba(18,30,27,0.7),rgba(10,13,19,0.92)_48%,rgba(5,7,12,0.96)_100%)] p-3 shadow-[0_28px_74px_rgba(0,0,0,0.42)] md:rounded-[34px] md:p-4" aria-busy="true">
