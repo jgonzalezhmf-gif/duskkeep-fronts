@@ -74,6 +74,8 @@ Leer antes de:
 ### Seguridad y Servidor
 
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: fases objetivo de backend, operaciones sensibles y direccion Supabase.
+- `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para cuenta, recursos, progreso, compras, claims, combate y ledger.
+- `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`: contratos de operaciones sensibles que deben ejecutarse en servidor.
 - `docs/QUALITY_AND_RELEASE.md`: checklist de seguridad para el alpha presentable.
 
 Leer antes de:
@@ -83,6 +85,7 @@ Leer antes de:
 - anadir flujos de pago o premium
 - anadir ladder online o almacenamiento de cuenta
 - aceptar resultados de economia o batalla enviados por el cliente
+- disenar endpoints o funciones de servidor para rewards, compras o claims
 
 ### Rendimiento y Lanzamiento
 
@@ -102,7 +105,8 @@ Leer antes de:
 Estos son los siguientes puntos de documentacion que conviene mejorar:
 
 - Anadir un diseno de modelo de datos backend cuando empiece la pasada de persistencia.
-- Anadir un contrato de API antes de implementar rewards o compras autoritativas en servidor.
+- Convertir el modelo objetivo de backend en migraciones SQL reales cuando se inicie la implementacion.
+- Convertir los contratos de operaciones autoritativas en endpoints/API o funciones de servidor.
 - Anadir una checklist UX pantalla por pantalla cuando la direccion visual actual este estabilizada.
 - Anadir una guia ligera de troubleshooting para desarrollo local, validacion en navegador y problemas de assets.
 - Traducir a espanol documentos historicos que todavia mantengan secciones en ingles.

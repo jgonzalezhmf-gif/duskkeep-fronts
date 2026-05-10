@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.261] - 2026-05-10
+
+### Added
+- Aniadido `docs/BACKEND_DATA_MODEL.md` con el modelo objetivo de persistencia online segura: perfil, recursos, ledger, heroes, cartas, loadout, Adventure, claims, Shop, misiones, combate y Arena.
+- Aniadido `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` con contratos de operaciones autoritativas, idempotencia, errores tipados y transacciones atomicas.
+
+### Changed
+- Enlazados los nuevos documentos desde `README.md`, `docs/DOCUMENTATION_INDEX.md`, `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md` y `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
+- Traducido `supabase/README.md` y actualizado el encabezado de `supabase/schema.sql` para dejar claro que el schema actual es alpha y no autoritativo.
+
+### Tested
+- `npm.cmd run typecheck`
+- `git diff --check`
+- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase -g "!docs/skills/**"`
+
 ## [0.25.260] - 2026-05-10
 
 ### Changed

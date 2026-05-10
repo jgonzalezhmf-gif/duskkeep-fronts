@@ -24,6 +24,8 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 - `docs/GAMEPLAY_GUIDE.md`: loop jugable, pantallas y expectativas de gameplay.
 - `docs/QUALITY_AND_RELEASE.md`: checklist de lanzamiento, comandos de prueba, rutas de validacion rapida y gates de calidad.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: persistencia online, validacion backend y roadmap de seguridad.
+- `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para persistencia online segura.
+- `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`: contratos de operaciones que deben validarse en servidor.
 - `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: handoff detallado para futuras sesiones de implementacion.
 
 ## Arranque Rapido

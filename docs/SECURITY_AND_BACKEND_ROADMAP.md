@@ -67,7 +67,7 @@ El cliente puede renderizar previews y feedback local, pero el servidor decide s
 
 ## Modelo de Datos Objetivo
 
-Tablas minimas futuras:
+Ver `docs/BACKEND_DATA_MODEL.md` para el diseno detallado. Tablas minimas futuras:
 
 - `profiles`
 - `player_resources`
@@ -83,7 +83,7 @@ Tablas minimas futuras:
 
 ## Operaciones Sensibles
 
-Deben convertirse en operaciones de servidor/API:
+Ver `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` para contratos de request/response, idempotencia y errores. Deben convertirse en operaciones de servidor/API:
 
 - Conceder recompensas.
 - Gastar recursos.

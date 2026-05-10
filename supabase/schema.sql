@@ -1,6 +1,7 @@
--- Duskkeep Fronts alpha — reproducible schema.
--- Run:  supabase db reset  (or apply manually in your project).
--- Philosophy: small, boring tables. No fancy RLS in alpha.
+-- Duskkeep Fronts alpha - schema reproducible.
+-- Ejecutar: supabase db reset o aplicar manualmente en el proyecto.
+-- Filosofia actual: tablas simples para alpha. Antes de datos reales online,
+-- alinear con docs/BACKEND_DATA_MODEL.md y activar RLS/operaciones de servidor.
 
 create extension if not exists "pgcrypto";
 

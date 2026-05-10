@@ -22,6 +22,7 @@ Regla practica:
 - Si la tarea toca assets/iconos, leer `docs/ART_PIPELINE_CODEX.md`.
 - Si la tarea toca animacion, leer `docs/IMPECCABLE_ANIMATION_USAGE.md`.
 - Si la tarea toca recompensas reclamables, leer `docs/REWARD_VISIBILITY_RULES.md`.
+- Si la tarea toca backend, BBDD, persistencia online, economia segura o ladder, leer `docs/SECURITY_AND_BACKEND_ROADMAP.md`, `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
 
 ## Vision del Juego
 
