@@ -1,73 +1,73 @@
-# Security And Backend Roadmap
+# Roadmap de Seguridad y Servidor
 
-This document defines the target direction for secure online persistence and future connected features.
+Este documento define la direccion objetivo para persistencia online segura y futuras funcionalidades conectadas.
 
-## Current State
+## Estado Actual
 
-The alpha is offline-first:
+El alpha prioriza funcionamiento offline:
 
-- Player state is stored in localStorage through Zustand persist.
-- Supabase schema and SDK are present but not authoritative.
-- The game remains playable without network access.
+- El estado del jugador se guarda en `localStorage` mediante Zustand persist.
+- El schema y SDK de Supabase existen, pero no son autoritativos.
+- El juego sigue siendo jugable sin conexion.
 
-This is acceptable for alpha iteration, but not secure for online economy, ladder or monetized features.
+Esto es aceptable para iteracion alpha, pero no es seguro para economia online, ladder o funcionalidades monetizadas.
 
-## Security Principle
+## Principio de Seguridad
 
-The browser is not authoritative.
+El navegador no es autoritativo.
 
-Any future online version must treat client state as a requested action or cached view, not as trusted truth.
+Cualquier version online futura debe tratar el estado de cliente como una accion solicitada o una vista cacheada, no como verdad confiable.
 
-## Backend Responsibilities
+## Responsabilidades del Servidor
 
-The backend should validate and persist:
+El servidor debe validar y persistir:
 
-- Account profile and identity.
-- Resource balances.
-- Adventure progress.
-- Key chest claims and loot rolls.
-- Shop purchases.
-- Premium currency transactions.
-- Battle results.
-- Arena ladder submissions.
-- Daily/weekly reset state.
+- Perfil de cuenta e identidad.
+- Balances de recursos.
+- Progreso de Adventure.
+- Claims y loot rolls de key chests.
+- Compras de Shop.
+- Transacciones de moneda premium.
+- Resultados de batalla.
+- Subidas a ladder de Arena.
+- Estado de resets diarios/semanales.
 
-The client may render previews and local feedback, but the server decides whether sensitive actions are valid.
+El cliente puede renderizar previews y feedback local, pero el servidor decide si las acciones sensibles son validas.
 
-## Recommended Architecture
+## Arquitectura Recomendada
 
-### Phase 1: Backend design and schema hardening
+### Fase 1: Diseno de servidor y endurecimiento de schema
 
-- Update Supabase schema to cover current local state.
-- Add user ownership to player records.
-- Add row-level security policies.
-- Define server-side operations for economy-sensitive actions.
-- Keep localStorage fallback for development.
+- Actualizar schema Supabase para cubrir el estado local actual.
+- Anadir ownership de usuario a registros de jugador.
+- Anadir politicas Row Level Security (RLS).
+- Definir operaciones de servidor para acciones sensibles de economia.
+- Mantener fallback `localStorage` para desarrollo.
 
-### Phase 2: Authenticated persistence MVP
+### Fase 2: MVP de persistencia autenticada
 
-- Add login/auth.
-- Migrate local player snapshot into an authenticated account.
-- Save non-sensitive profile/progress online.
-- Keep battle execution client-side but persist results server-side after validation.
+- Anadir login/auth.
+- Migrar snapshot local del jugador a una cuenta autenticada.
+- Guardar perfil/progreso no sensible online.
+- Mantener ejecucion de combate en cliente, pero persistir resultados en servidor tras validacion.
 
-### Phase 3: Authoritative economy
+### Fase 3: Economia autoritativa
 
-- Move reward claims, shop purchases, key chest opens and premium purchases to backend functions.
-- Add idempotency keys for purchases and claims.
-- Add audit tables for resources and paid transactions.
-- Prevent duplicate claims by database constraints.
+- Mover claims de recompensas, compras de Shop, aperturas de key chest y compras premium a funciones de servidor.
+- Anadir claves de idempotencia para compras y claims.
+- Anadir tablas de auditoria para recursos y transacciones pagadas.
+- Prevenir claims duplicados con constraints de base de datos.
 
-### Phase 4: Competitive and monetized systems
+### Fase 4: Sistemas competitivos y monetizados
 
-- Validate arena results before ladder updates.
-- Store deterministic battle seeds and result summaries.
-- Add anti-tamper checks for impossible resource/progression changes.
-- Integrate payment provider webhooks server-side only.
+- Validar resultados de Arena antes de actualizar ladder.
+- Guardar seeds deterministas y resumenes de batalla.
+- Anadir checks anti-tamper para cambios imposibles de recursos/progreso.
+- Integrar webhooks de proveedor de pagos solo en servidor.
 
-## Data Model Targets
+## Modelo de Datos Objetivo
 
-Minimum future tables:
+Tablas minimas futuras:
 
 - `profiles`
 - `player_resources`
@@ -81,62 +81,62 @@ Minimum future tables:
 - `arena_ladder_snapshots`
 - `resource_ledger`
 
-## Sensitive Operations
+## Operaciones Sensibles
 
-These should become backend/API operations:
+Deben convertirse en operaciones de servidor/API:
 
-- Award rewards.
-- Spend resources.
-- Buy shop offer.
-- Open key chest.
-- Claim mission.
-- Claim daily login.
-- Record battle victory.
-- Submit arena result.
+- Conceder recompensas.
+- Gastar recursos.
+- Comprar oferta de Shop.
+- Abrir key chest.
+- Reclamar mission.
+- Reclamar login diario.
+- Registrar victoria de batalla.
+- Enviar resultado de Arena.
 
-Each operation should:
+Cada operacion debe:
 
-- Authenticate the user.
-- Check ownership.
-- Validate prerequisites.
-- Apply changes atomically.
-- Return the updated authoritative snapshot.
+- Autenticar al usuario.
+- Comprobar ownership.
+- Validar requisitos.
+- Aplicar cambios de forma atomica.
+- Devolver el snapshot autoritativo actualizado.
 
-## Supabase Guidance
+## Guia Supabase
 
-Supabase can be used for:
+Supabase puede usarse para:
 
 - Auth.
-- Postgres persistence.
-- Row-level security.
-- Edge Functions or RPC functions for validated actions.
+- Persistencia Postgres.
+- Row Level Security (RLS).
+- Edge Functions o RPC para acciones validadas.
 
-Do not expose service-role keys in the client. Use anon keys only with RLS, and route sensitive mutations through server-side code.
+No exponer service-role keys en cliente. Usar anon keys solo con RLS, y enrutar mutaciones sensibles mediante codigo de servidor.
 
-## Migration From LocalStorage
+## Migracion desde LocalStorage
 
-Migration should be explicit:
+La migracion debe ser explicita:
 
-1. User logs in.
-2. Client reads local snapshot.
-3. Backend validates snapshot shape and allowed ranges.
-4. Backend creates or updates online account.
-5. Client switches to online persistence.
-6. Local snapshot remains as backup until confirmed synced.
+1. El usuario inicia sesion.
+2. El cliente lee el snapshot local.
+3. El servidor valida shape y rangos permitidos.
+4. El servidor crea o actualiza la cuenta online.
+5. El cliente cambia a persistencia online.
+6. El snapshot local queda como backup hasta confirmar sincronizacion.
 
-## Risks To Avoid
+## Riesgos a Evitar
 
-- Client awarding premium currency directly.
-- Client deciding paid purchase success.
-- Client submitting arbitrary ladder scores.
-- Missing ownership filters on player rows.
-- Replaying the same claim request multiple times.
-- Storing secrets in `.env.local` and committing them.
+- Conceder moneda premium directamente desde cliente.
+- Dejar que el cliente decida exito de compras pagadas.
+- Enviar puntuaciones arbitrarias de ladder desde cliente.
+- Omitir filtros de ownership en filas de jugador.
+- Permitir replay del mismo claim varias veces.
+- Guardar secretos en `.env.local` y commitearlos.
 
-## Release Boundary
+## Limite de Lanzamiento
 
-For the current presentable alpha:
+Para el alpha presentable actual:
 
-- Offline-first is acceptable.
-- Online backend can remain documented and designed.
-- Monetization and ladder should not be presented as secure until backend validation exists.
+- Offline-first es aceptable.
+- El servidor online puede quedar documentado y disenado.
+- Monetizacion y ladder no deben presentarse como seguros hasta que exista validacion de servidor.

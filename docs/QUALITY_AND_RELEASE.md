@@ -1,19 +1,19 @@
-# Quality And Release Checklist
+# Checklist de Calidad y Lanzamiento
 
-This document defines the minimum quality bar for a presentable Duskkeep Fronts build.
+Este documento define el minimo de calidad para una build presentable de Duskkeep Fronts.
 
-## Release Goals
+## Objetivos de Lanzamiento
 
-- The alpha is playable from Home through Adventure, Combat and rewards.
-- Core screens load without runtime crashes.
-- The codebase has clear boundaries and documented systems.
-- Assets load through manifests or safe fallbacks.
-- Local persistence remains compatible.
-- Checks are green or blockers are explicitly documented.
+- El alpha es jugable desde Home hasta Adventure, Combat y recompensas.
+- Las pantallas principales cargan sin crashes runtime.
+- El codigo tiene limites claros y sistemas documentados.
+- Los assets cargan mediante manifests o fallbacks seguros.
+- La persistencia local sigue siendo compatible.
+- Los checks estan en verde o los bloqueos quedan documentados.
 
-## Required Commands
+## Comandos Requeridos
 
-Run before a release candidate:
+Ejecutar antes de una candidata a lanzamiento:
 
 ```powershell
 npm.cmd run check
@@ -21,11 +21,11 @@ npm.cmd run test
 npm.cmd run build
 ```
 
-If the environment blocks child process spawning with `spawn EPERM`, rerun outside the restricted shell and record the limitation.
+Si el entorno bloquea procesos hijos con `spawn EPERM`, repetir fuera del shell restringido y documentar la limitacion.
 
-## Browser Smoke Routes
+## Rutas de Validacion Rapida en Navegador
 
-Validate these routes:
+Validar estas rutas:
 
 - `/`
 - `/adventure`
@@ -40,74 +40,74 @@ Validate these routes:
 - `/arena`
 - `/events`
 
-For each route check:
+En cada ruta comprobar:
 
-- Page loads.
-- No critical console errors.
-- No 404 for registered assets.
-- No horizontal overflow.
-- Main CTA is visible.
-- Mobile layout is usable.
+- La pagina carga.
+- No hay errores criticos de consola.
+- No hay 404 en assets registrados.
+- No hay overflow horizontal.
+- El CTA principal es visible.
+- El layout mobile es usable.
 
-## Gameplay Scenarios
+## Escenarios de Gameplay
 
-Validate at least:
+Validar al menos:
 
-- Start an Adventure battle.
-- Return from pre-combat to Adventure.
-- Finish a battle and reach result screen.
-- Claim a reward.
-- Open a key chest if eligible.
-- Buy a normal shop item if resources allow.
-- Change Deck or Team selection without breaking Combat startup.
+- Iniciar una batalla desde Adventure.
+- Volver de pre-combate a Adventure.
+- Terminar una batalla y llegar a pantalla de resultado.
+- Reclamar una recompensa.
+- Abrir un key chest si se cumplen requisitos.
+- Comprar un item normal de Shop si hay recursos.
+- Cambiar seleccion de Deck o Team sin romper el inicio de Combat.
 
-## Code Quality Checklist
+## Checklist de Calidad de Codigo
 
-- TypeScript types are explicit for domain data.
-- Gameplay rules are not buried in JSX.
-- Economy mutations go through store actions or feature helpers.
-- Optional assets are registered in manifests.
-- Components reuse shared screen chrome, icons and reward UI.
-- No `Date.now()` or random values in React render paths.
-- No broad `any` unless isolated and justified.
-- No secrets or environment files committed.
+- Los tipos TypeScript son explicitos en datos de dominio.
+- Las reglas de gameplay no estan enterradas en JSX.
+- Las mutaciones de economia pasan por acciones de store o helpers de feature.
+- Los assets opcionales estan registrados en manifests.
+- Los componentes reutilizan chrome, iconos y UI de recompensas compartidos.
+- No hay `Date.now()` ni valores aleatorios en rutas de render React.
+- No hay `any` amplio salvo que este aislado y justificado.
+- No se commitean secretos ni archivos de entorno.
 
-## Performance Checklist
+## Checklist de Rendimiento
 
-- Avoid large animated blurs, box shadows and global particles.
-- Prefer CSS transforms and opacity for motion.
-- Respect reduced motion settings for decorative animation.
-- Keep background and sprite layers bounded.
-- Avoid loading assets for screens that are not visible where practical.
+- Evitar blurs animados grandes, `box-shadow` animado y particulas globales.
+- Preferir transforms y opacity para motion.
+- Respetar `prefers-reduced-motion` en animacion decorativa.
+- Mantener capas de fondo y sprites acotadas.
+- Evitar cargar assets de pantallas que no estan visibles cuando sea practico.
 
-## Accessibility And UX Checklist
+## Checklist de Accesibilidad y UX
 
-- Buttons and links have accessible names.
-- Images that are decorative use `alt=""` and `aria-hidden`.
-- Important state is conveyed by text plus visual treatment, not color alone.
-- Touch targets are large enough on mobile.
-- Keyboard focus should remain usable on menus and dialogs.
+- Botones y links tienen nombres accesibles.
+- Imagenes decorativas usan `alt=""` y `aria-hidden` cuando aplica.
+- El estado importante se comunica con texto y tratamiento visual, no solo color.
+- Los touch targets son suficientemente grandes en mobile.
+- El foco de teclado sigue siendo usable en menus y dialogos.
 
-## Security Checklist
+## Checklist de Seguridad
 
-Current alpha is local/offline. For any online release:
+El alpha actual es local/offline. Para cualquier release online:
 
-- Do not trust client-side resource balances.
-- Do not award premium currency purely on the client.
-- Do not accept battle/reward claims without server validation.
-- Do not expose service-role keys or private tokens to the browser.
-- Gate persistence by authenticated user ownership.
+- No confiar en balances de recursos del cliente.
+- No conceder moneda premium solo en cliente.
+- No aceptar claims de batalla/recompensa sin validacion de servidor.
+- No exponer service-role keys ni tokens privados al navegador.
+- Restringir persistencia por ownership de usuario autenticado.
 
-## Release Notes
+## Notas de Lanzamiento
 
-Each closed iteration must update:
+Cada iteracion cerrada debe actualizar:
 
 - `CHANGELOG.md`
 - `package.json`
 - `package-lock.json`
 
-Use:
+Usar:
 
-- Patch for fixes, docs and small polish.
-- Minor for visible systems, new flows or meaningful UX changes.
-- Major only for incompatible architecture or gameplay direction changes.
+- Patch para fixes, documentacion y polish pequeno.
+- Minor para sistemas visibles, flujos nuevos o cambios UX relevantes.
+- Major solo para cambios incompatibles de arquitectura o direccion de gameplay.

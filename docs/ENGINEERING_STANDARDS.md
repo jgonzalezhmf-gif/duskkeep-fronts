@@ -180,6 +180,14 @@ Documentacion pura o refactors aislados de dominio no necesitan validacion en na
 - Proporcionar fallback visual o glyph para assets opcionales.
 - Reportar problemas de alpha, checker o fondo visible en vez de forzar assets rotos.
 
+## Estandares de Documentacion
+
+- La documentacion versionada debe estar en espanol.
+- No hacer referencias a otros juegos, competidores o ejemplos externos en documentos subidos al repositorio.
+- Si hace falta explicar una inspiracion visual o mecanica, describirla de forma generica: "juego tactico por turnos", "mapa de campania", "apertura de recompensa", "tienda de juego".
+- No incluir contexto privado que no deba formar parte del repositorio.
+- Preferir terminos propios del proyecto: Home, Adventure, Frontline, Fortress, Deck, Shop, Missions, Arena y Events.
+
 ## Estandares de Lanzamiento
 
 Antes de una build presentable:
@@ -187,7 +195,7 @@ Antes de una build presentable:
 - `npm.cmd run check`
 - `npm.cmd run test`
 - `npm.cmd run build`
-- smoke test en navegador de rutas principales
+- validacion rapida en navegador de rutas principales
 - confirmar cero 404 en assets registrados
 - confirmar que no hay overflow horizontal en desktop/mobile
 - confirmar que funcionalidades futuras sensibles no se presentan como seguras si siguen siendo local-only

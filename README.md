@@ -1,9 +1,6 @@
 # Duskkeep Fronts
 
-Turn-based tactical fantasy game for **web + mobile**. The current alpha centers on
-Duskkeep Fronts: Home hub, Adventure flow, pre-combat, three-front card combat,
-Deck progression, Fortress, Market, Missions, Events and Arena. Runs fully offline
-on first boot; Supabase integration is prepared for a future persistence pass.
+Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actual se centra en Duskkeep Fronts: Home como hub, flujo de Adventure, pre-combate, combate de cartas en tres frentes, progresion de Deck, Fortress, Market, Missions, Events y Arena. Funciona offline en el primer arranque; la integracion con Supabase esta preparada para una futura pasada de persistencia.
 
 > Fuentes de referencia: `AGENTS.md`, `docs/DOCUMENTATION_INDEX.md`,
 > `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`, `docs/ARCHITECTURE.md`,
@@ -11,116 +8,131 @@ on first boot; Supabase integration is prepared for a future persistence pass.
 > `docs/QUALITY_AND_RELEASE.md` y `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
 
 ## Stack
-- **Next.js App Router** + TypeScript
-- **Tailwind CSS** (mobile-first, responsive game shell)
-- **Zustand** (persisted to `localStorage`)
-- **Zod** (installed for future schema validation)
-- **Vitest** (unit tests for engine + rng + rewards)
-- **Supabase SDK** ready (schema in `supabase/schema.sql`)
+
+- **Next.js App Router** + TypeScript.
+- **Tailwind CSS** para UI responsive y shell de juego.
+- **Zustand** persistido en `localStorage`.
+- **Zod** instalado para futura validacion de schemas.
+- **Vitest** para tests unitarios de motor, RNG y rewards.
+- **Supabase SDK** preparado, con schema en `supabase/schema.sql`.
 
 ## Documentacion
 
-- `docs/ARCHITECTURE.md`: capas del codigo, flujo de datos, limites y reglas de extension.
 - `docs/DOCUMENTATION_INDEX.md`: orden de lectura por area y huecos actuales de documentacion.
-- `docs/ENGINEERING_STANDARDS.md`: estandares de arquitectura, calidad, seguridad, rendimiento y release.
+- `docs/ARCHITECTURE.md`: capas del codigo, flujo de datos, limites y reglas de extension.
+- `docs/ENGINEERING_STANDARDS.md`: estandares de arquitectura, calidad, seguridad, rendimiento y lanzamiento.
 - `docs/GAMEPLAY_GUIDE.md`: loop jugable, pantallas y expectativas de gameplay.
-- `docs/QUALITY_AND_RELEASE.md`: checklist de release, comandos de test, rutas de smoke test y gates de calidad.
+- `docs/QUALITY_AND_RELEASE.md`: checklist de lanzamiento, comandos de prueba, rutas de validacion rapida y gates de calidad.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: persistencia online, validacion backend y roadmap de seguridad.
 - `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: handoff detallado para futuras sesiones de implementacion.
 
-## Quick start
+## Arranque Rapido
 
 ```bash
-npm install          # or pnpm i / yarn
+npm install
 cp .env.example .env.local
-npm run dev          # http://localhost:3000
+npm run dev
 ```
 
-Open the dev URL on your phone (same Wi-Fi) for mobile testing.
+La app quedara disponible en `http://localhost:3000`. Para pruebas en mobile, abrir la URL desde un dispositivo en la misma red.
 
-### Dev stability on Windows / OneDrive
-This repo now uses `webpack` by default for `npm run dev`. That is intentional.
+### Estabilidad en Windows / OneDrive
 
-`next dev` with Turbopack was producing corrupted `.next/dev/cache/turbopack`
-state in this environment, especially when:
-- the repo is inside OneDrive
-- more than one `next dev` process is running against the same repo
-- a stale dev server is still alive while another starts
+El repo usa `webpack` por defecto para `npm run dev`. Es intencionado.
 
-If dev mode gets into a bad state:
+`next dev` con Turbopack produjo estados corruptos en `.next/dev/cache/turbopack` en este entorno, especialmente cuando:
+
+- el repo esta dentro de OneDrive
+- hay mas de un proceso `next dev` contra el mismo repo
+- queda un servidor dev antiguo vivo mientras se arranca otro
+
+Si el modo dev entra en un estado incorrecto:
+
 ```bash
 npm run clean:next
 npm run dev
 ```
 
-If you explicitly want to test Turbopack again:
+Si se quiere probar Turbopack explicitamente:
+
 ```bash
 npm run dev:turbo
 ```
 
-Recommendation: keep only one local `next dev` process per repo at a time.
+Recomendacion: mantener un solo proceso local `next dev` por repo.
 
-### Other commands
+### Comandos
+
 ```bash
 npm run check        # lint + typecheck
 npm run check:full   # check + test + build
-npm run build        # production build
-npm run start        # serve production build
-npm run clean:next   # remove .next when dev cache gets corrupted
-npm run typecheck    # TS strict check, no emit
-npm run lint         # ESLint via Next.js
-npm run test         # run unit tests (battle engine, rng, rewards)
-npm run test:watch   # tests in watch mode
-npm run screenshots  # capture screens against an already running app
-npm run screenshots:auto # start local dev server and capture screens automatically
+npm run build        # build de produccion
+npm run start        # servir build de produccion
+npm run clean:next   # limpiar .next si se corrompe la cache dev
+npm run typecheck    # TypeScript sin emitir archivos
+npm run lint         # ESLint
+npm run test         # tests unitarios
+npm run test:watch   # tests en watch mode
+npm run screenshots  # capturas contra una app ya arrancada
+npm run screenshots:auto # arranca servidor local y captura pantallas
 ```
 
-### Screenshot automation
-The repo now includes Playwright-based screenshot capture for UI review.
+### Automatizacion de Capturas
 
-Default output:
+El repo incluye captura de pantallas con Playwright para revision visual.
+
+Salida por defecto:
+
 ```bash
 tmp/playwright-screenshots/<timestamp>/
 ```
 
-Typical usage:
+Uso habitual:
+
 ```bash
 npm run screenshots:auto
 ```
 
-That command will:
-1. build the app automatically if needed
-2. start the built app on `http://127.0.0.1:3004`
-3. wait for the server to be ready
-4. capture the main routes in `desktop` and `mobile`
-5. write a `manifest.json` with every generated file
+Ese comando:
 
-If you already have the app running, use:
+1. construye la app si hace falta
+2. arranca la build en `http://127.0.0.1:3004`
+3. espera a que el servidor este listo
+4. captura las rutas principales en desktop y mobile
+5. escribe un `manifest.json` con los archivos generados
+
+Si la app ya esta arrancada:
+
 ```bash
 $env:BASE_URL="http://127.0.0.1:3000"; npm run screenshots
 ```
 
-If Playwright fails on Windows with `spawn EPERM`, try forcing a system browser:
+Si Playwright falla en Windows con `spawn EPERM`, se puede forzar un navegador del sistema:
+
 ```powershell
 $env:PLAYWRIGHT_CHANNEL="msedge"; npm run screenshots:auto
 ```
 
-If you prefer Chrome:
+Para usar Chrome:
+
 ```powershell
 $env:PLAYWRIGHT_CHANNEL="chrome"; npm run screenshots:auto
 ```
 
-You can also point directly to a browser executable:
+Tambien se puede apuntar directamente al ejecutable:
+
 ```powershell
 $env:PLAYWRIGHT_EXECUTABLE_PATH="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"; npm run screenshots:auto
 ```
 
-To debug visually, run in headed mode:
+Para depurar visualmente en modo con ventana:
+
 ```powershell
 $env:PLAYWRIGHT_HEADLESS="0"; npm run screenshots:auto
 ```
 
-Captured scenarios currently include:
+Escenarios capturados actualmente:
+
 - `home`
 - `adventure-ch1`
 - `adventure-ch2`
@@ -132,12 +144,15 @@ Captured scenarios currently include:
 - `battle-pre`
 - `battle-live`
 
-### Verification flow
+## Flujo de Verificacion
+
+Para una validacion rapida:
+
 ```bash
 npm run check
 ```
 
-For release candidates, prefer:
+Para candidatas a lanzamiento:
 
 ```bash
 npm run check
@@ -145,104 +160,95 @@ npm run test
 npm run build
 ```
 
-Use `npm run check:full` when your environment allows child-process spawning for
-Vitest/esbuild and Next production build workers. In restricted sandboxes, tests
-or builds may fail with `spawn EPERM` even when the code is otherwise correct.
+Usar `npm run check:full` cuando el entorno permita procesos hijos de Vitest/esbuild y workers de build de Next. En sandboxes restringidos, tests o build pueden fallar con `spawn EPERM` aunque el codigo sea correcto.
 
-## What's implemented (alpha)
+## Implementado en el Alpha
 
-- **Home** with account level, XP bar, continue-adventure shortcut, and
-  navigation to all systems.
-- **Roster**: 14 heroes seeded with distinct actives + passives. Level up
-  with gold, star up with shards. Locked heroes visible with unlock
-  progress.
-- **Team builder**: 4-slot editor with power calculation and duplicate-swap
-  prevention.
-- **Adventure**: Chapter 1 with 12 progressive levels (last is a boss).
-  First-clear bonus rewards, gated unlocks, replayable.
-- **Battle engine**:
-  - Deterministic by seed (Mulberry32)
-  - Turn order by SPD
-  - Basic attacks + 1 active + 1 passive per hero
-  - Cooldowns, buffs, shields, stuns, AoE, lifesteal, thorns, regen, auras
-  - Emits a typed event stream (`battle_start`, `damage`, `heal`, …) that
-    the UI plays back
-- **VS AI** quick battle scaling with your team power.
-- **Arena** against pre-built opponent snapshots (4 difficulty tiers),
-  consumes a ticket per fight, awards gold/gems.
-- **Events**: 2 always-on rotating events with unique rewards.
-- **Missions**: 4 daily + 3 weekly, track progress across all game modes,
-  claimable rewards.
-- **Shop**: starter pack (free, one-time), gold/dust bundles, hero-shard
-  kits for late-game unlocks.
-- **Resources** (gold/dust/gems) and **account XP** fully wired end-to-end.
-- **Persistence**: Zustand + `localStorage`. Supabase is a drop-in backend.
-- **Mobile UX**: 480px max-width shell, bottom nav, safe-area padding,
-  touch-friendly hit targets.
-- **Tests**: deterministic battle simulation, RNG, rewards merging.
+- **Home** con nivel de cuenta, XP, acceso a continuar Adventure y navegacion a sistemas principales.
+- **Roster** con heroes, estados de desbloqueo, roles, rareza y progresion visual.
+- **Team builder** para revisar squad y paquete de combate.
+- **Adventure** con Chapter 1 activo, nodos, rutas, marcador de party, interacciones de mapa y Chapter 2 bloqueado para el alcance demo.
+- **Frontline Combat** como combate principal manual en tres frentes, con cartas, command, cores y resolucion de choque.
+- **Arena** basada en presets Frontline y tickets.
+- **Events** basados en operaciones Frontline y reglas diarias.
+- **Missions** con progreso diario/semanal y recompensas reclamables.
+- **Shop** con ofertas, recursos, feedback visual y Adventure Keys.
+- **Resources**: gold, dust, gems, tickets, Adventure Keys y account XP.
+- **Persistencia**: Zustand + `localStorage`; Supabase queda como futura capa backend.
+- **Mobile UX** con layout responsive, safe-area y targets tactiles.
+- **Tests** para simulacion determinista, RNG, recompensas y helpers criticos.
 
-## File layout
+## Estructura del Proyecto
 
-```
-app/                   # Next.js routes (all client components)
-  page.tsx             # home
-  roster/page.tsx
-  team/page.tsx
-  adventure/…
-  battle/page.tsx      # quick VS AI
-  arena/page.tsx
-  events/page.tsx
-  missions/page.tsx
-  shop/page.tsx
+```text
+app/                   # rutas Next.js y composicion de pantallas
 components/
-  ui/                  # Button, Card, BottomNav, TopBar, Notifications, Hydrator
-  game/                # HeroCard, BattleView
+  ui/                  # primitives reutilizables
+  game/                # componentes de juego y pantallas compuestas
 features/
-  battle/              # engine.ts, rewards.ts, types.ts
-data/                  # static seed: heroes, adventure, missions, events, shop, arena
-lib/                   # store (zustand), persistence, rng, types, constants, cn
-supabase/              # schema.sql, seed.sql, README
-tests/                 # battle.test.ts, rng.test.ts, rewards.test.ts
+  frontline/           # motor principal Frontline, datos y helpers
+  adventure/           # helpers de nodos, interacciones y recompensas Adventure
+  battle/              # motor legacy/auto-battle
+  tactical/            # prototipo tactico legacy
+data/                  # seed data de heroes, aventura, misiones, eventos, shop, arena
+lib/                   # store, persistencia, rng, tipos, manifests, constantes
+supabase/              # schema, seed y notas de backend futuro
+tests/                 # cobertura de motores, recompensas, rng y helpers
 ```
 
-## Resetting save data
+## Reset de Datos Locales
 
-- Open the app, DevTools → Application → Local Storage → delete key
-  `duskkeep-fronts:player:v1`, then refresh.
-- Or from the browser console:
-  ```js
-  useGameStore.getState().resetAll() // via the named import if exposed
-  localStorage.removeItem("duskkeep-fronts:player:v1"); location.reload();
-  ```
+Desde la app:
 
-## Enabling Supabase (optional)
+1. Abrir DevTools.
+2. Ir a Application.
+3. Abrir Local Storage.
+4. Borrar la clave `duskkeep-fronts:player:v1`.
+5. Refrescar la pagina.
 
-See `supabase/README.md`. The switch is flipped by
-`NEXT_PUBLIC_PERSISTENCE=supabase` in `.env.local`. The game falls back
-to local storage if credentials are missing.
+Desde consola del navegador:
 
-## TODO — prioritized
+```js
+localStorage.removeItem("duskkeep-fronts:player:v1");
+location.reload();
+```
 
-### P0 (to finish the alpha promise)
-1. Keep `npm run check`, `npm run test` and `npm run build` green.
-2. Finish Chapter 1 demo polish and keep Chapter 2 gated until content exists.
-3. Add route-level error boundaries and empty states.
-4. Prepare backend persistence design without making the client authoritative.
-5. Keep documentation current with gameplay, architecture and release state.
+## Supabase Opcional
+
+Ver `supabase/README.md`. El cambio de persistencia se activa con:
+
+```text
+NEXT_PUBLIC_PERSISTENCE=supabase
+```
+
+en `.env.local`. Si faltan credenciales, el juego debe seguir usando almacenamiento local.
+
+## TODO Priorizado
+
+### P0
+
+1. Mantener `npm run check`, `npm run test` y `npm run build` en verde.
+2. Terminar el pulido demo de Chapter 1 y mantener Chapter 2 bloqueado hasta tener contenido.
+3. Anadir boundaries de error por ruta y estados vacios.
+4. Preparar diseno de persistencia backend sin hacer autoritativo al cliente.
+5. Mantener documentacion actualizada con gameplay, arquitectura y estado de lanzamiento.
 
 ### P1
-6. Daily/weekly mission reset timers and event calendar rotation.
-7. Hero tiers/evolution and deeper shard usage.
-8. Server-side deterministic replays and result summaries.
-9. Proper analytics hook and feature flags.
-10. Supabase persistence MVP behind authenticated accounts.
+
+1. Timers de reset diario/semanal y rotacion de calendario de eventos.
+2. Tiers/evolucion de heroes y uso mas profundo de shards.
+3. Replays deterministas en servidor y resumenes de resultado.
+4. Hook de analitica y flags de funcionalidad.
+5. MVP de persistencia Supabase con cuentas autenticadas.
 
 ### P2
-11. Authoritative economy operations.
-12. Arena ladder and anti-tamper validation.
-13. Cosmetics, skins and premium shop flows.
-14. Push notifications.
-15. Social, clans and real-time PvP.
 
-## License
-Private — for alpha iteration.
+1. Operaciones de economia autoritativas.
+2. Ladder de Arena y validacion anti-tamper.
+3. Cosmeticos, skins y flujos de tienda premium.
+4. Notificaciones push.
+5. Social, clanes y PvP en tiempo real.
+
+## Licencia
+
+Privado para iteracion alpha.

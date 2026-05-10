@@ -1,120 +1,120 @@
-# Duskkeep Fronts Architecture
+# Arquitectura de Duskkeep Fronts
 
-This document describes the current alpha architecture and the rules that keep the codebase maintainable while the game grows.
+Este documento describe la arquitectura actual del alpha y las reglas que mantienen el codigo mantenible mientras el juego crece.
 
-## Goals
+## Objetivos
 
-- Keep the vertical slice playable while systems evolve.
-- Keep gameplay rules out of presentation components.
-- Keep visual assets behind manifests and safe fallbacks.
-- Keep local persistence working until the online backend is introduced.
-- Make the codebase easy to audit, test and extend.
+- Mantener jugable la vertical slice mientras evolucionan los sistemas.
+- Mantener las reglas de gameplay fuera de componentes de presentacion.
+- Mantener assets visuales detras de manifests y fallbacks seguros.
+- Mantener funcionando la persistencia local hasta introducir backend online.
+- Hacer que el codigo sea facil de auditar, probar y extender.
 
 ## Stack
 
-- Next.js App Router for routes and screen composition.
-- React client components for interactive game screens.
-- TypeScript for domain models and compile-time safety.
-- Tailwind CSS for responsive game UI.
-- Zustand persist for local alpha state.
-- Vitest for deterministic gameplay and reward tests.
-- Supabase SDK and schema skeleton for the future online persistence pass.
+- Next.js App Router para rutas y composicion de pantallas.
+- React client components para pantallas interactivas de juego.
+- TypeScript para modelos de dominio y seguridad de tipos.
+- Tailwind CSS para UI responsive de juego.
+- Zustand persist para estado local del alpha.
+- Vitest para tests deterministas de gameplay y rewards.
+- Supabase SDK y schema skeleton para la futura pasada de persistencia online.
 
-## Layer Boundaries
+## Limites Entre Capas
 
 ### `app/`
 
-Route entrypoints and high-level screen wiring. Route files should:
+Puntos de entrada de rutas y wiring de alto nivel. Los archivos de ruta deben:
 
-- Select data from the store.
-- Compose game components.
-- Trigger navigation.
-- Avoid embedding balance, economy or combat rules.
+- Seleccionar datos del store.
+- Componer componentes de juego.
+- Disparar navegacion.
+- Evitar incrustar reglas de balance, economia o combate.
 
 ### `components/`
 
-Reusable UI and game presentation. Components should:
+UI reutilizable y presentacion de juego. Los componentes deben:
 
-- Render state clearly.
-- Delegate calculations to `features/*`, `data/*` or `lib/*`.
-- Use shared icon, background, reward and asset components.
-- Avoid speculative asset URLs.
+- Renderizar estado de forma clara.
+- Delegar calculos a `features/*`, `data/*` o `lib/*`.
+- Usar componentes compartidos de iconos, fondos, rewards y assets.
+- Evitar URLs especulativas de assets.
 
 ### `features/`
 
-Domain systems and gameplay logic. This is where rules belong:
+Sistemas de dominio y logica de gameplay. Aqui deben vivir las reglas:
 
-- `features/frontline`: Duskkeep Fronts combat, cards, presets, hero profiles, fortress integration.
-- `features/adventure`: Adventure node resolution, progression, map interactions and rewards.
-- `features/battle` and `features/tactical`: legacy/prototype systems that should not grow unless explicitly revived.
+- `features/frontline`: combate Duskkeep Fronts, cartas, presets, perfiles de heroe e integracion con Fortress.
+- `features/adventure`: resolucion de nodos Adventure, progresion, interacciones de mapa y rewards.
+- `features/battle` y `features/tactical`: sistemas legacy/prototipo que no deben crecer salvo reactivacion explicita.
 
 ### `data/`
 
-Static seed data for alpha content:
+Seed data estatica del contenido alpha:
 
 - Heroes.
-- Adventure levels.
-- Shop offers.
+- Niveles de Adventure.
+- Ofertas de Shop.
 - Missions.
-- Fortress buildings.
-- Frontline presets and cards.
+- Edificios de Fortress.
+- Presets y cartas Frontline.
 
-Data files can define values and configuration, but behavior should still live in feature helpers.
+Los archivos de datos pueden definir valores y configuracion, pero el comportamiento debe vivir en helpers de feature.
 
 ### `lib/`
 
-Shared infrastructure:
+Infraestructura compartida:
 
-- Zustand store and persistence.
-- Shared types.
-- Reward visibility helpers.
-- Asset manifests.
-- I18n dictionaries.
-- RNG and constants.
+- Store Zustand y persistencia.
+- Tipos compartidos.
+- Helpers de visibilidad de rewards.
+- Manifests de assets.
+- Diccionarios i18n.
+- RNG y constantes.
 
-`lib/store.ts` is currently a large orchestrator. New rules should be extracted into feature helpers when they are not simple state transitions.
+`lib/store.ts` sigue siendo un orquestador amplio. Las nuevas reglas deben extraerse a helpers de feature cuando no sean simples transiciones de estado.
 
-## Data Flow
+## Flujo de Datos
 
-1. Static content is defined in `data/*` and feature-specific data files.
-2. Feature helpers derive gameplay state, rewards, unlocks and UI-ready summaries.
-3. `lib/store.ts` persists player state and calls feature helpers to mutate progress.
-4. Routes in `app/*` select state and compose screens.
-5. Components render visual state with shared assets and fallbacks.
+1. El contenido estatico se define en `data/*` y archivos especificos de feature.
+2. Los helpers de feature derivan estado de gameplay, rewards, desbloqueos y resumenes para UI.
+3. `lib/store.ts` persiste el estado del jugador y llama helpers de feature para mutar progreso.
+4. Las rutas en `app/*` seleccionan estado y componen pantallas.
+5. Los componentes renderizan estado visual con assets compartidos y fallbacks.
 
-## Persistence Strategy
+## Estrategia de Persistencia
 
-Current alpha:
+Alpha actual:
 
-- Zustand persist writes to `localStorage`.
-- The game is offline-first and playable without a backend.
-- `supabase/schema.sql` and `lib/persistence.ts` prepare the future backend direction.
+- Zustand persist escribe en `localStorage`.
+- El juego prioriza funcionamiento offline y funciona sin servidor.
+- `supabase/schema.sql` y `lib/persistence.ts` preparan la direccion backend futura.
 
-Future online mode:
+Modo online futuro:
 
-- Client state becomes a cache, not the authority.
-- Server-side functions validate economy-sensitive actions.
-- Battle results, rewards, purchases and ladder updates must be verified before persistence.
+- El estado de cliente sera cache, no autoridad.
+- Funciones de servidor validaran acciones sensibles de economia.
+- Resultados de batalla, rewards, compras y ladder deben verificarse antes de persistir.
 
-## Quality Principles
+## Principios de Calidad
 
-- Single responsibility: keep rules, data and presentation separated.
-- Open/closed: add new cards, nodes, rewards and assets through registries and manifests.
-- Dependency inversion: UI depends on typed helpers and interfaces, not raw storage or backend details.
-- Determinism: combat and reward systems should be testable with stable seeds where applicable.
-- Safe fallbacks: optional assets must degrade without 404s.
+- Responsabilidad unica: separar reglas, datos y presentacion.
+- Abierto/cerrado: anadir nuevas cartas, nodos, rewards y assets mediante registros y manifests.
+- Inversion de dependencias: la UI depende de helpers tipados e interfaces, no de storage o backend raw.
+- Determinismo: combate y rewards deben poder probarse con seeds estables cuando aplique.
+- Fallbacks seguros: los assets opcionales deben degradar sin 404.
 
-## Current Technical Risks
+## Riesgos Tecnicos Actuales
 
-- `lib/store.ts` is powerful but too broad; continue extracting domain helpers.
-- Some legacy systems still exist and should be isolated from the main Frontline flow.
-- Online persistence is not yet authoritative; do not treat client resources as secure.
-- The app is visually rich, so browser smoke tests and asset validation matter before release.
+- `lib/store.ts` es potente pero demasiado amplio; seguir extrayendo helpers de dominio.
+- Todavia existen sistemas legacy que deben aislarse del flujo principal Frontline.
+- La persistencia online aun no es autoritativa; no tratar recursos del cliente como seguros.
+- La app es visualmente rica, por lo que smoke tests en navegador y validacion de assets importan antes de release.
 
-## Extension Rules
+## Reglas de Extension
 
-- New gameplay rules go into `features/*`.
-- New visual assets go through manifests before UI usage.
-- New rewards must use `Rewards` helpers and shared reward UI.
-- New screens should reuse `ScreenScaffold`, `ScreenBackground`, `GameBackNav`, shared icons and reward tokens.
-- New persistence fields require migration defaults in the store.
+- Nuevas reglas de gameplay van en `features/*`.
+- Nuevos assets visuales pasan por manifests antes de usarse en UI.
+- Nuevos rewards deben usar helpers `Rewards` y UI compartida de rewards.
+- Nuevas pantallas deben reutilizar `ScreenScaffold`, `ScreenBackground`, `GameBackNav`, iconos compartidos y reward tokens.
+- Nuevos campos persistentes requieren defaults de migracion en el store.

@@ -1,139 +1,139 @@
-# Duskkeep Fronts Gameplay Guide
+# Guia de Gameplay de Duskkeep Fronts
 
-This guide explains the playable alpha loop and how a new player should understand the game.
+Esta guia explica el loop jugable del alpha y como deberia entender el juego un jugador nuevo.
 
-## Core Fantasy
+## Fantasia Principal
 
-Duskkeep Fronts is a dark fantasy tactical game about building a frontline squad, pushing through a campaign map, winning short card-driven battles and improving your account between runs.
+Duskkeep Fronts es un juego tactico de fantasia oscura sobre construir un escuadron de frontline, avanzar por un mapa de campania, ganar combates cortos basados en cartas y mejorar la cuenta entre partidas.
 
-## Main Loop
+## Loop Principal
 
-1. Start at Home.
-2. Enter Adventure and choose an available node.
-3. Review the mission briefing.
-4. Start battle.
-5. Win or lose a three-front tactical fight.
-6. Claim rewards.
-7. Improve heroes, cards, fortress or resources.
-8. Return to Adventure and push farther.
+1. Empezar en Home.
+2. Entrar en Adventure y elegir un nodo disponible.
+3. Revisar el briefing de mision.
+4. Iniciar combate.
+5. Ganar o perder un combate tactico de tres frentes.
+6. Reclamar recompensas.
+7. Mejorar heroes, cartas, fortress o recursos.
+8. Volver a Adventure y avanzar mas lejos.
 
 ## Home
 
-Home is the hub. It should be treated as the main navigation and status screen.
+Home es el hub principal. Debe tratarse como pantalla de navegacion y estado global.
 
-Use it to:
+Sirve para:
 
-- Continue Adventure.
-- Enter Deck, Team, Heroes, Shop, Fortress, Missions, Arena and Events.
-- Read overall account progress.
+- Continuar Adventure.
+- Entrar en Deck, Team, Heroes, Shop, Fortress, Missions, Arena y Events.
+- Consultar progreso general de cuenta.
 
 ## Adventure
 
-Adventure is the primary campaign path.
+Adventure es la campania principal.
 
-Current behavior:
+Comportamiento actual:
 
-- Chapter 1 is the active playable chapter.
-- Chapter 2 is visible but locked for the current demo scope.
-- Nodes can be battles, elites, bosses, chests or future interaction types.
-- The party marker shows current progression.
-- Key chests can require Adventure Keys and reset on their own cycle.
+- Chapter 1 es el capitulo jugable activo.
+- Chapter 2 es visible pero bloqueado para el alcance demo actual.
+- Los nodos pueden ser combates, elites, bosses, cofres o futuros tipos de interaccion.
+- El marcador del grupo muestra la progresion actual.
+- Los key chests pueden requerir Adventure Keys y reiniciarse por ciclo.
 
-Node expectations:
+Expectativas de nodos:
 
-- Battle nodes start normal Frontline combat.
-- Elite nodes should feel harder and pay better first-clear rewards.
-- Boss nodes close major progression beats.
-- Chest/interactions should not start combat.
-- Locked nodes cannot be played.
+- Los nodos battle inician combate Frontline normal.
+- Los nodos elite deben sentirse mas dificiles y dar mejores recompensas de primera victoria.
+- Los nodos boss cierran hitos importantes de progresion.
+- Los cofres/interacciones no deben iniciar combate.
+- Los nodos bloqueados no se pueden jugar.
 
 ## Frontline Combat
 
-Duskkeep Fronts combat uses:
+Duskkeep Fronts Combat usa:
 
-- Three lanes/fronts.
-- Ally and enemy core health.
-- Command as the battle resource.
-- Cards for orders, tactics, summons and other effects.
-- Clash resolution between fronts.
+- Tres lanes/frentes.
+- Vida de core aliado y enemigo.
+- Command como recurso de batalla.
+- Cartas para orders, tactics, summons y otros efectos.
+- Resolucion de choque entre frentes.
 
-The goal is to break the enemy core before your core falls.
+El objetivo es destruir el core enemigo antes de que caiga el core aliado.
 
 ## Deck
 
-Deck is where the player prepares the Frontline loadout.
+Deck es donde el jugador prepara el loadout Frontline.
 
-Use it to:
+Sirve para:
 
-- Pick a leader.
-- Assign three heroes.
-- Build an eight-card package.
-- Upgrade cards when progression allows.
+- Elegir lider.
+- Asignar tres heroes.
+- Construir un paquete de ocho cartas.
+- Mejorar cartas cuando la progresion lo permite.
 
-Deck changes should affect battle readiness, not hidden economy values.
+Los cambios de Deck deben afectar a preparacion de combate, no a valores ocultos de economia.
 
 ## Team / Heroes
 
-Team shows the current squad and battle package as a quick review.
+Team muestra el squad actual y el paquete de combate como revision rapida.
 
-Heroes/Roster shows the broader collection:
+Heroes/Roster muestra la coleccion completa:
 
-- Owned heroes.
-- Locked heroes.
-- Roles, rarity and progression.
-- Hero detail modal.
+- Heroes obtenidos.
+- Heroes bloqueados.
+- Roles, rareza y progresion.
+- Modal de detalle de heroe.
 
-Future work will deepen hero tiers, evolution and shard usage.
+Trabajo futuro: profundizar tiers, evolucion y uso de shards.
 
 ## Fortress
 
-Fortress is the management layer.
+Fortress es la capa de gestion.
 
-Current behavior:
+Comportamiento actual:
 
-- Upgrade buildings.
-- Assign garrison.
-- Resolve raids.
-- Collect defensive rewards.
+- Mejorar edificios.
+- Asignar garrison.
+- Resolver raids.
+- Recoger recompensas defensivas.
 
-It should feel like strategic upkeep, not a separate economy spreadsheet.
+Debe sentirse como mantenimiento estrategico, no como una hoja de calculo de economia.
 
 ## Shop
 
-Shop provides resource offers and future progression products.
+Shop proporciona ofertas de recursos y futuros productos de progresion.
 
-Important rule:
+Regla importante:
 
-- Shop UI may preview and purchase offers, but future paid or premium flows must be validated by a backend.
+- La UI de Shop puede previsualizar y comprar ofertas, pero flujos premium o pagados futuros deben validarse con backend.
 
 ## Missions
 
-Missions guide daily and weekly activity.
+Missions guia actividad diaria y semanal.
 
-They should:
+Debe:
 
-- Point players toward useful actions.
-- Show progress clearly.
-- Use reward feedback when claimed.
+- Dirigir al jugador hacia acciones utiles.
+- Mostrar progreso de forma clara.
+- Usar feedback de recompensas al reclamar.
 
-## Arena And Events
+## Arena y Events
 
-Arena and Events are Frontline-based side modes.
+Arena y Events son modos secundarios basados en Frontline.
 
-Current scope:
+Alcance actual:
 
-- Arena uses tickets and opponent presets.
-- Events use operation presets and daily reward rules.
+- Arena usa tickets y presets de oponentes.
+- Events usa presets de operaciones y reglas de recompensa diaria.
 
-Future scope:
+Alcance futuro:
 
-- Arena ladder.
-- Event modifiers.
-- Better reward reveals and rotation timing.
+- Ladder de Arena.
+- Modificadores de evento.
+- Mejores revelados de recompensas y timing de rotacion.
 
-## Player Guidance Rules
+## Reglas de Guia al Jugador
 
-- Important CTAs should be visible without long scrolling.
-- Reward state must be clear: first clear, replay, claimed, locked or ready.
-- Text should explain decisions, not repeat what icons and state already show.
-- Visual identity should stay dark fantasy and game-like across all screens.
+- Los CTAs importantes deben ser visibles sin scroll largo.
+- El estado de recompensa debe ser claro: primera victoria, repeticion, reclamada, bloqueada o lista.
+- El texto debe explicar decisiones, no repetir lo que ya comunican iconos y estado.
+- La identidad visual debe mantenerse como fantasia oscura y con sensacion de videojuego en todas las pantallas.

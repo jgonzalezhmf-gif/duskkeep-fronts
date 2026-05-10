@@ -87,7 +87,7 @@ Leer antes de:
 ### Rendimiento y Lanzamiento
 
 - `docs/PERFORMANCE_BASELINE.md`: presupuestos actuales, auditoria de assets y practicas de rendimiento.
-- `docs/QUALITY_AND_RELEASE.md`: checks de release, rutas de smoke test y gates de calidad.
+- `docs/QUALITY_AND_RELEASE.md`: checks de lanzamiento, rutas de validacion rapida y gates de calidad.
 
 Leer antes de:
 
@@ -113,4 +113,5 @@ Estos son los siguientes puntos de documentacion que conviene mejorar:
 - Mantener los documentos alineados con el codigo tras cada iteracion relevante.
 - Preferir actualizar documentos existentes antes que crear duplicados.
 - No incluir contexto privado del proyecto que no deba estar en el repositorio.
+- No mencionar otros juegos, competidores o referencias externas en documentacion versionada.
 - Si un documento describe un sistema futuro, marcarlo claramente como roadmap o arquitectura objetivo.

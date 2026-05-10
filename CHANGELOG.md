@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.259] - 2026-05-10
+
+### Changed
+- Traducidos al espanol `README.md`, `docs/ARCHITECTURE.md`, `docs/GAMEPLAY_GUIDE.md`, `docs/QUALITY_AND_RELEASE.md` y `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
+- Aniadida regla explicita para no incluir referencias a otros juegos, competidores o ejemplos externos en documentacion versionada.
+- Revisada la documentacion versionada principal para confirmar que no contiene referencias a juegos externos prohibidos.
+
+### Tested
+- `npm.cmd run typecheck`
+- `git diff --check`
+- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md -g "!docs/skills/**"`
+
 ## [0.25.258] - 2026-05-10
 
 ### Changed
