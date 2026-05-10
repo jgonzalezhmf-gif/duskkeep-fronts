@@ -50,7 +50,7 @@ export function HomeLandmarkAsset({
     >
       <span className="home-landmark-ground absolute left-1/2 top-[93%] -z-[1] h-[8%] w-[46%] -translate-x-1/2 rounded-full bg-black/20 blur-[5px]" />
       <picture className="block h-full w-full">
-        {asset.webpSrc ? <source srcSet={asset.webpSrc} type="image/webp" /> : null}
+        {asset.webpSrc ? <source srcSet={asset.webpSrcSet ?? asset.webpSrc} sizes={asset.sizes} type="image/webp" /> : null}
         <img
           src={asset.src}
           alt=""

@@ -73,7 +73,7 @@ export default function HomeScene({
               height: HOME_WORLD_BACKGROUND.height,
             }}
           >
-            {backgroundAsset.webpSrc ? <source srcSet={backgroundAsset.webpSrc} type="image/webp" /> : null}
+            {backgroundAsset.webpSrc ? <source srcSet={backgroundAsset.webpSrcSet ?? backgroundAsset.webpSrc} sizes={backgroundAsset.sizes} type="image/webp" /> : null}
             <img
               src={backgroundAsset.src}
               alt=""

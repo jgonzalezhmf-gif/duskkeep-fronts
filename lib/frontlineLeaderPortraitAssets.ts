@@ -12,11 +12,20 @@ export type FrontlineLeaderPortraitId =
 export type FrontlineLeaderPortraitAsset = {
   src: string;
   webpSrc?: string;
+  thumbnailWebpSrc?: string;
 };
 
 export const FRONTLINE_LEADER_PORTRAIT_ASSETS: Record<FrontlineLeaderPortraitId, FrontlineLeaderPortraitAsset> = {
-  leader_aurora: { src: "/assets/frontline/leaders/aurora_valeborn.png", webpSrc: "/assets/frontline/leaders/aurora_valeborn.webp" },
-  leader_morrow: { src: "/assets/frontline/leaders/morrow_blackveil.png", webpSrc: "/assets/frontline/leaders/morrow_blackveil.webp" },
+  leader_aurora: {
+    src: "/assets/frontline/leaders/aurora_valeborn.png",
+    webpSrc: "/assets/frontline/leaders/aurora_valeborn.webp",
+    thumbnailWebpSrc: "/assets/frontline/leaders/aurora_valeborn_128.webp",
+  },
+  leader_morrow: {
+    src: "/assets/frontline/leaders/morrow_blackveil.png",
+    webpSrc: "/assets/frontline/leaders/morrow_blackveil.webp",
+    thumbnailWebpSrc: "/assets/frontline/leaders/morrow_blackveil_128.webp",
+  },
   enemy_warlord: { src: "/assets/frontline/leaders/enemy_warlord.png", webpSrc: "/assets/frontline/leaders/enemy_warlord.webp" },
   enemy_cultist: { src: "/assets/frontline/leaders/enemy_cultist.png", webpSrc: "/assets/frontline/leaders/enemy_cultist.webp" },
   enemy_plague_lord: { src: "/assets/frontline/leaders/enemy_plague_lord.png", webpSrc: "/assets/frontline/leaders/enemy_plague_lord.webp" },

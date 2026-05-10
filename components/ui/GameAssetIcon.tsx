@@ -5,6 +5,7 @@ import GameGlyph from "@/components/ui/GameGlyph";
 import {
   GAME_ASSET_ICON_FALLBACK_GLYPH,
   getGameAssetIconSrc,
+  getGameAssetIconWebpSrc,
   type GameAssetIconCategory,
   type GameAssetIconName,
   type GameAssetIconSize,
@@ -41,19 +42,23 @@ export default function GameAssetIcon({
   fallbackClassName?: string;
 }) {
   const src = getGameAssetIconSrc(category, name);
+  const webpSrc = getGameAssetIconWebpSrc(category, name);
   const fallbackGlyph = GAME_ASSET_ICON_FALLBACK_GLYPH[name];
 
   return (
     <span className={cn("frontline-motion-icon relative inline-grid shrink-0 place-items-center overflow-visible", SIZE_CLASSES[size], className)}>
       {src ? (
-        <img
-          src={src}
-          alt={decorative ? "" : label ?? name}
-          aria-hidden={decorative ? "true" : undefined}
-          loading="lazy"
-          decoding="async"
-          className={cn("h-full w-full object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.34)]", imgClassName)}
-        />
+        <picture className="contents">
+          {webpSrc ? <source srcSet={webpSrc} type="image/webp" /> : null}
+          <img
+            src={src}
+            alt={decorative ? "" : label ?? name}
+            aria-hidden={decorative ? "true" : undefined}
+            loading="lazy"
+            decoding="async"
+            className={cn("h-full w-full object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.34)]", imgClassName)}
+          />
+        </picture>
       ) : (
         fallback ?? <GameGlyph kind={fallbackGlyph} shell="none" className={cn("h-full w-full", fallbackClassName)} />
       )}

@@ -13,6 +13,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 type PortraitAsset = {
   src: string;
   webpSrc?: string;
+  thumbnailWebpSrc?: string;
 };
 
 export function CommanderBanner({
@@ -50,7 +51,7 @@ export function CommanderBanner({
         <span className="absolute inset-[8%] rounded-[22px] bg-[radial-gradient(circle_at_50%_28%,rgba(255,213,122,0.46),transparent_62%)] blur-md" />
         {portrait ? (
           <picture className="relative z-[1] block h-[3.7rem] w-[3.7rem] overflow-hidden rounded-[18px]">
-            {portrait.webpSrc ? <source srcSet={portrait.webpSrc} type="image/webp" /> : null}
+            {portrait.webpSrc ? <source srcSet={portrait.thumbnailWebpSrc ?? portrait.webpSrc} type="image/webp" /> : null}
             <img
               src={portrait.src}
               alt=""

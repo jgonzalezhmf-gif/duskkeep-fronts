@@ -231,6 +231,37 @@ export const GAME_ICON_ASSET_MANIFEST = {
   },
 } as const satisfies Record<GameAssetIconCategory, Partial<Record<GameAssetIconName, string>>>;
 
+export const GAME_ICON_ASSET_WEBP_MANIFEST = {
+  resources: {
+    gold: `${RESOURCE_ROOT}/gold_96.webp`,
+    gems: `${RESOURCE_ROOT}/gems_96.webp`,
+    gem: `${RESOURCE_ROOT}/gems_96.webp`,
+    dust: `${RESOURCE_ROOT}/dust_96.webp`,
+    adventure_key: `${RESOURCE_ROOT}/adventure_key_96.webp`,
+  },
+  nav: {
+    deck: `${NAV_ROOT}/deck_96.webp`,
+    heroes: `${NAV_ROOT}/heroes_96.webp`,
+    quests: `${NAV_ROOT}/quests_96.webp`,
+    missions: `${NAV_ROOT}/quests_96.webp`,
+    team: `${NAV_ROOT}/team_96.webp`,
+    battle_pass: `${NAV_ROOT}/battle_pass_96.webp`,
+    pass: `${NAV_ROOT}/battle_pass_96.webp`,
+  },
+  progression: {
+    reward_chest: `${PROGRESSION_ROOT}/reward_chest_96.webp`,
+  },
+  modes: {
+    campaign: `${MODE_ROOT}/campaign_96.webp`,
+    daily_event: `${MODE_ROOT}/daily_event_96.webp`,
+  },
+  ui: {
+    settings: `${UI_ROOT}/settings_96.webp`,
+    sound_on: `${UI_ROOT}/sound_on_96.webp`,
+    sound_off: `${UI_ROOT}/sound_off_96.webp`,
+  },
+} as const satisfies Partial<Record<GameAssetIconCategory, Partial<Record<GameAssetIconName, string>>>>;
+
 export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind> = {
   gold: "gold",
   gems: "gem",
@@ -330,6 +361,12 @@ export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind
 export function getGameAssetIconSrc(category: GameAssetIconCategory, name: GameAssetIconName) {
   const categoryManifest = GAME_ICON_ASSET_MANIFEST[category] as Partial<Record<GameAssetIconName, string>>;
   return categoryManifest[name] ?? null;
+}
+
+export function getGameAssetIconWebpSrc(category: GameAssetIconCategory, name: GameAssetIconName) {
+  const manifest = GAME_ICON_ASSET_WEBP_MANIFEST as Partial<Record<GameAssetIconCategory, Partial<Record<GameAssetIconName, string>>>>;
+  const categoryManifest = manifest[category];
+  return categoryManifest?.[name] ?? null;
 }
 
 export function isResourceAssetIconName(name: string): name is ResourceAssetIconName {

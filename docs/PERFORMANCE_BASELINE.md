@@ -9,7 +9,7 @@ Este documento marca el inicio del bloque de rendimiento. No sustituye profiling
 - `npm.cmd run check:full` pasa de forma estable antes de iniciar este bloque.
 - La app usa Next.js App Router con rutas mayoritariamente estaticas y algunas rutas dinamicas para Battle, Adventure level y endpoints dev.
 - El mayor riesgo inmediato de peso no esta en codigo JS, sino en assets publicos grandes y en evitar que laminas fuente/raw entren en `public/assets`.
-- Tras mover raw/drafts, duplicados y efectos intermedios fuera de `public/assets`, y aniadir variantes WebP de Home/portraits con fallback PNG, la auditoria queda en 276 archivos y 107.48 MB.
+- Tras mover raw/drafts, duplicados y efectos intermedios fuera de `public/assets`, y aniadir variantes WebP de Home/portraits/iconos con fallback PNG, la auditoria queda en 300 archivos y 107.90 MB dentro del presupuesto actual.
 
 ## Assets Raw Movidos Fuera Del Proyecto
 
@@ -43,12 +43,15 @@ Se anadio `npm.cmd run audit:asset-refs` para listar candidatos sin referencias 
 
 Resultado de `npm.cmd run audit:assets`:
 
-- `public/assets`: 276 archivos.
-- Peso total: 107.48 MB.
+- `public/assets`: 300 archivos.
+- Peso total: 107.90 MB.
 - Los assets activos mas pesados son musica aprobada y landmarks/fondos registrados.
 - Home mantiene PNG fallback, pero Chrome/Lighthouse puede descargar las variantes WebP registradas para el fondo y los seis landmarks principales. Esas siete imagenes pasan de ~14.96 MiB en PNG a ~1.54 MiB en WebP transferible.
+- Home usa variantes responsive WebP para el fondo y los seis landmarks principales; Lighthouse puede seleccionar assets de 640px/1280px en lugar de descargar siempre las versiones WebP completas de 1024-1672px.
 - Los sprites/effects activos de Home tambien tienen WebP preferente mediante `image-set(...)`: flames, portal, crystal, crows, clouds, candles, lanterns y flags pasan de ~16.13 MiB en PNG a ~1.39 MiB en WebP transferible.
 - Los portraits de lideres Frontline pasan de ~10.82 MiB en PNG a ~1.06 MiB en WebP transferible; Home usa `<picture>` en la commander card.
+- La commander card de Home usa thumbnails WebP de 128px para retratos pequenos de lider, sin sustituir los portraits completos usados por pantallas grandes.
+- Los iconos pequenos senalados por Lighthouse (`settings`, sonido, recursos, navegacion, modos y reward chest) tienen variantes WebP de 96px registradas por manifest explicito.
 
 ## Script De Auditoria
 
@@ -87,10 +90,10 @@ npm.cmd run check:performance
 
 Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 
-- `.next/static`: 48 archivos, 2.32 MB.
+- `.next/static`: 48 archivos, 2.34 MB.
 - `.next/server/app`: 245 archivos, 0.84 MB.
 - Chunk estatico mayor: CSS de 342.5 KB.
-- Rutas HTML mas pesadas: `adventure.html` 31.5 KB, `arena.html` 31.1 KB, `_not-found.html` 29.1 KB, `team.html` 27.6 KB.
+- Rutas HTML mas pesadas: `adventure.html` 32.2 KB, `arena.html` 31.5 KB, `_not-found.html` 29.6 KB, `team.html` 27.9 KB.
 - `deck.html` queda en 24.9 KB tras renderizar una shell ligera hasta la hidratacion cliente; Deck depende de estado local persistido y no necesita prerenderizar todo el card pool/roster en HTML estatico.
 - `shop.html` queda en 26.2 KB tras renderizar una shell ligera hasta la hidratacion cliente; Shop depende de estado local persistido, stock diario y desbloqueo de Adventure Keys.
 - `roster.html` queda en 25.2 KB tras renderizar una shell ligera hasta la hidratacion cliente; Roster depende de ownership, filtros y detalle de heroes persistidos en cliente.

@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.256] - 2026-05-10
+
+### Changed
+- Aniadidas variantes WebP redimensionadas para los landmarks principales de Home y conectado `srcSet/sizes` para evitar descargar assets de 1024-1536px cuando se renderizan a tamanos pequenos.
+- Aniadidas variantes WebP pequenas para iconos de recursos, UI, navegacion, modos y `reward_chest`, registradas mediante manifest explicito sin rutas especulativas.
+- Aniadidos thumbnails WebP para portraits de lider en la commander card de Home, manteniendo los portraits completos para pantallas donde se muestran grandes.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:assets`
+- `npm.cmd run audit:asset-refs`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.255] - 2026-05-10
 
 ### Changed
