@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.252] - 2026-05-10
+
+### Changed
+- Diferida la atmosfera decorativa de Home hasta idle/timeout corto para priorizar el primer render del fondo y landmarks principales.
+- Conservado el modo QA de efectos con render inmediato para no romper herramientas de calibracion.
+
+### Tested
+- `npm.cmd run lint`
+- `npm.cmd run typecheck`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.251] - 2026-05-10
 
 ### Changed

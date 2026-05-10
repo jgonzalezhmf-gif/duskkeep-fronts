@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import type { HomeEffectsQaEditorState } from "@/components/game/home/HomeEffectsQaTypes";
 import { HomeLandmarkLayer, HomeWorldEffectLayer } from "@/components/game/home/HomeSceneLayers";
 import {
@@ -52,6 +54,8 @@ export default function HomeScene({
   const nearX = 0;
   const nearY = 0;
   const backgroundAsset = getHomeBackgroundAsset();
+  const deferAtmosphere = !qaEditor;
+  const atmosphereReady = useHomeAtmosphereReady(deferAtmosphere);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -84,7 +88,7 @@ export default function HomeScene({
         </>
       ) : null}
 
-      <HomeSkyAtmosphere />
+      {atmosphereReady ? <HomeSkyAtmosphere /> : null}
 
       {backgroundAsset ? null : (
       <>
@@ -265,10 +269,44 @@ export default function HomeScene({
 
       </>
       )}
-      <HomeWorldEffectLayer effects={worldEffects ?? HOME_WORLD_EFFECTS} qaEditor={qaEditor} />
-      <HomeLandmarkLayer activeZone={activeZone} nearX={nearX} nearY={nearY} effectsByLandmark={effectsByLandmark} qaEditor={qaEditor} />
+      {atmosphereReady ? <HomeWorldEffectLayer effects={worldEffects ?? HOME_WORLD_EFFECTS} qaEditor={qaEditor} /> : null}
+      <HomeLandmarkLayer activeZone={activeZone} nearX={nearX} nearY={nearY} effectsByLandmark={atmosphereReady ? effectsByLandmark : undefined} qaEditor={qaEditor} />
     </div>
   );
+}
+
+function useHomeAtmosphereReady(defer: boolean) {
+  const [ready, setReady] = useState(!defer);
+
+  useEffect(() => {
+    if (!defer) {
+      setReady(true);
+      return;
+    }
+
+    if (typeof window === "undefined") return;
+
+    let timeoutId = 0;
+    let idleId: number | null = null;
+    const activate = () => setReady(true);
+    const win = window as typeof window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    if (win.requestIdleCallback) {
+      idleId = win.requestIdleCallback(activate, { timeout: 900 });
+    } else {
+      timeoutId = window.setTimeout(activate, 420);
+    }
+
+    return () => {
+      if (idleId !== null && win.cancelIdleCallback) win.cancelIdleCallback(idleId);
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [defer]);
+
+  return ready;
 }
 
 function Cloud({

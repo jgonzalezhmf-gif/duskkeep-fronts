@@ -106,6 +106,7 @@ Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 - `RewardBurstOverlay` queda cargado mediante `LazyRewardBurstOverlay` en claims, raids y resultados; las pantallas normales no importan el burst visual completo hasta necesitarlo.
 - Los overlays de recompensa comparten `getRewardDisplayEntries`, evitando duplicacion en la normalizacion de rewards y dejando esa regla cubierta por tests unitarios.
 - Las animaciones frame-by-frame de `HomeEffectSprite` usan `transform: translate3d(...)` en lugar de `left`, reduciendo animaciones no compuestas en Home sin alterar offsets ni render modes.
+- Home difiere atmosfera decorativa y efectos hasta idle/timeout corto para que el primer render priorice background y landmarks principales. El modo `?qa=effects` mantiene render inmediato.
 
 ## Siguientes Focos
 
