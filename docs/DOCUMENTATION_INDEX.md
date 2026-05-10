@@ -1,115 +1,116 @@
-# Documentation Index
+# Indice de Documentacion
 
-This index is the recommended entry point for understanding and extending Duskkeep Fronts without depending on previous conversations.
+Este indice es el punto de entrada recomendado para entender y extender Duskkeep Fronts sin depender del historial de conversaciones.
 
-## Start Here
+## Lectura Inicial
 
-Read these documents first:
+Leer primero estos documentos:
 
-- `README.md`: project overview, commands and local development flow.
-- `AGENTS.md`: working rules for Codex and future implementation sessions.
-- `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: current functional state, decisions and continuity notes.
-- `docs/ARCHITECTURE.md`: codebase layers, boundaries, data flow and extension rules.
-- `docs/ENGINEERING_STANDARDS.md`: quality, security, performance and development standards for future work.
+- `README.md`: resumen del proyecto, comandos y flujo de desarrollo local.
+- `AGENTS.md`: reglas de trabajo para Codex y futuras sesiones de implementacion.
+- `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: estado funcional actual, decisiones y notas de continuidad.
+- `docs/ARCHITECTURE.md`: capas del codigo, limites, flujo de datos y reglas de extension.
+- `docs/ENGINEERING_STANDARDS.md`: estandares de calidad, seguridad, rendimiento y desarrollo para futuros cambios.
 
-## By Area
+## Por Area
 
-### Architecture And Code Organization
+### Arquitectura y Organizacion del Codigo
 
-- `docs/ARCHITECTURE.md`: current architecture, layer boundaries and known risks.
-- `docs/GAME_ARCHITECTURE_AND_VISUAL_SYSTEM.md`: broader game architecture and visual system direction.
-- `docs/ENGINEERING_STANDARDS.md`: practical rules for keeping changes small, safe and maintainable.
+- `docs/ARCHITECTURE.md`: arquitectura actual, limites entre capas y riesgos conocidos.
+- `docs/GAME_ARCHITECTURE_AND_VISUAL_SYSTEM.md`: direccion general de arquitectura de juego y sistema visual.
+- `docs/ENGINEERING_STANDARDS.md`: reglas practicas para mantener los cambios pequenos, seguros y mantenibles.
 
-Use these before:
+Leer antes de:
 
-- extracting large components
-- moving domain rules
-- adding new feature modules
-- changing shared UI primitives
-- adding persistence fields
+- extraer componentes grandes
+- mover reglas de dominio
+- anadir modulos nuevos de feature
+- cambiar primitives UI compartidas
+- anadir campos persistentes
 
-### Gameplay And Systems
+### Gameplay y Sistemas
 
-- `docs/GAMEPLAY_GUIDE.md`: player-facing game loop and screen expectations.
-- `docs/FRONTLINE_COMBAT_HANDOFF.md`: Frontline Combat behavior and integration notes.
-- `docs/FRONTLINE_PROGRESSION.md`: heroes, cards, unlocks and progression rules.
-- `docs/FRONTLINE_SYNERGIES.md`: planned and existing tactical synergy direction.
-- `docs/ADVENTURE_MAP_INTERACTIONS_BACKLOG.md`: planned Adventure map interactions and key chest ideas.
+- `docs/GAMEPLAY_GUIDE.md`: loop jugable y expectativas de cada pantalla.
+- `docs/FRONTLINE_COMBAT_HANDOFF.md`: comportamiento de Frontline Combat y notas de integracion.
+- `docs/FRONTLINE_PROGRESSION.md`: heroes, cartas, desbloqueos y reglas de progresion.
+- `docs/FRONTLINE_SYNERGIES.md`: direccion de sinergias tacticas existentes y planificadas.
+- `docs/ADVENTURE_MAP_INTERACTIONS_BACKLOG.md`: backlog de interacciones del mapa Adventure y cofres con llave.
 
-Use these before:
+Leer antes de:
 
-- changing Adventure node behavior
-- changing Combat or presets
-- changing Deck, heroes, cards or rewards
-- adding new mission/event/arena rules
+- cambiar comportamiento de nodos de Adventure
+- cambiar Combat o presets
+- cambiar Deck, heroes, cartas o rewards
+- anadir reglas nuevas de misiones, eventos o arena
 
-### Assets And Visual Cohesion
+### Recursos Visuales y Cohesion Visual
 
-- `docs/ART_PIPELINE_CODEX.md`: asset registration, paths and safe fallback rules.
-- `docs/GAME_ARCHITECTURE_AND_VISUAL_SYSTEM.md`: visual direction and shared UI language.
-- `docs/IMPECCABLE_ANIMATION_USAGE.md`: motion and animation guidelines.
-- `docs/ASSET_RIGHTS_NOTES.md`: asset usage notes.
+- `docs/ART_PIPELINE_CODEX.md`: registro de assets, rutas y reglas de fallback seguro.
+- `docs/GAME_ARCHITECTURE_AND_VISUAL_SYSTEM.md`: direccion visual y lenguaje UI compartido.
+- `docs/IMPECCABLE_ANIMATION_USAGE.md`: guias de motion y animacion.
+- `docs/ASSET_RIGHTS_NOTES.md`: notas sobre uso de assets.
 
-Use these before:
+Leer antes de:
 
-- adding PNG/WebP assets
-- replacing icons, portraits, card art, backgrounds or effects
-- adding new animation loops
-- touching Home, Adventure map or Combat visuals
+- anadir assets PNG/WebP
+- reemplazar iconos, portraits, card art, fondos o efectos
+- anadir nuevos loops de animacion
+- tocar visuales de Home, mapa Adventure o Combat
 
-### Rewards, Economy And Progression
+### Rewards, Economia y Progresion
 
-- `docs/REWARD_VISIBILITY_RULES.md`: when rewards should be visible, hidden, claimed or replay-reduced.
-- `docs/FRONTLINE_PROGRESSION.md`: card/hero progression and unlock expectations.
-- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: future authoritative handling of economy-sensitive actions.
+- `docs/REWARD_VISIBILITY_RULES.md`: cuando los rewards deben verse, ocultarse, quedar reclamados o mostrarse como replay reducido.
+- `docs/FRONTLINE_PROGRESSION.md`: expectativas de progresion de cartas/heroes y desbloqueos.
+- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: manejo futuro autoritativo de acciones sensibles de economia.
 
-Use these before:
+Leer antes de:
 
-- adding rewards
-- changing first-clear/replay behavior
-- changing key chest claims
-- changing shop offers
-- changing missions or daily rewards
+- anadir rewards
+- cambiar comportamiento first-clear/replay
+- cambiar claims de key chest
+- cambiar ofertas de tienda
+- cambiar misiones o rewards diarios
 
-### Security And Backend
+### Seguridad y Servidor
 
-- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: target backend phases, sensitive operations and Supabase direction.
-- `docs/QUALITY_AND_RELEASE.md`: security checklist for the presentable alpha.
+- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: fases objetivo de backend, operaciones sensibles y direccion Supabase.
+- `docs/QUALITY_AND_RELEASE.md`: checklist de seguridad para el alpha presentable.
 
-Use these before:
+Leer antes de:
 
-- adding authentication
-- moving persistence out of localStorage
-- adding paid/premium flows
-- adding online ladder or account storage
-- accepting any client-submitted economy or battle result
+- anadir autenticacion
+- mover persistencia fuera de localStorage
+- anadir flujos de pago o premium
+- anadir ladder online o almacenamiento de cuenta
+- aceptar resultados de economia o batalla enviados por el cliente
 
-### Performance And Release
+### Rendimiento y Lanzamiento
 
-- `docs/PERFORMANCE_BASELINE.md`: current budgets, asset audit status and performance practices.
-- `docs/QUALITY_AND_RELEASE.md`: release checks, browser smoke routes and quality gates.
+- `docs/PERFORMANCE_BASELINE.md`: presupuestos actuales, auditoria de assets y practicas de rendimiento.
+- `docs/QUALITY_AND_RELEASE.md`: checks de release, rutas de smoke test y gates de calidad.
 
-Use these before:
+Leer antes de:
 
-- adding large assets
-- adding global CSS or animation
-- changing bundle-loading behavior
-- preparing a release candidate
-- investigating Lighthouse regressions
+- anadir assets grandes
+- anadir CSS global o animaciones
+- cambiar comportamiento de carga de bundles
+- preparar una release candidate
+- investigar regresiones de Lighthouse
 
-## Current Documentation Gaps
+## Huecos Actuales de Documentacion
 
-These are the next documentation improvements to consider:
+Estos son los siguientes puntos de documentacion que conviene mejorar:
 
-- Add a backend data model design once the persistence pass starts.
-- Add an API contract document before implementing server-authoritative rewards or purchases.
-- Add a screen-by-screen UX acceptance checklist once the current visual direction stabilizes.
-- Add a lightweight troubleshooting guide for local development, browser validation and asset issues.
+- Anadir un diseno de modelo de datos backend cuando empiece la pasada de persistencia.
+- Anadir un contrato de API antes de implementar rewards o compras autoritativas en servidor.
+- Anadir una checklist UX pantalla por pantalla cuando la direccion visual actual este estabilizada.
+- Anadir una guia ligera de troubleshooting para desarrollo local, validacion en navegador y problemas de assets.
+- Traducir a espanol documentos historicos que todavia mantengan secciones en ingles.
 
-## Documentation Rules
+## Reglas de Documentacion
 
-- Do not document temporary experiments as final architecture.
-- Keep docs aligned with code after each meaningful iteration.
-- Prefer updating existing docs over creating duplicates.
-- Do not include private project context that is not intended for the repository.
-- If a doc describes a future system, clearly mark it as roadmap or target architecture.
+- No documentar experimentos temporales como arquitectura final.
+- Mantener los documentos alineados con el codigo tras cada iteracion relevante.
+- Preferir actualizar documentos existentes antes que crear duplicados.
+- No incluir contexto privado del proyecto que no deba estar en el repositorio.
+- Si un documento describe un sistema futuro, marcarlo claramente como roadmap o arquitectura objetivo.

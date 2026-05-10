@@ -1,120 +1,120 @@
-# Engineering Standards
+# Estandares de Ingenieria
 
-This document defines the practical engineering bar for future Duskkeep Fronts work. It is intentionally pragmatic: protect the playable alpha first, then improve structure, safety, performance and maintainability in small slices.
+Este documento define el nivel tecnico minimo para futuros cambios en Duskkeep Fronts. Es intencionadamente pragmatico: primero proteger el alpha jugable, despues mejorar estructura, seguridad, rendimiento y mantenibilidad en iteraciones pequenas.
 
-## Priorities
+## Prioridades
 
-1. Keep the alpha playable.
-2. Preserve local persistence compatibility.
-3. Keep gameplay, economy and reward rules deterministic and auditable.
-4. Keep visuals coherent without loading unnecessary assets.
-5. Prepare for backend authority without coupling the current offline alpha to a backend too early.
+1. Mantener el alpha jugable.
+2. Preservar compatibilidad con la persistencia local existente.
+3. Mantener reglas de gameplay, economia y rewards deterministas y auditables.
+4. Mantener una cohesion visual clara sin cargar assets innecesarios.
+5. Preparar el terreno para autoridad de backend sin acoplar demasiado pronto el alpha offline a un backend.
 
-## Architecture Standards
+## Estandares de Arquitectura
 
-### Layer Ownership
+### Responsabilidad por Capa
 
-- `app/*` owns routing and high-level screen composition.
-- `components/game/*` owns game presentation and screen UI.
-- `components/ui/*` owns reusable visual primitives.
-- `features/*` owns domain rules and gameplay helpers.
-- `data/*` owns seed content and static configuration.
-- `lib/*` owns store orchestration, persistence, shared types, manifests and utilities.
+- `app/*` gestiona rutas y composicion de alto nivel de pantallas.
+- `components/game/*` gestiona presentacion de juego y UI de pantallas.
+- `components/ui/*` gestiona primitives visuales reutilizables.
+- `features/*` gestiona reglas de dominio y helpers de gameplay.
+- `data/*` gestiona contenido seed y configuracion estatica.
+- `lib/*` gestiona store, persistencia, tipos compartidos, manifests y utilidades.
 
-### Rule Placement
+### Ubicacion de Reglas
 
-Put rules where they can be tested and reused:
+Las reglas deben vivir donde puedan probarse y reutilizarse:
 
-- Combat rules belong in `features/frontline/*`.
-- Adventure node and map interaction rules belong in `features/adventure/*`.
-- Reward visibility and reward normalization belong in shared helpers, not repeated JSX.
-- Economy mutations should go through store actions or feature helpers.
-- Static balance/configuration can live in `data/*`, but behavior should not be hidden in data files.
+- Las reglas de combate van en `features/frontline/*`.
+- Las reglas de nodos Adventure e interacciones de mapa van en `features/adventure/*`.
+- La visibilidad y normalizacion de rewards va en helpers compartidos, no repetida en JSX.
+- Las mutaciones de economia deben pasar por acciones de store o helpers de feature.
+- La configuracion estatica de balance puede vivir en `data/*`, pero el comportamiento no debe esconderse dentro de los datos.
 
-### Component Boundaries
+### Limites de Componentes
 
-Components should:
+Los componentes deben:
 
-- accept typed props
-- render state
-- call callbacks
-- use shared primitives for icons, rewards, backgrounds and panels
-- avoid duplicating game rules
+- aceptar props tipadas
+- renderizar estado
+- llamar callbacks
+- usar primitives compartidas para iconos, rewards, fondos y paneles
+- evitar duplicar reglas de juego
 
-Components should not:
+Los componentes no deben:
 
-- mutate economy directly
-- hardcode hidden balance values
-- generate speculative asset paths
-- contain large unrelated sub-systems
-- mix UI redesign, gameplay changes and persistence changes in one file pass
+- mutar economia directamente
+- hardcodear valores ocultos de balance
+- generar rutas especulativas de assets
+- contener subsistemas grandes no relacionados
+- mezclar rediseno UI, cambios de gameplay y cambios de persistencia en una misma pasada
 
-## SOLID, Applied Pragmatically
+## SOLID Aplicado de Forma Pragmatica
 
-- Single responsibility: one component/helper should have one clear reason to change.
-- Open/closed: add new assets, cards, nodes and rewards through manifests/configuration before changing rendering logic.
-- Liskov substitution: shared primitives should behave consistently across screens and not require screen-specific hacks.
-- Interface segregation: pass only the data a component needs; avoid broad store objects when selectors are enough.
-- Dependency inversion: UI should depend on typed helpers and manifests, not raw paths, backend details or storage internals.
+- Responsabilidad unica: un componente/helper debe tener una razon clara para cambiar.
+- Abierto/cerrado: nuevos assets, cartas, nodos y rewards deben anadirse mediante manifests/configuracion antes que cambiando logica de render.
+- Sustitucion de Liskov: las primitives compartidas deben comportarse igual entre pantallas y no requerir hacks especificos.
+- Segregacion de interfaces: pasar solo los datos necesarios; evitar objetos amplios del store cuando bastan selectores.
+- Inversion de dependencias: la UI debe depender de helpers tipados y manifests, no de rutas raw, detalles de backend o internals de storage.
 
-## Store And Persistence Standards
+## Estandares de Store y Persistencia
 
-Current persistence is local:
+La persistencia actual es local:
 
-- Zustand persist writes to `localStorage`.
-- Store migrations must provide safe defaults for new fields.
-- Existing snapshots should not be destructively reset during normal iteration.
-- New persistent data must be version-safe and tolerate missing fields.
+- Zustand persist escribe en `localStorage`.
+- Las migraciones de store deben proporcionar defaults seguros para campos nuevos.
+- Los snapshots existentes no deben resetearse destructivamente durante iteraciones normales.
+- Los nuevos datos persistentes deben tolerar campos ausentes y ser compatibles con versiones previas.
 
-Until backend authority exists:
+Hasta que exista autoridad de backend:
 
-- Do not present client-side balances as secure.
-- Do not rely on localStorage for anything monetized or competitive.
-- Keep economy-sensitive operations centralized so they can later move server-side.
+- No presentar balances del cliente como seguros.
+- No depender de `localStorage` para nada monetizado o competitivo.
+- Mantener centralizadas las operaciones sensibles de economia para poder moverlas despues a servidor.
 
-## Security Standards
+## Estandares de Seguridad
 
-The browser is not authoritative.
+El navegador no es autoritativo.
 
-For the current offline alpha:
+Para el alpha offline actual:
 
-- Never commit `.env`, `.env.local`, service keys, logs or dumps.
-- Keep `package.json` private.
-- Keep optional assets behind manifests to avoid 404 spam and path probing.
-- Validate external-facing inputs in API/dev endpoints.
-- Treat dev-only endpoints as local tooling, not production features.
+- Nunca commitear `.env`, `.env.local`, service keys, logs o dumps.
+- Mantener `package.json` como privado.
+- Mantener assets opcionales detras de manifests para evitar 404 y path probing.
+- Validar inputs expuestos en endpoints API/dev.
+- Tratar endpoints dev-only como herramientas locales, no como funcionalidades de produccion.
 
-For future online mode:
+Para el futuro modo online:
 
-- Authenticate users before persistence.
-- Enforce ownership server-side.
-- Validate rewards, purchases and battle results server-side.
-- Use idempotency keys for claims and purchases.
-- Record resource changes in an auditable ledger.
-- Keep service-role keys server-only.
+- Autenticar usuarios antes de persistir.
+- Verificar ownership en servidor.
+- Validar rewards, compras y resultados de batalla en servidor.
+- Usar claves de idempotencia para claims y compras.
+- Registrar cambios de recursos en un ledger auditable.
+- Mantener service-role keys solo en servidor.
 
-## Performance Standards
+## Estandares de Rendimiento
 
-### Assets
+### Recursos Visuales
 
-- Keep raw/source sheets outside `public/assets`.
-- Register runtime assets through manifests.
-- Prefer WebP/AVIF variants for browser delivery when possible.
-- Use responsive variants for images displayed small.
-- Keep PNG fallbacks only when needed.
-- Do not add large assets without checking `npm.cmd run audit:assets`.
+- Mantener laminas fuente/raw fuera de `public/assets`.
+- Registrar assets de runtime mediante manifests.
+- Preferir variantes WebP/AVIF para entrega en navegador cuando sea posible.
+- Usar variantes responsive para imagenes que se muestran pequenas.
+- Mantener fallbacks PNG solo cuando sean necesarios.
+- No anadir assets grandes sin revisar `npm.cmd run audit:assets`.
 
-### Rendering
+### Renderizado
 
-- Prefer `transform` and `opacity` for motion.
-- Avoid animating `left`, `top`, `width`, `height`, `box-shadow`, large blurs or border colors.
-- Respect `prefers-reduced-motion` for decorative animation.
-- Lazy-load overlays, editors and heavy panels that are not needed at first paint.
-- Do not import Combat or QA editors into hub/list screens unless needed.
+- Preferir `transform` y `opacity` para motion.
+- Evitar animar `left`, `top`, `width`, `height`, `box-shadow`, blurs grandes o colores de borde.
+- Respetar `prefers-reduced-motion` en animaciones decorativas.
+- Cargar de forma diferida overlays, editores y paneles pesados que no sean necesarios en el primer pintado.
+- No importar Combat o editores QA en hubs/listados salvo que sea necesario.
 
-### Budgets
+### Presupuestos
 
-Use:
+Usar:
 
 ```powershell
 npm.cmd run audit:assets
@@ -122,24 +122,24 @@ npm.cmd run audit:build
 npm.cmd run check:performance
 ```
 
-Current budget checks are intentionally simple and should remain green:
+Los checks actuales de presupuesto son simples de forma intencionada y deben mantenerse verdes:
 
-- public assets total
-- `.next/static` size
-- `.next/server/app` size
-- largest prerendered route HTML
+- peso total de public assets
+- tamano de `.next/static`
+- tamano de `.next/server/app`
+- HTML prerenderizado mas pesado
 
-## Quality Standards
+## Estandares de Calidad
 
-Before closing a meaningful iteration:
+Antes de cerrar una iteracion relevante:
 
-- run the smallest useful validation early
-- run broader checks before commit if app code changed
-- update `CHANGELOG.md`
-- bump `package.json` and `package-lock.json`
-- keep commits narrow and reviewable
+- ejecutar pronto la validacion mas pequena util
+- ejecutar checks mas amplios antes del commit si se ha tocado codigo de app
+- actualizar `CHANGELOG.md`
+- subir version en `package.json` y `package-lock.json`
+- mantener commits acotados y revisables
 
-Recommended commands:
+Comandos recomendados:
 
 ```powershell
 npm.cmd run typecheck
@@ -149,69 +149,69 @@ npm.cmd run build
 npm.cmd run check:full
 ```
 
-Use `check:full` for closed app-code iterations when the environment supports it.
+Usar `check:full` para iteraciones cerradas de codigo de app cuando el entorno lo permita.
 
-## Testing Standards
+## Estandares de Pruebas
 
-Add or preserve tests for:
+Anadir o preservar tests para:
 
-- deterministic combat behavior
-- reward claiming and replay policies
-- key chest claim rules
-- store migrations and persistence-sensitive helpers
-- extracted pure domain helpers
+- comportamiento determinista de combate
+- politicas de claim de rewards y replay
+- reglas de key chest
+- migraciones de store y helpers sensibles de persistencia
+- helpers puros de dominio extraidos
 
-Browser validation should be used for:
+La validacion en navegador debe usarse para:
 
-- visual changes
-- navigation changes
-- responsive layout changes
-- asset integration
-- reward/claim flows
+- cambios visuales
+- cambios de navegacion
+- cambios responsive
+- integracion de assets
+- flujos de reward/claim
 
-Pure documentation or isolated domain refactors do not need browser validation unless risk is high.
+Documentacion pura o refactors aislados de dominio no necesitan validacion en navegador salvo que el riesgo sea alto.
 
-## Asset Standards
+## Estandares de Recursos Visuales
 
-- Use `lib/iconAssets.ts` for shared game icons.
-- Use screen/feature manifests for backgrounds, portraits, card art, effects and props.
-- Do not construct public URLs from arbitrary ids.
-- Do not request future assets that are not present.
-- Provide a fallback visual or glyph for optional assets.
-- Report bad alpha/checker/fondo issues rather than forcing broken assets.
+- Usar `lib/iconAssets.ts` para iconos compartidos del juego.
+- Usar manifests de pantalla/feature para fondos, portraits, card art, efectos y props.
+- No construir URLs publicas desde ids arbitrarios.
+- No pedir assets futuros que no existen.
+- Proporcionar fallback visual o glyph para assets opcionales.
+- Reportar problemas de alpha, checker o fondo visible en vez de forzar assets rotos.
 
-## Release Standards
+## Estandares de Lanzamiento
 
-Before a presentable build:
+Antes de una build presentable:
 
 - `npm.cmd run check`
 - `npm.cmd run test`
 - `npm.cmd run build`
-- browser smoke test major routes
-- confirm no 404 for registered assets
-- confirm no horizontal overflow on desktop/mobile
-- confirm sensitive future features are not represented as secure if still local-only
+- smoke test en navegador de rutas principales
+- confirmar cero 404 en assets registrados
+- confirmar que no hay overflow horizontal en desktop/mobile
+- confirmar que funcionalidades futuras sensibles no se presentan como seguras si siguen siendo local-only
 
-## Refactor Standards
+## Estandares de Refactor
 
-Refactor in safe slices:
+Refactorizar en slices seguros:
 
-- Extract pure helpers before moving behavior.
-- Preserve public component APIs unless the change is intentional.
-- Avoid broad renames.
-- Avoid creating many tiny files without a clear boundary.
-- Prefer feature-level modules over dumping everything into `lib`.
-- Stop if unrelated user changes conflict with the current task.
+- Extraer helpers puros antes de mover comportamiento.
+- Preservar APIs publicas de componentes salvo cambio intencional.
+- Evitar renombres amplios.
+- Evitar crear muchos archivos pequenos sin un limite claro.
+- Preferir modulos por feature antes que volcar todo en `lib`.
+- Parar si cambios no relacionados del usuario entran en conflicto con la tarea actual.
 
-## Backend Readiness Standards
+## Preparacion para Servidor
 
-When backend work begins, use this order:
+Cuando empiece el trabajo de backend, seguir este orden:
 
-1. Document target schema and server operations.
-2. Add validation contracts.
-3. Add authenticated persistence for low-risk profile/progress data.
-4. Move reward claims and purchases server-side.
-5. Add resource ledger and idempotency.
-6. Add competitive/monetized flows only after authority exists.
+1. Documentar schema objetivo y operaciones de servidor.
+2. Anadir contratos de validacion.
+3. Anadir persistencia autenticada para datos de bajo riesgo de perfil/progreso.
+4. Mover claims de rewards y compras a servidor.
+5. Anadir ledger de recursos e idempotencia.
+6. Anadir flujos competitivos o monetizados solo cuando exista autoridad real.
 
-Do not bolt payments, ladder or premium economy directly onto client-owned state.
+No acoplar pagos, ladder o economia premium directamente a estado controlado por cliente.

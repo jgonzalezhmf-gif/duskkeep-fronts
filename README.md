@@ -5,10 +5,10 @@ Duskkeep Fronts: Home hub, Adventure flow, pre-combat, three-front card combat,
 Deck progression, Fortress, Market, Missions, Events and Arena. Runs fully offline
 on first boot; Supabase integration is prepared for a future persistence pass.
 
-> Source of truth: `AGENTS.md`, `docs/DOCUMENTATION_INDEX.md`,
+> Fuentes de referencia: `AGENTS.md`, `docs/DOCUMENTATION_INDEX.md`,
 > `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`, `docs/ARCHITECTURE.md`,
 > `docs/ENGINEERING_STANDARDS.md`, `docs/GAMEPLAY_GUIDE.md`,
-> `docs/QUALITY_AND_RELEASE.md` and `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
+> `docs/QUALITY_AND_RELEASE.md` y `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
 
 ## Stack
 - **Next.js App Router** + TypeScript
@@ -18,15 +18,15 @@ on first boot; Supabase integration is prepared for a future persistence pass.
 - **Vitest** (unit tests for engine + rng + rewards)
 - **Supabase SDK** ready (schema in `supabase/schema.sql`)
 
-## Documentation
+## Documentacion
 
-- `docs/ARCHITECTURE.md`: codebase layers, data flow, boundaries and extension rules.
-- `docs/DOCUMENTATION_INDEX.md`: reading order by area and current documentation gaps.
-- `docs/ENGINEERING_STANDARDS.md`: architecture, quality, security, performance and release standards.
-- `docs/GAMEPLAY_GUIDE.md`: player-facing loop, screens and gameplay expectations.
-- `docs/QUALITY_AND_RELEASE.md`: release checklist, test commands, browser smoke routes and quality gates.
-- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: online persistence, backend validation and security roadmap.
-- `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: detailed continuation handoff for future implementation sessions.
+- `docs/ARCHITECTURE.md`: capas del codigo, flujo de datos, limites y reglas de extension.
+- `docs/DOCUMENTATION_INDEX.md`: orden de lectura por area y huecos actuales de documentacion.
+- `docs/ENGINEERING_STANDARDS.md`: estandares de arquitectura, calidad, seguridad, rendimiento y release.
+- `docs/GAMEPLAY_GUIDE.md`: loop jugable, pantallas y expectativas de gameplay.
+- `docs/QUALITY_AND_RELEASE.md`: checklist de release, comandos de test, rutas de smoke test y gates de calidad.
+- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: persistencia online, validacion backend y roadmap de seguridad.
+- `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: handoff detallado para futuras sesiones de implementacion.
 
 ## Quick start
 

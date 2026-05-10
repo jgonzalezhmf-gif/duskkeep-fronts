@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.258] - 2026-05-10
+
+### Changed
+- Traducidos al espanol `docs/DOCUMENTATION_INDEX.md` y `docs/ENGINEERING_STANDARDS.md`.
+- Ajustadas las referencias documentales del `README.md` para que la seccion de documentacion quede en espanol.
+
+### Tested
+- `npm.cmd run typecheck`
+- `git diff --check`
+
 ## [0.25.257] - 2026-05-10
 
 ### Added
