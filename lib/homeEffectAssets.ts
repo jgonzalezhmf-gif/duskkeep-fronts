@@ -25,10 +25,13 @@ export type HomeEffectRenderMode = "animated" | "staticFirstFrame" | "staticWith
 
 type HomeEffectAsset = {
   src: string;
+  webpSrc?: string;
   expectedFile: string;
   frameCount: number;
   staticSrc?: string;
+  staticWebpSrc?: string;
   animatedSrc?: string;
+  animatedWebpSrc?: string;
   anchor: {
     name: HomeEffectAnchorName;
     xPercent: number;
@@ -42,6 +45,7 @@ type HomeEffectAsset = {
 export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> = {
   flame_loop: {
     src: "/assets/home/effects/flame_loop.png",
+    webpSrc: "/assets/home/effects/flame_loop.webp",
     expectedFile: "flame_loop.png",
     frameCount: 6,
     anchor: { name: "bottom-center", xPercent: 50, yPercent: 100 },
@@ -52,13 +56,16 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
     expectedFile: "flag_red_loop.png",
     frameCount: 5,
     staticSrc: "/assets/home/effects/flag_red_pole.png",
+    staticWebpSrc: "/assets/home/effects/flag_red_pole.webp",
     animatedSrc: "/assets/home/effects/flag_red_cloth_loop.png",
+    animatedWebpSrc: "/assets/home/effects/flag_red_cloth_loop.webp",
     anchor: { name: "pole-bottom", xPercent: 50, yPercent: 100 },
     renderMode: "animated",
     pipelineNote: "Layered pole + cloth loop. Keeps pole visually stable.",
   },
   portal_blue_loop: {
     src: "/assets/home/effects/portal_blue_loop.png",
+    webpSrc: "/assets/home/effects/portal_blue_loop.webp",
     expectedFile: "portal_blue_loop.png",
     frameCount: 6,
     anchor: { name: "center", xPercent: 50, yPercent: 50 },
@@ -66,6 +73,7 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
   },
   crystal_purple_loop: {
     src: "/assets/home/effects/crystal_purple_loop.png",
+    webpSrc: "/assets/home/effects/crystal_purple_loop.webp",
     expectedFile: "crystal_purple_loop.png",
     frameCount: 6,
     anchor: { name: "bottom-center", xPercent: 50, yPercent: 100 },
@@ -76,6 +84,7 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
     expectedFile: "blue_flame_loop.png",
     frameCount: 6,
     animatedSrc: "/assets/home/effects/blue_flame_loop_aligned.png",
+    animatedWebpSrc: "/assets/home/effects/blue_flame_loop_aligned.webp",
     anchor: { name: "bottom-center", xPercent: 50, yPercent: 100 },
     renderMode: "animated",
     pipelineNote: "Uses a normalized spritesheet.",
@@ -85,12 +94,14 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
     expectedFile: "purple_flame_loop.png",
     frameCount: 6,
     animatedSrc: "/assets/home/effects/purple_flame_loop_base_aligned.png",
+    animatedWebpSrc: "/assets/home/effects/purple_flame_loop_base_aligned.webp",
     anchor: { name: "bottom-center", xPercent: 50, yPercent: 100 },
     renderMode: "animated",
     pipelineNote: "Uses a normalized spritesheet.",
   },
   lantern_warm_loop: {
     src: "/assets/home/effects/lantern_warm_loop.png",
+    webpSrc: "/assets/home/effects/lantern_warm_loop.webp",
     expectedFile: "lantern_warm_loop.png",
     frameCount: 6,
     anchor: { name: "center", xPercent: 50, yPercent: 50 },
@@ -99,6 +110,7 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
   },
   candle_loop: {
     src: "/assets/home/effects/candle_loop.png",
+    webpSrc: "/assets/home/effects/candle_loop.webp",
     expectedFile: "candle_loop.png",
     frameCount: 6,
     anchor: { name: "bottom-center", xPercent: 50, yPercent: 100 },
@@ -110,13 +122,16 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
     expectedFile: "banner_red_loop.png",
     frameCount: 5,
     staticSrc: "/assets/home/effects/flag_red_pole.png",
+    staticWebpSrc: "/assets/home/effects/flag_red_pole.webp",
     animatedSrc: "/assets/home/effects/flag_red_cloth_loop.png",
+    animatedWebpSrc: "/assets/home/effects/flag_red_cloth_loop.webp",
     anchor: { name: "pole-bottom", xPercent: 50, yPercent: 100 },
     renderMode: "animated",
     pipelineNote: "Uses the stable layered red-flag pipeline because banner_red_loop contains painted background and drifts when used directly.",
   },
   crow_fly_loop: {
     src: "/assets/home/effects/crow_fly_loop.png",
+    webpSrc: "/assets/home/effects/crow_fly_loop.webp",
     expectedFile: "crow_fly_loop.png",
     frameCount: 6,
     anchor: { name: "center", xPercent: 50, yPercent: 50 },
@@ -125,6 +140,7 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
   },
   clouds_dark_layer: {
     src: "/assets/home/effects/clouds_dark_layer.png",
+    webpSrc: "/assets/home/effects/clouds_dark_layer.webp",
     expectedFile: "clouds_dark_layer.png",
     frameCount: 1,
     anchor: { name: "center", xPercent: 50, yPercent: 50 },

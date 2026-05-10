@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.250] - 2026-05-10
+
+### Changed
+- Aniadidas variantes WebP para los sprites/effects activos de Home, incluyendo flames, portal, crystal, crows, clouds, candles, lanterns y flags.
+- Actualizado `HomeEffectSprite` para usar `image-set(...)` con WebP preferente y PNG fallback, manteniendo calibracion y render modes existentes.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run audit:asset-refs`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:assets`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.249] - 2026-05-10
 
 ### Changed

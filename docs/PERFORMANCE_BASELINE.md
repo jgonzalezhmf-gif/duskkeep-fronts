@@ -9,7 +9,7 @@ Este documento marca el inicio del bloque de rendimiento. No sustituye profiling
 - `npm.cmd run check:full` pasa de forma estable antes de iniciar este bloque.
 - La app usa Next.js App Router con rutas mayoritariamente estaticas y algunas rutas dinamicas para Battle, Adventure level y endpoints dev.
 - El mayor riesgo inmediato de peso no esta en codigo JS, sino en assets publicos grandes y en evitar que laminas fuente/raw entren en `public/assets`.
-- Tras mover raw/drafts, duplicados y efectos intermedios fuera de `public/assets`, y aniadir variantes WebP de Home con fallback PNG, la auditoria queda en 258 archivos y 105.03 MB.
+- Tras mover raw/drafts, duplicados y efectos intermedios fuera de `public/assets`, y aniadir variantes WebP de Home con fallback PNG, la auditoria queda en 269 archivos y 106.42 MB.
 
 ## Assets Raw Movidos Fuera Del Proyecto
 
@@ -43,10 +43,11 @@ Se anadio `npm.cmd run audit:asset-refs` para listar candidatos sin referencias 
 
 Resultado de `npm.cmd run audit:assets`:
 
-- `public/assets`: 258 archivos.
-- Peso total: 105.03 MB.
+- `public/assets`: 269 archivos.
+- Peso total: 106.42 MB.
 - Los assets activos mas pesados son musica aprobada y landmarks/fondos registrados.
 - Home mantiene PNG fallback, pero Chrome/Lighthouse puede descargar las variantes WebP registradas para el fondo y los seis landmarks principales. Esas siete imagenes pasan de ~14.96 MiB en PNG a ~1.54 MiB en WebP transferible.
+- Los sprites/effects activos de Home tambien tienen WebP preferente mediante `image-set(...)`: flames, portal, crystal, crows, clouds, candles, lanterns y flags pasan de ~16.13 MiB en PNG a ~1.39 MiB en WebP transferible.
 
 ## Script De Auditoria
 

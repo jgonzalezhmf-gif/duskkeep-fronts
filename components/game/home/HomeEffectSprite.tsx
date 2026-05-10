@@ -30,6 +30,10 @@ function toCssSize(value: number | string) {
   return typeof value === "number" ? `${value}px` : value;
 }
 
+function cssImageSource(src: string, webpSrc?: string) {
+  return webpSrc ? `image-set(url("${webpSrc}") type("image/webp"), url("${src}") type("image/png"))` : `url("${src}")`;
+}
+
 export function HomeEffectSpriteStyles() {
   return (
     <style jsx global>{`
@@ -392,6 +396,8 @@ export function HomeEffectSprite({
   const frameStepCount = Math.max(1, asset.frameCount);
   const stripEnd = `-${(asset.frameCount - 1) * 100}%`;
   const hasLocalAnimation = requestedAsset.renderMode === "staticWithLocalAnimation";
+  const animatedSrc = asset.animatedSrc ?? asset.src;
+  const animatedWebpSrc = asset.animatedWebpSrc ?? asset.webpSrc;
 
   return (
     <span
@@ -418,7 +424,7 @@ export function HomeEffectSprite({
         ["--home-effect-anchor-y" as string]: `${anchorYPercent}%`,
         ["--home-effect-flip-x" as string]: flipX ? "-1" : "1",
         ["--home-effect-flip-y" as string]: flipY ? "-1" : "1",
-        ["--home-effect-image" as string]: `url("${asset.animatedSrc ?? asset.src}")`,
+        ["--home-effect-image" as string]: cssImageSource(animatedSrc, animatedWebpSrc),
         ["--home-effect-strip-width" as string]: `${asset.frameCount * 100}%`,
         ["--home-effect-y" as string]: backgroundY,
       }}
@@ -435,7 +441,7 @@ export function HomeEffectSprite({
         <span
           className="home-effect-sprite-static"
           style={{
-            ["--home-effect-static-image" as string]: `url("${asset.staticSrc}")`,
+            ["--home-effect-static-image" as string]: cssImageSource(asset.staticSrc, asset.staticWebpSrc),
             ["--home-effect-y" as string]: backgroundY,
           }}
         />
