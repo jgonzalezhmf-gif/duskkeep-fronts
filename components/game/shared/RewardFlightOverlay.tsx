@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
 import { cn } from "@/lib/cn";
@@ -24,6 +24,10 @@ type FlightItem = FlightEntry & {
   toY: number;
   delayMs: number;
 };
+
+function flightEntrySignature(entries: readonly FlightEntry[]) {
+  return entries.map((entry) => `${entry.kind}:${entry.value}:${entry.label}`).join("|");
+}
 
 const RESOURCE_TARGET: Partial<Record<FlightKind, ResourceIconKind>> = {
   gold: "gold",
@@ -78,43 +82,27 @@ export function RewardFlightOverlay({
   className,
 }: RewardFlightOverlayProps) {
   const { locale } = useI18n();
-  const gold = rewards?.gold ?? 0;
-  const dust = rewards?.dust ?? 0;
-  const gems = rewards?.gems ?? 0;
-  const arenaTickets = rewards?.arenaTickets ?? 0;
-  const adventureKeys = rewards?.adventureKeys ?? 0;
-  const xp = rewards?.accountXp ?? rewards?.xp ?? 0;
-  const shards = rewards?.shards?.reduce((sum, shard) => sum + shard.amount, 0) ?? 0;
-  const cardUnlocks = rewards?.frontlineCards?.length ?? 0;
-  const entries = useMemo(
-    () =>
-      getRewardDisplayEntries(
-        {
-          gold,
-          dust,
-          gems,
-          arenaTickets,
-          adventureKeys,
-          accountXp: xp,
-          shards: shards ? [{ heroId: "any", amount: shards }] : undefined,
-          frontlineCards: cardUnlocks ? Array.from({ length: cardUnlocks }, (_, index) => ({ cardId: `card-${index}` })) : undefined,
-        },
-      ).map((entry) => ({ kind: entry.kind, label: translate(locale, entry.labelKey), value: entry.value })),
-    [adventureKeys, arenaTickets, cardUnlocks, dust, gems, gold, locale, shards, xp],
-  );
+  const entries = getRewardDisplayEntries(rewards).map((entry) => ({ kind: entry.kind, label: translate(locale, entry.labelKey), value: entry.value }));
+  const entriesSignature = flightEntrySignature(entries);
+  const entriesRef = useRef(entries);
   const [items, setItems] = useState<FlightItem[]>([]);
 
   useEffect(() => {
-    if (!active || !entries.length || typeof window === "undefined") {
+    entriesRef.current = entries;
+  }, [entries]);
+
+  useEffect(() => {
+    const currentEntries = entriesRef.current;
+    if (!active || !currentEntries.length || typeof window === "undefined") {
       setItems((current) => (current.length ? [] : current));
       return;
     }
 
     const startY = origin === "upper" ? window.innerHeight * 0.28 : origin === "lower" ? window.innerHeight * 0.68 : window.innerHeight * 0.5;
     const startX = window.innerWidth * 0.5;
-    const next = entries.map((entry, index) => {
+    const next = currentEntries.map((entry, index) => {
       const target = targetPoint(entry.kind, index);
-      const spread = (index - (entries.length - 1) / 2) * 34;
+      const spread = (index - (currentEntries.length - 1) / 2) * 34;
       return {
         ...entry,
         id: `${entry.kind}-${entry.value}-${nonce ?? "flight"}-${index}`,
@@ -127,9 +115,9 @@ export function RewardFlightOverlay({
     });
     setItems(next);
 
-    const timeout = window.setTimeout(() => setItems([]), 1500 + entries.length * 100);
+    const timeout = window.setTimeout(() => setItems([]), 1500 + currentEntries.length * 100);
     return () => window.clearTimeout(timeout);
-  }, [active, entries, nonce, origin]);
+  }, [active, entriesSignature, nonce, origin]);
 
   if (!items.length) return null;
 

@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.248] - 2026-05-10
+
+### Changed
+- Simplificado `RewardFlightOverlay` para usar directamente las entradas normalizadas de `getRewardDisplayEntries` sin reconstruir un payload sintetico de rewards.
+- Mantenida una firma estable de entradas para que la animacion de vuelo no se reprograme por renders que no cambian la recompensa visible.
+
+### Tested
+- `npm.cmd run lint`
+- `npm.cmd run typecheck`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.247] - 2026-05-10
 
 ### Changed
