@@ -49,14 +49,17 @@ export function HomeLandmarkAsset({
       title={label}
     >
       <span className="home-landmark-ground absolute left-1/2 top-[93%] -z-[1] h-[8%] w-[46%] -translate-x-1/2 rounded-full bg-black/20 blur-[5px]" />
-      <img
-        src={asset.src}
-        alt=""
-        loading="eager"
-        decoding="async"
-        draggable={false}
-        className={`home-landmark-image h-full w-full object-contain object-bottom ${imgClassName}`}
-      />
+      <picture className="block h-full w-full">
+        {asset.webpSrc ? <source srcSet={asset.webpSrc} type="image/webp" /> : null}
+        <img
+          src={asset.src}
+          alt=""
+          loading="eager"
+          decoding="async"
+          draggable={false}
+          className={`home-landmark-image h-full w-full object-contain object-bottom ${imgClassName}`}
+        />
+      </picture>
       <HomeLandmarkEffects id={id} effects={resolvedEffects} />
       {qaEditor ? <HomeEffectQaHandles landmark={id} effects={resolvedEffects} editor={qaEditor} /> : null}
     </span>

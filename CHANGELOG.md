@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.249] - 2026-05-10
+
+### Changed
+- Aniadidas variantes WebP registradas para el fondo principal y landmarks de Home, manteniendo los PNG originales como fallback seguro.
+- Actualizados `HomeScene` y `HomeLandmarkAsset` para usar `<picture>` y priorizar WebP en navegadores compatibles sin cambiar layout ni assets registrados.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run audit:asset-refs`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:assets`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.248] - 2026-05-10
 
 ### Changed

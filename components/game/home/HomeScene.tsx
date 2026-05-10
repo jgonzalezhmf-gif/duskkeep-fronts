@@ -59,14 +59,8 @@ export default function HomeScene({
 
       {backgroundAsset ? (
         <>
-          <img
+          <picture
             data-home-world-background
-            src={backgroundAsset.src}
-            alt=""
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            draggable={false}
             className="absolute left-0 top-0 h-full w-full object-fill"
             style={{
               left: HOME_WORLD_BACKGROUND.x,
@@ -74,7 +68,18 @@ export default function HomeScene({
               width: HOME_WORLD_BACKGROUND.width,
               height: HOME_WORLD_BACKGROUND.height,
             }}
-          />
+          >
+            {backgroundAsset.webpSrc ? <source srcSet={backgroundAsset.webpSrc} type="image/webp" /> : null}
+            <img
+              src={backgroundAsset.src}
+              alt=""
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              draggable={false}
+              className="h-full w-full object-fill"
+            />
+          </picture>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,transparent_0%,rgba(5,8,15,0.08)_58%,rgba(3,5,10,0.28)_100%)]" />
         </>
       ) : null}
