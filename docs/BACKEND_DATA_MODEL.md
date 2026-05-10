@@ -74,6 +74,29 @@ Reglas:
 - `operation_id` permite agrupar cambios de una misma accion.
 - Debe permitir diagnosticar duplicados, exploits y errores de economia.
 
+### `server_operations`
+
+Registro de idempotencia para operaciones sensibles.
+
+Campos objetivo:
+
+- `id uuid primary key`
+- `profile_id uuid not null`
+- `idempotency_key text not null`
+- `operation_type text not null`
+- `payload_hash text not null`
+- `status text not null`
+- `result jsonb`
+- `error_code text`
+- `created_at timestamptz not null`
+- `completed_at timestamptz`
+
+Reglas:
+
+- `(profile_id, idempotency_key)` debe ser unico.
+- Repetir la misma operacion debe devolver el resultado almacenado.
+- Reusar una key con payload diferente debe rechazarse como conflicto.
+
 ### `player_heroes`
 
 Estado de heroes del jugador.
@@ -227,6 +250,25 @@ Reglas:
 
 - Los resets diarios/semanales se calculan con cycle keys.
 - Reclamar una mission debe ser idempotente.
+
+### `daily_login_claims`
+
+Claims de recompensa diaria.
+
+Campos objetivo:
+
+- `profile_id uuid not null`
+- `day_key text not null`
+- `streak int not null`
+- `rewards jsonb not null`
+- `claimed_at timestamptz not null`
+- primary key `(profile_id, day_key)`
+
+Reglas:
+
+- El servidor calcula el dia/ciclo valido.
+- Una recompensa diaria no puede reclamarse dos veces.
+- El streak no debe depender de fechas confiadas por el cliente.
 
 ### `battle_results`
 

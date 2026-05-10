@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.263] - 2026-05-10
+
+### Added
+- Aniadida migracion `supabase/migrations/20260510194500_adventure_shop_operations.sql` con progreso de Adventure, claims de mapa, compras, misiones, login diario, resultados de batalla e idempotencia.
+- Documentado `server_operations` y `daily_login_claims` en el modelo objetivo de backend.
+
+### Changed
+- Actualizado `supabase/README.md` para listar la segunda migracion segura de persistencia online.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run typecheck`
+- `git diff --check`
+- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase -g "!docs/skills/**"`
+
 ## [0.25.262] - 2026-05-10
 
 ### Added
