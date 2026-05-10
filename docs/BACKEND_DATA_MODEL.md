@@ -19,7 +19,7 @@ Representa la cuenta jugable asociada al usuario autenticado.
 Campos objetivo:
 
 - `id uuid primary key`
-- `user_id uuid unique not null`
+- `user_id uuid unique not null references auth.users(id)`
 - `display_name text not null`
 - `account_level int not null`
 - `account_xp int not null`

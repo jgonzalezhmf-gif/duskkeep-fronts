@@ -15,15 +15,27 @@ El estado de cliente no es seguro para economia, compras, ladder ni claims de re
 1. Copiar `.env.example` a `.env.local`.
 2. Rellenar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 3. Definir `NEXT_PUBLIC_PERSISTENCE=supabase`.
-4. Aplicar schema:
+4. Para el schema alpha legacy, aplicar:
 
    ```bash
    psql "$SUPABASE_DB_URL" -f supabase/schema.sql
    ```
 
-5. Opcional: cargar datos seed con `supabase/seed.sql`.
+5. Para empezar la linea de persistencia online segura, aplicar migraciones:
+
+   ```bash
+   supabase db push
+   ```
+
+6. Opcional: cargar datos seed con `supabase/seed.sql`.
 
 La interfaz de persistencia (`lib/persistence.ts`) ya expone un skeleton `SupabaseBackend`. Sustituir sus metodos solo despues de definir estrategia de validacion server-side para acciones sensibles.
+
+## Migraciones
+
+- `supabase/schema.sql` conserva el schema alpha reproducible y no autoritativo.
+- `supabase/migrations/20260510193000_secure_player_core.sql` crea el nucleo seguro de persistencia online: `profiles`, `player_resources`, `resource_ledger`, `player_heroes`, `player_frontline_cards` y `frontline_loadouts`.
+- Las migraciones nuevas deben seguir `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
 
 ## Notas de Seguridad
 
