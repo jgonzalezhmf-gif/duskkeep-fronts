@@ -275,7 +275,7 @@ export function GameResourceChip({
     </>
   );
   const shellClassName = cn(
-    "frontline-motion-action frontline-resource-delta group/resource relative isolate inline-flex items-center overflow-visible border border-white/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(10,11,18,0.7)_54%,rgba(6,7,12,0.92))] shadow-[0_18px_40px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition duration-300 hover:border-white/24",
+    "frontline-motion-action frontline-resource-delta group/resource relative isolate inline-flex items-center overflow-visible border border-white/14 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(10,11,18,0.7)_54%,rgba(6,7,12,0.92))] shadow-[0_18px_40px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition-transform duration-300",
     changeState === "gain" && "frontline-resource-gain",
     changeState === "spend" && "frontline-resource-spend",
     classes.shell,

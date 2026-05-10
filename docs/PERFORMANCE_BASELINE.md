@@ -109,6 +109,7 @@ Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 - Las animaciones frame-by-frame de `HomeEffectSprite` usan `transform: translate3d(...)` en lugar de `left`, reduciendo animaciones no compuestas en Home sin alterar offsets ni render modes.
 - Home difiere atmosfera decorativa y efectos hasta idle/timeout corto para que el primer render priorice background y landmarks principales. El modo `?qa=effects` mantiene render inmediato.
 - El aleteo de cuervos de `HomeSkyAtmosphere` tambien usa `transform: translate3d(...)` y los assets atmosfericos de Home tienen WebP preferente con PNG fallback.
+- Los resource chips del HUD evitan transiciones de `border-color` y el impacto de ganancia ya no anima `box-shadow`, reduciendo avisos de animaciones no compuestas.
 
 ## Siguientes Focos
 

@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.255] - 2026-05-10
+
+### Changed
+- Eliminadas transiciones de `border-color` en los resource chips del HUD para evitar animaciones no compuestas reportadas por Lighthouse.
+- Sustituido el impacto de ganancia de recursos que animaba `box-shadow` por una animacion basada en `transform/opacity`.
+
+### Tested
+- `npm.cmd run lint`
+- `npm.cmd run typecheck`
+- `npm.cmd run check:full`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+
 ## [0.25.254] - 2026-05-10
 
 ### Changed
