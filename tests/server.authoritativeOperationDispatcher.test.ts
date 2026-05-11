@@ -2,12 +2,83 @@ import { describe, expect, it, vi } from "vitest";
 import {
   claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
+  claimDailyLoginAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 
 describe("authoritative operation dispatcher", () => {
+  it("falls back to local daily login claims when there is no Supabase session", async () => {
+    const result = await claimDailyLoginAuthoritatively("2026-05-11", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative daily login rewards and resources", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          dayKey: "2026-05-11",
+          streak: 2,
+          rewardsGranted: { gold: 200, dust: 30 },
+          resources: {
+            gold: 700,
+            dust: 80,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await claimDailyLoginAuthoritatively("2026-05-11", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      dayKey: "2026-05-11",
+      streak: 2,
+      rewards: { gold: 200, dust: 30 },
+      resources: {
+        gold: 700,
+        dust: 80,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects a daily login claim", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "already_claimed", reason: "Daily reward already claimed" }),
+    });
+
+    const result = await claimDailyLoginAuthoritatively("2026-05-11", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Daily reward already claimed",
+    });
+  });
+
   it("falls back to local loadout saves when there is no Supabase session", async () => {
     const result = await saveFrontlineLoadoutAuthoritatively(
       {

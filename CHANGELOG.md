@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.284] - 2026-05-11
+
+### Added
+- Aniadido `claimDailyLoginAuthoritatively` en el dispatcher cliente para reclamar recompensa diaria contra el proxy autoritativo cuando exista sesion Supabase.
+- Aniadida accion `claimDailyLoginOnlineFirst` en el store con fallback local seguro si no hay sesion o la API esta desactivada.
+- Extendidos tests del dispatcher para claim diaria autoritativa, fallback sin sesion y rechazo servidor sin bypass local.
+
+### Changed
+- El claim diario online-first queda preparado pero todavia no conectado a UI, para evitar cambiar el flujo visible sin validacion de integracion.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/metaRewardClaims.test.ts`
+
 ## [0.25.283] - 2026-05-11
 
 ### Added

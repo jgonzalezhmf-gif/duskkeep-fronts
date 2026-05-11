@@ -124,6 +124,7 @@ export type GameActions = {
   saveBattle: (levelId: string, state: TacticalState) => void;
   clearSavedBattle: () => void;
   claimDailyLogin: () => Rewards | null;
+  claimDailyLoginOnlineFirst: () => Promise<Rewards | null>;
   claimRoadmapStep: (id: string) => Rewards | null;
   claimMilestone: (level: number) => Rewards | null;
   markEventCompleted: (eventId: string) => void;

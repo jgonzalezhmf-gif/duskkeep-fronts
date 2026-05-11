@@ -173,6 +173,38 @@ export type SaveFrontlineLoadoutAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeDailyLoginSuccess = {
+  ok: true;
+  mode: "authoritative";
+  dayKey: string;
+  streak: number;
+  rewards: Rewards;
+  resources: Resources;
+};
+
+export type AuthoritativeDailyLoginFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeDailyLoginFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeDailyLoginResult =
+  | AuthoritativeDailyLoginSuccess
+  | AuthoritativeDailyLoginFailure
+  | AuthoritativeDailyLoginFallback;
+
+export type ClaimDailyLoginAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export async function purchaseShopOfferAuthoritatively(
   offerId: string,
   options: PurchaseShopOfferAuthoritativelyOptions = {},
@@ -215,6 +247,47 @@ export async function purchaseShopOfferAuthoritatively(
     ok: true,
     mode: "authoritative",
     resources,
+  };
+}
+
+export async function claimDailyLoginAuthoritatively(
+  localDayKey: string,
+  options: ClaimDailyLoginAuthoritativelyOptions = {},
+): Promise<AuthoritativeDailyLoginResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "claimDailyLogin",
+    {
+      idempotencyKey: createIdempotencyKey("daily", localDayKey),
+      payload: { localDayKey },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractDailyLoginResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
   };
 }
 
@@ -502,6 +575,23 @@ function extractLoadoutSaveResult(result: unknown): Omit<AuthoritativeLoadoutSav
   };
 }
 
+function extractDailyLoginResult(result: unknown): Omit<AuthoritativeDailyLoginSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const dayKey = parseString(result.dayKey);
+  const streak = parseIntegerRange(result.streak, 1, 7);
+  const rewards = parseRewardPayload(result.rewardsGranted);
+  const resources = extractResources(result);
+  if (!dayKey || streak === null || !rewards.success || !resources) return null;
+
+  return {
+    dayKey,
+    streak,
+    rewards: rewards.data,
+    resources,
+  };
+}
+
 function parseResourceValue(value: unknown): number | null {
   if (typeof value !== "number") return null;
   return Number.isInteger(value) && value >= 0 ? value : null;
@@ -523,6 +613,12 @@ function parseBattleWinner(value: unknown): AuthoritativeAdventureBattleWinner |
 
 function parseBoolean(value: unknown): boolean | null {
   return typeof value === "boolean" ? value : null;
+}
+
+function parseIntegerRange(value: unknown, min: number, max: number): number | null {
+  if (typeof value !== "number") return null;
+  if (!Number.isInteger(value) || value < min || value > max) return null;
+  return value;
 }
 
 function parseStringArray(value: unknown): string[] | null {

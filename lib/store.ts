@@ -55,6 +55,7 @@ import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile"
 import {
   claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
+  claimDailyLoginAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
@@ -557,6 +558,32 @@ export const useGameStore = create<GameState & GameActions>()(
         set(result.patch);
         get().awardRewards(result.rewards, result.source);
         return result.rewards;
+      },
+
+      claimDailyLoginOnlineFirst: async () => {
+        const authoritative = await claimDailyLoginAuthoritatively(localDayKey());
+        if (authoritative.mode === "local") {
+          return get().claimDailyLogin();
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((st) => {
+          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            dailyLogin: {
+              streak: authoritative.streak,
+              lastClaim: authoritative.dayKey,
+            },
+          };
+        });
+        get().pushNotification("success", "Daily reward claimed");
+        return authoritative.rewards;
       },
 
       claimRoadmapStep: (id) => {
