@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.282] - 2026-05-11
+
+### Added
+- Aniadida accion `syncFrontlineLoadoutOnlineFirst` en el store para sincronizar el loadout Frontline con el dispatcher autoritativo.
+
+### Changed
+- El sync de loadout queda preparado como llamada explicita y no se ejecuta automaticamente desde Deck/Combat para evitar llamadas de red en cada cambio de seleccion.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/loadoutState.test.ts`
+
 ## [0.25.281] - 2026-05-11
 
 ### Added

@@ -82,6 +82,7 @@ export type GameActions = {
   setFrontlineLeader: (leaderId: string) => void;
   setFrontlineSquadSlot: (slotIdx: number, heroId: string | null) => void;
   toggleFrontlineDeckCard: (cardId: string) => void;
+  syncFrontlineLoadoutOnlineFirst: () => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   unlockFrontlineCard: (cardId: string) => boolean;
   upgradeFrontlineCard: (cardId: string) => boolean;
   addHero: (heroId: string) => void;

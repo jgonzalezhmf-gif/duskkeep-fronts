@@ -57,6 +57,7 @@ import {
   claimAdventureNodeRewardAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  saveFrontlineLoadoutAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 import {
   DAILY_ARENA_TICKETS,
@@ -119,6 +120,21 @@ export const useGameStore = create<GameState & GameActions>()(
             frontlineLoadout: toggleFrontlineDeckCardState(s.frontlineLoadout, cardId, DECK_SIZE),
           };
         }),
+
+      syncFrontlineLoadoutOnlineFirst: async () => {
+        const authoritative = await saveFrontlineLoadoutAuthoritatively(get().frontlineLoadout);
+        if (authoritative.mode === "local") {
+          return { ok: true, authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return { ok: false, reason: authoritative.reason, authoritative: true };
+        }
+
+        set({ frontlineLoadout: authoritative.loadout });
+        return { ok: true, authoritative: true };
+      },
 
       unlockFrontlineCard: (cardId) => {
         const plan = planFrontlineCardUnlock(get().frontlineCardUnlocks, cardId);
