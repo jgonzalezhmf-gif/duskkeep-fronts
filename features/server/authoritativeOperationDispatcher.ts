@@ -99,6 +99,50 @@ export type ClaimAdventureNodeRewardAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeAdventureBattleWinner = "ally" | "enemy";
+
+export type ClaimAdventureBattleResultInput = {
+  nodeId: string;
+  battleSeed: number;
+  winner: AuthoritativeAdventureBattleWinner;
+  turns: number;
+  battleSummary: unknown;
+};
+
+export type AuthoritativeAdventureBattleResultSuccess = {
+  ok: true;
+  mode: "authoritative";
+  nodeId: string;
+  winner: AuthoritativeAdventureBattleWinner;
+  firstClear: boolean;
+  rewards: Rewards;
+  resources: Resources;
+  unlockedNodeIds: string[];
+};
+
+export type AuthoritativeAdventureBattleResultFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeAdventureBattleResultFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeAdventureBattleResult =
+  | AuthoritativeAdventureBattleResultSuccess
+  | AuthoritativeAdventureBattleResultFailure
+  | AuthoritativeAdventureBattleResultFallback;
+
+export type ClaimAdventureBattleResultAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export async function purchaseShopOfferAuthoritatively(
   offerId: string,
   options: PurchaseShopOfferAuthoritativelyOptions = {},
@@ -115,7 +159,7 @@ export async function purchaseShopOfferAuthoritatively(
   const response = await callAuthoritativeOperation(
     "purchaseShopOffer",
     {
-      idempotencyKey: createIdempotencyKey(offerId),
+      idempotencyKey: createIdempotencyKey("shop", offerId),
       payload: { offerId, quantity: 1 },
     },
     {
@@ -156,7 +200,7 @@ export async function openAdventureMapInteractionAuthoritatively(
   const response = await callAuthoritativeOperation(
     "openAdventureMapInteraction",
     {
-      idempotencyKey: createIdempotencyKey(interactionId),
+      idempotencyKey: createIdempotencyKey("map", interactionId),
       payload: { interactionId },
     },
     {
@@ -197,7 +241,7 @@ export async function claimAdventureNodeRewardAuthoritatively(
   const response = await callAuthoritativeOperation(
     "claimAdventureNodeReward",
     {
-      idempotencyKey: createIdempotencyKey(nodeId),
+      idempotencyKey: createIdempotencyKey("node", nodeId),
       payload: { nodeId },
     },
     {
@@ -229,9 +273,56 @@ export async function claimAdventureNodeRewardAuthoritatively(
   };
 }
 
-function createIdempotencyKey(offerId: string) {
+export async function claimAdventureBattleResultAuthoritatively(
+  input: ClaimAdventureBattleResultInput,
+  options: ClaimAdventureBattleResultAuthoritativelyOptions = {},
+): Promise<AuthoritativeAdventureBattleResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "claimAdventureBattleResult",
+    {
+      idempotencyKey: createIdempotencyKey("battle", `${input.nodeId}:${input.battleSeed}:${input.winner}`),
+      payload: input,
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractAdventureBattleResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.nodeId !== input.nodeId) {
+    return { ok: false, mode: "authoritative", reason: "Server response node mismatch" };
+  }
+  if (parsed.winner !== input.winner) {
+    return { ok: false, mode: "authoritative", reason: "Server response winner mismatch" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+function createIdempotencyKey(scope: string, id: string) {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-  return `shop:${offerId}:${Date.now()}:${suffix}`;
+  return `${scope}:${id}:${Date.now()}:${suffix}`;
 }
 
 function extractResources(result: unknown): Resources | null {
@@ -300,6 +391,27 @@ function extractNodeRewardResult(result: unknown): Omit<AuthoritativeNodeRewardS
   };
 }
 
+function extractAdventureBattleResult(result: unknown): Omit<AuthoritativeAdventureBattleResultSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const nodeId = parseString(result.nodeId);
+  const winner = parseBattleWinner(result.winner);
+  const firstClear = parseBoolean(result.firstClear);
+  const rewards = parseRewardPayload(result.rewardsGranted);
+  const resources = extractResources(result);
+  const unlockedNodeIds = parseStringArray(result.unlockedNodeIds);
+  if (!nodeId || !winner || firstClear === null || !rewards.success || !resources || !unlockedNodeIds) return null;
+
+  return {
+    nodeId,
+    winner,
+    firstClear,
+    rewards: rewards.data,
+    resources,
+    unlockedNodeIds,
+  };
+}
+
 function parseResourceValue(value: unknown): number | null {
   if (typeof value !== "number") return null;
   return Number.isInteger(value) && value >= 0 ? value : null;
@@ -312,6 +424,26 @@ function parseString(value: unknown): string | undefined {
 function parseLootTier(value: unknown): AdventureMapInteractionLootTier | undefined {
   if (value === "common" || value === "rare" || value === "epic" || value === "legendary") return value;
   return undefined;
+}
+
+function parseBattleWinner(value: unknown): AuthoritativeAdventureBattleWinner | undefined {
+  if (value === "ally" || value === "enemy") return value;
+  return undefined;
+}
+
+function parseBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function parseStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const out: string[] = [];
+  for (const item of value) {
+    const parsed = parseString(item);
+    if (!parsed) return null;
+    out.push(parsed);
+  }
+  return out;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

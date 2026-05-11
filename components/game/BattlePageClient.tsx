@@ -14,7 +14,6 @@ import { useBattlePageRewardReveal } from "@/components/game/frontline/useBattle
 import { FRONTLINE_PRESETS } from "@/features/frontline/data";
 import {
   getFrontlineAdventureRewardPreview,
-  getFrontlineAdventureVictoryRewards,
 } from "@/features/frontline/adventure";
 import { summarizeBattleStats } from "@/lib/frontlineBattleStats";
 import { audio } from "@/lib/audio";
@@ -48,7 +47,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const nextSeed = useGameStore((state) => state.nextSeed);
   const awardRewards = useGameStore((state) => state.awardRewards);
   const recordBattleResult = useGameStore((state) => state.recordBattleResult);
-  const markAdventureCleared = useGameStore((state) => state.markAdventureCleared);
+  const claimAdventureBattleResultOnlineFirst = useGameStore((state) => state.claimAdventureBattleResultOnlineFirst);
   const account = useGameStore((state) => state.account);
   const resources = useGameStore((state) => state.resources);
   const playerHeroes = useGameStore((state) => state.heroes);
@@ -129,7 +128,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     }
   }, [autostart, deckReady, phase, squadReady, startBattle]);
 
-  function finishBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
+  async function finishBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
     const won = winner === "ally";
     let rewards: Rewards =
       won
@@ -139,13 +138,29 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
           : { gold: 35, dust: 4, gems: 0, accountXp: 2 };
 
     let firstClearAchieved = false;
+    let rewardsAppliedByAdventureClaim = false;
+    let authoritativeResourcesAfter: { gold: number; dust: number; gems: number } | null = null;
     if (adventureLevel) {
-      if (won) {
-        const { firstClear } = markAdventureCleared(adventureLevel.id);
-        firstClearAchieved = firstClear;
-        rewards = getFrontlineAdventureVictoryRewards(adventureLevel, firstClear);
+      const claim = await claimAdventureBattleResultOnlineFirst({
+        levelId: adventureLevel.id,
+        battleSeed: battleState.seed,
+        winner,
+        turns: battleState.round,
+        battleSummary: createAdventureBattleSummary(battleState),
+      });
+      if (claim) {
+        rewards = claim.rewards;
+        firstClearAchieved = claim.firstClear;
+        rewardsAppliedByAdventureClaim = true;
+        authoritativeResourcesAfter = claim.resources
+          ? {
+              gold: claim.resources.gold,
+              dust: claim.resources.dust,
+              gems: claim.resources.gems,
+            }
+          : null;
       } else {
-        rewards = winner === "draw" ? { gold: 20, dust: 2, gems: 0, accountXp: 1 } : { gold: 0, dust: 0, gems: 0, accountXp: 0 };
+        rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
       }
     }
     const normalizedRewards = {
@@ -158,9 +173,9 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     };
     const resourcesBefore = { gold: resources.gold, dust: resources.dust, gems: resources.gems };
     const resourcesAfter = {
-      gold: resourcesBefore.gold + normalizedRewards.gold,
-      dust: resourcesBefore.dust + normalizedRewards.dust,
-      gems: resourcesBefore.gems + normalizedRewards.gems,
+      gold: authoritativeResourcesAfter?.gold ?? resourcesBefore.gold + normalizedRewards.gold,
+      dust: authoritativeResourcesAfter?.dust ?? resourcesBefore.dust + normalizedRewards.dust,
+      gems: authoritativeResourcesAfter?.gems ?? resourcesBefore.gems + normalizedRewards.gems,
     };
     const accountBefore = { level: account.level, xp: account.xp };
     const accountAfter = projectAccountProgress(account.level, account.xp, normalizedRewards.accountXp);
@@ -182,7 +197,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       adventureName: adventureLevel?.name ?? null,
     });
     recordBattleResult(won, adventureLevel ? "adventure" : "vsai");
-    if (rewards.gold || rewards.dust || rewards.gems || rewards.accountXp || rewards.xp || rewards.arenaTickets || rewards.adventureKeys || rewards.shards?.length || rewards.frontlineCards?.length) {
+    if (!rewardsAppliedByAdventureClaim && (rewards.gold || rewards.dust || rewards.gems || rewards.accountXp || rewards.xp || rewards.arenaTickets || rewards.adventureKeys || rewards.shards?.length || rewards.frontlineCards?.length)) {
       awardRewards(rewards, won && adventureLevel ? adventureLevel.name : won ? t("frontline.victory") : winner === "draw" ? t("frontline.draw") : t("frontline.defeat"));
     }
     if (firstClearAchieved) {
@@ -210,7 +225,9 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
         encounterKind={encounterKind}
         encounterTitle={adventureLevel?.name ?? null}
         battleBackgroundSrc={battleBackgroundSrc}
-        onFinished={(winner, battleState) => finishBattle(winner, battleState)}
+        onFinished={(winner, battleState) => {
+          void finishBattle(winner, battleState);
+        }}
       />
     );
   }
@@ -264,4 +281,29 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       }
     />
   );
+}
+
+function createAdventureBattleSummary(battleState: FrontlineBattleState) {
+  const lanes = Object.entries(battleState.lanes).map(([lane, state]) => ({
+    lane,
+    allyHp: state.allyHero?.hp ?? 0,
+    enemyHp: state.enemyHero?.hp ?? 0,
+    allyAlive: Boolean(state.allyHero?.alive),
+    enemyAlive: Boolean(state.enemyHero?.alive),
+  }));
+
+  return {
+    round: battleState.round,
+    winner: battleState.winner,
+    allyCoreHp: battleState.allyCoreHp,
+    enemyCoreHp: battleState.enemyCoreHp,
+    lanes,
+    recentEvents: battleState.events.slice(-12).map((event) => ({
+      kind: event.kind,
+      side: event.side,
+      lane: event.lane,
+      amount: event.amount,
+      emphasis: event.emphasis,
+    })),
+  };
 }

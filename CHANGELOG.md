@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.278] - 2026-05-11
+
+### Added
+- Conectado `claimAdventureBattleResult` al dispatcher online-first para que los resultados de combate de Adventure puedan reclamarse contra backend autoritativo cuando exista sesion Supabase.
+- Aniadida accion `claimAdventureBattleResultOnlineFirst` en el store, con fallback local para modo offline/API desactivada y sin duplicar recompensas.
+- Aniadido resumen compacto de batalla al payload autoritativo y tests del dispatcher para exito, fallback, rechazo servidor y respuesta inconsistente.
+
+### Changed
+- El post-combate de Adventure usa la nueva accion online-first para progreso, first-clear y rewards; los combates no Adventure mantienen el flujo local existente.
+- Normalizadas las claves de idempotencia del dispatcher por tipo de operacion (`shop`, `map`, `node`, `battle`).
+
+### Tested
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts`
+
 ## [0.25.277] - 2026-05-11
 
 ### Added

@@ -20,6 +20,13 @@ import type {
 export type NotificationKind = "success" | "error" | "info";
 export type Notification = { id: string; kind: NotificationKind; message: string };
 export type TextScale = "normal" | "large";
+export type AdventureBattleWinner = "ally" | "enemy" | "draw";
+export type AdventureBattleResultClaim = {
+  rewards: Rewards;
+  firstClear: boolean;
+  authoritative?: boolean;
+  resources?: Resources;
+};
 
 export type GameState = {
   hydrated: boolean;
@@ -94,6 +101,13 @@ export type GameActions = {
     meta?: Record<string, unknown>,
   ) => void;
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
+  claimAdventureBattleResultOnlineFirst: (input: {
+    levelId: string;
+    battleSeed: number;
+    winner: AdventureBattleWinner;
+    turns: number;
+    battleSummary: unknown;
+  }) => Promise<AdventureBattleResultClaim | null>;
   claimAdventureNode: (levelId: string) => Rewards | null;
   claimAdventureNodeOnlineFirst: (levelId: string) => Promise<Rewards | null>;
   claimAdventureMapInteraction: (interactionId: string) => AdventureMapInteractionOpenResult | null;

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
@@ -298,6 +299,152 @@ describe("authoritative operation dispatcher", () => {
       tokenProvider: async () => "valid-token-value",
       fetcher,
     });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response node mismatch",
+    });
+  });
+
+  it("falls back to local adventure battle claims when there is no Supabase session", async () => {
+    const result = await claimAdventureBattleResultAuthoritatively(
+      {
+        nodeId: "c1l2",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      },
+      {
+        tokenProvider: async () => null,
+      },
+    );
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative adventure battle rewards and progress flags", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          nodeId: "c1l2",
+          winner: "ally",
+          firstClear: true,
+          rewardsGranted: { gold: 80, dust: 10, accountXp: 12, adventureKeys: 1 },
+          resources: {
+            gold: 580,
+            dust: 60,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 1,
+          },
+          unlockedNodeIds: ["c1l3", "c1l7"],
+        },
+      }),
+    });
+
+    const result = await claimAdventureBattleResultAuthoritatively(
+      {
+        nodeId: "c1l2",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      nodeId: "c1l2",
+      winner: "ally",
+      firstClear: true,
+      rewards: { gold: 80, dust: 10, accountXp: 12, adventureKeys: 1 },
+      resources: {
+        gold: 580,
+        dust: 60,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 1,
+      },
+      unlockedNodeIds: ["c1l3", "c1l7"],
+    });
+  });
+
+  it("does not fallback when the connected server rejects an adventure battle claim", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "locked", reason: "Adventure node is locked" }),
+    });
+
+    const result = await claimAdventureBattleResultAuthoritatively(
+      {
+        nodeId: "c1l2",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Adventure node is locked",
+    });
+  });
+
+  it("rejects mismatched authoritative adventure battle responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          nodeId: "c1l5",
+          winner: "ally",
+          firstClear: true,
+          rewardsGranted: { gold: 80 },
+          resources: {
+            gold: 580,
+            dust: 60,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 1,
+          },
+          unlockedNodeIds: [],
+        },
+      }),
+    });
+
+    const result = await claimAdventureBattleResultAuthoritatively(
+      {
+        nodeId: "c1l2",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
 
     expect(result).toEqual({
       ok: false,

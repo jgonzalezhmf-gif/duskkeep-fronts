@@ -8,8 +8,9 @@ import { DAILY_LOGIN } from "@/data/dailyLogin";
 import { ROADMAP } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
+import { ADVENTURE_BY_ID } from "@/data/adventure";
 import { createAdventureMapInteractionClaimPlan } from "@/lib/adventureMapInteractionClaims";
-import { markAdventureNodeClaimed } from "@/lib/adventureProgressState";
+import { markAdventureLevelCleared, markAdventureNodeClaimed } from "@/lib/adventureProgressState";
 import { planAdventureLevelClear, planAdventureNodeClaim } from "@/lib/adventureNodeState";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import {
@@ -44,6 +45,7 @@ import {
   localDayKey,
 } from "@/lib/rewardVisibility";
 import { isFrontlineCardUnlocked } from "@/features/frontline/cardProgression";
+import { getFrontlineAdventureVictoryRewards } from "@/features/frontline/adventure";
 import {
   frontlineFortressRaidReady,
   resolveFrontlineFortressRaid,
@@ -51,6 +53,7 @@ import {
 import { planFrontlineCardUnlock, planFrontlineCardUpgrade } from "@/lib/frontlineCardState";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import {
+  claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
@@ -61,6 +64,7 @@ import {
   SKILL_COOLDOWN_REDUCTION_AT_MAX,
   SKILL_MULTIPLIER_BONUS,
 } from "./constants";
+import type { Rewards } from "@/lib/types";
 
 export type { GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressState";
@@ -70,6 +74,9 @@ const noopStorage = {
   setItem: () => {},
   removeItem: () => {},
 } as unknown as Storage;
+
+const ADVENTURE_DRAW_REWARDS: Rewards = { gold: 20, dust: 2, gems: 0, accountXp: 1 };
+const ADVENTURE_DEFEAT_REWARDS: Rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
 
 export const useGameStore = create<GameState & GameActions>()(
   persist(
@@ -304,6 +311,69 @@ export const useGameStore = create<GameState & GameActions>()(
         set({ adventureProgress: plan.adventureProgress });
         if (plan.firstClear) get().updateMissionProgress("adventure_levels_cleared", 1);
         return { firstClear: plan.firstClear };
+      },
+
+      claimAdventureBattleResultOnlineFirst: async ({ levelId, battleSeed, winner, turns, battleSummary }) => {
+        const level = ADVENTURE_BY_ID[levelId];
+        if (!level) {
+          get().pushNotification("error", "Adventure node not found");
+          return null;
+        }
+
+        if (winner === "draw") {
+          get().awardRewards(ADVENTURE_DRAW_REWARDS, "Adventure draw");
+          return { rewards: ADVENTURE_DRAW_REWARDS, firstClear: false };
+        }
+
+        const authoritative = await claimAdventureBattleResultAuthoritatively({
+          nodeId: levelId,
+          battleSeed,
+          winner,
+          turns,
+          battleSummary,
+        });
+
+        if (authoritative.mode === "local") {
+          if (winner === "ally") {
+            const plan = planAdventureLevelClear(get().adventureProgress, levelId, localDayKey());
+            const rewards = getFrontlineAdventureVictoryRewards(level, plan.firstClear);
+            set({ adventureProgress: plan.adventureProgress });
+            if (plan.firstClear) get().updateMissionProgress("adventure_levels_cleared", 1);
+            get().awardRewards(rewards, level.name);
+            return { rewards, firstClear: plan.firstClear };
+          }
+
+          return { rewards: ADVENTURE_DEFEAT_REWARDS, firstClear: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((st) => {
+          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            adventureProgress:
+              authoritative.winner === "ally"
+                ? markAdventureLevelCleared(st.adventureProgress, authoritative.nodeId, {
+                    firstClear: authoritative.firstClear,
+                    completedAt: localDayKey(),
+                  })
+                : st.adventureProgress,
+          };
+        });
+        if (authoritative.winner === "ally" && authoritative.firstClear) {
+          get().updateMissionProgress("adventure_levels_cleared", 1);
+        }
+        return {
+          rewards: authoritative.rewards,
+          firstClear: authoritative.firstClear,
+          authoritative: true,
+          resources: authoritative.resources,
+        };
       },
 
       claimAdventureNode: (levelId) => {
