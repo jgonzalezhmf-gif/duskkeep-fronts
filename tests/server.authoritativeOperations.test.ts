@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  isSupportedAuthoritativeApiOperation,
   parseRewardPayload,
   parseServerActionRequest,
   serverOperationTypes,
+  supportedAuthoritativeApiOperations,
 } from "@/features/server/authoritativeOperations";
 
 describe("server authoritative operation contracts", () => {
@@ -19,6 +21,17 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineCard",
       "recordArenaResult",
     ]);
+  });
+
+  it("keeps the public authoritative API limited to RPC-backed operations", () => {
+    expect(supportedAuthoritativeApiOperations).toEqual([
+      "claimAdventureBattleResult",
+      "claimAdventureNodeReward",
+      "openAdventureMapInteraction",
+      "purchaseShopOffer",
+    ]);
+    expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("claimMission")).toBe(false);
   });
 
   it("normalizes purchase quantity while requiring idempotency", () => {

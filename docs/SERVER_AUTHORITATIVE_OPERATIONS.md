@@ -6,6 +6,8 @@ Los contratos TypeScript y esquemas de validacion base viven en `features/server
 
 La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salvo `SERVER_AUTHORITATIVE_API_ENABLED=true` y requiere `Authorization: Bearer <supabase-user-jwt>`. La ruta solo llama RPCs ya existentes y no usa service role.
 
+El cliente interno vive en `features/server/authoritativeClient.ts`. De momento no esta conectado a la UI: solo centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
+
 ## Principios de Contrato
 
 - Toda operacion sensible recibe una `idempotencyKey`.

@@ -1,18 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import {
+  isSupportedAuthoritativeApiOperation,
   parseServerActionRequest,
   type ServerOperationPayload,
-  type ServerOperationType,
+  type SupportedAuthoritativeApiOperation,
 } from "@/features/server/authoritativeOperations";
 
-export const SUPPORTED_AUTHORITATIVE_RPC_OPERATIONS = [
-  "claimAdventureBattleResult",
-  "claimAdventureNodeReward",
-  "openAdventureMapInteraction",
-  "purchaseShopOffer",
-] as const satisfies ServerOperationType[];
-
-export type SupportedAuthoritativeRpcOperation = (typeof SUPPORTED_AUTHORITATIVE_RPC_OPERATIONS)[number];
+export type SupportedAuthoritativeRpcOperation = SupportedAuthoritativeApiOperation;
 
 type RuntimeEnv = Record<string, string | undefined>;
 
@@ -43,7 +37,7 @@ export function isAuthoritativeServerApiEnabled(env: RuntimeEnv = process.env) {
 export function isSupportedAuthoritativeRpcOperation(
   operationType: string,
 ): operationType is SupportedAuthoritativeRpcOperation {
-  return SUPPORTED_AUTHORITATIVE_RPC_OPERATIONS.includes(operationType as SupportedAuthoritativeRpcOperation);
+  return isSupportedAuthoritativeApiOperation(operationType);
 }
 
 export function getBearerAuthorization(headers: Pick<Headers, "get">) {

@@ -109,8 +109,26 @@ export type ServerOperationType = keyof typeof serverOperationPayloadSchemas;
 export type ServerOperationPayload<TType extends ServerOperationType> = z.infer<
   (typeof serverOperationPayloadSchemas)[TType]
 >;
+export type ServerOperationInputPayload<TType extends ServerOperationType> = z.input<
+  (typeof serverOperationPayloadSchemas)[TType]
+>;
 
 export const serverOperationTypes = Object.keys(serverOperationPayloadSchemas) as ServerOperationType[];
+
+export const supportedAuthoritativeApiOperations = [
+  "claimAdventureBattleResult",
+  "claimAdventureNodeReward",
+  "openAdventureMapInteraction",
+  "purchaseShopOffer",
+] as const satisfies ServerOperationType[];
+
+export type SupportedAuthoritativeApiOperation = (typeof supportedAuthoritativeApiOperations)[number];
+
+export function isSupportedAuthoritativeApiOperation(
+  operationType: string,
+): operationType is SupportedAuthoritativeApiOperation {
+  return supportedAuthoritativeApiOperations.includes(operationType as SupportedAuthoritativeApiOperation);
+}
 
 export type ServerActionValidationResult<TPayload> =
   | { ok: true; request: ServerActionRequest<TPayload> }

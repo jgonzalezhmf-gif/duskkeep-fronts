@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.273] - 2026-05-11
+
+### Added
+- Aniadido SDK interno `features/server/authoritativeClient.ts` para llamar a `/api/server/authoritative` con token explicito y validacion local de payloads.
+- Aniadida lista compartida de operaciones autoritativas expuestas por API para evitar duplicar reglas entre cliente y proxy.
+- Aniadidos tests del SDK para token requerido, validacion previa, normalizacion de payload, operaciones no expuestas y errores devueltos por servidor.
+
+### Changed
+- Documentado que el SDK autoritativo todavia no esta conectado a la UI y solo cubre operaciones respaldadas por RPC.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeClient.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts`
+
 ## [0.25.272] - 2026-05-11
 
 ### Added
