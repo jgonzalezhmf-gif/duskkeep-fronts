@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.265] - 2026-05-11
+
+### Added
+- Aniadida migracion `supabase/migrations/20260511061000_open_adventure_map_interaction_rpc.sql` con la RPC `public.open_adventure_map_interaction`.
+- La RPC valida autenticacion, perfil, unlock de Adventure, cooldown de claim, llaves disponibles, idempotencia, loot server-side, ledger y actualizacion atomica de rewards.
+
+### Changed
+- Documentada la primera implementacion SQL de `openAdventureMapInteraction` en `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` y `supabase/README.md`.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run build`
+- `git diff --check`
+- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase features tests -g "!docs/skills/**"`
+
 ## [0.25.264] - 2026-05-11
 
 ### Added

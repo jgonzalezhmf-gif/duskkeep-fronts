@@ -153,6 +153,8 @@ type ClaimAdventureBattleResultResult = {
 
 Abre un interactuable de mapa como key chest.
 
+Primera implementacion SQL: `public.open_adventure_map_interaction(p_idempotency_key text, p_interaction_id text)`.
+
 Payload:
 
 ```ts

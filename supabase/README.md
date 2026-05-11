@@ -36,6 +36,7 @@ La interfaz de persistencia (`lib/persistence.ts`) ya expone un skeleton `Supaba
 - `supabase/schema.sql` conserva el schema alpha reproducible y no autoritativo.
 - `supabase/migrations/20260510193000_secure_player_core.sql` crea el nucleo seguro de persistencia online: `profiles`, `player_resources`, `resource_ledger`, `player_heroes`, `player_frontline_cards` y `frontline_loadouts`.
 - `supabase/migrations/20260510194500_adventure_shop_operations.sql` crea las tablas para progreso de Adventure, claims de mapa, compras, misiones, login diario, resultados de batalla e idempotencia.
+- `supabase/migrations/20260511061000_open_adventure_map_interaction_rpc.sql` crea la primera RPC autoritativa para abrir el cofre de Adventure con llaves, loot server-side, ledger e idempotencia.
 - Las migraciones nuevas deben seguir `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
 
 ## Notas de Seguridad
