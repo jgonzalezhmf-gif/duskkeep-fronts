@@ -34,7 +34,7 @@ const idSchema = z
   .trim()
   .min(1)
   .max(96)
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9:_./-]*$/, "invalid id format");
+  .regex(/^[a-zA-Z0-9][a-zA-Z0-9:_./_-]*$/, "invalid id format");
 
 const nullableIdSchema = idSchema.nullable();
 
@@ -43,7 +43,7 @@ export const idempotencyKeySchema = z
   .trim()
   .min(12)
   .max(160)
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9:_=./-]*$/, "invalid idempotency key format");
+  .regex(/^[a-zA-Z0-9][a-zA-Z0-9:_=./_-]*$/, "invalid idempotency key format");
 
 const rewardsSchema: z.ZodType<Rewards> = z
   .object({

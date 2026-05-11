@@ -4,9 +4,110 @@ import {
   claimAdventureNodeRewardAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  saveFrontlineLoadoutAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 
 describe("authoritative operation dispatcher", () => {
+  it("falls back to local loadout saves when there is no Supabase session", async () => {
+    const result = await saveFrontlineLoadoutAuthoritatively(
+      {
+        leaderId: "leader_aurora",
+        squad: ["bran", "kara", "mira"],
+        deck: [
+          "order_guard_wall",
+          "order_twin_slash",
+          "order_focus_fire",
+          "tactic_battle_hymn",
+          "tactic_sanctuary",
+          "tactic_smokescreen",
+          "summon_wolf",
+          "summon_barrier",
+        ],
+      },
+      {
+        tokenProvider: async () => null,
+      },
+    );
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns the authoritative loadout snapshot after a server-backed save", async () => {
+    const loadout = {
+      leaderId: "leader_aurora",
+      squad: ["bran", "kara", "mira"] as [string, string, string],
+      deck: [
+        "order_guard_wall",
+        "order_twin_slash",
+        "order_focus_fire",
+        "tactic_battle_hymn",
+        "tactic_sanctuary",
+        "tactic_smokescreen",
+        "summon_wolf",
+        "summon_barrier",
+      ],
+    };
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          ...loadout,
+          updatedAt: "2026-05-11T22:00:00.000Z",
+        },
+      }),
+    });
+
+    const result = await saveFrontlineLoadoutAuthoritatively(loadout, {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      loadout,
+      updatedAt: "2026-05-11T22:00:00.000Z",
+    });
+  });
+
+  it("does not fallback when the connected server rejects a loadout save", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "invalid_loadout", reason: "Invalid deck shape" }),
+    });
+
+    const result = await saveFrontlineLoadoutAuthoritatively(
+      {
+        leaderId: "leader_aurora",
+        squad: ["bran", "kara", "mira"],
+        deck: [
+          "order_guard_wall",
+          "order_twin_slash",
+          "order_focus_fire",
+          "tactic_battle_hymn",
+          "tactic_sanctuary",
+          "tactic_smokescreen",
+          "summon_wolf",
+          "summon_barrier",
+        ],
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Invalid deck shape",
+    });
+  });
+
   it("keeps unsupported shop offers on the local path", async () => {
     const result = await purchaseShopOfferAuthoritatively("daily_raid_payout", {
       tokenProvider: async () => "valid-token-value",

@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.280] - 2026-05-11
+
+### Added
+- Aniadido `saveFrontlineLoadoutAuthoritatively` en el dispatcher cliente para guardar loadouts contra el proxy autoritativo cuando exista sesion Supabase.
+- Extendidos tests del dispatcher para fallback sin sesion, exito autoritativo y rechazo servidor de `saveLoadout`.
+
+### Changed
+- El contrato de ids autoritativos acepta `_`, necesario para ids reales como `leader_aurora` y cartas Frontline.
+- Reducida la clave idempotente de guardado de loadout para no codificar todo el mazo en la key; el hash server-side conserva la proteccion contra payload distinto.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts`
+
 ## [0.25.279] - 2026-05-11
 
 ### Added

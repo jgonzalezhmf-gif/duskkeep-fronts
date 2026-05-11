@@ -2,7 +2,7 @@ import { callAuthoritativeOperation, type AuthoritativeClientFetch } from "@/fea
 import { parseRewardPayload } from "@/features/server/authoritativeOperations";
 import { getSupabaseAccessToken } from "@/features/server/supabaseBrowserSession";
 import type { AdventureMapInteractionLootTier, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
-import type { Resources, Rewards } from "@/lib/types";
+import type { FrontlineLoadout, Resources, Rewards } from "@/lib/types";
 
 const AUTHORITATIVE_SHOP_OFFERS = new Set(["adventure_key_ring"]);
 
@@ -143,6 +143,36 @@ export type ClaimAdventureBattleResultAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeLoadoutSaveSuccess = {
+  ok: true;
+  mode: "authoritative";
+  loadout: FrontlineLoadout;
+  updatedAt: string;
+};
+
+export type AuthoritativeLoadoutSaveFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeLoadoutSaveFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeLoadoutSaveResult =
+  | AuthoritativeLoadoutSaveSuccess
+  | AuthoritativeLoadoutSaveFailure
+  | AuthoritativeLoadoutSaveFallback;
+
+export type SaveFrontlineLoadoutAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export async function purchaseShopOfferAuthoritatively(
   offerId: string,
   options: PurchaseShopOfferAuthoritativelyOptions = {},
@@ -185,6 +215,47 @@ export async function purchaseShopOfferAuthoritatively(
     ok: true,
     mode: "authoritative",
     resources,
+  };
+}
+
+export async function saveFrontlineLoadoutAuthoritatively(
+  loadout: FrontlineLoadout,
+  options: SaveFrontlineLoadoutAuthoritativelyOptions = {},
+): Promise<AuthoritativeLoadoutSaveResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "saveLoadout",
+    {
+      idempotencyKey: createIdempotencyKey("loadout", loadout.leaderId),
+      payload: loadout,
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractLoadoutSaveResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
   };
 }
 
@@ -412,6 +483,25 @@ function extractAdventureBattleResult(result: unknown): Omit<AuthoritativeAdvent
   };
 }
 
+function extractLoadoutSaveResult(result: unknown): Omit<AuthoritativeLoadoutSaveSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const leaderId = parseString(result.leaderId);
+  const squad = parseNullableStringArray(result.squad, 3);
+  const deck = parseNullableStringArray(result.deck, 8);
+  const updatedAt = parseString(result.updatedAt);
+  if (!leaderId || !squad || !deck || !updatedAt) return null;
+
+  return {
+    loadout: {
+      leaderId,
+      squad: [squad[0] ?? null, squad[1] ?? null, squad[2] ?? null],
+      deck,
+    },
+    updatedAt,
+  };
+}
+
 function parseResourceValue(value: unknown): number | null {
   if (typeof value !== "number") return null;
   return Number.isInteger(value) && value >= 0 ? value : null;
@@ -439,6 +529,21 @@ function parseStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
   const out: string[] = [];
   for (const item of value) {
+    const parsed = parseString(item);
+    if (!parsed) return null;
+    out.push(parsed);
+  }
+  return out;
+}
+
+function parseNullableStringArray(value: unknown, expectedLength: number): (string | null)[] | null {
+  if (!Array.isArray(value) || value.length !== expectedLength) return null;
+  const out: (string | null)[] = [];
+  for (const item of value) {
+    if (item === null) {
+      out.push(null);
+      continue;
+    }
     const parsed = parseString(item);
     if (!parsed) return null;
     out.push(parsed);
