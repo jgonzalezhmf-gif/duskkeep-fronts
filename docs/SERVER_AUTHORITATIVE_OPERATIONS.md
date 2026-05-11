@@ -8,6 +8,8 @@ La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salv
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. De momento no esta conectado a la UI: solo centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
+El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta con `npm.cmd run smoke:authoritative-api` despues de arrancar Supabase y Next con `SERVER_AUTHORITATIVE_API_ENABLED=true`. Este smoke usa Supabase Auth real, no service role.
+
 ## Principios de Contrato
 
 - Toda operacion sensible recibe una `idempotencyKey`.

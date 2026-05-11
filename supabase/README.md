@@ -43,6 +43,7 @@ La ruta `/api/server/authoritative` es el primer proxy HTTP hacia RPCs autoritat
 - `supabase/migrations/20260511165000_fix_rpc_extension_search_path.sql` ajusta el `search_path` de las RPC para resolver funciones de `extensions` como `digest()`.
 - `supabase/migrations/20260511172000_claim_adventure_battle_result_rpc.sql` crea la primera RPC autoritativa para resultados de batalla Adventure de Chapter 1.
 - `supabase/migrations/20260511182000_claim_adventure_node_reward_rpc.sql` crea la primera RPC autoritativa para reclamar cofres de nodo no-combate de Chapter 1.
+- `supabase/migrations/20260511204500_provision_auth_player_account.sql` provisiona `profiles` y `player_resources` al crear un usuario de Supabase Auth.
 - Las migraciones nuevas deben seguir `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
 
 ## Smoke Tests Locales
@@ -54,6 +55,28 @@ psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/smoke
 ```
 
 El script crea un usuario local de prueba, valida `claim_adventure_battle_result`, valida `claim_adventure_node_reward`, valida `purchase_shop_offer`, valida `open_adventure_map_interaction`, comprueba idempotencia y confirma que el cofre consume la llave.
+
+Para validar el proxy HTTP con JWT real de Supabase Auth local:
+
+1. Arrancar Supabase local:
+
+   ```bash
+   npx.cmd supabase start
+   ```
+
+2. Arrancar Next con el proxy habilitado en otra terminal:
+
+   ```powershell
+   $env:SERVER_AUTHORITATIVE_API_ENABLED="true"; npm.cmd run dev
+   ```
+
+3. Ejecutar el smoke HTTP:
+
+   ```bash
+   npm.cmd run smoke:authoritative-api
+   ```
+
+El smoke crea o reutiliza un usuario local de prueba mediante Supabase Auth, llama a `/api/server/authoritative` con `Authorization: Bearer <jwt>`, reclama `c1l1` y repite la misma llamada para comprobar idempotencia.
 
 ## Notas de Seguridad
 

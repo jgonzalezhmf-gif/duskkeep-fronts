@@ -1,6 +1,6 @@
 {
   "name": "duskkeep-fronts",
-  "version": "0.25.273",
+  "version": "0.25.274",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -16,6 +16,7 @@
     "audit:asset-refs": "node scripts/audit-public-asset-refs.mjs",
     "audit:build": "node scripts/audit-build-output.mjs",
     "check:performance": "node scripts/check-performance-budget.mjs",
+    "smoke:authoritative-api": "node scripts/smoke-authoritative-api.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:reset": "node scripts/reset.mjs",

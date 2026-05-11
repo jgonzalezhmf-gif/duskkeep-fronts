@@ -7,7 +7,7 @@
 do $$
 declare
   v_user_id uuid := '11111111-1111-4111-8111-111111111111';
-  v_profile_id uuid := '22222222-2222-4222-8222-222222222222';
+  v_profile_id uuid;
   v_shop_result jsonb;
   v_shop_replay jsonb;
   v_cache_result jsonb;
@@ -49,9 +49,10 @@ begin
   )
   on conflict (id) do nothing;
 
-  insert into public.profiles (id, user_id, display_name)
-  values (v_profile_id, v_user_id, 'RPC Smoke')
-  on conflict (id) do update set user_id = excluded.user_id;
+  insert into public.profiles (user_id, display_name)
+  values (v_user_id, 'RPC Smoke')
+  on conflict (user_id) do update set display_name = excluded.display_name
+  returning id into v_profile_id;
 
   insert into public.player_resources (profile_id, gold, dust, gems, arena_tickets, adventure_keys)
   values (v_profile_id, 500, 50, 50, 5, 0)

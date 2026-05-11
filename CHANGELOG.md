@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.274] - 2026-05-11
+
+### Added
+- Aniadida migracion `supabase/migrations/20260511204500_provision_auth_player_account.sql` para provisionar `profiles` y `player_resources` al crear usuarios de Supabase Auth.
+- Aniadido script `npm.cmd run smoke:authoritative-api` para validar `/api/server/authoritative` con JWT real de Supabase Auth local.
+
+### Changed
+- Documentado el flujo de smoke HTTP local del proxy autoritativo en `supabase/README.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
+- Actualizado el smoke SQL de Adventure/Shop para convivir con el provisionado automatico de cuentas.
+
+### Tested
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run smoke:authoritative-api -- --base-url http://127.0.0.1:3101`
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeClient.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts`
+
 ## [0.25.273] - 2026-05-11
 
 ### Added
