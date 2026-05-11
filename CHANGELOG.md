@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.272] - 2026-05-11
+
+### Added
+- Aniadida ruta `POST /api/server/authoritative` como proxy HTTP hacia RPCs autoritativas de Supabase.
+- Aniadido modulo `features/server/authoritativeRpcProxy.ts` para validar flag, entorno, bearer token, payloads y mapping a RPC.
+- Aniadidos tests de proxy para flag desactivado, autenticacion, operaciones soportadas y mapeo de argumentos RPC.
+
+### Changed
+- Documentado `SERVER_AUTHORITATIVE_API_ENABLED=false` en `.env.example`.
+- Documentado que la ruta proxy no usa service role y permanece desactivada por defecto.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+- `git diff --check`
+
 ## [0.25.271] - 2026-05-11
 
 ### Added

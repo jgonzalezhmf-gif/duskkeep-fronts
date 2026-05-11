@@ -4,6 +4,8 @@ Este documento define las operaciones que deben pasar a servidor antes de consid
 
 Los contratos TypeScript y esquemas de validacion base viven en `features/server/authoritativeOperations.ts`. Cualquier endpoint, RPC o Server Action futura debe reutilizar esos esquemas antes de ejecutar logica transaccional.
 
+La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salvo `SERVER_AUTHORITATIVE_API_ENABLED=true` y requiere `Authorization: Bearer <supabase-user-jwt>`. La ruta solo llama RPCs ya existentes y no usa service role.
+
 ## Principios de Contrato
 
 - Toda operacion sensible recibe una `idempotencyKey`.

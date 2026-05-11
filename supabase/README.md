@@ -31,6 +31,8 @@ El estado de cliente no es seguro para economia, compras, ladder ni claims de re
 
 La interfaz de persistencia (`lib/persistence.ts`) ya expone un skeleton `SupabaseBackend`. Sustituir sus metodos solo despues de definir estrategia de validacion server-side para acciones sensibles.
 
+La ruta `/api/server/authoritative` es el primer proxy HTTP hacia RPCs autoritativas. Esta desactivada por defecto y solo responde si `SERVER_AUTHORITATIVE_API_ENABLED=true`. Requiere `Authorization: Bearer <supabase-user-jwt>` y no usa service role.
+
 ## Migraciones
 
 - `supabase/schema.sql` conserva el schema alpha reproducible y no autoritativo.
