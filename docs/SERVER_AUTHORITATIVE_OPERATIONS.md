@@ -116,6 +116,8 @@ type SaveLoadoutResult = {
 
 Registra resultado de un nodo Adventure y concede recompensas validas.
 
+Primera implementacion SQL: `public.claim_adventure_battle_result(p_idempotency_key text, p_node_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`. Alcance inicial: combates de Chapter 1. Chapter 2 permanece bloqueado.
+
 Payload:
 
 ```ts

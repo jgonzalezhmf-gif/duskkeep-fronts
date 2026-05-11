@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.270] - 2026-05-11
+
+### Added
+- Aniadida migracion `supabase/migrations/20260511172000_claim_adventure_battle_result_rpc.sql` con la RPC `public.claim_adventure_battle_result` para combates de Adventure Chapter 1.
+- Extendidos los smoke tests SQL para validar first-clear, replay reducido e idempotencia de resultados de batalla Adventure.
+
+### Changed
+- Documentado el alcance inicial de `claimAdventureBattleResult` en `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` y `supabase/README.md`.
+
+### Tested
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run check`
+- `git diff --check`
+
 ## [0.25.269] - 2026-05-11
 
 ### Added
