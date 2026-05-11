@@ -38,7 +38,18 @@ La interfaz de persistencia (`lib/persistence.ts`) ya expone un skeleton `Supaba
 - `supabase/migrations/20260510194500_adventure_shop_operations.sql` crea las tablas para progreso de Adventure, claims de mapa, compras, misiones, login diario, resultados de batalla e idempotencia.
 - `supabase/migrations/20260511061000_open_adventure_map_interaction_rpc.sql` crea la primera RPC autoritativa para abrir el cofre de Adventure con llaves, loot server-side, ledger e idempotencia.
 - `supabase/migrations/20260511063000_purchase_shop_offer_rpc.sql` crea la primera RPC autoritativa de Shop para comprar `adventure_key_ring` con limite diario, coste, reward, ledger e idempotencia.
+- `supabase/migrations/20260511165000_fix_rpc_extension_search_path.sql` ajusta el `search_path` de las RPC para resolver funciones de `extensions` como `digest()`.
 - Las migraciones nuevas deben seguir `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
+
+## Smoke Tests Locales
+
+Despues de `npx.cmd supabase start` o `npx.cmd supabase db reset`, validar las primeras RPC autoritativas con:
+
+```bash
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/smoke-tests/adventure_shop_rpcs.sql
+```
+
+El script crea un usuario local de prueba, valida `purchase_shop_offer`, valida `open_adventure_map_interaction`, comprueba idempotencia y confirma que el cofre consume la llave.
 
 ## Notas de Seguridad
 

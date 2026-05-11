@@ -17,6 +17,13 @@ artifacts
 *.har
 *.trace.zip
 tmp/ip-risk-terms.txt
+
+# Local Supabase CLI workspace. Keep migrations/schema/seed versioned, but not local CLI state.
+supabase/config.toml
+supabase/.gitignore
+supabase/.branches/
+supabase/.temp/
+
 .agents
 .skills
 .claude

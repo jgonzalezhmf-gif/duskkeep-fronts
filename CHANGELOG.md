@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.269] - 2026-05-11
+
+### Added
+- Aniadido smoke test SQL `supabase/smoke-tests/adventure_shop_rpcs.sql` para validar localmente las RPC `purchase_shop_offer` y `open_adventure_map_interaction`.
+- Documentado el comando de smoke test local en `supabase/README.md`.
+
+### Changed
+- Ignorados `supabase/config.toml`, `supabase/.gitignore`, `supabase/.branches/` y `supabase/.temp/` como estado local de Supabase CLI no versionado por ahora.
+
+### Fixed
+- Aniadida migracion `supabase/migrations/20260511165000_fix_rpc_extension_search_path.sql` para que las RPC autoritativas resuelvan `extensions.digest()` en Supabase.
+
+### Tested
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run check`
+- `git diff --check`
+
 ## [0.25.267] - 2026-05-11
 
 ### Fixed
