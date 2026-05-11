@@ -12,6 +12,7 @@ describe("server authoritative operation contracts", () => {
       "saveLoadout",
       "claimAdventureBattleResult",
       "openAdventureMapInteraction",
+      "claimAdventureNodeReward",
       "purchaseShopOffer",
       "claimMission",
       "claimDailyLogin",
@@ -41,6 +42,15 @@ describe("server authoritative operation contracts", () => {
       ok: false,
       code: "invalid_request",
     });
+  });
+
+  it("accepts Adventure node reward claim payloads", () => {
+    const parsed = parseServerActionRequest("claimAdventureNodeReward", {
+      idempotencyKey: "adventure-node-20260511-0001",
+      payload: { nodeId: "c1l3" },
+    });
+
+    expect(parsed.ok).toBe(true);
   });
 
   it("enforces current Frontline loadout shape", () => {

@@ -15,6 +15,9 @@ declare
   v_battle_result jsonb;
   v_battle_replay jsonb;
   v_battle_second_clear jsonb;
+  v_node_claim_result jsonb;
+  v_node_claim_replay jsonb;
+  v_node_claim_second_attempt jsonb;
   v_shop_purchase_count int;
   v_cache_claim_count int;
 begin
@@ -125,6 +128,33 @@ begin
   end if;
   if coalesce((v_battle_second_clear #>> '{result,rewardsGranted,gold}')::int, 0) <> 16 then
     raise exception 'Expected c1l1 replay gold to be 16: %', v_battle_second_clear;
+  end if;
+
+  v_node_claim_result := public.claim_adventure_node_reward(
+    'smoke-node-claim-20260511-0001',
+    'c1l3'
+  );
+  if coalesce((v_node_claim_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'claim_adventure_node_reward failed: %', v_node_claim_result;
+  end if;
+  if coalesce(v_node_claim_result #>> '{result,rewardsGranted,frontlineCards,0,cardId}', '') <> 'order_shadow_dive' then
+    raise exception 'Expected c1l3 to unlock order_shadow_dive: %', v_node_claim_result;
+  end if;
+
+  v_node_claim_replay := public.claim_adventure_node_reward(
+    'smoke-node-claim-20260511-0001',
+    'c1l3'
+  );
+  if v_node_claim_replay <> v_node_claim_result then
+    raise exception 'claim_adventure_node_reward is not idempotent: % <> %', v_node_claim_replay, v_node_claim_result;
+  end if;
+
+  v_node_claim_second_attempt := public.claim_adventure_node_reward(
+    'smoke-node-claim-20260511-0002',
+    'c1l3'
+  );
+  if coalesce(v_node_claim_second_attempt ->> 'code', '') <> 'already_claimed' then
+    raise exception 'Expected second node claim to be blocked: %', v_node_claim_second_attempt;
   end if;
 
   v_shop_result := public.purchase_shop_offer('smoke-shop-20260511-0001', 'adventure_key_ring', 1);

@@ -188,6 +188,38 @@ type OpenAdventureMapInteractionResult = {
 };
 ```
 
+### `claimAdventureNodeReward`
+
+Reclama un nodo no-combate de Adventure, como cofres de ruta.
+
+Primera implementacion SQL: `public.claim_adventure_node_reward(p_idempotency_key text, p_node_id text)`. Alcance inicial: `c1l3` y `c1l7`.
+
+Payload:
+
+```ts
+type ClaimAdventureNodeRewardPayload = {
+  nodeId: string;
+};
+```
+
+Validaciones:
+
+- El nodo existe y es reclamable.
+- Los prerequisitos de ruta estan completados.
+- El nodo no fue reclamado antes.
+- La operacion es idempotente.
+
+Resultado:
+
+```ts
+type ClaimAdventureNodeRewardResult = {
+  nodeId: string;
+  status: "claimed";
+  rewardsGranted: Rewards;
+  resources: Resources;
+};
+```
+
 ### `purchaseShopOffer`
 
 Compra una oferta de Shop.

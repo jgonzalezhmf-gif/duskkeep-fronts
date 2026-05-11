@@ -79,6 +79,9 @@ export const serverOperationPayloadSchemas = {
   openAdventureMapInteraction: z.object({
     interactionId: idSchema,
   }),
+  claimAdventureNodeReward: z.object({
+    nodeId: idSchema,
+  }),
   purchaseShopOffer: z.object({
     offerId: idSchema,
     quantity: z.number().int().positive().max(99).default(1),

@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.271] - 2026-05-11
+
+### Added
+- Aniadida migracion `supabase/migrations/20260511182000_claim_adventure_node_reward_rpc.sql` con la RPC `public.claim_adventure_node_reward` para cofres de nodo `c1l3` y `c1l7`.
+- Aniadido contrato `claimAdventureNodeReward` en los esquemas server-authoritative.
+- Extendidos los smoke tests SQL para validar claim de nodo, idempotencia y bloqueo de segundo claim.
+
+### Changed
+- Documentado el alcance inicial de `claimAdventureNodeReward` en `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` y `supabase/README.md`.
+
+### Tested
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeOperations.test.ts`
+- `git diff --check`
+
 ## [0.25.270] - 2026-05-11
 
 ### Added
