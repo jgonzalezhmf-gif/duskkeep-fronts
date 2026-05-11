@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.281] - 2026-05-11
+
+### Added
+- Extendidos los smoke tests SQL de Supabase para validar `save_frontline_loadout` e idempotencia antes del resto de operaciones Adventure/Shop.
+- Extendido `scripts/smoke-authoritative-api.mjs` para validar `saveLoadout` via `/api/server/authoritative` con replay idempotente.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts`
+
 ## [0.25.280] - 2026-05-11
 
 ### Added

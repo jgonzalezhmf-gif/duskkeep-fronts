@@ -15,6 +15,8 @@ declare
   v_battle_result jsonb;
   v_battle_replay jsonb;
   v_battle_second_clear jsonb;
+  v_loadout_result jsonb;
+  v_loadout_replay jsonb;
   v_node_claim_result jsonb;
   v_node_claim_replay jsonb;
   v_node_claim_second_attempt jsonb;
@@ -83,11 +85,35 @@ begin
 
   delete from public.shop_purchases where profile_id = v_profile_id;
   delete from public.adventure_map_claims where profile_id = v_profile_id;
+  delete from public.frontline_loadouts where profile_id = v_profile_id;
   delete from public.resource_ledger where profile_id = v_profile_id;
   delete from public.server_operations where profile_id = v_profile_id;
 
   perform set_config('request.jwt.claim.sub', v_user_id::text, true);
   perform set_config('request.jwt.claim.role', 'authenticated', true);
+
+  v_loadout_result := public.save_frontline_loadout(
+    'smoke-loadout-20260511-0001',
+    'leader_aurora',
+    '["bran","kara","mira"]'::jsonb,
+    '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
+  );
+  if coalesce((v_loadout_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'save_frontline_loadout failed: %', v_loadout_result;
+  end if;
+  if coalesce(v_loadout_result #>> '{result,leaderId}', '') <> 'leader_aurora' then
+    raise exception 'Expected saved leader_aurora loadout: %', v_loadout_result;
+  end if;
+
+  v_loadout_replay := public.save_frontline_loadout(
+    'smoke-loadout-20260511-0001',
+    'leader_aurora',
+    '["bran","kara","mira"]'::jsonb,
+    '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
+  );
+  if v_loadout_replay <> v_loadout_result then
+    raise exception 'save_frontline_loadout is not idempotent: % <> %', v_loadout_replay, v_loadout_result;
+  end if;
 
   v_battle_result := public.claim_adventure_battle_result(
     'smoke-battle-20260511-0001',

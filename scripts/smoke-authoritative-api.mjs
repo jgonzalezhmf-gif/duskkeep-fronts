@@ -33,9 +33,27 @@ const session = await getSession({ email, password });
 const token = session.access_token;
 const idempotencyKey = `api-smoke-${Date.now()}`;
 const endpoint = new URL("/api/server/authoritative", baseUrl).toString();
-const requestBody = {
+const loadoutRequestBody = {
+  operationType: "saveLoadout",
+  idempotencyKey: `${idempotencyKey}-loadout`,
+  payload: {
+    leaderId: "leader_aurora",
+    squad: ["bran", "kara", "mira"],
+    deck: [
+      "order_guard_wall",
+      "order_twin_slash",
+      "order_focus_fire",
+      "tactic_battle_hymn",
+      "tactic_sanctuary",
+      "tactic_smokescreen",
+      "summon_wolf",
+      "summon_barrier",
+    ],
+  },
+};
+const battleRequestBody = {
   operationType: "claimAdventureBattleResult",
-  idempotencyKey,
+  idempotencyKey: `${idempotencyKey}-battle`,
   payload: {
     nodeId: "c1l1",
     battleSeed: Date.now(),
@@ -45,19 +63,29 @@ const requestBody = {
   },
 };
 
-const first = await postAuthoritative(endpoint, token, requestBody);
-assertOk(first, "first claim");
+const loadoutFirst = await postAuthoritative(endpoint, token, loadoutRequestBody);
+assertOk(loadoutFirst, "loadout save");
 
-const replay = await postAuthoritative(endpoint, token, requestBody);
-assertOk(replay, "idempotent replay");
+const loadoutReplay = await postAuthoritative(endpoint, token, loadoutRequestBody);
+assertOk(loadoutReplay, "loadout idempotent replay");
 
-if (JSON.stringify(first.body) !== JSON.stringify(replay.body)) {
-  fail("Idempotent replay returned a different body.");
+if (JSON.stringify(loadoutFirst.body) !== JSON.stringify(loadoutReplay.body)) {
+  fail("Loadout idempotent replay returned a different body.");
+}
+
+const battleFirst = await postAuthoritative(endpoint, token, battleRequestBody);
+assertOk(battleFirst, "first battle claim");
+
+const battleReplay = await postAuthoritative(endpoint, token, battleRequestBody);
+assertOk(battleReplay, "battle idempotent replay");
+
+if (JSON.stringify(battleFirst.body) !== JSON.stringify(battleReplay.body)) {
+  fail("Battle idempotent replay returned a different body.");
 }
 
 console.log("Authoritative API smoke passed.");
 console.log(`Endpoint: ${endpoint}`);
-console.log(`Operation: ${requestBody.operationType}`);
+console.log(`Operations: ${loadoutRequestBody.operationType}, ${battleRequestBody.operationType}`);
 console.log(`User: ${email}`);
 
 async function getSession({ email, password }) {
