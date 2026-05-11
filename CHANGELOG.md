@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.264] - 2026-05-11
+
+### Added
+- Aniadidos contratos TypeScript y esquemas Zod para operaciones server-authoritative en `features/server/authoritativeOperations.ts`.
+- Aniadidos tests de validacion para idempotencia, payloads sensibles, loadout Frontline y rewards.
+
+### Changed
+- Enlazado `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` con el modulo de contratos vivo.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeOperations.test.ts`
+
 ## [0.25.263] - 2026-05-10
 
 ### Added

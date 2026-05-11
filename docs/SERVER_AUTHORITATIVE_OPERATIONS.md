@@ -2,6 +2,8 @@
 
 Este documento define las operaciones que deben pasar a servidor antes de considerar segura la economia online, el ladder o cualquier flujo monetizado. No implementa endpoints todavia; fija contratos y criterios para la siguiente fase.
 
+Los contratos TypeScript y esquemas de validacion base viven en `features/server/authoritativeOperations.ts`. Cualquier endpoint, RPC o Server Action futura debe reutilizar esos esquemas antes de ejecutar logica transaccional.
+
 ## Principios de Contrato
 
 - Toda operacion sensible recibe una `idempotencyKey`.
