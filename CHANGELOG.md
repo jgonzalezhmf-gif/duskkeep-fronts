@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.285] - 2026-05-12
+
+### Added
+- Conectada la recompensa diaria en Home mediante `DailyLoginCharm`, reutilizando `claimDailyLoginOnlineFirst` y su fallback local.
+- Aniadidas claves i18n EN/ES para el claim diario sin hardcodear textos nuevos en el componente.
+
+### Changed
+- Home muestra una placa compacta de tributo diario bajo el comandante, con estado claimed/pending y resumen visual de recompensas.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.25.284] - 2026-05-11
 
 ### Added

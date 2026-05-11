@@ -77,6 +77,14 @@ export const enDictionary = {
       mainQuest: "Main quest",
       adventureFight: "Adventure Fight",
       pushFrontier: "Push the frontier",
+      dailyLogin: {
+        title: "Daily tribute",
+        day: "Day {day}",
+        streak: "{streak} streak",
+        claim: "Claim",
+        claiming: "Claiming",
+        claimed: "Claimed",
+      },
       hotspots: {
         fortress: { label: "Fortress", sublabel: "Citadel" },
         arena: { label: "Arena", sublabel: "Coliseum" },

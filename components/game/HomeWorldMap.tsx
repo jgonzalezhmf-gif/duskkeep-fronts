@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import dynamic from "next/dynamic";
 import HomeScene from "@/components/game/home/HomeScene";
 import HomeWorldMapStyles from "@/components/game/home/HomeWorldMapStyles";
+import { DailyLoginCharm } from "@/components/game/home/DailyLoginCharm";
 import {
   CommanderBanner,
   CornerAction,
@@ -391,6 +392,7 @@ export default function HomeWorldMap({
           levelLabel={t("common.level")}
           powerLabel={t("common.power")}
         />
+        {!cleanMode ? <DailyLoginCharm /> : null}
         {!cleanMode ? (
           <div className="hidden gap-2 md:flex">
             <TimedCharm label={t("nav.rewards")} value={timers.reward} tone="gold" icon="quests" />

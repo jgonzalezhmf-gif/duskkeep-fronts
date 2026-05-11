@@ -77,6 +77,14 @@ export const esDictionary = {
       mainQuest: "Misión principal",
       adventureFight: "Combate de aventura",
       pushFrontier: "Empuja la frontera",
+      dailyLogin: {
+        title: "Tributo diario",
+        day: "Dia {day}",
+        streak: "Racha {streak}",
+        claim: "Reclamar",
+        claiming: "Reclamando",
+        claimed: "Reclamado",
+      },
       hotspots: {
         fortress: { label: "Fortaleza", sublabel: "Ciudadela" },
         arena: { label: "Arena", sublabel: "Coliseo" },
