@@ -194,3 +194,21 @@ export function handleBuy(
   pushNote("error", result.reason ?? t("shop.notifications.purchaseFailed"));
   return false;
 }
+
+export async function handleBuyAsync(
+  offer: ExtendedShopOffer,
+  buy: (offerId: string) => Promise<{ ok: boolean; reason?: string }>,
+  pushNote: (kind: "success" | "error" | "info", message: string) => void,
+  t: TranslateFn,
+) {
+  const result = await buy(offer.id);
+  if (result.ok) {
+    sfx.purchase();
+    pushNote("success", t("shop.notifications.bought", { name: offerName(offer, t) }));
+    return true;
+  }
+
+  sfx.error();
+  pushNote("error", result.reason ?? t("shop.notifications.purchaseFailed"));
+  return false;
+}

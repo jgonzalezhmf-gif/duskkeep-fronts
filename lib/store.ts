@@ -49,6 +49,7 @@ import {
 } from "@/features/frontline/fortress";
 import { planFrontlineCardUnlock, planFrontlineCardUpgrade } from "@/lib/frontlineCardState";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
+import { purchaseShopOfferAuthoritatively } from "@/features/server/authoritativeOperationDispatcher";
 import {
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
@@ -354,6 +355,27 @@ export const useGameStore = create<GameState & GameActions>()(
         set((st) => applyShopOfferPurchase(st, offerId));
         get().awardRewards(offer.contents, `shop: ${offer.name}`);
         return { ok: true };
+      },
+
+      purchaseOfferOnlineFirst: async (offerId) => {
+        get().refreshShopIfNeeded();
+        const offer = SHOP_OFFERS_BY_ID[offerId];
+        if (!offer) return { ok: false, reason: "Offer not found" };
+
+        const authoritative = await purchaseShopOfferAuthoritatively(offerId);
+        if (authoritative.mode === "local") {
+          return get().purchaseOffer(offerId);
+        }
+
+        if (!authoritative.ok) {
+          return { ok: false, reason: authoritative.reason, authoritative: true };
+        }
+
+        set((st) => ({
+          ...applyShopOfferPurchase(st, offerId),
+          resources: authoritative.resources,
+        }));
+        return { ok: true, authoritative: true };
       },
 
       pushNotification: (kind, message) => {

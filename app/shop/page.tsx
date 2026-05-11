@@ -22,7 +22,7 @@ import {
 import {
   categoryLabel,
   fmtMs,
-  handleBuy,
+  handleBuyAsync,
   isOfferConsumed,
   nextMidnightMs,
 } from "./shopPageHelpers";
@@ -52,12 +52,13 @@ export default function ShopPage() {
   const [clientReady, setClientReady] = useState(false);
   const [ms, setMs] = useState(0);
   const [purchaseFx, setPurchaseFx] = useState<{ offerId: string; nonce: number } | null>(null);
+  const [pendingOfferId, setPendingOfferId] = useState<string | null>(null);
   const purchaseFxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const purchaseFxNonce = useRef(0);
   const resources = useGameStore((s) => s.resources);
   const adventureProgress = useGameStore((s) => s.adventureProgress);
   const level = useGameStore((s) => s.account.level);
-  const buy = useGameStore((s) => s.purchaseOffer);
+  const buy = useGameStore((s) => s.purchaseOfferOnlineFirst);
   const pushNote = useGameStore((s) => s.pushNotification);
   const refresh = useGameStore((s) => s.refreshShopIfNeeded);
   const remaining = useGameStore((s) => s.offerRemaining);
@@ -102,13 +103,19 @@ export default function ShopPage() {
   const stockState = visibleOffers.some((offer) => getVisibleRemaining(offer) === null)
     ? t("shop.openStock")
     : t("shop.left", { count: totalRemaining });
-  const buyWithFeedback = (offer: ExtendedShopOffer) => {
-    const ok = handleBuy(offer, buy, pushNote, t);
-    if (!ok) return;
-    purchaseFxNonce.current += 1;
-    setPurchaseFx({ offerId: offer.id, nonce: purchaseFxNonce.current });
-    if (purchaseFxTimer.current) clearTimeout(purchaseFxTimer.current);
-    purchaseFxTimer.current = setTimeout(() => setPurchaseFx(null), 1500);
+  const buyWithFeedback = async (offer: ExtendedShopOffer) => {
+    if (pendingOfferId) return;
+    setPendingOfferId(offer.id);
+    try {
+      const ok = await handleBuyAsync(offer, buy, pushNote, t);
+      if (!ok) return;
+      purchaseFxNonce.current += 1;
+      setPurchaseFx({ offerId: offer.id, nonce: purchaseFxNonce.current });
+      if (purchaseFxTimer.current) clearTimeout(purchaseFxTimer.current);
+      purchaseFxTimer.current = setTimeout(() => setPurchaseFx(null), 1500);
+    } finally {
+      setPendingOfferId(null);
+    }
   };
 
   return (

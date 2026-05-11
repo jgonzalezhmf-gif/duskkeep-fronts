@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.275] - 2026-05-11
+
+### Added
+- Aniadido dispatcher progresivo `features/server/authoritativeOperationDispatcher.ts` para usar operaciones autoritativas cuando exista sesion Supabase y conservar fallback local cuando no exista.
+- Aniadido helper `features/server/supabaseBrowserSession.ts` para leer sesion Supabase en navegador sin exponer service role.
+- Aniadida accion `purchaseOfferOnlineFirst` en el store para conectar solo `adventure_key_ring` al proxy autoritativo.
+- Aniadidos tests del dispatcher para fallback local, API desactivada, exito autoritativo y rechazos sin bypass local.
+
+### Changed
+- La pantalla Shop usa la accion online-first, pero el flujo local sigue siendo el fallback por defecto si no hay sesion o si el proxy esta desactivado.
+- Documentado el alcance inicial del dispatcher en `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
+
+### Tested
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeClient.test.ts tests/shopPurchases.test.ts`
+- `npm.cmd run build`
+
 ## [0.25.274] - 2026-05-11
 
 ### Added
