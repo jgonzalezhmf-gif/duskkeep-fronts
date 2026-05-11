@@ -49,7 +49,10 @@ import {
 } from "@/features/frontline/fortress";
 import { planFrontlineCardUnlock, planFrontlineCardUpgrade } from "@/lib/frontlineCardState";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
-import { purchaseShopOfferAuthoritatively } from "@/features/server/authoritativeOperationDispatcher";
+import {
+  openAdventureMapInteractionAuthoritatively,
+  purchaseShopOfferAuthoritatively,
+} from "@/features/server/authoritativeOperationDispatcher";
 import {
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
@@ -333,6 +336,39 @@ export const useGameStore = create<GameState & GameActions>()(
         set({ adventureMapClaims: plan.nextClaims });
         get().awardRewards(plan.result.rewards, plan.interaction.title);
         return plan.result;
+      },
+
+      claimAdventureMapInteractionOnlineFirst: async (interactionId) => {
+        const authoritative = await openAdventureMapInteractionAuthoritatively(interactionId);
+        if (authoritative.mode === "local") {
+          return get().claimAdventureMapInteraction(interactionId);
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((st) => {
+          const rewardedState = applyRewardsToGameState(st, authoritative.result.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            adventureMapClaims: {
+              ...st.adventureMapClaims,
+              [interactionId]: {
+                claimed: true,
+                claimedAt: todayISO(),
+                lootId: authoritative.result.lootId,
+                lootTier: authoritative.result.lootTier,
+                lootTitle: authoritative.result.lootTitle,
+                rewards: authoritative.result.rewards,
+                resetAvailableAt: authoritative.resetAvailableAt ?? undefined,
+              },
+            },
+          };
+        });
+        return authoritative.result;
       },
 
       claimMission: (missionId) => {

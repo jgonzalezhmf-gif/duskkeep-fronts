@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.276] - 2026-05-11
+
+### Added
+- Conectado `openAdventureMapInteraction` al dispatcher online-first para que los cofres de mapa puedan usar el proxy autoritativo cuando exista sesion Supabase.
+- Aniadida accion `claimAdventureMapInteractionOnlineFirst` en el store con fallback local si no hay sesion o la API esta desactivada.
+- Extendidos los tests del dispatcher para apertura autoritativa de cofre, fallback local y rechazo servidor sin bypass.
+
+### Changed
+- Adventure usa la accion online-first para abrir el key chest sin tocar layout, coordenadas ni reglas locales.
+- Documentado que el dispatcher ya cubre compra de llave y apertura de cofre de mapa.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeClient.test.ts tests/adventureMapInteractionClaims.test.ts tests/adventure.mapInteractions.test.ts`
+
 ## [0.25.275] - 2026-05-11
 
 ### Added

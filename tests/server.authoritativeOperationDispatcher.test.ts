@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { purchaseShopOfferAuthoritatively } from "@/features/server/authoritativeOperationDispatcher";
+import {
+  openAdventureMapInteractionAuthoritatively,
+  purchaseShopOfferAuthoritatively,
+} from "@/features/server/authoritativeOperationDispatcher";
 
 describe("authoritative operation dispatcher", () => {
   it("keeps unsupported shop offers on the local path", async () => {
@@ -106,6 +109,85 @@ describe("authoritative operation dispatcher", () => {
       ok: false,
       mode: "authoritative",
       reason: "Shop offer is not supported by the server yet",
+    });
+  });
+
+  it("falls back to local cache opening when there is no Supabase session", async () => {
+    const result = await openAdventureMapInteractionAuthoritatively("c1-lower-cache", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative cache loot and resources after opening a map interaction", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          interactionId: "c1-lower-cache",
+          status: "claimed",
+          lootId: "road-cache-common-supplies",
+          lootTier: "common",
+          lootTitle: "Roadside Supplies",
+          rewardsGranted: { gold: 220, dust: 25, accountXp: 8 },
+          resources: {
+            gold: 720,
+            dust: 75,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+          resetAvailableAt: "2026-05-12T05:00:00.000Z",
+        },
+      }),
+    });
+
+    const result = await openAdventureMapInteractionAuthoritatively("c1-lower-cache", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      result: {
+        interactionId: "c1-lower-cache",
+        lootId: "road-cache-common-supplies",
+        lootTier: "common",
+        lootTitle: "Roadside Supplies",
+        rewards: { gold: 220, dust: 25, accountXp: 8 },
+      },
+      resources: {
+        gold: 720,
+        dust: 75,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+      resetAvailableAt: "2026-05-12T05:00:00.000Z",
+    });
+  });
+
+  it("does not fallback when the connected server rejects cache opening", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "insufficient_resources", reason: "Adventure key required" }),
+    });
+
+    const result = await openAdventureMapInteractionAuthoritatively("c1-lower-cache", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Adventure key required",
     });
   });
 });

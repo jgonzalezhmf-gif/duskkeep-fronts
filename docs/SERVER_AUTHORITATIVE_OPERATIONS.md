@@ -8,7 +8,7 @@ La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salv
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. De momento no esta conectado a la UI: solo centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Su primera integracion esta limitada a `purchaseShopOffer` para `adventure_key_ring`: si hay sesion Supabase usa el proxy autoritativo; si no hay sesion o la API esta desactivada, conserva el flujo local. Si el servidor conectado rechaza la compra, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones cubren `purchaseShopOffer` para `adventure_key_ring` y `openAdventureMapInteraction` para cofres de mapa: si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
 El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta con `npm.cmd run smoke:authoritative-api` despues de arrancar Supabase y Next con `SERVER_AUTHORITATIVE_API_ENABLED=true`. Este smoke usa Supabase Auth real, no service role.
 

@@ -30,7 +30,7 @@ export function useAdventureMapPageState(t: TranslateFn) {
   const adventureMapClaims = useGameStore((state) => state.adventureMapClaims);
   const accountLevel = useGameStore((state) => state.account.level);
   const claimAdventureNode = useGameStore((state) => state.claimAdventureNode);
-  const claimAdventureMapInteraction = useGameStore((state) => state.claimAdventureMapInteraction);
+  const claimAdventureMapInteraction = useGameStore((state) => state.claimAdventureMapInteractionOnlineFirst);
   const router = useRouter();
 
   const chapters = useMemo(() => {
@@ -84,8 +84,9 @@ export function useAdventureMapPageState(t: TranslateFn) {
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [qaMapEditor, setQaMapEditor] = useState(false);
   const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, ReturnType<typeof claimAdventureNode>>>({});
-  const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, ReturnType<typeof claimAdventureMapInteraction>>>({});
+  const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, AdventureMapInteractionOpenResult | null>>({});
   const [cacheReveal, setCacheReveal] = useState<AdventureMapInteractionOpenResult | null>(null);
+  const [pendingInteractionId, setPendingInteractionId] = useState<string | null>(null);
   const [interactionClock, setInteractionClock] = useState(() => Date.now());
 
   useEffect(() => {
@@ -185,11 +186,14 @@ export function useAdventureMapPageState(t: TranslateFn) {
     router.push(`/adventure/${selected.lvl.id}`);
   }
 
-  function resolveSelectedInteraction() {
+  async function resolveSelectedInteraction() {
     if (!selectedInteractionId) return;
-    const result = claimAdventureMapInteraction(selectedInteractionId);
+    if (pendingInteractionId) return;
+    const interactionId = selectedInteractionId;
+    setPendingInteractionId(interactionId);
+    const result = await claimAdventureMapInteraction(interactionId).finally(() => setPendingInteractionId(null));
     if (result) {
-      setClaimedRewardsByInteraction((current) => ({ ...current, [selectedInteractionId]: result }));
+      setClaimedRewardsByInteraction((current) => ({ ...current, [interactionId]: result }));
       setCacheReveal(result);
     }
   }

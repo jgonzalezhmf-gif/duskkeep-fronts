@@ -96,6 +96,7 @@ export type GameActions = {
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
   claimAdventureNode: (levelId: string) => Rewards | null;
   claimAdventureMapInteraction: (interactionId: string) => AdventureMapInteractionOpenResult | null;
+  claimAdventureMapInteractionOnlineFirst: (interactionId: string) => Promise<AdventureMapInteractionOpenResult | null>;
   claimMission: (missionId: string) => Rewards | null;
   purchaseOffer: (offerId: string) => { ok: boolean; reason?: string };
   purchaseOfferOnlineFirst: (offerId: string) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
