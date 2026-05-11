@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.267] - 2026-05-11
+
+### Fixed
+- Corregido `supabase/seed.sql` para que no falle `supabase start`/`db reset` cuando el schema seguro no contiene tablas legacy como `adventure_chapters`.
+
+### Changed
+- Documentado en `supabase/README.md` que el seed actual es tolerante y no autoritativo.
+
+### Tested
+- `npm.cmd run check`
+- `git diff --check`
+
 ## [0.25.266] - 2026-05-11
 
 ### Added

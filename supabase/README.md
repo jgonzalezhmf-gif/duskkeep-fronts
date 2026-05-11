@@ -27,7 +27,7 @@ El estado de cliente no es seguro para economia, compras, ladder ni claims de re
    supabase db push
    ```
 
-6. Opcional: cargar datos seed con `supabase/seed.sql`.
+6. Opcional: cargar datos seed con `supabase/seed.sql`. El seed actual es tolerante con el schema seguro y salta datos legacy si las tablas antiguas no existen.
 
 La interfaz de persistencia (`lib/persistence.ts`) ya expone un skeleton `SupabaseBackend`. Sustituir sus metodos solo despues de definir estrategia de validacion server-side para acciones sensibles.
 
