@@ -29,7 +29,7 @@ export function useAdventureMapPageState(t: TranslateFn) {
   const resources = useGameStore((state) => state.resources);
   const adventureMapClaims = useGameStore((state) => state.adventureMapClaims);
   const accountLevel = useGameStore((state) => state.account.level);
-  const claimAdventureNode = useGameStore((state) => state.claimAdventureNode);
+  const claimAdventureNode = useGameStore((state) => state.claimAdventureNodeOnlineFirst);
   const claimAdventureMapInteraction = useGameStore((state) => state.claimAdventureMapInteractionOnlineFirst);
   const router = useRouter();
 
@@ -83,7 +83,7 @@ export function useAdventureMapPageState(t: TranslateFn) {
   const [chaptersOpen, setChaptersOpen] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [qaMapEditor, setQaMapEditor] = useState(false);
-  const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, ReturnType<typeof claimAdventureNode>>>({});
+  const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, Awaited<ReturnType<typeof claimAdventureNode>>>>({});
   const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, AdventureMapInteractionOpenResult | null>>({});
   const [cacheReveal, setCacheReveal] = useState<AdventureMapInteractionOpenResult | null>(null);
   const [pendingInteractionId, setPendingInteractionId] = useState<string | null>(null);
@@ -172,12 +172,12 @@ export function useAdventureMapPageState(t: TranslateFn) {
     setChaptersOpen(false);
   }
 
-  function resolveSelectedNode() {
+  async function resolveSelectedNode() {
     setSelectedInteractionId(null);
     if (selected.locked || selectedDefinition.type === "locked") return;
     if (isAdventureClaimed(selectedDefinition.type, selectedProgress)) return;
     if (!isAdventureCombatNode(selectedDefinition.type)) {
-      const rewards = claimAdventureNode(selected.lvl.id);
+      const rewards = await claimAdventureNode(selected.lvl.id);
       if (rewards) {
         setClaimedRewardsByNode((current) => ({ ...current, [selected.lvl.id]: rewards }));
       }

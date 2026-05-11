@@ -9,6 +9,7 @@ import { ROADMAP } from "@/data/roadmap";
 import { MILESTONES } from "@/data/milestones";
 import { CARD_BY_ID } from "@/data/cards";
 import { createAdventureMapInteractionClaimPlan } from "@/lib/adventureMapInteractionClaims";
+import { markAdventureNodeClaimed } from "@/lib/adventureProgressState";
 import { planAdventureLevelClear, planAdventureNodeClaim } from "@/lib/adventureNodeState";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import {
@@ -50,6 +51,7 @@ import {
 import { planFrontlineCardUnlock, planFrontlineCardUpgrade } from "@/lib/frontlineCardState";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import {
+  claimAdventureNodeRewardAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
@@ -314,6 +316,29 @@ export const useGameStore = create<GameState & GameActions>()(
         get().updateMissionProgress("adventure_levels_cleared", 1);
         get().awardRewards(plan.rewards, plan.source);
         return plan.rewards;
+      },
+
+      claimAdventureNodeOnlineFirst: async (levelId) => {
+        const authoritative = await claimAdventureNodeRewardAuthoritatively(levelId);
+        if (authoritative.mode === "local") {
+          return get().claimAdventureNode(levelId);
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((st) => {
+          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            adventureProgress: markAdventureNodeClaimed(st.adventureProgress, authoritative.nodeId, localDayKey()),
+          };
+        });
+        get().updateMissionProgress("adventure_levels_cleared", 1);
+        return authoritative.rewards;
       },
 
       claimAdventureMapInteraction: (interactionId) => {

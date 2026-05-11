@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  claimAdventureNodeRewardAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
@@ -188,6 +189,120 @@ describe("authoritative operation dispatcher", () => {
       ok: false,
       mode: "authoritative",
       reason: "Adventure key required",
+    });
+  });
+
+  it("falls back to local node claims when there is no Supabase session", async () => {
+    const result = await claimAdventureNodeRewardAuthoritatively("c1l3", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative node rewards and resources after a chest node claim", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          nodeId: "c1l3",
+          status: "claimed",
+          rewardsGranted: {
+            gold: 120,
+            dust: 20,
+            gems: 15,
+            accountXp: 14,
+            frontlineCards: [{ cardId: "order_shadow_dive" }],
+          },
+          resources: {
+            gold: 620,
+            dust: 70,
+            gems: 65,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await claimAdventureNodeRewardAuthoritatively("c1l3", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      nodeId: "c1l3",
+      rewards: {
+        gold: 120,
+        dust: 20,
+        gems: 15,
+        accountXp: 14,
+        frontlineCards: [{ cardId: "order_shadow_dive" }],
+      },
+      resources: {
+        gold: 620,
+        dust: 70,
+        gems: 65,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects a node reward claim", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "already_claimed", reason: "Adventure node reward already claimed" }),
+    });
+
+    const result = await claimAdventureNodeRewardAuthoritatively("c1l3", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Adventure node reward already claimed",
+    });
+  });
+
+  it("rejects mismatched authoritative node reward responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          nodeId: "c1l7",
+          rewardsGranted: { gold: 120 },
+          resources: {
+            gold: 620,
+            dust: 70,
+            gems: 65,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await claimAdventureNodeRewardAuthoritatively("c1l3", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response node mismatch",
     });
   });
 });

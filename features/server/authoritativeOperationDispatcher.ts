@@ -2,7 +2,7 @@ import { callAuthoritativeOperation, type AuthoritativeClientFetch } from "@/fea
 import { parseRewardPayload } from "@/features/server/authoritativeOperations";
 import { getSupabaseAccessToken } from "@/features/server/supabaseBrowserSession";
 import type { AdventureMapInteractionLootTier, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
-import type { Resources } from "@/lib/types";
+import type { Resources, Rewards } from "@/lib/types";
 
 const AUTHORITATIVE_SHOP_OFFERS = new Set(["adventure_key_ring"]);
 
@@ -63,6 +63,37 @@ export type AuthoritativeMapInteractionResult =
   | AuthoritativeMapInteractionFallback;
 
 export type OpenAdventureMapInteractionAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
+export type AuthoritativeNodeRewardSuccess = {
+  ok: true;
+  mode: "authoritative";
+  nodeId: string;
+  rewards: Rewards;
+  resources: Resources;
+};
+
+export type AuthoritativeNodeRewardFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeNodeRewardFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeNodeRewardResult =
+  | AuthoritativeNodeRewardSuccess
+  | AuthoritativeNodeRewardFailure
+  | AuthoritativeNodeRewardFallback;
+
+export type ClaimAdventureNodeRewardAuthoritativelyOptions = {
   endpoint?: string;
   fetcher?: AuthoritativeClientFetch;
   tokenProvider?: () => Promise<string | null>;
@@ -154,6 +185,50 @@ export async function openAdventureMapInteractionAuthoritatively(
   };
 }
 
+export async function claimAdventureNodeRewardAuthoritatively(
+  nodeId: string,
+  options: ClaimAdventureNodeRewardAuthoritativelyOptions = {},
+): Promise<AuthoritativeNodeRewardResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "claimAdventureNodeReward",
+    {
+      idempotencyKey: createIdempotencyKey(nodeId),
+      payload: { nodeId },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractNodeRewardResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.nodeId !== nodeId) {
+    return { ok: false, mode: "authoritative", reason: "Server response node mismatch" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
 function createIdempotencyKey(offerId: string) {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
   return `shop:${offerId}:${Date.now()}:${suffix}`;
@@ -207,6 +282,21 @@ function extractMapInteractionOpenResult(
     },
     resources,
     resetAvailableAt,
+  };
+}
+
+function extractNodeRewardResult(result: unknown): Omit<AuthoritativeNodeRewardSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const nodeId = parseString(result.nodeId);
+  const rewards = parseRewardPayload(result.rewardsGranted);
+  const resources = extractResources(result);
+  if (!nodeId || !rewards.success || !resources) return null;
+
+  return {
+    nodeId,
+    rewards: rewards.data,
+    resources,
   };
 }
 

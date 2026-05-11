@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.277] - 2026-05-11
+
+### Added
+- Conectado `claimAdventureNodeReward` al dispatcher online-first para reclamar cofres de nodo no-combate (`c1l3`, `c1l7`) con backend autoritativo cuando exista sesion Supabase.
+- Aniadida accion `claimAdventureNodeOnlineFirst` en el store, con fallback local solo si no hay sesion o si el proxy esta desactivado.
+- Extendidos los tests del dispatcher para claims de nodo, rechazos servidor y respuestas de nodo inconsistentes.
+
+### Changed
+- Adventure usa la accion online-first para nodos reclamables no-combate sin tocar layout, rutas, coordenadas ni reglas de Combat.
+- Documentado que el dispatcher ya cubre compra de llave, key chest y cofres de nodo.
+
+### Tested
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeClient.test.ts tests/adventureNodeState.test.ts tests/adventure.nodeResolution.test.ts`
+- `npm.cmd run build`
+
 ## [0.25.276] - 2026-05-11
 
 ### Added

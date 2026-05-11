@@ -95,6 +95,7 @@ export type GameActions = {
   ) => void;
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
   claimAdventureNode: (levelId: string) => Rewards | null;
+  claimAdventureNodeOnlineFirst: (levelId: string) => Promise<Rewards | null>;
   claimAdventureMapInteraction: (interactionId: string) => AdventureMapInteractionOpenResult | null;
   claimAdventureMapInteractionOnlineFirst: (interactionId: string) => Promise<AdventureMapInteractionOpenResult | null>;
   claimMission: (missionId: string) => Rewards | null;
