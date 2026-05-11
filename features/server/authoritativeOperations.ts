@@ -116,6 +116,7 @@ export type ServerOperationInputPayload<TType extends ServerOperationType> = z.i
 export const serverOperationTypes = Object.keys(serverOperationPayloadSchemas) as ServerOperationType[];
 
 export const supportedAuthoritativeApiOperations = [
+  "saveLoadout",
   "claimAdventureBattleResult",
   "claimAdventureNodeReward",
   "openAdventureMapInteraction",

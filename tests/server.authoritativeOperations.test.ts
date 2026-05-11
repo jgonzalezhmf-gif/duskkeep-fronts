@@ -25,6 +25,7 @@ describe("server authoritative operation contracts", () => {
 
   it("keeps the public authoritative API limited to RPC-backed operations", () => {
     expect(supportedAuthoritativeApiOperations).toEqual([
+      "saveLoadout",
       "claimAdventureBattleResult",
       "claimAdventureNodeReward",
       "openAdventureMapInteraction",

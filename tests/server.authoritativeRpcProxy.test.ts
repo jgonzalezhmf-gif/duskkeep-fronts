@@ -68,6 +68,51 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps Frontline loadout saves to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "saveLoadout",
+        idempotencyKey: "loadout-save-20260511",
+        payload: {
+          leaderId: "leader_aurora",
+          squad: ["bran", "kara", "mira"],
+          deck: [
+            "order_guard_wall",
+            "order_twin_slash",
+            "order_focus_fire",
+            "tactic_battle_hymn",
+            "tactic_sanctuary",
+            "tactic_smokescreen",
+            "summon_wolf",
+            "summon_barrier",
+          ],
+        },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "save_frontline_loadout",
+      rpcArgs: {
+        p_idempotency_key: "loadout-save-20260511",
+        p_leader_id: "leader_aurora",
+        p_squad: ["bran", "kara", "mira"],
+        p_deck: [
+          "order_guard_wall",
+          "order_twin_slash",
+          "order_focus_fire",
+          "tactic_battle_hymn",
+          "tactic_sanctuary",
+          "tactic_smokescreen",
+          "summon_wolf",
+          "summon_barrier",
+        ],
+      },
+    });
+  });
+
   it("normalizes purchase quantity before mapping to RPC", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

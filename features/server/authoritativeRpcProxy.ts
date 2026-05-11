@@ -135,6 +135,19 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
   idempotencyKey: string,
   payload: ServerOperationPayload<TType>,
 ) {
+  if (operationType === "saveLoadout") {
+    const loadoutPayload = payload as ServerOperationPayload<"saveLoadout">;
+    return {
+      rpcName: "save_frontline_loadout",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_leader_id: loadoutPayload.leaderId,
+        p_squad: loadoutPayload.squad,
+        p_deck: loadoutPayload.deck,
+      },
+    };
+  }
+
   if (operationType === "claimAdventureBattleResult") {
     const battlePayload = payload as ServerOperationPayload<"claimAdventureBattleResult">;
     return {

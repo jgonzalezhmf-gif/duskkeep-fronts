@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.279] - 2026-05-11
+
+### Added
+- Aniadida RPC `public.save_frontline_loadout` para persistir leader/squad/deck Frontline con idempotencia y shape validation server-side.
+- Expuesta `saveLoadout` en el proxy autoritativo y mapeada a `save_frontline_loadout`.
+- Extendidos tests de contratos/proxy para cubrir el mapping de guardado de loadout.
+
+### Changed
+- Documentado el alcance inicial de `saveLoadout`: preparado en backend, pero todavia no conectado al store ni usado como fuente autoritativa de Combat.
+
+### Tested
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts`
+
 ## [0.25.278] - 2026-05-11
 
 ### Added

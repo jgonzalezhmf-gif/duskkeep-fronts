@@ -6,9 +6,9 @@ Los contratos TypeScript y esquemas de validacion base viven en `features/server
 
 La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salvo `SERVER_AUTHORITATIVE_API_ENABLED=true` y requiere `Authorization: Bearer <supabase-user-jwt>`. La ruta solo llama RPCs ya existentes y no usa service role.
 
-El cliente interno vive en `features/server/authoritativeClient.ts`. De momento no esta conectado a la UI: solo centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
+El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones cubren `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa y `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`: si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7` y `claimAdventureBattleResult` para resultados de combate Adventure: si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
 El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta con `npm.cmd run smoke:authoritative-api` despues de arrancar Supabase y Next con `SERVER_AUTHORITATIVE_API_ENABLED=true`. Este smoke usa Supabase Auth real, no service role.
 
@@ -94,6 +94,8 @@ Notas:
 
 Guarda lider, squad y deck activos.
 
+Primera implementacion SQL: `public.save_frontline_loadout(p_idempotency_key text, p_leader_id text, p_squad jsonb, p_deck jsonb)`. Alcance inicial: persistencia shape-safe del loadout. Todavia no esta conectada al store ni se usa como fuente de verdad de Combat.
+
 Payload:
 
 ```ts
@@ -106,17 +108,19 @@ type SaveLoadoutPayload = {
 
 Validaciones:
 
-- El lider existe y esta permitido.
-- Los heroes del squad existen y estan desbloqueados.
-- Las cartas del deck existen y estan desbloqueadas.
-- No hay duplicados ilegales.
+- El usuario esta autenticado.
 - El tamano de squad/deck coincide con reglas actuales.
+- La operacion es idempotente.
+- Pendiente antes de usarlo como fuente autoritativa: validar lider/heroes/cartas contra roster desbloqueado server-side y duplicados ilegales.
 
 Resultado:
 
 ```ts
 type SaveLoadoutResult = {
-  loadout: FrontlineLoadoutSnapshot;
+  leaderId: string;
+  squad: (string | null)[];
+  deck: (string | null)[];
+  updatedAt: string;
 };
 ```
 
