@@ -185,6 +185,17 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "claimDailyLogin") {
+    const dailyPayload = payload as ServerOperationPayload<"claimDailyLogin">;
+    return {
+      rpcName: "claim_daily_login",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_local_day_key: dailyPayload.localDayKey,
+      },
+    };
+  }
+
   const purchasePayload = payload as ServerOperationPayload<"purchaseShopOffer">;
   return {
     rpcName: "purchase_shop_offer",

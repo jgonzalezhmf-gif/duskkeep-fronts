@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.283] - 2026-05-11
+
+### Added
+- Aniadida RPC `public.claim_daily_login` para reclamar recompensa diaria con dia UTC server-side, idempotencia y bloqueo de segunda claim del mismo dia.
+- Expuesta `claimDailyLogin` en el proxy autoritativo y cubierta por tests de mapping.
+- Extendidos los smoke tests SQL para validar claim diaria, replay idempotente y bloqueo de segundo intento.
+
+### Changed
+- Documentado el alcance inicial de `claimDailyLogin`: backend preparado, todavia no conectado al store/UI.
+
+### Tested
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts`
+- `npm.cmd run build`
+
 ## [0.25.282] - 2026-05-11
 
 ### Added

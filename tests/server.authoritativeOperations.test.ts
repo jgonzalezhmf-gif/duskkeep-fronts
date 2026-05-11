@@ -30,8 +30,10 @@ describe("server authoritative operation contracts", () => {
       "claimAdventureNodeReward",
       "openAdventureMapInteraction",
       "purchaseShopOffer",
+      "claimDailyLogin",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("claimDailyLogin")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("claimMission")).toBe(false);
   });
 

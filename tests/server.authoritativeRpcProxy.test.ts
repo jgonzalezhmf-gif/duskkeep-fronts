@@ -133,6 +133,27 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps daily login claims to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "claimDailyLogin",
+        idempotencyKey: "daily-login-20260511",
+        payload: { localDayKey: "2026-05-11" },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "claim_daily_login",
+      rpcArgs: {
+        p_idempotency_key: "daily-login-20260511",
+        p_local_day_key: "2026-05-11",
+      },
+    });
+  });
+
   it("rejects unsupported operations even if they have contracts", () => {
     expect(
       prepareAuthoritativeRpcCall({

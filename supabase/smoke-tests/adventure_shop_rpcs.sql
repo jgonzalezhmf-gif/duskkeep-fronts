@@ -17,6 +17,9 @@ declare
   v_battle_second_clear jsonb;
   v_loadout_result jsonb;
   v_loadout_replay jsonb;
+  v_daily_result jsonb;
+  v_daily_replay jsonb;
+  v_daily_second_attempt jsonb;
   v_node_claim_result jsonb;
   v_node_claim_replay jsonb;
   v_node_claim_second_attempt jsonb;
@@ -86,6 +89,7 @@ begin
   delete from public.shop_purchases where profile_id = v_profile_id;
   delete from public.adventure_map_claims where profile_id = v_profile_id;
   delete from public.frontline_loadouts where profile_id = v_profile_id;
+  delete from public.daily_login_claims where profile_id = v_profile_id;
   delete from public.resource_ledger where profile_id = v_profile_id;
   delete from public.server_operations where profile_id = v_profile_id;
 
@@ -113,6 +117,33 @@ begin
   );
   if v_loadout_replay <> v_loadout_result then
     raise exception 'save_frontline_loadout is not idempotent: % <> %', v_loadout_replay, v_loadout_result;
+  end if;
+
+  v_daily_result := public.claim_daily_login(
+    'smoke-daily-login-20260511-0001',
+    to_char(now() at time zone 'utc', 'YYYY-MM-DD')
+  );
+  if coalesce((v_daily_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'claim_daily_login failed: %', v_daily_result;
+  end if;
+  if coalesce((v_daily_result #>> '{result,rewardsGranted,gold}')::int, 0) <> 150 then
+    raise exception 'Expected daily login day 1 gold reward: %', v_daily_result;
+  end if;
+
+  v_daily_replay := public.claim_daily_login(
+    'smoke-daily-login-20260511-0001',
+    to_char(now() at time zone 'utc', 'YYYY-MM-DD')
+  );
+  if v_daily_replay <> v_daily_result then
+    raise exception 'claim_daily_login is not idempotent: % <> %', v_daily_replay, v_daily_result;
+  end if;
+
+  v_daily_second_attempt := public.claim_daily_login(
+    'smoke-daily-login-20260511-0002',
+    to_char(now() at time zone 'utc', 'YYYY-MM-DD')
+  );
+  if coalesce(v_daily_second_attempt ->> 'code', '') <> 'already_claimed' then
+    raise exception 'Expected second daily login claim to be blocked: %', v_daily_second_attempt;
   end if;
 
   v_battle_result := public.claim_adventure_battle_result(

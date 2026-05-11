@@ -304,6 +304,8 @@ type ClaimMissionResult = {
 
 Reclama recompensa diaria.
 
+Primera implementacion SQL: `public.claim_daily_login(p_idempotency_key text, p_local_day_key text)`. Usa el dia UTC del servidor como fuente de verdad y bloquea una segunda claim del mismo dia. Todavia no esta conectada al store/UI.
+
 Payload:
 
 ```ts
@@ -317,6 +319,7 @@ Validaciones:
 - El dia no fue reclamado.
 - El servidor calcula el dia valido.
 - El streak se actualiza segun ultima claim server-side.
+- La operacion es idempotente.
 
 Resultado:
 
