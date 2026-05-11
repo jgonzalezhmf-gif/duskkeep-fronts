@@ -190,6 +190,8 @@ type OpenAdventureMapInteractionResult = {
 
 Compra una oferta de Shop.
 
+Primera implementacion SQL: `public.purchase_shop_offer(p_idempotency_key text, p_offer_id text, p_quantity int)`. Alcance inicial: `adventure_key_ring`.
+
 Payload:
 
 ```ts

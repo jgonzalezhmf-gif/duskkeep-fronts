@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.266] - 2026-05-11
+
+### Added
+- Aniadida migracion `supabase/migrations/20260511063000_purchase_shop_offer_rpc.sql` con la RPC `public.purchase_shop_offer`.
+- Implementado soporte server-authoritative inicial para `adventure_key_ring`: unlock por Adventure, limite diario, coste en gemas, reward de llave, ledger e idempotencia.
+
+### Changed
+- Documentado el alcance inicial de `purchaseShopOffer` en `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` y `supabase/README.md`.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run build`
+- `git diff --check`
+- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase features tests -g "!docs/skills/**"`
+
 ## [0.25.265] - 2026-05-11
 
 ### Added
