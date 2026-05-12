@@ -32,7 +32,7 @@ export function NextContract({
 }: {
   mission: Mission | null;
   progress: Record<string, MissionProgress>;
-  claim: (id: string) => void;
+  claim: (id: string) => void | Promise<void>;
   claimFx: ClaimFx | null;
   t: TranslateFn;
 }) {
@@ -118,7 +118,7 @@ export function MissionColumn({
   cadence: string;
   missions: Mission[];
   progress: Record<string, MissionProgress>;
-  claim: (id: string) => void;
+  claim: (id: string) => void | Promise<void>;
   claimFx: ClaimFx | null;
   t: TranslateFn;
 }) {
@@ -168,7 +168,7 @@ function MissionContract({
 }: {
   mission: Mission;
   progress: MissionProgress;
-  claim: (id: string) => void;
+  claim: (id: string) => void | Promise<void>;
   claimFx: ClaimFx | null;
   t: TranslateFn;
 }) {

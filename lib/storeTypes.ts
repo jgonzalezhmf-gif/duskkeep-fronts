@@ -114,6 +114,7 @@ export type GameActions = {
   claimAdventureMapInteraction: (interactionId: string) => AdventureMapInteractionOpenResult | null;
   claimAdventureMapInteractionOnlineFirst: (interactionId: string) => Promise<AdventureMapInteractionOpenResult | null>;
   claimMission: (missionId: string) => Rewards | null;
+  claimMissionOnlineFirst: (missionId: string) => Promise<Rewards | null>;
   purchaseOffer: (offerId: string) => { ok: boolean; reason?: string };
   purchaseOfferOnlineFirst: (offerId: string) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   pushNotification: (kind: NotificationKind, message: string) => void;

@@ -32,7 +32,8 @@ import {
   toggleFrontlineDeckCardState,
 } from "@/lib/loadoutState";
 import { claimDailyLoginReward, claimMilestoneReward, claimRoadmapReward } from "@/lib/metaRewardClaims";
-import { applyMissionMetricProgress, claimMissionProgress, ensureMissionProgress } from "@/lib/missionProgress";
+import { applyMissionMetricProgress, claimMissionProgress, ensureMissionProgress, getMissionResetAt } from "@/lib/missionProgress";
+import { getMissionAuthoritativeClaimPlan } from "@/lib/missionAuthoritativeClaims";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
@@ -56,6 +57,7 @@ import {
   claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
   claimDailyLoginAuthoritatively,
+  claimMissionAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
@@ -490,6 +492,46 @@ export const useGameStore = create<GameState & GameActions>()(
         set({ missionsProgress: result.missionsProgress });
         get().awardRewards(result.rewards, result.source);
         return result.rewards;
+      },
+
+      claimMissionOnlineFirst: async (missionId) => {
+        get().ensureMissionsInitialized();
+        const mission = ALL_MISSIONS.find((entry) => entry.id === missionId);
+        if (!mission) return null;
+
+        const plan = getMissionAuthoritativeClaimPlan(mission);
+        if (!plan.ok) {
+          return get().claimMission(missionId);
+        }
+
+        const authoritative = await claimMissionAuthoritatively(missionId, plan.cycleKey);
+        if (authoritative.mode === "local") {
+          return get().claimMission(missionId);
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((st) => {
+          const current = st.missionsProgress[missionId];
+          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            missionsProgress: {
+              ...st.missionsProgress,
+              [missionId]: {
+                progress: current?.progress ?? mission.goal,
+                resetAt: current?.resetAt ?? getMissionResetAt(mission.kind),
+                claimed: true,
+              },
+            },
+          };
+        });
+        get().pushNotification("success", `Rewards from mission ${mission.name}`);
+        return authoritative.rewards;
       },
 
       purchaseOffer: (offerId) => {

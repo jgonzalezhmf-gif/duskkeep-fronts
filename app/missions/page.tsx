@@ -22,12 +22,13 @@ export default function MissionsPage() {
   const { t } = useI18n();
   const [clientReady, setClientReady] = useState(false);
   const [claimFx, setClaimFx] = useState<ClaimFx | null>(null);
+  const [pendingClaimId, setPendingClaimId] = useState<string | null>(null);
   const claimFxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const claimFxNonce = useRef(0);
   const progress = useGameStore((state) => state.missionsProgress);
   const resources = useGameStore((state) => state.resources);
   const ensureMissionsInitialized = useGameStore((state) => state.ensureMissionsInitialized);
-  const claimRaw = useGameStore((state) => state.claimMission);
+  const claimRaw = useGameStore((state) => state.claimMissionOnlineFirst);
 
   useEffect(() => {
     setClientReady(true);
@@ -42,8 +43,10 @@ export default function MissionsPage() {
   const nextMission = useMemo(() => pickNextMission(allMissions, progress), [allMissions, progress]);
   const nextReset = getNearestResetLabel(allMissions, progress, t);
 
-  const claim = (id: string) => {
-    const rewards = claimRaw(id);
+  const claim = async (id: string) => {
+    if (pendingClaimId) return;
+    setPendingClaimId(id);
+    const rewards = await claimRaw(id).finally(() => setPendingClaimId(null));
     if (rewards) {
       sfx.claim();
       claimFxNonce.current += 1;

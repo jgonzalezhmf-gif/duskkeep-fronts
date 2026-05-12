@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.290] - 2026-05-12
+
+### Added
+- Aniadida accion `claimMissionOnlineFirst` en el store para reclamar misiones con backend autoritativo cuando la metrica ya esta soportada.
+- Aniadida politica `missionAuthoritativeClaims` para decidir que misiones pueden reclamar online-first sin acoplar la UI a detalles de backend.
+- Conectada la pantalla Missions a `claimMissionOnlineFirst`.
+- Aniadidos tests para la politica de claims autoritativos de misiones.
+
+### Changed
+- Las misiones de Adventure pueden usar claim autoritativo cuando existe sesion Supabase; si no hay sesion o la API esta desactivada, conservan fallback local.
+- Las misiones de mejora de heroes siguen reclamando en local hasta que la progresion de heroes tenga una operacion server-side estable, dejando el sistema abierto a futuros cambios de progresion.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/missionAuthoritativeClaims.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/missions.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.25.289] - 2026-05-12
 
 ### Added
