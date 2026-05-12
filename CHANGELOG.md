@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.26.5] - 2026-05-12
+
+### Fixed
+- Restaurados assets alineados de compatibilidad para `flame_loop` en Home QA, evitando que HMR/cache deje invisibles los flames rojos de `world`.
+
+### Tested
+- `npm.cmd run audit:asset-refs`
+
 ## [0.26.4] - 2026-05-12
 
 ### Fixed

@@ -32,6 +32,7 @@ type HomeEffectAsset = {
   staticWebpSrc?: string;
   animatedSrc?: string;
   animatedWebpSrc?: string;
+  compatibilitySrcs?: string[];
   anchor: {
     name: HomeEffectAnchorName;
     xPercent: number;
@@ -48,8 +49,15 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
     webpSrc: "/assets/home/effects/flame_loop.webp",
     expectedFile: "flame_loop.png",
     frameCount: 6,
+    compatibilitySrcs: [
+      "/assets/home/effects/flame_loop_aligned.png",
+      "/assets/home/effects/flame_loop_aligned.webp",
+      "/assets/home/effects/flame_loop_world_aligned.png",
+      "/assets/home/effects/flame_loop_world_aligned.webp",
+    ],
     anchor: { name: "bottom-center", xPercent: 50, yPercent: 100 },
     renderMode: "animated",
+    pipelineNote: "Keeps aligned compatibility sheets available for Home QA/HMR sessions that may still reference previous world-stage flame variants.",
   },
   flag_red_loop: {
     src: "/assets/home/effects/flag_red_loop.png",
