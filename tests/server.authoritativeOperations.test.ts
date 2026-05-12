@@ -30,11 +30,12 @@ describe("server authoritative operation contracts", () => {
       "claimAdventureNodeReward",
       "openAdventureMapInteraction",
       "purchaseShopOffer",
+      "claimMission",
       "claimDailyLogin",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("claimDailyLogin")).toBe(true);
-    expect(isSupportedAuthoritativeApiOperation("claimMission")).toBe(false);
+    expect(isSupportedAuthoritativeApiOperation("claimMission")).toBe(true);
   });
 
   it("normalizes purchase quantity while requiring idempotency", () => {

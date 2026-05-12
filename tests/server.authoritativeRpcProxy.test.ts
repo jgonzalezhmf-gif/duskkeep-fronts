@@ -154,21 +154,25 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
-  it("rejects unsupported operations even if they have contracts", () => {
-    expect(
-      prepareAuthoritativeRpcCall({
-        body: {
-          operationType: "claimMission",
-          idempotencyKey: "mission-claim-20260511",
-          payload: { missionId: "daily-win", cycleKey: "2026-05-11" },
-        },
-        headers: headers("Bearer valid-token-value"),
-        env: enabledEnv,
-      }),
-    ).toMatchObject({
-      ok: false,
-      status: 400,
-      body: { code: "invalid_request" },
+  it("maps mission reward claims to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "claimMission",
+        idempotencyKey: "mission-claim-20260511",
+        payload: { missionId: "d_battles_3", cycleKey: "daily:2026-05-11" },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "claim_mission_reward",
+      rpcArgs: {
+        p_idempotency_key: "mission-claim-20260511",
+        p_mission_id: "d_battles_3",
+        p_cycle_key: "daily:2026-05-11",
+      },
     });
   });
 

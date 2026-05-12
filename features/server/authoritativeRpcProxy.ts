@@ -196,6 +196,18 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "claimMission") {
+    const missionPayload = payload as ServerOperationPayload<"claimMission">;
+    return {
+      rpcName: "claim_mission_reward",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_mission_id: missionPayload.missionId,
+        p_cycle_key: missionPayload.cycleKey,
+      },
+    };
+  }
+
   const purchasePayload = payload as ServerOperationPayload<"purchaseShopOffer">;
   return {
     rpcName: "purchase_shop_offer",

@@ -205,6 +205,38 @@ export type ClaimDailyLoginAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeMissionClaimSuccess = {
+  ok: true;
+  mode: "authoritative";
+  missionId: string;
+  cycleKey: string;
+  rewards: Rewards;
+  resources: Resources;
+};
+
+export type AuthoritativeMissionClaimFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeMissionClaimFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeMissionClaimResult =
+  | AuthoritativeMissionClaimSuccess
+  | AuthoritativeMissionClaimFailure
+  | AuthoritativeMissionClaimFallback;
+
+export type ClaimMissionAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export async function purchaseShopOfferAuthoritatively(
   offerId: string,
   options: PurchaseShopOfferAuthoritativelyOptions = {},
@@ -247,6 +279,51 @@ export async function purchaseShopOfferAuthoritatively(
     ok: true,
     mode: "authoritative",
     resources,
+  };
+}
+
+export async function claimMissionAuthoritatively(
+  missionId: string,
+  cycleKey: string,
+  options: ClaimMissionAuthoritativelyOptions = {},
+): Promise<AuthoritativeMissionClaimResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "claimMission",
+    {
+      idempotencyKey: createIdempotencyKey("mission", `${missionId}:${cycleKey}`),
+      payload: { missionId, cycleKey },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractMissionClaimResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.missionId !== missionId || parsed.cycleKey !== cycleKey) {
+    return { ok: false, mode: "authoritative", reason: "Server response mission mismatch" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
   };
 }
 
@@ -587,6 +664,23 @@ function extractDailyLoginResult(result: unknown): Omit<AuthoritativeDailyLoginS
   return {
     dayKey,
     streak,
+    rewards: rewards.data,
+    resources,
+  };
+}
+
+function extractMissionClaimResult(result: unknown): Omit<AuthoritativeMissionClaimSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const missionId = parseString(result.missionId);
+  const cycleKey = parseString(result.cycleKey);
+  const rewards = parseRewardPayload(result.rewardsGranted);
+  const resources = extractResources(result);
+  if (!missionId || !cycleKey || !rewards.success || !resources) return null;
+
+  return {
+    missionId,
+    cycleKey,
     rewards: rewards.data,
     resources,
   };

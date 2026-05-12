@@ -3,12 +3,117 @@ import {
   claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
   claimDailyLoginAuthoritatively,
+  claimMissionAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 
 describe("authoritative operation dispatcher", () => {
+  it("falls back to local mission claims when there is no Supabase session", async () => {
+    const result = await claimMissionAuthoritatively("d_battles_3", "daily:2026-05-12", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative mission rewards and resources", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          missionId: "d_battles_3",
+          cycleKey: "daily:2026-05-12",
+          rewardsGranted: { gold: 100, dust: 20, accountXp: 10 },
+          resources: {
+            gold: 600,
+            dust: 70,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await claimMissionAuthoritatively("d_battles_3", "daily:2026-05-12", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      missionId: "d_battles_3",
+      cycleKey: "daily:2026-05-12",
+      rewards: { gold: 100, dust: 20, accountXp: 10 },
+      resources: {
+        gold: 600,
+        dust: 70,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects a mission claim", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "locked", reason: "Mission is not complete" }),
+    });
+
+    const result = await claimMissionAuthoritatively("d_battles_3", "daily:2026-05-12", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Mission is not complete",
+    });
+  });
+
+  it("rejects mismatched authoritative mission responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          missionId: "d_adv_2",
+          cycleKey: "daily:2026-05-12",
+          rewardsGranted: { gold: 150 },
+          resources: {
+            gold: 650,
+            dust: 50,
+            gems: 55,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await claimMissionAuthoritatively("d_battles_3", "daily:2026-05-12", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response mission mismatch",
+    });
+  });
+
   it("falls back to local daily login claims when there is no Supabase session", async () => {
     const result = await claimDailyLoginAuthoritatively("2026-05-11", {
       tokenProvider: async () => null,

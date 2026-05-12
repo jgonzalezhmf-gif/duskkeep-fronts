@@ -78,10 +78,10 @@ describe("authoritative API client", () => {
     const fetcher = vi.fn();
 
     const result = await callAuthoritativeOperation(
-      "claimMission" as never,
+      "upgradeFrontlineCard" as never,
       {
-        idempotencyKey: "mission-claim-20260511-0001",
-        payload: { missionId: "daily-win", cycleKey: "2026-05-11" } as never,
+        idempotencyKey: "card-upgrade-20260511-0001",
+        payload: { cardId: "guard_break" } as never,
       },
       { token: "valid-token-value", fetcher },
     );

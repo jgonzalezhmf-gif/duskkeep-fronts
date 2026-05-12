@@ -121,6 +121,7 @@ export const supportedAuthoritativeApiOperations = [
   "claimAdventureNodeReward",
   "openAdventureMapInteraction",
   "purchaseShopOffer",
+  "claimMission",
   "claimDailyLogin",
 ] as const satisfies ServerOperationType[];
 

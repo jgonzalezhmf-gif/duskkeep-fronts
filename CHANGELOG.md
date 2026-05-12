@@ -7,6 +7,25 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.287] - 2026-05-12
+
+### Added
+- Aniadida RPC `public.claim_mission_reward` para reclamar misiones completadas desde `missions_progress` sin aceptar progreso ni rewards del cliente.
+- Expuesto `claimMission` en el proxy autoritativo y aniadido `claimMissionAuthoritatively` en el dispatcher cliente.
+- Ampliado el smoke SQL de RPCs para cubrir claim de mision, idempotencia y bloqueo de segundo claim.
+
+### Changed
+- Documentado que `claimMission` queda preparado pero no conectado a UI hasta persistir progreso de misiones server-side.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts tests/server.authoritativeOperationDispatcher.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
+### Pending
+- `npx.cmd supabase db reset` fallo al iniciar el contenedor local (`error running container: exit 1`), por lo que el smoke SQL ampliado queda pendiente de reintento en Supabase local limpio.
+
 ## [0.25.286] - 2026-05-12
 
 ### Added

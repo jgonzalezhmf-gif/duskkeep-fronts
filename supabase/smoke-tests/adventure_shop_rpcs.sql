@@ -20,6 +20,10 @@ declare
   v_daily_result jsonb;
   v_daily_replay jsonb;
   v_daily_second_attempt jsonb;
+  v_mission_cycle_key text := 'daily:' || to_char(now() at time zone 'utc', 'YYYY-MM-DD');
+  v_mission_result jsonb;
+  v_mission_replay jsonb;
+  v_mission_second_attempt jsonb;
   v_node_claim_result jsonb;
   v_node_claim_replay jsonb;
   v_node_claim_second_attempt jsonb;
@@ -90,6 +94,7 @@ begin
   delete from public.adventure_map_claims where profile_id = v_profile_id;
   delete from public.frontline_loadouts where profile_id = v_profile_id;
   delete from public.daily_login_claims where profile_id = v_profile_id;
+  delete from public.missions_progress where profile_id = v_profile_id;
   delete from public.resource_ledger where profile_id = v_profile_id;
   delete from public.server_operations where profile_id = v_profile_id;
 
@@ -144,6 +149,46 @@ begin
   );
   if coalesce(v_daily_second_attempt ->> 'code', '') <> 'already_claimed' then
     raise exception 'Expected second daily login claim to be blocked: %', v_daily_second_attempt;
+  end if;
+
+  insert into public.missions_progress (
+    profile_id,
+    mission_id,
+    cycle_key,
+    progress,
+    target,
+    claimed
+  )
+  values (v_profile_id, 'd_battles_3', v_mission_cycle_key, 3, 3, false);
+
+  v_mission_result := public.claim_mission_reward(
+    'smoke-mission-20260512-0001',
+    'd_battles_3',
+    v_mission_cycle_key
+  );
+  if coalesce((v_mission_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'claim_mission_reward failed: %', v_mission_result;
+  end if;
+  if coalesce((v_mission_result #>> '{result,rewardsGranted,gold}')::int, 0) <> 100 then
+    raise exception 'Expected d_battles_3 gold reward: %', v_mission_result;
+  end if;
+
+  v_mission_replay := public.claim_mission_reward(
+    'smoke-mission-20260512-0001',
+    'd_battles_3',
+    v_mission_cycle_key
+  );
+  if v_mission_replay <> v_mission_result then
+    raise exception 'claim_mission_reward is not idempotent: % <> %', v_mission_replay, v_mission_result;
+  end if;
+
+  v_mission_second_attempt := public.claim_mission_reward(
+    'smoke-mission-20260512-0002',
+    'd_battles_3',
+    v_mission_cycle_key
+  );
+  if coalesce(v_mission_second_attempt ->> 'code', '') <> 'already_claimed' then
+    raise exception 'Expected second mission claim to be blocked: %', v_mission_second_attempt;
   end if;
 
   v_battle_result := public.claim_adventure_battle_result(

@@ -8,7 +8,7 @@ La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salv
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7` y `claimAdventureBattleResult` para resultados de combate Adventure. `saveLoadout` y `claimDailyLogin` ya tienen RPC, dispatcher y accion de store, pero todavia no estan conectadas a UI. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck y `claimDailyLogin` desde Home. `claimMission` ya tiene contrato, proxy, dispatcher y RPC, pero todavia no esta conectado a UI porque requiere persistir progreso de misiones server-side antes de ser realmente autoritativo. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
 El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta con `npm.cmd run smoke:authoritative-api` despues de arrancar Supabase y Next con `SERVER_AUTHORITATIVE_API_ENABLED=true`. Este smoke usa Supabase Auth real, no service role.
 
@@ -273,6 +273,8 @@ type PurchaseShopOfferResult = {
 
 Reclama una mission completada.
 
+Primera implementacion SQL: `public.claim_mission_reward(p_idempotency_key text, p_mission_id text, p_cycle_key text)`. Solo reclama filas existentes en `missions_progress` para el ciclo server-side actual. No acepta progreso ni recompensas enviados por el cliente.
+
 Payload:
 
 ```ts
@@ -294,17 +296,19 @@ Resultado:
 ```ts
 type ClaimMissionResult = {
   missionId: string;
-  claimed: true;
+  cycleKey: string;
   rewardsGranted: Rewards;
   resources: Resources;
 };
 ```
 
+Pendiente antes de conectar la UI: mover los increments de progreso de misiones a servidor o sincronizarlos mediante operaciones autoritativas. Mientras el progreso viva solo en `localStorage`, conectar esta RPC directamente bloquearia claims legitimos online o abriria la puerta a confiar en datos manipulables.
+
 ### `claimDailyLogin`
 
 Reclama recompensa diaria.
 
-Primera implementacion SQL: `public.claim_daily_login(p_idempotency_key text, p_local_day_key text)`. Usa el dia UTC del servidor como fuente de verdad y bloquea una segunda claim del mismo dia. Todavia no esta conectada al store/UI.
+Primera implementacion SQL: `public.claim_daily_login(p_idempotency_key text, p_local_day_key text)`. Usa el dia UTC del servidor como fuente de verdad y bloquea una segunda claim del mismo dia.
 
 Payload:
 
