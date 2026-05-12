@@ -269,6 +269,22 @@ type PurchaseShopOfferResult = {
 };
 ```
 
+### Progreso de misiones
+
+Primera implementacion SQL: `public.advance_mission_progress` y triggers sobre `adventure_progress` y `battle_results`.
+
+Reglas actuales:
+
+- `adventure_progress` avanza `adventure_levels_cleared` cuando un nodo pasa por primera vez a `cleared`, `claimed` o `first_clear_taken`.
+- `battle_results` avanza `battles_won` cuando el ganador es `ally`.
+- `battle_results` prepara tambien `arena_battles` y `events_played` cuando esas fuentes escriban resultados autoritativos.
+- El progreso se escribe en `missions_progress` con ciclos `daily:YYYY-MM-DD` y `weekly:IYYY-IW`, calculados en servidor.
+
+Pendiente:
+
+- Mover `heroes_upgraded` a una operacion server-side antes de conectar claims de upgrade diarios a backend.
+- Conectar UI de Missions a `claimMissionAuthoritatively` solo cuando el progreso relevante ya se este generando server-side para las fuentes visibles.
+
 ### `claimMission`
 
 Reclama una mission completada.
@@ -302,7 +318,7 @@ type ClaimMissionResult = {
 };
 ```
 
-Pendiente antes de conectar la UI: mover los increments de progreso de misiones a servidor o sincronizarlos mediante operaciones autoritativas. Mientras el progreso viva solo en `localStorage`, conectar esta RPC directamente bloquearia claims legitimos online o abriria la puerta a confiar en datos manipulables.
+Pendiente antes de conectar toda la UI: cubrir server-side las metricas que aun dependen de acciones locales, especialmente `heroes_upgraded`.
 
 ### `claimDailyLogin`
 

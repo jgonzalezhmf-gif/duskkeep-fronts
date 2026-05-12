@@ -47,6 +47,7 @@ La ruta `/api/server/authoritative` es el primer proxy HTTP hacia RPCs autoritat
 - `supabase/migrations/20260511215500_save_frontline_loadout_rpc.sql` crea la RPC autoritativa para persistir el loadout Frontline.
 - `supabase/migrations/20260511223000_claim_daily_login_rpc.sql` crea la RPC autoritativa de recompensa diaria.
 - `supabase/migrations/20260512082000_claim_mission_reward_rpc.sql` crea la RPC autoritativa para reclamar misiones ya completadas en `missions_progress`.
+- `supabase/migrations/20260512100000_mission_progress_from_authoritative_events.sql` crea helpers/triggers para avanzar misiones desde eventos autoritativos (`adventure_progress` y `battle_results`) sin aceptar progreso arbitrario del cliente.
 - Las migraciones nuevas deben seguir `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
 
 ## Smoke Tests Locales
@@ -57,7 +58,7 @@ Despues de `npx.cmd supabase start` o `npx.cmd supabase db reset`, validar las p
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/smoke-tests/adventure_shop_rpcs.sql
 ```
 
-El script crea un usuario local de prueba, valida `save_frontline_loadout`, `claim_daily_login`, `claim_mission_reward`, `claim_adventure_battle_result`, `claim_adventure_node_reward`, `purchase_shop_offer` y `open_adventure_map_interaction`; tambien comprueba idempotencia y confirma que el cofre consume la llave.
+El script crea un usuario local de prueba, valida `save_frontline_loadout`, `claim_daily_login`, `claim_mission_reward`, `claim_adventure_battle_result`, `claim_adventure_node_reward`, `purchase_shop_offer` y `open_adventure_map_interaction`; tambien comprueba idempotencia, confirma que Adventure genera progreso de misiones server-side y confirma que el cofre consume la llave.
 
 Para validar el proxy HTTP con JWT real de Supabase Auth local:
 

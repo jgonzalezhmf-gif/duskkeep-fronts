@@ -24,6 +24,7 @@ declare
   v_mission_result jsonb;
   v_mission_replay jsonb;
   v_mission_second_attempt jsonb;
+  v_generated_mission_result jsonb;
   v_node_claim_result jsonb;
   v_node_claim_replay jsonb;
   v_node_claim_second_attempt jsonb;
@@ -258,6 +259,31 @@ begin
   );
   if coalesce(v_node_claim_second_attempt ->> 'code', '') <> 'already_claimed' then
     raise exception 'Expected second node claim to be blocked: %', v_node_claim_second_attempt;
+  end if;
+
+  if not exists (
+    select 1
+      from public.missions_progress
+      where profile_id = v_profile_id
+        and mission_id = 'd_adv_2'
+        and cycle_key = v_mission_cycle_key
+        and progress = 2
+        and target = 2
+        and claimed = false
+  ) then
+    raise exception 'Expected Adventure RPCs to advance d_adv_2 mission progress';
+  end if;
+
+  v_generated_mission_result := public.claim_mission_reward(
+    'smoke-generated-mission-20260512-0001',
+    'd_adv_2',
+    v_mission_cycle_key
+  );
+  if coalesce((v_generated_mission_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'claim_mission_reward for generated Adventure progress failed: %', v_generated_mission_result;
+  end if;
+  if coalesce((v_generated_mission_result #>> '{result,rewardsGranted,gems}')::int, 0) <> 5 then
+    raise exception 'Expected d_adv_2 generated claim to grant gems: %', v_generated_mission_result;
   end if;
 
   v_shop_result := public.purchase_shop_offer('smoke-shop-20260511-0001', 'adventure_key_ring', 1);

@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.289] - 2026-05-12
+
+### Added
+- Aniadidos helpers/triggers SQL para avanzar `missions_progress` desde eventos autoritativos de servidor.
+- `adventure_progress` avanza misiones de nodos de Adventure al pasar por primera vez a completado/reclamado.
+- `battle_results` avanza misiones de victorias, y queda preparado para arena/eventos cuando esas fuentes escriban resultados autoritativos.
+- Ampliado el smoke SQL para confirmar que Adventure genera progreso server-side y permite reclamar `d_adv_2` sin insertar progreso manual.
+
+### Changed
+- Documentado el flujo de progreso de misiones autoritativo y los pendientes para metricas que aun dependen de acciones locales.
+
+### Tested
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.25.288] - 2026-05-12
 
 ### Tested
