@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.294] - 2026-05-12
+
+### Added
+- Aniadida constante `PROGRESSION_COMMAND_KINDS` como fuente runtime unica para los tipos de comandos de progresion.
+
+### Changed
+- La politica autoritativa de progresion y sus tests reutilizan `PROGRESSION_COMMAND_KINDS`, evitando listas duplicadas al aniadir futuros upgrades.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/progressionAuthoritativePolicy.test.ts tests/progressionCommands.test.ts tests/progressionCommandStoreAdapter.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.25.293] - 2026-05-12
 
 ### Added

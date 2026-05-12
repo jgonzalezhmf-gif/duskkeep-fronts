@@ -17,13 +17,16 @@ import type {
   Resources,
 } from "@/lib/types";
 
-export type ProgressionCommandKind =
-  | "hero.levelUp"
-  | "hero.starUp"
-  | "hero.skillUp"
-  | "frontlineCard.upgrade"
-  | "fortress.upgradeBuilding"
-  | "frontlineFortress.upgradeBuilding";
+export const PROGRESSION_COMMAND_KINDS = [
+  "hero.levelUp",
+  "hero.starUp",
+  "hero.skillUp",
+  "frontlineCard.upgrade",
+  "fortress.upgradeBuilding",
+  "frontlineFortress.upgradeBuilding",
+] as const;
+
+export type ProgressionCommandKind = (typeof PROGRESSION_COMMAND_KINDS)[number];
 
 export type ProgressionCommandPatch = {
   heroes?: PlayerHero[];
