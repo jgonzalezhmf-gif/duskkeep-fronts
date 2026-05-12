@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.288] - 2026-05-12
+
+### Tested
+- Validado el smoke SQL ampliado de Supabase tras reiniciar Supabase local: `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`.
+- Confirmado `NOTICE (00000): Adventure/Shop RPC smoke test passed.`
+
 ## [0.25.287] - 2026-05-12
 
 ### Added
