@@ -68,6 +68,15 @@ export const enDictionary = {
       tickets: "Tickets",
       adventureKeys: "Keys",
     },
+    intro: {
+      skip: "Skip",
+      enter: "Enter the Keep",
+      title: "Frontline Command",
+      eclipseRises: "The Eclipse rises.",
+      roadsBroken: "The roads are broken.",
+      keepStands: "The keep still stands.",
+      gatherFrontline: "Gather the frontline.",
+    },
     home: {
       commanderGroup: "War Council",
       tutorialHint: "Build deck, then push frontier.",

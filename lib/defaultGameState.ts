@@ -75,6 +75,7 @@ export function defaultInitial() {
     visualEffects: true,
     textScale: "normal" as const,
     onboarding: { step: 0, completed: false },
+    hasSeenIntro: false,
     pendingUnlockLevel: null,
     arenaTicketsRefreshedAt: null,
   };

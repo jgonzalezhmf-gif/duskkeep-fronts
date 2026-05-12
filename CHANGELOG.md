@@ -7,6 +7,25 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.26.0] - 2026-05-12
+
+### Added
+- Aniadida intro cinematica antes de Home en la primera entrada del jugador, con escenas temporizadas, skip, CTA final y soporte de reduced motion.
+- Aniadido manifest `introAssets` y componentes `GameIntro`, `IntroStage`, `IntroLayer` e `introScenes`.
+- Aniadido flag persistente `hasSeenIntro` con acciones `markIntroSeen` y `resetIntro`.
+- Aniadidos assets WebP optimizados para la intro y tests para asegurar que existen y mantienen un payload compacto.
+
+### Changed
+- Home muestra la intro solo tras hidratacion real del store, evitando flashes para jugadores que ya la vieron.
+- Los PNG fuente de intro quedan ignorados; la aplicacion usa las capas WebP registradas.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/introAssets.test.ts tests/persistedGameState.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run audit:asset-refs`
+- `npm.cmd run build`
+
 ## [0.25.294] - 2026-05-12
 
 ### Added

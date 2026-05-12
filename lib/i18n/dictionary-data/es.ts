@@ -68,6 +68,15 @@ export const esDictionary = {
       tickets: "Tickets",
       adventureKeys: "Llaves",
     },
+    intro: {
+      skip: "Saltar",
+      enter: "Entrar al bastión",
+      title: "Frontline Command",
+      eclipseRises: "El Eclipse asciende.",
+      roadsBroken: "Los caminos han caído.",
+      keepStands: "La fortaleza resiste.",
+      gatherFrontline: "Reúne el frente.",
+    },
     home: {
       commanderGroup: "Consejo de guerra",
       tutorialHint: "Crea el mazo y empuja la frontera.",

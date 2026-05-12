@@ -52,6 +52,7 @@ public/assets/frontline/heroes/PersonajesH*.png
 
 # Local screenshots and generated source sheets. Commit only cropped registered assets.
 ImagenHomeNavegador.png
+public/assets/intro/*.png
 public/assets/adventures/nodes/nodos*.png
 public/assets/adventures/props/props.png
 public/assets/icons/modes/Modes.png

@@ -603,6 +603,8 @@ export const useGameStore = create<GameState & GameActions>()(
         set((st) => ({ onboarding: setOnboardingStepState(st.onboarding, step) })),
       completeOnboarding: () =>
         set({ onboarding: completeOnboardingState() }),
+      markIntroSeen: () => set({ hasSeenIntro: true }),
+      resetIntro: () => set({ hasSeenIntro: false }),
       ackPendingUnlock: () => set({ pendingUnlockLevel: null }),
 
       refreshArenaTicketsIfNeeded: () => {

@@ -68,6 +68,7 @@ export type GameState = {
   visualEffects: boolean;
   textScale: TextScale;
   onboarding: { step: number; completed: boolean };
+  hasSeenIntro: boolean;
   pendingUnlockLevel: number | null;
   arenaTicketsRefreshedAt: string | null;
 };
@@ -140,6 +141,8 @@ export type GameActions = {
   setTextScale: (scale: TextScale) => void;
   setOnboardingStep: (step: number) => void;
   completeOnboarding: () => void;
+  markIntroSeen: () => void;
+  resetIntro: () => void;
   ackPendingUnlock: () => void;
   refreshArenaTicketsIfNeeded: () => void;
 };

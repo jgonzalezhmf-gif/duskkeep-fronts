@@ -22,6 +22,24 @@ describe("persisted game state merge", () => {
     expect(merged.resources.adventureKeys).toBe(0);
   });
 
+  it("keeps intro unseen by default for older saves", () => {
+    const merged = mergePersistedGameState(
+      { resources: { gold: 25 } },
+      currentState(),
+    );
+
+    expect(merged.hasSeenIntro).toBe(false);
+  });
+
+  it("preserves intro completion for returning players", () => {
+    const merged = mergePersistedGameState(
+      { hasSeenIntro: true },
+      currentState(),
+    );
+
+    expect(merged.hasSeenIntro).toBe(true);
+  });
+
   it("sanitizes persisted deck ids against registered cards", () => {
     const merged = mergePersistedGameState(
       { activeDeck: ["spell_battle_hymn", "missing_card"] },
