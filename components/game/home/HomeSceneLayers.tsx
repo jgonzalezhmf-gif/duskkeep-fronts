@@ -90,7 +90,6 @@ export function HomeWorldEffectLayer({
           anchorYPercent={placement.anchorYPercent}
           flipX={placement.flipX}
           flipY={placement.flipY}
-          worldStageEffect
           mobileDisabled={placement.mobileDisabled ?? true}
           style={{
             left: `${placement.xPercent}%`,

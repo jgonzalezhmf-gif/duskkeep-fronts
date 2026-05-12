@@ -7,23 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
-## [0.26.3] - 2026-05-12
+## [0.26.4] - 2026-05-12
 
 ### Fixed
-- Estabilizadas las banderas renderizadas en Home/world usando una animacion de shimmer local sin desplazamiento lateral de frames.
-
-### Tested
-- `npm.cmd run check`
-
-## [0.26.2] - 2026-05-12
-
-### Fixed
-- Corregido el baile lateral de `flame_loop` en efectos de Home/world usando una spritesheet alineada y pasos de animacion fijos.
+- Revertida la calibracion incorrecta de efectos Home/world que afectaba a fuegos y banderas.
+- Restaurado el pipeline anterior de `flame_loop`, flares y banderas de Home para no romper landmarks ni efectos ya calibrados.
 
 ### Tested
 - `npm.cmd run typecheck`
-- `npm.cmd run check`
-- `npm.cmd run audit:asset-refs`
 
 ## [0.26.1] - 2026-05-12
 

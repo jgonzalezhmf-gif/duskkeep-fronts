@@ -48,11 +48,8 @@ export const HOME_EFFECT_ASSETS: Partial<Record<HomeEffectId, HomeEffectAsset>> 
     webpSrc: "/assets/home/effects/flame_loop.webp",
     expectedFile: "flame_loop.png",
     frameCount: 6,
-    animatedSrc: "/assets/home/effects/flame_loop_aligned.png",
-    animatedWebpSrc: "/assets/home/effects/flame_loop_aligned.webp",
     anchor: { name: "bottom-center", xPercent: 50, yPercent: 100 },
     renderMode: "animated",
-    pipelineNote: "Uses a normalized spritesheet because the source frames drift laterally, especially on world-stage effects.",
   },
   flag_red_loop: {
     src: "/assets/home/effects/flag_red_loop.png",
