@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.292] - 2026-05-12
+
+### Added
+- Aniadido `progressionCommandStoreAdapter` para aplicar comandos de progresion al store desde un boundary aislado.
+- Aniadidos tests del adaptador para cubrir aplicacion de patches, progreso de misiones, notificaciones y fallos sin mutacion.
+
+### Changed
+- Reducido `lib/store.ts` extrayendo la logica generica de aplicacion de comandos de progresion.
+- La integracion de futuras operaciones online-first de progresion queda menos acoplada al store principal.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/progressionCommandStoreAdapter.test.ts tests/progressionCommands.test.ts tests/heroUpgrades.test.ts tests/frontlineCardState.test.ts tests/fortressState.test.ts tests/missions.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.25.291] - 2026-05-12
 
 ### Added
