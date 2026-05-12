@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { UiIcon } from "@/components/game/shared/UiIcon";
@@ -9,6 +10,10 @@ import { audio, sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import { useGameStore } from "@/lib/store";
 
+const GameIntroPreview = dynamic(() => import("@/components/game/intro/GameIntro").then((mod) => mod.GameIntro), {
+  ssr: false,
+});
+
 function pct(value: number) {
   return `${Math.round(value * 100)}%`;
 }
@@ -16,6 +21,7 @@ function pct(value: number) {
 export default function GameOptionsButton({ className }: { className?: string }) {
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
+  const [introPreviewOpen, setIntroPreviewOpen] = useState(false);
   const language = useGameStore((state) => state.language);
   const setLanguage = useGameStore((state) => state.setLanguage);
   const muted = useGameStore((state) => state.audioMuted);
@@ -145,6 +151,20 @@ export default function GameOptionsButton({ className }: { className?: string })
                     <TogglePill active={textScale === "large"} label={`${t("options.textScale")}: ${textScale === "large" ? t("options.large") : t("options.normal")}`} onClick={() => setTextScale(textScale === "large" ? "normal" : "large")} />
                   </div>
                 </OptionPanel>
+
+                <OptionPanel title={t("options.intro")} hint={t("options.introHint")}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sfx.tap();
+                      setOpen(false);
+                      setIntroPreviewOpen(true);
+                    }}
+                    className="frontline-motion-action w-full rounded-[20px] border border-[#f5c451]/28 bg-[#f5c451]/12 px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.16em] text-[#f5d498] shadow-[0_14px_30px_rgba(0,0,0,0.2)] transition hover:border-[#f5c451]/48 hover:bg-[#f5c451]/18"
+                  >
+                    {t("options.replayIntro")}
+                  </button>
+                </OptionPanel>
               </div>
             </div>
           </section>
@@ -152,6 +172,7 @@ export default function GameOptionsButton({ className }: { className?: string })
           document.body,
         )
         : null}
+      {introPreviewOpen ? <GameIntroPreview onDone={() => setIntroPreviewOpen(false)} /> : null}
     </>
   );
 }

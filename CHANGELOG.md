@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.26.1] - 2026-05-12
+
+### Added
+- Aniadido control en Opciones para reproducir la intro cinematica bajo demanda.
+
+### Changed
+- La reproduccion manual de la intro se carga de forma diferida y no modifica el progreso guardado ni el flag persistente de intro vista.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.26.0] - 2026-05-12
 
 ### Added
