@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.293] - 2026-05-12
+
+### Added
+- Aniadida politica `progressionAuthoritativePolicy` para declarar que upgrades de heroes, cartas y fortaleza siguen locales hasta tener modelo/RPC estable.
+- Aniadidos tests para evitar que un comando de progresion pase a autoritativo accidentalmente.
+
+### Changed
+- Actualizada la documentacion de operaciones autoritativas para reflejar que `claimMission` ya esta conectado de forma acotada.
+- Documentado que la progresion sensible queda bloqueada por politica hasta cerrar diseno, migracion y backend.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/progressionAuthoritativePolicy.test.ts tests/progressionCommands.test.ts tests/server.authoritativeOperations.test.ts tests/server.authoritativeClient.test.ts tests/missionAuthoritativeClaims.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.25.292] - 2026-05-12
 
 ### Added
