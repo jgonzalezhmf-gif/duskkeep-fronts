@@ -24,6 +24,7 @@ type HomeEffectSpriteProps = {
   anchorYPercent?: number;
   flipX?: boolean;
   flipY?: boolean;
+  worldStageEffect?: boolean;
 };
 
 function toCssSize(value: number | string) {
@@ -181,6 +182,17 @@ export function HomeEffectSpriteStyles() {
         }
       }
 
+      @keyframes homeWorldFlagSettledShimmer {
+        0%, 100% {
+          opacity: 0.82;
+          filter: brightness(0.96) saturate(0.96);
+        }
+        50% {
+          opacity: 1;
+          filter: brightness(1.08) saturate(1.04);
+        }
+      }
+
       .home-effect-sprite {
         position: absolute;
         display: block;
@@ -332,6 +344,13 @@ export function HomeEffectSpriteStyles() {
         animation-timing-function: linear;
       }
 
+      .home-effect-sprite[data-home-world-effect="1"][data-home-render-effect="flag_red_loop"] .home-effect-sprite-strip,
+      .home-effect-sprite[data-home-world-effect="1"][data-home-render-effect="banner_red_loop"] .home-effect-sprite-strip {
+        transform: translate3d(0, 0, 0) !important;
+        animation: homeWorldFlagSettledShimmer var(--home-effect-duration) ease-in-out infinite !important;
+        will-change: opacity, filter;
+      }
+
       .home-effect-sprite[data-home-render-effect="clouds_dark_layer"] .home-effect-sprite-strip {
         left: -8% !important;
         width: 116% !important;
@@ -381,6 +400,7 @@ export function HomeEffectSprite({
   anchorYPercent = 50,
   flipX = false,
   flipY = false,
+  worldStageEffect = false,
 }: HomeEffectSpriteProps) {
   const renderAsset = getHomeEffectRenderAsset(effect);
 
@@ -405,6 +425,7 @@ export function HomeEffectSprite({
       data-home-effect-anchor={requestedAsset.anchor.name}
       data-home-effect-frames={asset.frameCount}
       data-home-effect-local-animation={hasLocalAnimation ? "1" : "0"}
+      data-home-world-effect={worldStageEffect ? "1" : "0"}
       data-mobile-disabled={mobileDisabled ? "1" : "0"}
       className={`home-effect-sprite ${className}`}
       style={{

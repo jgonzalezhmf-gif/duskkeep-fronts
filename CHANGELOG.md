@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.26.3] - 2026-05-12
+
+### Fixed
+- Estabilizadas las banderas renderizadas en Home/world usando una animacion de shimmer local sin desplazamiento lateral de frames.
+
+### Tested
+- `npm.cmd run check`
+
 ## [0.26.2] - 2026-05-12
 
 ### Fixed
