@@ -734,6 +734,16 @@ export const esDictionary = {
         ready: "Listo",
         missing: "Falta",
       },
+      sync: {
+        save: "Guardar carga",
+        unsaved: "Sin guardar",
+        saving: "Guardando",
+        savedOnline: "Guardada online",
+        savedLocal: "Guardada local",
+        retry: "Reintentar",
+        error: "No se pudo guardar",
+        hint: "Sync manual",
+      },
       panels: {
         leaderDoctrine: "Doctrina de lider",
         frontSquad: "Escuadra frontal",

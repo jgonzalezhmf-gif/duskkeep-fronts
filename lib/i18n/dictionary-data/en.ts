@@ -752,6 +752,16 @@ export const enDictionary = {
         ready: "Ready",
         missing: "Missing",
       },
+      sync: {
+        save: "Save loadout",
+        unsaved: "Unsaved",
+        saving: "Saving",
+        savedOnline: "Saved online",
+        savedLocal: "Saved local",
+        retry: "Retry save",
+        error: "Could not save",
+        hint: "Manual sync",
+      },
       panels: {
         leaderDoctrine: "Leader doctrine",
         frontSquad: "Front squad",

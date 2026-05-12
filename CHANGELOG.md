@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.286] - 2026-05-12
+
+### Added
+- Conectado el guardado manual del loadout Frontline desde Deck mediante `DeckLoadoutSyncButton`.
+- Aniadidas claves i18n EN/ES para estados de sincronizacion del loadout.
+
+### Changed
+- Deck puede sincronizar el snapshot actual del loadout con `syncFrontlineLoadoutOnlineFirst`, manteniendo fallback local cuando no hay sesion Supabase.
+- La sincronizacion queda bajo accion explicita del jugador para evitar llamadas autoritativas en cada cambio de carta o heroe.
+
+### Tested
+- `npm.cmd run check`
+- `npx.cmd vitest run tests/server.authoritativeOperationDispatcher.test.ts tests/loadoutState.test.ts`
+- `npm.cmd run build`
+
 ## [0.25.285] - 2026-05-12
 
 ### Added

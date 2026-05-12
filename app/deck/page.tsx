@@ -20,6 +20,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import { DeckCardPoolSection } from "./DeckCardPoolSection";
 import { HeroRosterButton } from "./DeckHeroRosterButton";
+import { DeckLoadoutSyncButton } from "./DeckLoadoutSyncButton";
 import { LeaderDoctrinePanel } from "./DeckLeaderDoctrinePanel";
 import { BuildPill, Metric, Panel, SelectedPackageRow } from "./DeckPrimitives";
 import { buildPlan } from "./deckPageHelpers";
@@ -84,11 +85,14 @@ export default function DeckPage() {
               </div>
             </div>
 
-            <div className="grid gap-1.5 sm:grid-cols-4">
-              <Metric label={t("deckScreen.metrics.leader")} value={leaderName} ok t={t} />
-              <Metric label={t("deckScreen.metrics.squad")} value={`${squadHeroes.filter(Boolean).length}/3`} ok={squadReady} t={t} />
-              <Metric label={t("deckScreen.metrics.deck")} value={`${selectedDeck.length}/8`} ok={deckReady} t={t} />
-              <Metric label={t("deckScreen.metrics.package")} value={`${plan.counts.orders} / ${plan.counts.tactics} / ${plan.counts.summons}`} ok t={t} />
+            <div className="flex flex-wrap items-start justify-end gap-2">
+              <DeckLoadoutSyncButton loadout={loadout} />
+              <div className="grid gap-1.5 sm:grid-cols-4">
+                <Metric label={t("deckScreen.metrics.leader")} value={leaderName} ok t={t} />
+                <Metric label={t("deckScreen.metrics.squad")} value={`${squadHeroes.filter(Boolean).length}/3`} ok={squadReady} t={t} />
+                <Metric label={t("deckScreen.metrics.deck")} value={`${selectedDeck.length}/8`} ok={deckReady} t={t} />
+                <Metric label={t("deckScreen.metrics.package")} value={`${plan.counts.orders} / ${plan.counts.tactics} / ${plan.counts.summons}`} ok t={t} />
+              </div>
             </div>
           </div>
 
