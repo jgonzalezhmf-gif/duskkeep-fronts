@@ -13,17 +13,8 @@ import { createAdventureMapInteractionClaimPlan } from "@/lib/adventureMapIntera
 import { markAdventureLevelCleared, markAdventureNodeClaimed } from "@/lib/adventureProgressState";
 import { planAdventureLevelClear, planAdventureNodeClaim } from "@/lib/adventureNodeState";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
-import {
-  applyFortressBuildingUpgrade,
-  applyFrontlineFortressUpgrade,
-  getFortressBuildingUpgradePlan,
-  getFortressIncomeRewards,
-  getFrontlineFortressUpgradePlan,
-  markFortressIncomeCollected,
-  setFrontlineFortressGarrisonSlot,
-} from "@/lib/fortressState";
+import { getFortressIncomeRewards, markFortressIncomeCollected, setFrontlineFortressGarrisonSlot } from "@/lib/fortressState";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
-import { applyHeroLevelUp, applyHeroSkillUp, applyHeroStarUp } from "@/lib/heroUpgrades";
 import {
   setDeckSlotState,
   setFrontlineLeaderState,
@@ -40,6 +31,14 @@ import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
 import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
+import {
+  createFortressBuildingUpgradeCommand,
+  createFrontlineCardUpgradeCommand,
+  createFrontlineFortressUpgradeCommand,
+  createHeroLevelUpCommand,
+  createHeroSkillUpCommand,
+  createHeroStarUpCommand,
+} from "@/lib/progressionCommands";
 import type { GameActions, GameState } from "@/lib/storeTypes";
 import {
   isAdventureFirstClearRewardAvailable,
@@ -51,7 +50,7 @@ import {
   frontlineFortressRaidReady,
   resolveFrontlineFortressRaid,
 } from "@/features/frontline/fortress";
-import { planFrontlineCardUnlock, planFrontlineCardUpgrade } from "@/lib/frontlineCardState";
+import { planFrontlineCardUnlock } from "@/lib/frontlineCardState";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import {
   claimAdventureBattleResultAuthoritatively,
@@ -69,6 +68,7 @@ import {
   SKILL_MULTIPLIER_BONUS,
 } from "./constants";
 import type { Rewards } from "@/lib/types";
+import type { ProgressionCommandPatch, ProgressionCommandResult } from "@/lib/progressionCommands";
 
 export type { GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressState";
@@ -81,6 +81,55 @@ const noopStorage = {
 
 const ADVENTURE_DRAW_REWARDS: Rewards = { gold: 20, dust: 2, gems: 0, accountXp: 1 };
 const ADVENTURE_DEFEAT_REWARDS: Rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
+
+type StoreSet = (
+  partial:
+    | Partial<GameState & GameActions>
+    | ((state: GameState & GameActions) => Partial<GameState & GameActions>),
+) => void;
+type StoreGet = () => GameState & GameActions;
+
+function applyProgressionCommandResult(result: ProgressionCommandResult, set: StoreSet, get: StoreGet) {
+  if (!result.ok) {
+    emitProgressionNotifications(result, get);
+    return false;
+  }
+
+  set((st) => ({
+    ...toProgressionStorePatch(result.patch),
+    ...(hasHeroesUpgradedEffect(result) ? { heroesUpgraded: st.heroesUpgraded + 1 } : {}),
+  }));
+
+  for (const effect of result.effects) {
+    if (effect.missionProgress) {
+      get().updateMissionProgress(effect.missionProgress.metric, effect.missionProgress.amount);
+    }
+  }
+  emitProgressionNotifications(result, get);
+  return true;
+}
+
+function toProgressionStorePatch(patch: ProgressionCommandPatch): Partial<GameState> {
+  return {
+    ...(patch.heroes ? { heroes: patch.heroes } : {}),
+    ...(patch.resources ? { resources: patch.resources } : {}),
+    ...(patch.frontlineCardLevels ? { frontlineCardLevels: patch.frontlineCardLevels } : {}),
+    ...(patch.fortress ? { fortress: patch.fortress } : {}),
+    ...(patch.frontlineFortress ? { frontlineFortress: patch.frontlineFortress } : {}),
+  };
+}
+
+function hasHeroesUpgradedEffect(result: ProgressionCommandResult) {
+  return result.effects.some((effect) => effect.missionProgress?.metric === "heroes_upgraded");
+}
+
+function emitProgressionNotifications(result: ProgressionCommandResult, get: StoreGet) {
+  for (const effect of result.effects) {
+    if (effect.notification) {
+      get().pushNotification(effect.notification.kind, effect.notification.message);
+    }
+  }
+}
 
 export const useGameStore = create<GameState & GameActions>()(
   persist(
@@ -148,22 +197,13 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       upgradeFrontlineCard: (cardId) => {
-        const plan = planFrontlineCardUpgrade({
+        const command = createFrontlineCardUpgradeCommand({
           unlocks: get().frontlineCardUnlocks,
           levels: get().frontlineCardLevels,
+          resources: get().resources,
           cardId,
         });
-        if (!plan.ok) {
-          if (plan.reason) get().pushNotification("error", plan.reason);
-          return false;
-        }
-        if (!get().spend(plan.cost)) {
-          get().pushNotification("error", "Not enough resources");
-          return false;
-        }
-        set({ frontlineCardLevels: plan.frontlineCardLevels });
-        get().pushNotification("success", "Frontline card upgraded");
-        return true;
+        return applyProgressionCommandResult(command, set, get);
       },
 
       addHero: (heroId) =>
@@ -183,36 +223,13 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       upgradeFortressBuilding: (buildingId) => {
-        const plan = getFortressBuildingUpgradePlan(get().fortress, buildingId);
-        if (!plan.ok) {
-          if (plan.reason === "max_level") {
-            get().pushNotification("error", "Building already at max level");
-          }
-          return false;
-        }
-        if (!get().spend(plan.cost)) {
-          get().pushNotification("error", "Not enough resources");
-          return false;
-        }
-        set((st) => ({
-          fortress: applyFortressBuildingUpgrade(st.fortress, buildingId),
-        }));
-        get().pushNotification("success", `${plan.name} upgraded`);
-        return true;
+        const command = createFortressBuildingUpgradeCommand(get().fortress, get().resources, buildingId);
+        return applyProgressionCommandResult(command, set, get);
       },
 
       upgradeFrontlineFortress: (buildingId) => {
-        const plan = getFrontlineFortressUpgradePlan(get().frontlineFortress, buildingId);
-        if (!plan.ok) return false;
-        if (!get().spend(plan.cost)) {
-          get().pushNotification("error", "Not enough resources");
-          return false;
-        }
-        set((st) => ({
-          frontlineFortress: applyFrontlineFortressUpgrade(st.frontlineFortress, buildingId),
-        }));
-        get().pushNotification("success", `${plan.name} upgraded`);
-        return true;
+        const command = createFrontlineFortressUpgradeCommand(get().frontlineFortress, get().resources, buildingId);
+        return applyProgressionCommandResult(command, set, get);
       },
 
       setFrontlineGarrisonSlot: (slotIdx, heroId) =>
@@ -259,58 +276,16 @@ export const useGameStore = create<GameState & GameActions>()(
 
       levelUpHero: (heroId) => {
         const s = get();
-        const result = applyHeroLevelUp(s.heroes, s.resources, heroId);
-        if (!result.ok) {
-          if (result.reason === "not_enough_gold") {
-            get().pushNotification("error", "Not enough gold");
-          }
-          return false;
-        }
-        set((st) => ({
-          heroes: result.heroes,
-          resources: result.resources,
-          heroesUpgraded: st.heroesUpgraded + 1,
-        }));
-        get().updateMissionProgress("heroes_upgraded", 1);
-        return true;
+        return applyProgressionCommandResult(createHeroLevelUpCommand(s.heroes, s.resources, heroId), set, get);
       },
 
       starUpHero: (heroId) => {
-        const result = applyHeroStarUp(get().heroes, heroId);
-        if (!result.ok) {
-          if (result.reason === "not_enough_shards") {
-            get().pushNotification("error", "Not enough shards");
-          }
-          return false;
-        }
-        set((st) => ({
-          heroes: result.heroes,
-          heroesUpgraded: st.heroesUpgraded + 1,
-        }));
-        get().updateMissionProgress("heroes_upgraded", 1);
-        return true;
+        return applyProgressionCommandResult(createHeroStarUpCommand(get().heroes, heroId), set, get);
       },
 
       skillUpHero: (heroId) => {
         const s = get();
-        const result = applyHeroSkillUp(s.heroes, s.resources, heroId);
-        if (!result.ok) {
-          if (result.reason === "max_skill_level") {
-            get().pushNotification("error", "Skill already at max level");
-          }
-          if (result.reason === "not_enough_dust") {
-            get().pushNotification("error", "Not enough Arcane Dust");
-          }
-          return false;
-        }
-        set((st) => ({
-          heroes: result.heroes,
-          resources: result.resources,
-          heroesUpgraded: st.heroesUpgraded + 1,
-        }));
-        get().updateMissionProgress("heroes_upgraded", 1);
-        get().pushNotification("success", `Skill enhanced to level ${result.nextSkillLevel}!`);
-        return true;
+        return applyProgressionCommandResult(createHeroSkillUpCommand(s.heroes, s.resources, heroId), set, get);
       },
 
       recordBattleResult: (won, source) => {

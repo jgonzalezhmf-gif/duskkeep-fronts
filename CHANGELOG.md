@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.25.291] - 2026-05-12
+
+### Added
+- Aniadido modulo `progressionCommands` para envolver mejoras de heroes, cartas Frontline y fortaleza como comandos puros con `patch` y efectos declarativos.
+- Aniadidos tests de comandos de progresion para cubrir level/star/skill de heroes, upgrade de cartas y upgrades de fortaleza.
+
+### Changed
+- El store ahora aplica los upgrades de progresion a traves de un boundary comun en vez de mezclar validacion, costes, mutacion y feedback dentro de cada accion.
+- La progresion de heroes queda local y funcional, pero preparada para sustituir comandos concretos por operaciones autoritativas cuando el diseno de progresion se cierre.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npx.cmd vitest run tests/progressionCommands.test.ts tests/heroUpgrades.test.ts tests/frontlineCardState.test.ts tests/fortressState.test.ts tests/missions.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.25.290] - 2026-05-12
 
 ### Added
