@@ -294,11 +294,6 @@ export function HomeEffectSpriteStyles() {
         animation: homeBannerClothShimmer 2900ms ease-in-out infinite;
       }
 
-      .home-effect-sprite[data-home-render-effect="flame_loop"] .home-effect-sprite-strip {
-        animation-name: homeEffectSpriteLoopFlame;
-        animation-timing-function: linear;
-      }
-
       .home-effect-sprite[data-home-render-effect="crystal_purple_loop"] .home-effect-sprite-strip {
         animation-name: homeEffectSpriteLoopCrystal;
         animation-timing-function: linear;
@@ -314,6 +309,7 @@ export function HomeEffectSpriteStyles() {
         animation-timing-function: linear;
       }
 
+      .home-effect-sprite[data-home-render-effect="flame_loop"] .home-effect-sprite-strip,
       .home-effect-sprite[data-home-render-effect="blue_flame_loop"] .home-effect-sprite-strip,
       .home-effect-sprite[data-home-render-effect="purple_flame_loop"] .home-effect-sprite-strip,
       .home-effect-sprite[data-home-render-effect="crow_fly_loop"] .home-effect-sprite-strip {
