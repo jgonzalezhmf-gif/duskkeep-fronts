@@ -10,6 +10,7 @@ import {
 import {
   AUTH_IDLE_TIMEOUT_MS,
   hasAuthIdleSessionExpired,
+  reconcileAuthSessionState,
   shouldRecordAuthActivity,
 } from "@/features/server/sessionSecurity";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -59,16 +60,17 @@ export function SessionSecurityMonitor() {
   }, [linked, setAccountLinkMode]);
 
   useEffect(() => {
-    if (!linked) return;
-
     let cancelled = false;
     void getSupabaseSessionSnapshot().then((session) => {
       if (cancelled) return;
-      if (session.status === "anonymous") {
-        setExpired(true);
-        setAccountLinkMode("undecided");
-      }
+      const reconciled = reconcileAuthSessionState({
+        accountLinkMode,
+        sessionStatus: session.status,
+      });
+      if (reconciled.accountLinkMode !== accountLinkMode) setAccountLinkMode(reconciled.accountLinkMode);
+      if (reconciled.requiresLogin) setExpired(true);
       if (session.status === "authenticated") {
+        setExpired(false);
         lastActivityAtRef.current = Date.now();
         lastRecordedAtRef.current = Date.now();
       }
@@ -77,7 +79,7 @@ export function SessionSecurityMonitor() {
     return () => {
       cancelled = true;
     };
-  }, [linked, setAccountLinkMode]);
+  }, [accountLinkMode, setAccountLinkMode]);
 
   useEffect(() => {
     if (!linked) return;

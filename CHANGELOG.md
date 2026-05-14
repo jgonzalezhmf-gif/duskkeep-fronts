@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.6] - 2026-05-14
+
+### Fixed
+- Reconciliado el estado local de cuenta con la sesion real Supabase al arrancar.
+- El modo invitado inicial intenta cerrar cualquier sesion Supabase previa para evitar operaciones online accidentales.
+
+### Security
+- Una cuenta marcada como `linked` sin sesion activa vuelve a requerir login.
+- Una sesion autenticada real marca la cuenta como `linked`.
+- Si Supabase Auth no esta configurado, el estado local cae a invitado en vez de quedar falsamente como online.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test -- tests/sessionSecurity.test.ts tests/supabaseBrowserSession.test.ts`
+
 ## [0.29.5] - 2026-05-14
 
 ### Added

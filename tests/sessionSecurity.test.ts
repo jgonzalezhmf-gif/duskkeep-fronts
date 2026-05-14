@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { hasAuthIdleSessionExpired, shouldRecordAuthActivity } from "@/features/server/sessionSecurity";
+import {
+  hasAuthIdleSessionExpired,
+  reconcileAuthSessionState,
+  shouldRecordAuthActivity,
+} from "@/features/server/sessionSecurity";
 
 describe("auth session security helpers", () => {
   it("expires linked sessions only after the idle timeout", () => {
@@ -36,5 +40,26 @@ describe("auth session security helpers", () => {
   it("throttles activity writes", () => {
     expect(shouldRecordAuthActivity({ lastRecordedAt: 1_000, now: 14_999, throttleMs: 14_000 })).toBe(false);
     expect(shouldRecordAuthActivity({ lastRecordedAt: 1_000, now: 15_000, throttleMs: 14_000 })).toBe(true);
+  });
+
+  it("reconciles authenticated sessions as linked", () => {
+    expect(reconcileAuthSessionState({ accountLinkMode: "guest", sessionStatus: "authenticated" })).toEqual({
+      accountLinkMode: "linked",
+      requiresLogin: false,
+    });
+  });
+
+  it("requires login when a linked account has no active session", () => {
+    expect(reconcileAuthSessionState({ accountLinkMode: "linked", sessionStatus: "anonymous" })).toEqual({
+      accountLinkMode: "undecided",
+      requiresLogin: true,
+    });
+  });
+
+  it("falls back to guest when auth is not configured", () => {
+    expect(reconcileAuthSessionState({ accountLinkMode: "linked", sessionStatus: "unconfigured" })).toEqual({
+      accountLinkMode: "guest",
+      requiresLogin: false,
+    });
   });
 });

@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import HomeWorldMap, { type HomeHotspot } from "@/components/game/HomeWorldMap";
+import { signOutSupabase } from "@/features/server/supabaseBrowserSession";
 import { HOME_LANDMARK_LAYOUT, toPx } from "@/components/game/home/homeComposition";
 import { GameIntro } from "@/components/game/intro/GameIntro";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -144,7 +145,10 @@ export default function HomePageClient({
       {showIntro ? <GameIntro onDone={handleIntroDone} /> : null}
       <GameAuthGate
         open={showAuthGate}
-        onGuest={() => setAccountLinkMode("guest")}
+        onGuest={() => {
+          void signOutSupabase();
+          setAccountLinkMode("guest");
+        }}
         onLinked={() => setAccountLinkMode("linked")}
       />
       <PasswordRecoveryGate onRecovered={() => setAccountLinkMode("linked")} />
