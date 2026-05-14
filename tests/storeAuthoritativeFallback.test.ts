@@ -46,6 +46,7 @@ vi.mock("@/features/server/serverPlayerSnapshot", () => ({
 
 const mockedDailyLogin = vi.mocked(claimDailyLoginAuthoritatively);
 const mockedAdventureNode = vi.mocked(claimAdventureNodeRewardAuthoritatively);
+const mockedMission = vi.mocked(claimMissionAuthoritatively);
 const mockedPurchase = vi.mocked(purchaseShopOfferAuthoritatively);
 const mockedCardUpgrade = vi.mocked(upgradeFrontlineCardAuthoritatively);
 const mockedFortressUpgrade = vi.mocked(upgradeFrontlineFortressAuthoritatively);
@@ -65,7 +66,7 @@ describe("store authoritative fallback policy", () => {
     vi.mocked(claimAdventureBattleResultAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedAdventureNode.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedDailyLogin.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
-    vi.mocked(claimMissionAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedMission.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(openAdventureMapInteractionAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedPurchase.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedFortressRaid.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
@@ -212,6 +213,56 @@ describe("store authoritative fallback policy", () => {
     expect(result).toBeNull();
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().eventCompletions.gold_rush).toBeUndefined();
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("claims hero upgrade missions through the authoritative mission RPC", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      missionsProgress: {
+        d_upgrade_1: {
+          progress: 1,
+          claimed: false,
+          resetAt: "2026-05-15T00:00:00.000Z",
+        },
+      },
+    });
+    mockedMission.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      missionId: "d_upgrade_1",
+      cycleKey: "daily:2026-05-14",
+      rewards: { gold: 80, dust: 15 },
+      resources: { gold: 580, dust: 65, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+
+    const result = await useGameStore.getState().claimMissionOnlineFirst("d_upgrade_1");
+
+    expect(mockedMission).toHaveBeenCalledWith("d_upgrade_1", expect.stringMatching(/^daily:/));
+    expect(result).toEqual({ gold: 80, dust: 15 });
+    expect(useGameStore.getState().resources).toEqual({ gold: 580, dust: 65, gems: 50, arenaTickets: 5, adventureKeys: 0 });
+    expect(useGameStore.getState().missionsProgress.d_upgrade_1.claimed).toBe(true);
+  });
+
+  it("blocks linked account mission claims when the session is missing", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      missionsProgress: {
+        d_arena_1: {
+          progress: 1,
+          claimed: false,
+          resetAt: "2026-05-15T00:00:00.000Z",
+        },
+      },
+    });
+    mockedMission.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().claimMissionOnlineFirst("d_arena_1");
+
+    expect(result).toBeNull();
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().missionsProgress.d_arena_1.claimed).toBe(false);
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 

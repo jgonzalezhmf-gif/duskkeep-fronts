@@ -10,7 +10,7 @@ La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `recordArenaResult` para resultados de Arena, `recordEventResult` para resultados de Events, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `recordArenaResult` para resultados de Arena, `recordEventResult` para resultados de Events, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de operaciones server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
 La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de nivel/estrellas/skills de heroes, cartas Frontline y edificios de la Fortress visible ya usan `levelUpHero`/`starUpHero`/`skillUpHero`/`upgradeFrontlineCard`/`upgradeFrontlineFortress` como operaciones autoritativas. La fortaleza clasica usada por sistemas legacy permanece en local hasta tener un modelo de migracion separado.
 
@@ -292,10 +292,12 @@ Reglas actuales:
 - `battle_results` prepara tambien `arena_battles` y `events_played` cuando esas fuentes escriban resultados autoritativos.
 - El progreso se escribe en `missions_progress` con ciclos `daily:YYYY-MM-DD` y `weekly:IYYY-IW`, calculados en servidor.
 
+La UI de Missions usa `claimMissionAuthoritatively` para las metricas actuales porque su progreso visible ya puede nacer de operaciones server-side: Adventure, Arena, Events y upgrades de heroes.
+
 Pendiente:
 
-- Mover `heroes_upgraded` a una operacion server-side antes de conectar claims de upgrade diarios a backend.
-- Conectar UI de Missions a `claimMissionAuthoritatively` solo cuando el progreso relevante ya se este generando server-side para las fuentes visibles.
+- Evitar que nuevas misiones futuras entren en claims online sin una fuente de progreso server-side documentada.
+- Antes de monetizacion real, impedir que combates locales no autoritativos contribuyan a misiones reclamables online.
 
 ### `claimMission`
 
@@ -330,7 +332,7 @@ type ClaimMissionResult = {
 };
 ```
 
-Pendiente antes de conectar toda la UI: cubrir server-side las metricas que aun dependen de acciones locales, especialmente `heroes_upgraded`.
+La politica cliente solo permite claims autoritativos para metricas con fuente server-side conocida. Si una mision futura queda fuera de esa politica, cuentas invitadas pueden seguir el flujo local de alpha, pero cuentas vinculadas no deben convertir progreso local no validado en recompensas online.
 
 ### `claimDailyLogin`
 

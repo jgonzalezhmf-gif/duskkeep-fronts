@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.18] - 2026-05-14
+
+### Changed
+- Missions considera ahora autoritativas todas las metricas actuales con fuente server-side: Adventure, Arena, Events, batallas ganadas y mejoras de heroes.
+- Cuentas vinculadas no convierten misiones futuras no soportadas en rewards locales si la politica no encuentra fuente server-side conocida.
+- Actualizada la documentacion de operaciones autoritativas para reflejar que `heroes_upgraded` ya nace de RPCs server-side.
+
+### Security
+- Se reduce la superficie de manipulacion de progreso local en claims de Missions para cuentas vinculadas.
+- Los claims de misiones actuales pasan por `claimMissionAuthoritatively` cuando hay cuenta online, manteniendo fallback local solo para invitado/API desactivada.
+
+### Tested
+- `npm.cmd test -- tests/missionAuthoritativeClaims.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run typecheck`
+
 ## [0.30.17] - 2026-05-14
 
 ### Added

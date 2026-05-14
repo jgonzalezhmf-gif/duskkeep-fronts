@@ -807,6 +807,10 @@ export const useGameStore = create<GameState & GameActions>()(
 
         const plan = getMissionAuthoritativeClaimPlan(mission);
         if (!plan.ok) {
+          if (get().accountLinkMode === "linked") {
+            get().pushNotification("error", "Mission requires server validation");
+            return null;
+          }
           return get().claimMission(missionId);
         }
 

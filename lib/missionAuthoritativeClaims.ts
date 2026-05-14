@@ -2,6 +2,10 @@ import type { Mission } from "@/lib/types";
 
 const AUTHORITATIVE_MISSION_METRICS = new Set<Mission["metric"]>([
   "adventure_levels_cleared",
+  "arena_battles",
+  "battles_won",
+  "events_played",
+  "heroes_upgraded",
 ]);
 
 export type MissionAuthoritativeClaimPlan =
