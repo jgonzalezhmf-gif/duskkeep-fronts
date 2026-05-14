@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.5] - 2026-05-14
+
+### Added
+- Ampliado el provisioning Supabase de usuarios para crear heroes starter, cartas Frontline starter y loadout inicial en servidor.
+- Aniadido backfill idempotente para perfiles existentes sin pisar loadouts o progreso ya creado.
+
+### Security
+- El estado starter online se crea server-side al alta de Auth, reduciendo dependencia del estado local como fuente inicial.
+- La funcion interna de provisioning no concede permisos de ejecucion a `public`, `anon` ni `authenticated`.
+- Los smokes validan que invitados anonimos reciben recursos, heroes, cartas y loadout desde servidor.
+
+### Tested
+- `npm.cmd run smoke:supabase:guest`
+- `npm.cmd run smoke:supabase:snapshot`
+- `npm.cmd run test -- tests/serverPlayerSnapshotState.test.ts tests/serverPlayerSnapshot.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.4] - 2026-05-14
 
 ### Changed

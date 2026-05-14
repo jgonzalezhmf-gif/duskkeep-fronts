@@ -133,7 +133,7 @@ Requisitos operativos:
 
 - En Supabase local, `supabase/config.toml` debe tener `auth.enable_anonymous_sign_ins = true`.
 - En Supabase remoto, Anonymous Sign-Ins debe activarse explicitamente antes de validar el flujo invitado real.
-- El smoke `npm.cmd run smoke:supabase:guest` comprueba que un usuario anonimo provisiona `profiles` y `player_resources`.
+- El smoke `npm.cmd run smoke:supabase:guest` comprueba que un usuario anonimo provisiona `profiles`, `player_resources`, heroes starter, cartas starter y loadout inicial.
 - El smoke `npm.cmd run smoke:supabase:snapshot` comprueba que el snapshot server-side solo devuelve datos del usuario autenticado.
 - En produccion conviene activar captcha o mitigaciones equivalentes para altas anonimas si aumenta el abuso.
 

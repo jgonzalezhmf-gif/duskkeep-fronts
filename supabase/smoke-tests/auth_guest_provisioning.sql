@@ -11,6 +11,12 @@ declare
 begin
   delete from public.resource_ledger
     where profile_id in (select id from public.profiles where user_id = v_guest_user_id);
+  delete from public.frontline_loadouts
+    where profile_id in (select id from public.profiles where user_id = v_guest_user_id);
+  delete from public.player_frontline_cards
+    where profile_id in (select id from public.profiles where user_id = v_guest_user_id);
+  delete from public.player_heroes
+    where profile_id in (select id from public.profiles where user_id = v_guest_user_id);
   delete from public.player_resources
     where profile_id in (select id from public.profiles where user_id = v_guest_user_id);
   delete from public.profiles
@@ -67,6 +73,47 @@ begin
         and adventure_keys = 0
   ) then
     raise exception 'Expected anonymous profile to provision starter resources';
+  end if;
+
+  if (
+    select count(*)
+      from public.player_heroes
+      where profile_id = v_profile_id
+        and hero_id in ('bran', 'kara', 'vex', 'mira', 'drak', 'tovi')
+        and unlocked = true
+  ) <> 6 then
+    raise exception 'Expected anonymous profile to provision starter heroes';
+  end if;
+
+  if (
+    select count(*)
+      from public.player_frontline_cards
+      where profile_id = v_profile_id
+        and card_id in (
+          'order_guard_wall',
+          'order_twin_slash',
+          'order_focus_fire',
+          'tactic_battle_hymn',
+          'tactic_sanctuary',
+          'tactic_smokescreen',
+          'summon_wolf',
+          'summon_barrier'
+        )
+        and unlocked = true
+        and level = 1
+  ) <> 8 then
+    raise exception 'Expected anonymous profile to provision starter Frontline cards';
+  end if;
+
+  if not exists (
+    select 1
+      from public.frontline_loadouts
+      where profile_id = v_profile_id
+        and leader_id = 'leader_aurora'
+        and squad = '["bran","kara","mira"]'::jsonb
+        and deck = '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
+  ) then
+    raise exception 'Expected anonymous profile to provision default Frontline loadout';
   end if;
 
   if not exists (

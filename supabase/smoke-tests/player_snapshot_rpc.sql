@@ -101,10 +101,20 @@ begin
     adventure_keys = excluded.adventure_keys;
 
   insert into public.player_heroes (profile_id, hero_id, level, stars, shards, xp, skill_level, unlocked)
-  values (v_profile_id, 'bran', 3, 2, 12, 40, 2, true);
+  values (v_profile_id, 'bran', 3, 2, 12, 40, 2, true)
+  on conflict (profile_id, hero_id) do update set
+    level = excluded.level,
+    stars = excluded.stars,
+    shards = excluded.shards,
+    xp = excluded.xp,
+    skill_level = excluded.skill_level,
+    unlocked = excluded.unlocked;
 
   insert into public.player_frontline_cards (profile_id, card_id, unlocked, level)
-  values (v_profile_id, 'order_guard_wall', true, 2);
+  values (v_profile_id, 'order_guard_wall', true, 2)
+  on conflict (profile_id, card_id) do update set
+    unlocked = excluded.unlocked,
+    level = excluded.level;
 
   insert into public.frontline_loadouts (profile_id, leader_id, squad, deck)
   values (
@@ -112,7 +122,11 @@ begin
     'leader_aurora',
     '["bran","kara","mira"]'::jsonb,
     '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
-  );
+  )
+  on conflict (profile_id) do update set
+    leader_id = excluded.leader_id,
+    squad = excluded.squad,
+    deck = excluded.deck;
 
   insert into public.adventure_progress (
     profile_id,
