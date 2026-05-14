@@ -18,6 +18,7 @@ export type SupabaseAuthResult =
   | { ok: false; reason: SupabaseAuthFailureReason };
 
 export type SupabaseAuthFailureReason = "unconfigured" | "invalid_credentials" | "rate_limited" | "auth_error";
+export type SupabaseOAuthResult = { ok: true } | { ok: false; reason: "unconfigured" | "auth_error" };
 
 export type SupabasePasswordCredentials = {
   email: string;
@@ -96,6 +97,19 @@ export async function signUpSupabaseWithPassword({
     ok: true,
     session: toSupabaseSessionSnapshot(data.session),
   };
+}
+
+export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<SupabaseOAuthResult> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { ok: false, reason: "unconfigured" };
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: redirectTo ? { redirectTo } : undefined,
+  });
+  if (error) return { ok: false, reason: "auth_error" };
+
+  return { ok: true };
 }
 
 export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "auth_error" }> {

@@ -70,7 +70,7 @@ import {
 } from "./constants";
 import type { Rewards } from "@/lib/types";
 
-export type { GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
+export type { AccountLinkMode, GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressState";
 
 const noopStorage = {
@@ -605,6 +605,7 @@ export const useGameStore = create<GameState & GameActions>()(
         set({ onboarding: completeOnboardingState() }),
       markIntroSeen: () => set({ hasSeenIntro: true }),
       resetIntro: () => set({ hasSeenIntro: false }),
+      setAccountLinkMode: (mode) => set({ accountLinkMode: mode }),
       ackPendingUnlock: () => set({ pendingUnlockLevel: null }),
 
       refreshArenaTicketsIfNeeded: () => {

@@ -1,11 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import HomeWorldMap, { type HomeHotspot } from "@/components/game/HomeWorldMap";
 import { HOME_LANDMARK_LAYOUT, toPx } from "@/components/game/home/homeComposition";
 import { GameIntro } from "@/components/game/intro/GameIntro";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
+
+const GameAuthGate = dynamic(() => import("@/components/game/auth/GameAuthGate").then((mod) => mod.GameAuthGate), {
+  ssr: false,
+});
 
 export default function HomePageClient({
   qaClean = false,
@@ -21,6 +26,8 @@ export default function HomePageClient({
   const nextLevel = nextUnlockedLevel(store);
   const hasSeenIntro = useGameStore((state) => state.hasSeenIntro);
   const markIntroSeen = useGameStore((state) => state.markIntroSeen);
+  const accountLinkMode = useGameStore((state) => state.accountLinkMode);
+  const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
   const [introDismissed, setIntroDismissed] = useState(false);
   const introEligible = !qaClean && !qaEffects;
   const showIntro = store.hydrated && !introDismissed && introEligible && (forceIntro || !hasSeenIntro);
@@ -30,6 +37,7 @@ export default function HomePageClient({
   // viewport with a solid black layer while we wait so the first frame is
   // always either black or the intro itself.
   const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed;
+  const showAuthGate = store.hydrated && introEligible && !showIntro && accountLinkMode === "undecided";
 
   function handleIntroDone() {
     setIntroDismissed(true);
@@ -119,6 +127,11 @@ export default function HomePageClient({
         />
       ) : null}
       {showIntro ? <GameIntro onDone={handleIntroDone} /> : null}
+      <GameAuthGate
+        open={showAuthGate}
+        onGuest={() => setAccountLinkMode("guest")}
+        onLinked={() => setAccountLinkMode("linked")}
+      />
     </>
   );
 }

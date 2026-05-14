@@ -11,8 +11,12 @@ import { createDefaultFrontlineFortress } from "@/features/frontline/fortress";
 import { DEFAULT_LOCALE, isLocaleCode } from "@/lib/i18n/locales";
 import { DECK_SIZE } from "./constants";
 import { defaultFortress, defaultInitial, freshStarterDeck } from "./defaultGameState";
-import type { GameState } from "./store";
+import type { AccountLinkMode, GameState } from "./store";
 import type { FrontlineFortressState, FrontlineLoadout, PlayerHero } from "./types";
+
+function isAccountLinkMode(value: unknown): value is AccountLinkMode {
+  return value === "undecided" || value === "guest" || value === "linked";
+}
 
 export function mergePersistedGameState<TCurrent extends GameState>(persisted: unknown, current: TCurrent): TCurrent {
   const p = (persisted ?? {}) as Partial<GameState>;
@@ -95,6 +99,7 @@ export function mergePersistedGameState<TCurrent extends GameState>(persisted: u
     visualEffects: typeof p.visualEffects === "boolean" ? p.visualEffects : current.visualEffects ?? true,
     textScale: p.textScale === "large" ? "large" : current.textScale ?? "normal",
     onboarding: p.onboarding ?? current.onboarding ?? { step: 0, completed: false },
+    accountLinkMode: isAccountLinkMode(p.accountLinkMode) ? p.accountLinkMode : current.accountLinkMode ?? "undecided",
     pendingUnlockLevel: p.pendingUnlockLevel ?? current.pendingUnlockLevel ?? null,
     arenaTicketsRefreshedAt: p.arenaTicketsRefreshedAt ?? current.arenaTicketsRefreshedAt ?? null,
     heroes: ((p.heroes ?? current.heroes) as PlayerHero[]).map((hero) => ({

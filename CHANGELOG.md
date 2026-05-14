@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.28.0] - 2026-05-14
+
+### Added
+- Aniadido gate de cuenta despues de la intro con dos rutas: autenticacion online o modo invitado local.
+- Aniadido flujo reutilizable de sign-in/sign-up por email/password y acceso Google mediante helper central de Supabase Auth.
+- Aniadido panel de cuenta en Opciones para que un jugador invitado pueda abrir la vinculacion de cuenta mas adelante.
+
+### Security
+- El flujo de Auth no guarda credenciales ni tokens en el store y solo persiste la decision local `accountLinkMode`.
+- Los errores de autenticacion se normalizan antes de mostrarse al jugador, sin filtrar mensajes internos del proveedor.
+- La migracion de progreso local a cuenta queda explicitamente diferida hasta implementar `syncLocalSnapshot` server-side.
+
+### Tested
+- `npm.cmd run test -- tests/persistedGameState.test.ts tests/supabaseBrowserSession.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+
 ## [0.27.2] - 2026-05-14
 
 ### Security

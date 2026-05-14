@@ -14,6 +14,10 @@ const GameIntroPreview = dynamic(() => import("@/components/game/intro/GameIntro
   ssr: false,
 });
 
+const GameAuthGate = dynamic(() => import("@/components/game/auth/GameAuthGate").then((mod) => mod.GameAuthGate), {
+  ssr: false,
+});
+
 function pct(value: number) {
   return `${Math.round(value * 100)}%`;
 }
@@ -22,6 +26,7 @@ export default function GameOptionsButton({ className }: { className?: string })
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [introPreviewOpen, setIntroPreviewOpen] = useState(false);
+  const [accountGateOpen, setAccountGateOpen] = useState(false);
   const language = useGameStore((state) => state.language);
   const setLanguage = useGameStore((state) => state.setLanguage);
   const muted = useGameStore((state) => state.audioMuted);
@@ -36,6 +41,8 @@ export default function GameOptionsButton({ className }: { className?: string })
   const setVisualEffects = useGameStore((state) => state.setVisualEffects);
   const textScale = useGameStore((state) => state.textScale);
   const setTextScale = useGameStore((state) => state.setTextScale);
+  const accountLinkMode = useGameStore((state) => state.accountLinkMode);
+  const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
 
   return (
     <>
@@ -152,6 +159,37 @@ export default function GameOptionsButton({ className }: { className?: string })
                   </div>
                 </OptionPanel>
 
+                <OptionPanel title={t("options.account")} hint={t("options.accountHint")}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-black text-white">{t(accountModeTitleKey(accountLinkMode))}</div>
+                      <div className="mt-1 text-[12px] leading-5 text-white/48">{t(accountModeBodyKey(accountLinkMode))}</div>
+                    </div>
+                    <span
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em]",
+                        accountLinkMode === "linked"
+                          ? "border-emerald-300/24 bg-emerald-400/12 text-emerald-100"
+                          : "border-amber-200/18 bg-amber-300/10 text-amber-100/78",
+                      )}
+                    >
+                      {t(accountModeBadgeKey(accountLinkMode))}
+                    </span>
+                  </div>
+                  {accountLinkMode !== "linked" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sfx.tap();
+                        setAccountGateOpen(true);
+                      }}
+                      className="frontline-motion-action mt-3 w-full rounded-[20px] border border-sky-200/24 bg-sky-300/10 px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.16em] text-sky-50 shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:border-sky-100/44"
+                    >
+                      {t("options.linkAccount")}
+                    </button>
+                  ) : null}
+                </OptionPanel>
+
                 <OptionPanel title={t("options.intro")} hint={t("options.introHint")}>
                   <button
                     type="button"
@@ -173,8 +211,37 @@ export default function GameOptionsButton({ className }: { className?: string })
         )
         : null}
       {introPreviewOpen ? <GameIntroPreview onDone={() => setIntroPreviewOpen(false)} /> : null}
+      {accountGateOpen ? (
+        <GameAuthGate
+          open={accountGateOpen}
+          allowGuest={false}
+          onClose={() => setAccountGateOpen(false)}
+          onLinked={() => {
+            setAccountLinkMode("linked");
+            setAccountGateOpen(false);
+          }}
+        />
+      ) : null}
     </>
   );
+}
+
+function accountModeTitleKey(mode: string) {
+  if (mode === "linked") return "options.accountLinked";
+  if (mode === "guest") return "options.accountGuest";
+  return "options.accountUndecided";
+}
+
+function accountModeBodyKey(mode: string) {
+  if (mode === "linked") return "options.accountLinkedHint";
+  if (mode === "guest") return "options.accountGuestHint";
+  return "options.accountUndecidedHint";
+}
+
+function accountModeBadgeKey(mode: string) {
+  if (mode === "linked") return "options.accountOnline";
+  if (mode === "guest") return "options.accountLocal";
+  return "options.accountPending";
 }
 
 function OptionPanel({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {

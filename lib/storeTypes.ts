@@ -20,6 +20,7 @@ import type {
 export type NotificationKind = "success" | "error" | "info";
 export type Notification = { id: string; kind: NotificationKind; message: string };
 export type TextScale = "normal" | "large";
+export type AccountLinkMode = "undecided" | "guest" | "linked";
 export type AdventureBattleWinner = "ally" | "enemy" | "draw";
 export type AdventureBattleResultClaim = {
   rewards: Rewards;
@@ -69,6 +70,7 @@ export type GameState = {
   textScale: TextScale;
   onboarding: { step: number; completed: boolean };
   hasSeenIntro: boolean;
+  accountLinkMode: AccountLinkMode;
   pendingUnlockLevel: number | null;
   arenaTicketsRefreshedAt: string | null;
 };
@@ -143,6 +145,7 @@ export type GameActions = {
   completeOnboarding: () => void;
   markIntroSeen: () => void;
   resetIntro: () => void;
+  setAccountLinkMode: (mode: AccountLinkMode) => void;
   ackPendingUnlock: () => void;
   refreshArenaTicketsIfNeeded: () => void;
 };

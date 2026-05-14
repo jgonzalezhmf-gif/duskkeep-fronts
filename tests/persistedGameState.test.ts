@@ -40,6 +40,33 @@ describe("persisted game state merge", () => {
     expect(merged.hasSeenIntro).toBe(true);
   });
 
+  it("keeps account linking undecided by default for older saves", () => {
+    const merged = mergePersistedGameState(
+      { resources: { gold: 25 } },
+      currentState(),
+    );
+
+    expect(merged.accountLinkMode).toBe("undecided");
+  });
+
+  it("preserves the account linking choice for returning players", () => {
+    const merged = mergePersistedGameState(
+      { accountLinkMode: "guest" },
+      currentState(),
+    );
+
+    expect(merged.accountLinkMode).toBe("guest");
+  });
+
+  it("sanitizes unknown account linking values", () => {
+    const merged = mergePersistedGameState(
+      { accountLinkMode: "admin" },
+      currentState(),
+    );
+
+    expect(merged.accountLinkMode).toBe("undecided");
+  });
+
   it("sanitizes persisted deck ids against registered cards", () => {
     const merged = mergePersistedGameState(
       { activeDeck: ["spell_battle_hymn", "missing_card"] },

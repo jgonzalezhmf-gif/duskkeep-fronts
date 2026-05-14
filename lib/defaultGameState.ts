@@ -76,6 +76,7 @@ export function defaultInitial() {
     textScale: "normal" as const,
     onboarding: { step: 0, completed: false },
     hasSeenIntro: false,
+    accountLinkMode: "undecided" as const,
     pendingUnlockLevel: null,
     arenaTicketsRefreshedAt: null,
   };
