@@ -45,7 +45,8 @@ Tablas y funciones:
 Alcance actual:
 
 - Shop ya usa `grant_reward_bundle` desde `purchase_shop_offer`.
-- El siguiente paso natural es migrar Adventure/Missions/Daily Login de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
+- Daily Login ya usa `grant_reward_definition` para resolver `daily_login_streak_1..7`.
+- El siguiente paso natural es migrar Adventure/Missions de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
 
@@ -362,7 +363,7 @@ La politica cliente solo permite claims autoritativos para metricas con fuente s
 
 Reclama recompensa diaria.
 
-Primera implementacion SQL: `public.claim_daily_login(p_idempotency_key text, p_local_day_key text)`. Usa el dia UTC del servidor como fuente de verdad y bloquea una segunda claim del mismo dia.
+Implementacion SQL: `public.claim_daily_login(p_idempotency_key text, p_local_day_key text)`. Usa el dia UTC del servidor como fuente de verdad y bloquea una segunda claim del mismo dia. La RPC calcula el streak y resuelve el contenido desde `server_reward_definitions` con ids `daily_login_streak_1..7`; el cliente no envia ni decide el reward.
 
 Payload:
 

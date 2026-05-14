@@ -91,6 +91,10 @@ for each row execute function public.set_updated_at();
 
 alter table public.server_reward_definitions enable row level security;
 
+revoke all on table public.server_reward_definitions from public;
+revoke all on table public.server_reward_definitions from anon;
+revoke all on table public.server_reward_definitions from authenticated;
+
 create or replace function public.grant_reward_bundle(
   p_profile_id uuid,
   p_operation_id uuid,

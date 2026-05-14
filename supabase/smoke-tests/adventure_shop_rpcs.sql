@@ -595,8 +595,13 @@ begin
   if coalesce((v_daily_result ->> 'ok')::boolean, false) is not true then
     raise exception 'claim_daily_login failed: %', v_daily_result;
   end if;
-  if coalesce((v_daily_result #>> '{result,rewardsGranted,gold}')::int, 0) <> 150 then
-    raise exception 'Expected daily login day 1 gold reward: %', v_daily_result;
+  select rewards
+    into v_catalog_contents
+    from public.server_reward_definitions
+    where reward_id = coalesce(v_daily_result #>> '{result,rewardId}', 'daily_login_streak_1')
+      and enabled = true;
+  if (v_daily_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'Daily login reward must match server reward definition: % <> %', v_daily_result #> '{result,rewardsGranted}', v_catalog_contents;
   end if;
 
   v_daily_replay := public.claim_daily_login(

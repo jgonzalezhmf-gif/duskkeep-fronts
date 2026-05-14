@@ -7,6 +7,30 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.2] - 2026-05-14
+
+### Added
+- Daily Login registra `daily_login_streak_1..7` en `server_reward_definitions`.
+
+### Changed
+- `claim_daily_login` ahora calcula elegibilidad/streak y concede rewards mediante `grant_reward_definition`.
+- El smoke de Adventure/Shop valida el reward diario contra `server_reward_definitions` en vez de asumir cantidades fijas.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Daily Login como consumidor del sistema de rewards server-side.
+
+### Security
+- Daily Login mantiene dia UTC, claim unica, idempotencia y ownership en servidor.
+- El cliente sigue sin poder decidir recompensas diarias ni ejecutar directamente funciones internas de grant.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer `server_reward_definitions` ni ejecutar funciones internas de grant.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.1] - 2026-05-14
 
 ### Added
