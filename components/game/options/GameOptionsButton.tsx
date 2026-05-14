@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { UiIcon } from "@/components/game/shared/UiIcon";
+import { signOutSupabase } from "@/features/server/supabaseBrowserSession";
 import { SUPPORTED_LOCALES, type LocaleCode } from "@/lib/i18n/locales";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { audio, sfx } from "@/lib/audio";
@@ -28,6 +29,7 @@ export default function GameOptionsButton({ className }: { className?: string })
   const [introPreviewOpen, setIntroPreviewOpen] = useState(false);
   const [accountGateOpen, setAccountGateOpen] = useState(false);
   const [accountSyncBusy, setAccountSyncBusy] = useState(false);
+  const [accountSignOutBusy, setAccountSignOutBusy] = useState(false);
   const [accountSyncNotice, setAccountSyncNotice] = useState<string | null>(null);
   const language = useGameStore((state) => state.language);
   const setLanguage = useGameStore((state) => state.setLanguage);
@@ -192,33 +194,60 @@ export default function GameOptionsButton({ className }: { className?: string })
                     </button>
                   ) : null}
                   {accountLinkMode === "linked" ? (
-                    <button
-                      type="button"
-                      disabled={accountSyncBusy}
-                      onClick={async () => {
-                        sfx.tap();
-                        setAccountSyncBusy(true);
-                        setAccountSyncNotice(null);
-                        const result = await syncLocalSnapshotOnlineFirst();
-                        setAccountSyncBusy(false);
-                        if (result.ok) {
-                          sfx.unlock();
-                          setAccountSyncNotice(t("options.accountSyncDone"));
-                        } else {
-                          setAccountSyncNotice(
-                            t(result.authoritative ? "options.accountSyncFailed" : "options.accountSyncUnavailable"),
-                          );
-                        }
-                      }}
-                      className={cn(
-                        "frontline-motion-action mt-3 w-full rounded-[20px] border px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.16em] transition",
-                        accountSyncBusy
-                          ? "cursor-wait border-white/8 bg-white/[0.04] text-white/30"
-                          : "border-emerald-200/24 bg-emerald-300/10 text-emerald-50 hover:border-emerald-100/44",
-                      )}
-                    >
-                      {accountSyncBusy ? t("options.accountSyncing") : t("options.syncLocalProgress")}
-                    </button>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        disabled={accountSyncBusy || accountSignOutBusy}
+                        onClick={async () => {
+                          sfx.tap();
+                          setAccountSyncBusy(true);
+                          setAccountSyncNotice(null);
+                          const result = await syncLocalSnapshotOnlineFirst();
+                          setAccountSyncBusy(false);
+                          if (result.ok) {
+                            sfx.unlock();
+                            setAccountSyncNotice(t("options.accountSyncDone"));
+                          } else {
+                            setAccountSyncNotice(
+                              t(result.authoritative ? "options.accountSyncFailed" : "options.accountSyncUnavailable"),
+                            );
+                          }
+                        }}
+                        className={cn(
+                          "frontline-motion-action rounded-[20px] border px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.16em] transition",
+                          accountSyncBusy
+                            ? "cursor-wait border-white/8 bg-white/[0.04] text-white/30"
+                            : "border-emerald-200/24 bg-emerald-300/10 text-emerald-50 hover:border-emerald-100/44",
+                        )}
+                      >
+                        {accountSyncBusy ? t("options.accountSyncing") : t("options.syncLocalProgress")}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={accountSyncBusy || accountSignOutBusy}
+                        onClick={async () => {
+                          sfx.tap();
+                          setAccountSignOutBusy(true);
+                          setAccountSyncNotice(null);
+                          const result = await signOutSupabase();
+                          setAccountSignOutBusy(false);
+                          if (result.ok || result.reason === "unconfigured") {
+                            setAccountLinkMode("guest");
+                            setAccountSyncNotice(t("options.accountSignedOut"));
+                          } else {
+                            setAccountSyncNotice(t("options.accountSignOutFailed"));
+                          }
+                        }}
+                        className={cn(
+                          "frontline-motion-action rounded-[20px] border px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.16em] transition",
+                          accountSignOutBusy
+                            ? "cursor-wait border-white/8 bg-white/[0.04] text-white/30"
+                            : "border-rose-200/20 bg-rose-300/9 text-rose-50 hover:border-rose-100/40",
+                        )}
+                      >
+                        {accountSignOutBusy ? t("options.accountSigningOut") : t("options.signOutAccount")}
+                      </button>
+                    </div>
                   ) : null}
                   {accountSyncNotice ? <div className="mt-2 text-[12px] leading-5 text-white/54">{accountSyncNotice}</div> : null}
                 </OptionPanel>

@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.4] - 2026-05-14
+
+### Added
+- Aniadido cierre de sesion desde el panel de cuenta en Opciones.
+
+### Security
+- El cierre de sesion usa el helper central Supabase y no borra progreso local; cambia la sesion visible a modo invitado/local si el cierre se completa.
+- Los errores de cierre de sesion se muestran con mensaje generico, sin exponer detalles del proveedor.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test -- tests/supabaseBrowserSession.test.ts`
+
 ## [0.29.3] - 2026-05-14
 
 ### Added
