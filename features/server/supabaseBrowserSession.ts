@@ -19,6 +19,7 @@ export type SupabaseAuthResult =
 
 export type SupabaseAuthFailureReason = "unconfigured" | "invalid_credentials" | "rate_limited" | "auth_error";
 export type SupabaseOAuthResult = { ok: true } | { ok: false; reason: "unconfigured" | "auth_error" };
+export type SupabasePasswordRecoveryResult = { ok: true } | { ok: false; reason: "unconfigured" | "rate_limited" | "auth_error" };
 
 export type SupabasePasswordCredentials = {
   email: string;
@@ -108,6 +109,21 @@ export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<Sup
     options: redirectTo ? { redirectTo } : undefined,
   });
   if (error) return { ok: false, reason: "auth_error" };
+
+  return { ok: true };
+}
+
+export async function requestSupabasePasswordRecovery(email: string, redirectTo?: string): Promise<SupabasePasswordRecoveryResult> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { ok: false, reason: "unconfigured" };
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo,
+  });
+  if (error) {
+    const reason = classifySupabaseAuthError(error.message);
+    return { ok: false, reason: reason === "rate_limited" ? "rate_limited" : "auth_error" };
+  }
 
   return { ok: true };
 }

@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.2] - 2026-05-14
+
+### Added
+- Aniadida accion de recuperacion de acceso por email en el gate inicial de cuenta.
+- Centralizado `resetPasswordForEmail` en los helpers de sesion Supabase del cliente.
+
+### Security
+- La recuperacion de acceso usa respuesta generica y no confirma si el email existe, no existe o esta en otro estado.
+- La recuperacion no aparece en el flujo invitado -> cuenta nueva, preservando la separacion con cuentas existentes.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test -- tests/supabaseBrowserSession.test.ts`
+
 ## [0.29.1] - 2026-05-14
 
 ### Fixed

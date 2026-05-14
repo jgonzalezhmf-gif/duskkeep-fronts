@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import {
   getSupabaseSessionSnapshot,
+  requestSupabasePasswordRecovery,
   signInSupabaseWithGoogle,
   signInSupabaseWithPassword,
   signUpSupabaseWithPassword,
@@ -117,6 +118,27 @@ export function GameAuthGate({
     if (!result.ok) {
       setNotice(t(result.reason === "unconfigured" ? "auth.unconfigured" : "auth.providerError"));
     }
+  }
+
+  async function handlePasswordRecovery() {
+    if (!configured || busy) return;
+    if (!emailReady) {
+      setNotice(t("auth.recoveryEmailHint"));
+      return;
+    }
+
+    setBusy(true);
+    setNotice(null);
+    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
+    const result = await requestSupabasePasswordRecovery(email, redirectTo);
+    setBusy(false);
+
+    if (!result.ok) {
+      setNotice(t(result.reason === "unconfigured" ? "auth.unconfigured" : result.reason === "rate_limited" ? "auth.rateLimited" : "auth.recoveryGeneric"));
+      return;
+    }
+
+    setNotice(t("auth.recoveryGeneric"));
   }
 
   function continueAsGuest() {
@@ -257,6 +279,16 @@ export function GameAuthGate({
                   >
                     {busy ? t("auth.working") : authCta}
                   </button>
+                  {!guestUpgrade && activeMode === "signIn" ? (
+                    <button
+                      type="button"
+                      disabled={!configured || busy}
+                      onClick={handlePasswordRecovery}
+                      className="frontline-motion-action justify-self-center text-[11px] font-black uppercase tracking-[0.16em] text-white/46 transition hover:text-[#f5d498] disabled:cursor-not-allowed disabled:text-white/22"
+                    >
+                      {t("auth.forgotPassword")}
+                    </button>
+                  ) : null}
                 </form>
 
                 {!guestUpgrade ? (
