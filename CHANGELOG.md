@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.7] - 2026-05-14
+
+### Fixed
+- Bloqueada la caida local de operaciones `OnlineFirst` sensibles cuando una cuenta vinculada no tiene sesion Supabase activa.
+- Las operaciones de rewards, compras, daily login, cofres/interacciones y guardado de loadout vuelven a requerir login si falta la sesion online.
+
+### Security
+- Evitado que una sesion vinculada expirada o ausente pueda otorgar recursos/progreso mediante fallback local.
+- El fallback local se mantiene para modo invitado/offline y para entornos con API desactivada, sin romper el flujo local de desarrollo.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test -- tests/sessionSecurity.test.ts tests/server.authoritativeOperationDispatcher.test.ts`
+- `npm.cmd run build`
+
 ## [0.29.6] - 2026-05-14
 
 ### Fixed

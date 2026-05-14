@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
+  shouldBlockLocalAuthoritativeFallback,
   shouldRecordAuthActivity,
 } from "@/features/server/sessionSecurity";
 
@@ -61,5 +62,29 @@ describe("auth session security helpers", () => {
       accountLinkMode: "guest",
       requiresLogin: false,
     });
+  });
+
+  it("blocks local authoritative fallback when a linked account has no session", () => {
+    expect(
+      shouldBlockLocalAuthoritativeFallback({
+        accountLinkMode: "linked",
+        reason: "missing_session",
+      }),
+    ).toBe(true);
+  });
+
+  it("keeps local fallback available for guests and non-session reasons", () => {
+    expect(
+      shouldBlockLocalAuthoritativeFallback({
+        accountLinkMode: "guest",
+        reason: "missing_session",
+      }),
+    ).toBe(false);
+    expect(
+      shouldBlockLocalAuthoritativeFallback({
+        accountLinkMode: "linked",
+        reason: "api_disabled",
+      }),
+    ).toBe(false);
   });
 });

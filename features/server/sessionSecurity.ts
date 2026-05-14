@@ -1,5 +1,6 @@
 export const AUTH_IDLE_TIMEOUT_MS = 60 * 60 * 1000;
 export const AUTH_ACTIVITY_THROTTLE_MS = 15 * 1000;
+export const AUTH_SESSION_EXPIRED_NOTICE = "Session expired. Sign in again to continue.";
 
 export type AuthAccountLinkMode = "undecided" | "guest" | "linked";
 export type AuthSessionStatus = "unconfigured" | "anonymous" | "authenticated";
@@ -24,6 +25,16 @@ export function reconcileAuthSessionState({
   }
 
   return { accountLinkMode: "undecided", requiresLogin: true };
+}
+
+export function shouldBlockLocalAuthoritativeFallback({
+  accountLinkMode,
+  reason,
+}: {
+  accountLinkMode: AuthAccountLinkMode;
+  reason: string;
+}) {
+  return accountLinkMode === "linked" && reason === "missing_session";
 }
 
 export function hasAuthIdleSessionExpired({
