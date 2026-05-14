@@ -22,6 +22,7 @@ describe("server authoritative operation contracts", () => {
       "claimMission",
       "claimDailyLogin",
       "levelUpHero",
+      "starUpHero",
       "upgradeFrontlineCard",
       "recordArenaResult",
     ]);
@@ -38,6 +39,7 @@ describe("server authoritative operation contracts", () => {
       "claimMission",
       "claimDailyLogin",
       "levelUpHero",
+      "starUpHero",
       "upgradeFrontlineCard",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
@@ -45,6 +47,7 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("claimDailyLogin")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("claimMission")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("levelUpHero")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("starUpHero")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineCard")).toBe(true);
   });
 

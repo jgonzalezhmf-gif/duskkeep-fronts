@@ -263,6 +263,27 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps hero star ups to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "starUpHero",
+        idempotencyKey: "hero-star-20260514",
+        payload: { heroId: "bran" },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "star_up_hero",
+      rpcArgs: {
+        p_idempotency_key: "hero-star-20260514",
+        p_hero_id: "bran",
+      },
+    });
+  });
+
   it("extracts only valid bearer authorization", () => {
     expect(getBearerAuthorization(headers("Bearer valid-token-value"))).toBe("Bearer valid-token-value");
     expect(getBearerAuthorization(headers("Basic value"))).toBeNull();

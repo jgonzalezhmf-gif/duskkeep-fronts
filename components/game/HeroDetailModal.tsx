@@ -20,7 +20,7 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
   const gold = useGameStore((state) => state.resources.gold);
   const accountLevel = useGameStore((state) => state.account.level);
   const levelUp = useGameStore((state) => state.levelUpHeroOnlineFirst);
-  const starUp = useGameStore((state) => state.starUpHero);
+  const starUp = useGameStore((state) => state.starUpHeroOnlineFirst);
 
   const owned = Boolean(ph && ph.stars > 0);
   const shards = ph?.shards ?? 0;
@@ -132,8 +132,9 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => {
-                    if (starUp(heroId)) sfx.levelUp();
+                  onClick={async () => {
+                    const result = await starUp(heroId);
+                    if (result.ok) sfx.levelUp();
                     else sfx.error();
                   }}
                   disabled={!canStarUp}

@@ -8,6 +8,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
+  starUpHeroAuthoritatively,
   syncLocalSnapshotAuthoritatively,
   upgradeFrontlineCardAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
@@ -140,6 +141,113 @@ describe("authoritative operation dispatcher", () => {
     });
 
     expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local hero star ups when there is no Supabase session", async () => {
+    const result = await starUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative hero stars and remaining shards after starring up a hero", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          heroId: "bran",
+          stars: 3,
+          shards: 5,
+          shardsSpent: 20,
+          resources: {
+            gold: 500,
+            dust: 50,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await starUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      heroId: "bran",
+      stars: 3,
+      shards: 5,
+      shardsSpent: 20,
+      resources: {
+        gold: 500,
+        dust: 50,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects a hero star up", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "insufficient_resources", reason: "Not enough shards" }),
+    });
+
+    const result = await starUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Not enough shards",
+    });
+  });
+
+  it("rejects mismatched authoritative hero star up responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          heroId: "kara",
+          stars: 2,
+          shards: 0,
+          shardsSpent: 10,
+          resources: {
+            gold: 500,
+            dust: 50,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await starUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response hero mismatch",
+    });
   });
 
   it("returns authoritative hero level and resources after leveling a hero", async () => {

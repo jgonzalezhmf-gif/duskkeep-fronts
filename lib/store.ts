@@ -63,6 +63,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
+  starUpHeroAuthoritatively,
   syncLocalSnapshotAuthoritatively,
   upgradeFrontlineCardAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
@@ -317,6 +318,41 @@ export const useGameStore = create<GameState & GameActions>()(
 
       starUpHero: (heroId) => {
         return applyProgressionCommandResultToStore(createHeroStarUpCommand(get().heroes, heroId), set, get);
+      },
+
+      starUpHeroOnlineFirst: async (heroId) => {
+        const authoritative = await starUpHeroAuthoritatively(heroId);
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return { ok: false, reason: authoritative.reason, authoritative: true };
+          }
+          return { ok: get().starUpHero(heroId), authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return { ok: false, reason: authoritative.reason, authoritative: true };
+        }
+
+        set((s) => ({
+          resources: authoritative.resources,
+          heroes: s.heroes.map((hero) =>
+            hero.heroId === authoritative.heroId
+              ? { ...hero, stars: authoritative.stars, shards: authoritative.shards }
+              : hero,
+          ),
+          heroesUpgraded: s.heroesUpgraded + 1,
+        }));
+        get().updateMissionProgress("heroes_upgraded", 1);
+        get().pushNotification("success", "Hero starred up");
+        return { ok: true, authoritative: true };
       },
 
       skillUpHero: (heroId) => {

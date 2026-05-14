@@ -171,6 +171,9 @@ export const serverOperationPayloadSchemas = {
   levelUpHero: z.object({
     heroId: idSchema,
   }),
+  starUpHero: z.object({
+    heroId: idSchema,
+  }),
   upgradeFrontlineCard: z.object({
     cardId: idSchema,
   }),
@@ -203,6 +206,7 @@ export const supportedAuthoritativeApiOperations = [
   "claimMission",
   "claimDailyLogin",
   "levelUpHero",
+  "starUpHero",
   "upgradeFrontlineCard",
 ] as const satisfies ServerOperationType[];
 
