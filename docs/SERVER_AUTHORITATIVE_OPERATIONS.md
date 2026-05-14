@@ -50,6 +50,8 @@ Tablas y funciones:
 - `server_frontline_fortress_buildings`: define edificios de Fortress visible, nivel maximo y curva de coste server-side.
 - `server_frontline_fortress_hero_scores`: define la contribucion base de cada heroe a la defensa de Fortress.
 - `server_frontline_fortress_raid_profiles`: define formula de ataque/defensa, cooldown, outcomes e importes base de rewards de raids Fortress.
+- `server_upgradeable_heroes`: define heroes que pueden progresar y sus limites de nivel, estrellas y skill.
+- `server_hero_upgrade_costs`: define costes server-side de level/star/skill por valor actual.
 
 Alcance actual:
 
@@ -63,6 +65,7 @@ Alcance actual:
 - Event results ya usa `server_event_definitions` para eventos, unlock level, preset y reward diario first-clear.
 - Fortress upgrades ya usa `server_frontline_fortress_buildings` para edificios habilitados, nivel maximo y costes.
 - Fortress raids ya usa `server_frontline_fortress_hero_scores` y `server_frontline_fortress_raid_profiles` para calcular defensa, ataque, outcome, cooldown y rewards.
+- Hero progression ya usa `server_upgradeable_heroes` y `server_hero_upgrade_costs` para heroes permitidos, limites y costes de level/star/skill.
 - El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
@@ -519,7 +522,7 @@ type UpgradeFrontlineCardResult = {
 
 Sube un nivel a un heroe desbloqueado.
 
-Primera implementacion SQL: `public.level_up_hero(p_idempotency_key text, p_hero_id text)`. Alcance inicial: subida de nivel con coste de oro.
+Primera implementacion SQL: `public.level_up_hero(p_idempotency_key text, p_hero_id text)`. Alcance inicial: subida de nivel con coste de oro. El heroe permitido, nivel maximo y coste se resuelven desde `server_upgradeable_heroes` y `server_hero_upgrade_costs`.
 
 Payload:
 
@@ -532,9 +535,10 @@ type LevelUpHeroPayload = {
 Validaciones:
 
 - El usuario esta autenticado.
-- El heroe pertenece a la allowlist actual.
+- El heroe esta habilitado en `server_upgradeable_heroes`.
 - El heroe existe en `player_heroes` y esta desbloqueado.
-- No supera nivel maximo server-side.
+- No supera nivel maximo definido server-side.
+- El coste se resuelve por `server_hero_upgrade_costs`.
 - El jugador tiene oro suficiente.
 - La operacion es idempotente.
 - El gasto de oro queda en `resource_ledger`.
@@ -555,7 +559,7 @@ type LevelUpHeroResult = {
 
 Sube una estrella a un heroe desbloqueado.
 
-Primera implementacion SQL: `public.star_up_hero(p_idempotency_key text, p_hero_id text)`. Alcance inicial: subida de estrellas con coste de shards. No introduce ledger separado de shards; la auditoria queda en `server_operations.result` y el cambio atomico en `player_heroes`.
+Primera implementacion SQL: `public.star_up_hero(p_idempotency_key text, p_hero_id text)`. Alcance inicial: subida de estrellas con coste de shards. El heroe permitido, estrellas maximas y coste se resuelven desde `server_upgradeable_heroes` y `server_hero_upgrade_costs`. No introduce ledger separado de shards; la auditoria queda en `server_operations.result` y el cambio atomico en `player_heroes`.
 
 Payload:
 
@@ -568,9 +572,10 @@ type StarUpHeroPayload = {
 Validaciones:
 
 - El usuario esta autenticado.
-- El heroe pertenece a la allowlist actual.
+- El heroe esta habilitado en `server_upgradeable_heroes`.
 - El heroe existe en `player_heroes` y esta desbloqueado.
-- No supera estrellas maximas server-side.
+- No supera estrellas maximas definidas server-side.
+- El coste de shards se resuelve por `server_hero_upgrade_costs`.
 - El jugador tiene shards suficientes.
 - La operacion es idempotente.
 - La mision `heroes_upgraded` avanza desde servidor.
@@ -591,7 +596,7 @@ type StarUpHeroResult = {
 
 Mejora el skill de un heroe desbloqueado.
 
-Primera implementacion SQL: `public.skill_up_hero(p_idempotency_key text, p_hero_id text)`. Alcance inicial: subida de skill con coste de Arcane Dust.
+Primera implementacion SQL: `public.skill_up_hero(p_idempotency_key text, p_hero_id text)`. Alcance inicial: subida de skill con coste de Arcane Dust. El heroe permitido, skill maximo y coste se resuelven desde `server_upgradeable_heroes` y `server_hero_upgrade_costs`.
 
 Payload:
 
@@ -604,9 +609,10 @@ type SkillUpHeroPayload = {
 Validaciones:
 
 - El usuario esta autenticado.
-- El heroe pertenece a la allowlist actual.
+- El heroe esta habilitado en `server_upgradeable_heroes`.
 - El heroe existe en `player_heroes` y esta desbloqueado.
-- No supera skill maximo server-side.
+- No supera skill maximo definido server-side.
+- El coste de Dust se resuelve por `server_hero_upgrade_costs`.
 - El jugador tiene Dust suficiente.
 - La operacion es idempotente.
 - El gasto de Dust queda en `resource_ledger`.

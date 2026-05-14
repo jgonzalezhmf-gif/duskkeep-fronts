@@ -79,6 +79,7 @@ declare
   v_cache_claim_count int;
   v_catalog_cost int;
   v_catalog_fortress_cost jsonb;
+  v_catalog_hero_cost jsonb;
 begin
   insert into auth.users (
     instance_id,
@@ -278,8 +279,9 @@ begin
   if coalesce((v_hero_level_result #>> '{result,level}')::int, 0) <> 4 then
     raise exception 'Expected bran to reach level 4: %', v_hero_level_result;
   end if;
-  if coalesce((v_hero_level_result #>> '{result,costPaid,gold}')::int, 0) <> 125 then
-    raise exception 'Expected level 3 hero gold cost 125: %', v_hero_level_result;
+  v_catalog_hero_cost := public.hero_upgrade_cost('level', 3);
+  if coalesce((v_hero_level_result #>> '{result,costPaid,gold}')::int, 0) <> coalesce((v_catalog_hero_cost ->> 'gold')::int, -1) then
+    raise exception 'Expected level 3 hero gold cost to match catalog: % <> %', v_hero_level_result, v_catalog_hero_cost;
   end if;
 
   v_hero_level_replay := public.level_up_hero(
@@ -319,8 +321,9 @@ begin
   if coalesce((v_hero_star_result #>> '{result,stars}')::int, 0) <> 3 then
     raise exception 'Expected bran to reach 3 stars: %', v_hero_star_result;
   end if;
-  if coalesce((v_hero_star_result #>> '{result,shardsSpent}')::int, 0) <> 20 then
-    raise exception 'Expected 2-star hero shard cost 20: %', v_hero_star_result;
+  v_catalog_hero_cost := public.hero_upgrade_cost('star', 2);
+  if coalesce((v_hero_star_result #>> '{result,shardsSpent}')::int, 0) <> coalesce((v_catalog_hero_cost ->> 'shards')::int, -1) then
+    raise exception 'Expected 2-star hero shard cost to match catalog: % <> %', v_hero_star_result, v_catalog_hero_cost;
   end if;
   if coalesce((v_hero_star_result #>> '{result,shards}')::int, -1) <> 5 then
     raise exception 'Expected bran to keep 5 shards after star up: %', v_hero_star_result;
@@ -352,8 +355,9 @@ begin
   if coalesce((v_hero_skill_result #>> '{result,skillLevel}')::int, 0) <> 3 then
     raise exception 'Expected bran skill to reach level 3: %', v_hero_skill_result;
   end if;
-  if coalesce((v_hero_skill_result #>> '{result,costPaid,dust}')::int, 0) <> 250 then
-    raise exception 'Expected skill level 2 dust cost 250: %', v_hero_skill_result;
+  v_catalog_hero_cost := public.hero_upgrade_cost('skill', 2);
+  if coalesce((v_hero_skill_result #>> '{result,costPaid,dust}')::int, 0) <> coalesce((v_catalog_hero_cost ->> 'dust')::int, -1) then
+    raise exception 'Expected skill level 2 dust cost to match catalog: % <> %', v_hero_skill_result, v_catalog_hero_cost;
   end if;
 
   v_hero_skill_replay := public.skill_up_hero(

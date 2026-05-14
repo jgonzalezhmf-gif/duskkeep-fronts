@@ -7,6 +7,32 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.11] - 2026-05-14
+
+### Added
+- Backend introduce `server_upgradeable_heroes` para definir heroes habilitados y limites de nivel, estrellas y skill.
+- Backend introduce `server_hero_upgrade_costs` para definir costes de level/star/skill por valor actual.
+
+### Changed
+- `level_up_hero`, `star_up_hero` y `skill_up_hero` dejan de tener allowlists y costes hardcodeados.
+- El smoke valida costes de progresion de heroes contra catalogo en lugar de comparar numeros fijos.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Hero progression data-driven.
+
+### Security
+- El cliente sigue enviando solo `heroId`; no decide elegibilidad, limites ni costes.
+- `server_upgradeable_heroes`, `server_hero_upgrade_costs` y `hero_upgrade_cost` quedan sin grants para `authenticated`.
+- Las operaciones mantienen ownership, idempotencia, locks sobre filas de jugador y ledger cuando hay gasto de recursos globales.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer catalogos de progresion de heroes ni ejecutar `hero_upgrade_cost`.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.10] - 2026-05-14
 
 ### Added
