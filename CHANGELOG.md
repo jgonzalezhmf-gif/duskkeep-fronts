@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.4] - 2026-05-14
+
+### Changed
+- Conectada la carga del snapshot server-side al monitor de sesion Supabase para invitados anonimos y cuentas vinculadas.
+- Aniadido adaptador `createServerPlayerSnapshotPatch` para aplicar cuenta, recursos y colecciones online normalizadas al store.
+
+### Security
+- La hidratacion online aplica datos en sentido servidor -> cliente y no usa el estado local como autoridad.
+- Las cuentas vinculadas vuelven a `undecided` si la lectura de snapshot falla por falta de sesion.
+- La aplicacion del snapshot no borra heroes/loadout starter mientras esas filas todavia no esten provisionadas en servidor.
+
+### Tested
+- `npm.cmd run test -- tests/serverPlayerSnapshot.test.ts tests/serverPlayerSnapshotState.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.3] - 2026-05-14
 
 ### Added

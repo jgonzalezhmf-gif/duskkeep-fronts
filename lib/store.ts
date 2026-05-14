@@ -68,6 +68,8 @@ import {
   AUTH_SESSION_EXPIRED_NOTICE,
   shouldBlockLocalAuthoritativeFallback,
 } from "@/features/server/sessionSecurity";
+import { loadServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
+import { createServerPlayerSnapshotPatch } from "@/lib/serverPlayerSnapshotState";
 import {
   DAILY_ARENA_TICKETS,
   DECK_SIZE,
@@ -703,6 +705,25 @@ export const useGameStore = create<GameState & GameActions>()(
           accountLinkMode: "linked",
         }));
 
+        return { ok: true, authoritative: true };
+      },
+      loadServerSnapshotOnlineFirst: async () => {
+        const result = await loadServerPlayerSnapshot();
+        if (!result.ok) {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: result.reason === "unauthenticated" ? "missing_session" : result.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return { ok: false, reason: result.reason, authoritative: true };
+          }
+          return { ok: false, reason: result.reason, authoritative: result.reason !== "unconfigured" };
+        }
+
+        set((state) => createServerPlayerSnapshotPatch(state, result.result));
         return { ok: true, authoritative: true };
       },
       setOnboardingStep: (step) =>

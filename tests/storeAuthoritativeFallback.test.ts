@@ -10,6 +10,7 @@ import {
   saveFrontlineLoadoutAuthoritatively,
   syncLocalSnapshotAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
+import { loadServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
 import { useGameStore } from "@/lib/store";
 
 vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
@@ -21,6 +22,10 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   purchaseShopOfferAuthoritatively: vi.fn(),
   saveFrontlineLoadoutAuthoritatively: vi.fn(),
   syncLocalSnapshotAuthoritatively: vi.fn(),
+}));
+
+vi.mock("@/features/server/serverPlayerSnapshot", () => ({
+  loadServerPlayerSnapshot: vi.fn(),
 }));
 
 const mockedDailyLogin = vi.mocked(claimDailyLoginAuthoritatively);
@@ -41,6 +46,7 @@ describe("store authoritative fallback policy", () => {
     mockedPurchase.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    vi.mocked(loadServerPlayerSnapshot).mockResolvedValue({ ok: false, reason: "unconfigured" });
   });
 
   it("blocks local reward fallback for linked accounts when the Supabase session is missing", async () => {
@@ -95,5 +101,48 @@ describe("store authoritative fallback policy", () => {
 
     expect(useGameStore.getState().accountLinkMode).toBe("linked");
     expect(result === null || typeof result === "object").toBe(true);
+  });
+
+  it("applies server snapshots without using local data as authority", async () => {
+    useGameStore.setState({ accountLinkMode: "guest", resources: { gold: 1, dust: 1, gems: 1, arenaTickets: 1, adventureKeys: 0 } });
+    vi.mocked(loadServerPlayerSnapshot).mockResolvedValueOnce({
+      ok: true,
+      authoritative: true,
+      result: {
+        profileId: "profile-1",
+        snapshot: {
+          account: { name: "Server Commander", level: 4, xp: 240 },
+          resources: { gold: 650, dust: 80, gems: 55, arenaTickets: 5, adventureKeys: 1 },
+          heroes: [],
+          frontlineCardUnlocks: {},
+          frontlineCardLevels: {},
+          frontlineLoadout: null,
+          adventureProgress: {},
+          adventureMapClaims: {},
+          missionsProgress: {},
+          dailyLoginClaims: {},
+          shopPurchases: [],
+        },
+      },
+    });
+
+    const result = await useGameStore.getState().loadServerSnapshotOnlineFirst();
+
+    expect(result).toEqual({ ok: true, authoritative: true });
+    expect(useGameStore.getState().account.name).toBe("Server Commander");
+    expect(useGameStore.getState().resources).toEqual({ gold: 650, dust: 80, gems: 55, arenaTickets: 5, adventureKeys: 1 });
+  });
+
+  it("blocks linked accounts when server snapshot loading has no session", async () => {
+    useGameStore.setState({ accountLinkMode: "linked" });
+    vi.mocked(loadServerPlayerSnapshot).mockResolvedValueOnce({ ok: false, reason: "unauthenticated" });
+
+    const result = await useGameStore.getState().loadServerSnapshotOnlineFirst();
+
+    expect(result).toEqual({ ok: false, reason: "unauthenticated", authoritative: true });
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+    expect(useGameStore.getState().notifications).toContainEqual(
+      expect.objectContaining({ kind: "info", message: AUTH_SESSION_EXPIRED_NOTICE }),
+    );
   });
 });

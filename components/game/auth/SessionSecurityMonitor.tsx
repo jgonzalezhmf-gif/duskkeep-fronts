@@ -1,11 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getSupabaseSessionSnapshot,
   signOutSupabase,
   subscribeToSupabaseAuthEvents,
+  type SupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
 import {
   AUTH_IDLE_TIMEOUT_MS,
@@ -28,11 +29,22 @@ export function SessionSecurityMonitor() {
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
   const pushNotification = useGameStore((state) => state.pushNotification);
+  const loadServerSnapshotOnlineFirst = useGameStore((state) => state.loadServerSnapshotOnlineFirst);
   const [expired, setExpired] = useState(false);
   const lastActivityAtRef = useRef(0);
   const lastRecordedAtRef = useRef(0);
+  const lastSnapshotUserIdRef = useRef<string | null>(null);
   const expiringRef = useRef(false);
   const linked = accountLinkMode === "linked";
+
+  const queueServerSnapshotLoad = useCallback((session: SupabaseSessionSnapshot) => {
+    if (session.status !== "authenticated") return;
+    if (lastSnapshotUserIdRef.current === session.userId) return;
+    lastSnapshotUserIdRef.current = session.userId;
+    void loadServerSnapshotOnlineFirst().then((result) => {
+      if (!result.ok && result.reason !== "unconfigured") lastSnapshotUserIdRef.current = null;
+    });
+  }, [loadServerSnapshotOnlineFirst]);
 
   useEffect(() => {
     const now = Date.now();
@@ -48,16 +60,18 @@ export function SessionSecurityMonitor() {
         if (session.status === "authenticated") {
           setExpired(false);
           setAccountLinkMode(session.isAnonymous ? "guest" : "linked");
+          queueServerSnapshotLoad(session);
         }
       }
       if (event === "SIGNED_OUT" && linked) {
+        lastSnapshotUserIdRef.current = null;
         setExpired(true);
         setAccountLinkMode("undecided");
       }
     });
 
     return () => subscription?.unsubscribe();
-  }, [linked, setAccountLinkMode]);
+  }, [linked, queueServerSnapshotLoad, setAccountLinkMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,13 +88,14 @@ export function SessionSecurityMonitor() {
         setExpired(false);
         lastActivityAtRef.current = Date.now();
         lastRecordedAtRef.current = Date.now();
+        queueServerSnapshotLoad(session);
       }
     });
 
     return () => {
       cancelled = true;
     };
-  }, [accountLinkMode, setAccountLinkMode]);
+  }, [accountLinkMode, queueServerSnapshotLoad, setAccountLinkMode]);
 
   useEffect(() => {
     if (!linked) return;

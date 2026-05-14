@@ -142,6 +142,7 @@ export type GameActions = {
   setVisualEffects: (enabled: boolean) => void;
   setTextScale: (scale: TextScale) => void;
   syncLocalSnapshotOnlineFirst: () => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
+  loadServerSnapshotOnlineFirst: () => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   setOnboardingStep: (step: number) => void;
   completeOnboarding: () => void;
   markIntroSeen: () => void;
