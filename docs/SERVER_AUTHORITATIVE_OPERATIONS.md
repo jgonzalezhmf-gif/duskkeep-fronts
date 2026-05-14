@@ -10,7 +10,7 @@ La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `recordArenaResult` para resultados de Arena, `recordEventResult` para resultados de Events, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de operaciones server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `daily_raid_payout` y `daily_arena_tickets`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `recordArenaResult` para resultados de Arena, `recordEventResult` para resultados de Events, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de operaciones server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
 La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de nivel/estrellas/skills de heroes, cartas Frontline y edificios de la Fortress visible ya usan `levelUpHero`/`starUpHero`/`skillUpHero`/`upgradeFrontlineCard`/`upgradeFrontlineFortress` como operaciones autoritativas. La fortaleza clasica usada por sistemas legacy permanece en local hasta tener un modelo de migracion separado.
 
@@ -248,7 +248,7 @@ type ClaimAdventureNodeRewardResult = {
 
 Compra una oferta de Shop.
 
-Primera implementacion SQL: `public.purchase_shop_offer(p_idempotency_key text, p_offer_id text, p_quantity int)`. Alcance inicial: `adventure_key_ring`.
+Primera implementacion SQL: `public.purchase_shop_offer(p_idempotency_key text, p_offer_id text, p_quantity int)`. Alcance actual: `adventure_key_ring`, `daily_raid_payout` y `daily_arena_tickets`. El resto de ofertas permanece fuera de cuentas vinculadas hasta tener validacion server-side propia.
 
 Payload:
 

@@ -1268,6 +1268,48 @@ describe("authoritative operation dispatcher", () => {
     });
   });
 
+  it("routes daily arena tickets through the authoritative purchase operation", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          offerId: "daily_arena_tickets",
+          resources: {
+            gold: 500,
+            dust: 50,
+            gems: 20,
+            arenaTickets: 8,
+            adventureKeys: 1,
+          },
+        },
+      }),
+    });
+
+    const result = await purchaseShopOfferAuthoritatively("daily_arena_tickets", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      resources: {
+        gold: 500,
+        dust: 50,
+        gems: 20,
+        arenaTickets: 8,
+        adventureKeys: 1,
+      },
+    });
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toMatchObject({
+      operationType: "purchaseShopOffer",
+      payload: { offerId: "daily_arena_tickets", quantity: 1 },
+    });
+  });
+
   it("does not fallback when the server rejects a connected purchase", async () => {
     const fetcher = vi.fn().mockResolvedValue({
       ok: false,

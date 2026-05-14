@@ -61,6 +61,9 @@ declare
   v_shop_daily_replay jsonb;
   v_shop_daily_second_result jsonb;
   v_shop_daily_third_result jsonb;
+  v_shop_arena_result jsonb;
+  v_shop_arena_replay jsonb;
+  v_shop_arena_second_result jsonb;
   v_cache_claim_count int;
 begin
   insert into auth.users (
@@ -147,7 +150,7 @@ begin
     '1',
     jsonb_build_object(
       'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
-      'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
+      'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 200, 'arenaTickets', 5, 'adventureKeys', 0),
       'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2)),
       'frontlineLoadout', jsonb_build_object(
         'leaderId', 'leader_aurora',
@@ -183,7 +186,7 @@ begin
     '1',
     jsonb_build_object(
       'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
-      'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
+      'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 200, 'arenaTickets', 5, 'adventureKeys', 0),
       'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2)),
       'frontlineLoadout', jsonb_build_object(
         'leaderId', 'leader_aurora',
@@ -788,6 +791,27 @@ begin
   v_shop_daily_third_result := public.purchase_shop_offer('smoke-shop-daily-20260514-0003', 'daily_raid_payout', 1);
   if coalesce(v_shop_daily_third_result ->> 'code', '') <> 'daily_limit_reached' then
     raise exception 'Expected third daily_raid_payout purchase to hit daily limit: %', v_shop_daily_third_result;
+  end if;
+
+  v_shop_arena_result := public.purchase_shop_offer('smoke-shop-arena-20260515-0001', 'daily_arena_tickets', 1);
+  if coalesce((v_shop_arena_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'purchase_shop_offer daily_arena_tickets failed: %', v_shop_arena_result;
+  end if;
+  if coalesce((v_shop_arena_result #>> '{result,contentsGranted,arenaTickets}')::int, 0) <> 3 then
+    raise exception 'Expected daily_arena_tickets to grant 3 tickets: %', v_shop_arena_result;
+  end if;
+  if coalesce((v_shop_arena_result #>> '{result,remaining}')::int, -1) <> 0 then
+    raise exception 'Expected daily_arena_tickets remaining count 0 after purchase: %', v_shop_arena_result;
+  end if;
+
+  v_shop_arena_replay := public.purchase_shop_offer('smoke-shop-arena-20260515-0001', 'daily_arena_tickets', 1);
+  if v_shop_arena_replay <> v_shop_arena_result then
+    raise exception 'purchase_shop_offer daily_arena_tickets is not idempotent: % <> %', v_shop_arena_replay, v_shop_arena_result;
+  end if;
+
+  v_shop_arena_second_result := public.purchase_shop_offer('smoke-shop-arena-20260515-0002', 'daily_arena_tickets', 1);
+  if coalesce(v_shop_arena_second_result ->> 'code', '') <> 'daily_limit_reached' then
+    raise exception 'Expected second daily_arena_tickets purchase to hit daily limit: %', v_shop_arena_second_result;
   end if;
 
   v_cache_result := public.open_adventure_map_interaction('smoke-cache-20260511-0001', 'c1-lower-cache');
