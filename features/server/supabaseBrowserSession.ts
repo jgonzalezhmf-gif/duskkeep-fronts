@@ -107,6 +107,11 @@ export async function signInSupabaseAnonymously(): Promise<SupabaseAuthResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
+  const current = await getSupabaseSessionSnapshot();
+  if (current.status === "authenticated") {
+    return { ok: true, session: current };
+  }
+
   const { data, error } = await supabase.auth.signInAnonymously();
   if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
 

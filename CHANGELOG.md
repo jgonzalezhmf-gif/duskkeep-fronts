@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.1] - 2026-05-14
+
+### Fixed
+- Los usuarios invitados vuelven a ver el gate de autenticacion tras recargar o reabrir la pagina, despues de la intro.
+- La sesion anonima Supabase ya no se presenta como cuenta vinculada en el gate de entrada.
+- `Continuar como invitado` reutiliza la sesion anonima existente si ya existe.
+
+### Security
+- El invitado puede elegir login con cuenta existente tras recargar sin hacer merge con el progreso invitado.
+- La eleccion de continuar como invitado solo se recuerda durante la carga actual de pagina, no de forma persistente.
+
+### Tested
+- `npm.cmd run test -- tests/sessionSecurity.test.ts tests/supabaseBrowserSession.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.0] - 2026-05-14
 
 ### Changed

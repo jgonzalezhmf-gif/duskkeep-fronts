@@ -212,7 +212,7 @@ export function GameAuthGate({
                 <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100">{t("auth.createAccount")}</div>
                 <div className="mt-2 text-sm leading-6 text-white/64">{t("auth.guestUpgradeExistingSession")}</div>
               </div>
-            ) : session.status === "authenticated" ? (
+            ) : session.status === "authenticated" && !session.isAnonymous ? (
               <div className="rounded-[26px] border border-emerald-300/20 bg-emerald-400/10 p-5">
                 <div className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-100">{t("auth.connected")}</div>
                 <div className="mt-2 text-lg font-black text-white">{session.email ?? t("auth.connectedAccount")}</div>

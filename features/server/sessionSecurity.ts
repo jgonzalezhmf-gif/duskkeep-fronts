@@ -76,6 +76,24 @@ export function shouldUseGenericGuestUpgradeError({
   return intent === "guestUpgrade" && reason !== "unconfigured" && reason !== "rate_limited";
 }
 
+export function shouldShowEntryAuthGate({
+  hydrated,
+  introEligible,
+  showIntro,
+  accountLinkMode,
+  guestChoiceResolvedThisPageLoad,
+}: {
+  hydrated: boolean;
+  introEligible: boolean;
+  showIntro: boolean;
+  accountLinkMode: AuthAccountLinkMode;
+  guestChoiceResolvedThisPageLoad: boolean;
+}) {
+  if (!hydrated || !introEligible || showIntro) return false;
+  if (accountLinkMode === "undecided") return true;
+  return accountLinkMode === "guest" && !guestChoiceResolvedThisPageLoad;
+}
+
 export function hasAuthIdleSessionExpired({
   linked,
   lastActivityAt,

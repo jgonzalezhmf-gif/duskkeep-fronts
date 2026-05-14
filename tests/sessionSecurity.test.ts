@@ -6,6 +6,7 @@ import {
   shouldBlockLocalAuthoritativeFallback,
   shouldBlockGuestUpgradeForSession,
   shouldRecordAuthActivity,
+  shouldShowEntryAuthGate,
   shouldUseGenericGuestUpgradeError,
 } from "@/features/server/sessionSecurity";
 
@@ -129,5 +130,56 @@ describe("auth session security helpers", () => {
     expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "unconfigured" })).toBe(false);
     expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "rate_limited" })).toBe(false);
     expect(shouldUseGenericGuestUpgradeError({ intent: "entry", reason: "invalid_credentials" })).toBe(false);
+  });
+
+  it("shows the entry auth gate for guests once per page load so they can choose login or continue guest", () => {
+    expect(
+      shouldShowEntryAuthGate({
+        hydrated: true,
+        introEligible: true,
+        showIntro: false,
+        accountLinkMode: "guest",
+        guestChoiceResolvedThisPageLoad: false,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowEntryAuthGate({
+        hydrated: true,
+        introEligible: true,
+        showIntro: false,
+        accountLinkMode: "guest",
+        guestChoiceResolvedThisPageLoad: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("only shows the entry auth gate after hydration and after the intro is no longer active", () => {
+    expect(
+      shouldShowEntryAuthGate({
+        hydrated: false,
+        introEligible: true,
+        showIntro: false,
+        accountLinkMode: "undecided",
+        guestChoiceResolvedThisPageLoad: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowEntryAuthGate({
+        hydrated: true,
+        introEligible: true,
+        showIntro: true,
+        accountLinkMode: "undecided",
+        guestChoiceResolvedThisPageLoad: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowEntryAuthGate({
+        hydrated: true,
+        introEligible: false,
+        showIntro: false,
+        accountLinkMode: "undecided",
+        guestChoiceResolvedThisPageLoad: false,
+      }),
+    ).toBe(false);
   });
 });
