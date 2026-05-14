@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.6] - 2026-05-14
+
+### Added
+- Aniadido smoke `npm.cmd run smoke:supabase:guest-upgrade` para validar el flujo invitado anonimo -> cuenta nueva.
+- Documentado el smoke de conversion invitada en la guia Supabase y roadmap de seguridad.
+
+### Security
+- El smoke usa solo URL publica y anon key, sin service-role ni secretos de servidor.
+- Valida que `updateUser` conserva el mismo `user_id`, `profileId` y starter state server-side.
+- Refuerza la politica de no hacer merge con cuentas existentes para guardar progreso invitado.
+
+### Tested
+- `npm.cmd run smoke:supabase:guest-upgrade`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.5] - 2026-05-14
 
 ### Added

@@ -135,6 +135,7 @@ Requisitos operativos:
 - En Supabase remoto, Anonymous Sign-Ins debe activarse explicitamente antes de validar el flujo invitado real.
 - El smoke `npm.cmd run smoke:supabase:guest` comprueba que un usuario anonimo provisiona `profiles`, `player_resources`, heroes starter, cartas starter y loadout inicial.
 - El smoke `npm.cmd run smoke:supabase:snapshot` comprueba que el snapshot server-side solo devuelve datos del usuario autenticado.
+- El smoke `npm.cmd run smoke:supabase:guest-upgrade` comprueba que un invitado anonimo convertido a cuenta nueva conserva `user_id`, `profileId` y starter state.
 - En produccion conviene activar captcha o mitigaciones equivalentes para altas anonimas si aumenta el abuso.
 
 ## Riesgos a Evitar

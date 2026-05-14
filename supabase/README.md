@@ -88,6 +88,14 @@ npm.cmd run smoke:supabase:snapshot
 
 El script crea dos usuarios locales de prueba y comprueba que `get_player_snapshot` devuelve solo el perfil, recursos, loadout, cartas y progreso del usuario autenticado por `auth.uid()`.
 
+Para validar el flujo invitado anonimo -> cuenta nueva:
+
+```bash
+npm.cmd run smoke:supabase:guest-upgrade
+```
+
+El script crea un invitado anonimo real con Supabase Auth, lee su snapshot server-side, actualiza ese mismo usuario con email/password y comprueba que conserva el mismo `user_id`, `profileId` y starter state. Usa solo `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
 Para validar el proxy HTTP con JWT real de Supabase Auth local:
 
 1. Arrancar Supabase local:
