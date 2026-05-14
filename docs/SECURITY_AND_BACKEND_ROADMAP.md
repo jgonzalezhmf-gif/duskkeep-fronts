@@ -134,6 +134,14 @@ La migracion debe ser explicita y no debe filtrar informacion de cuentas:
 - Permitir replay del mismo claim varias veces.
 - Guardar secretos en `.env.local` y commitearlos.
 
+## Gestion de Dependencias y Auditoria
+
+- Usar `npm.cmd run audit:high` como gate operativo para vulnerabilidades altas o criticas.
+- En Windows, si npm falla con `unable to verify the first certificate`, ejecutar la terminal con `NODE_OPTIONS=--use-system-ca` o persistirlo a nivel de usuario si el certificado raiz del sistema es confiable.
+- No ejecutar `npm audit fix --force` sin revisar el plan, porque puede aplicar downgrades o cambios incompatibles.
+- La vulnerabilidad moderada conocida en `next`/`postcss` debe revisarse cuando exista una version estable compatible que la corrija.
+- Mantener `package.json` con `"private": true` y no introducir dependencias nuevas para seguridad, pagos o backend sin revisar superficie de ataque y mantenimiento.
+
 ## Limite de Lanzamiento
 
 Para el alpha presentable actual:

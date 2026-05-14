@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.11] - 2026-05-14
+
+### Added
+- Aniadido script `npm.cmd run audit:high` para auditar vulnerabilidades altas o criticas sin forzar fixes automaticos.
+
+### Security
+- Documentada la politica de no usar `npm audit fix --force` sin revisar el plan de cambios.
+- Documentado el workaround seguro `NODE_OPTIONS=--use-system-ca` para auditorias npm en Windows cuando Node no usa el almacen de certificados del sistema.
+- Registrada la vulnerabilidad moderada conocida de `next`/`postcss` como seguimiento pendiente hasta que exista version estable compatible.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run audit:high`
+- `npm.cmd run build`
+
 ## [0.29.10] - 2026-05-14
 
 ### Added
