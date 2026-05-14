@@ -47,7 +47,7 @@ export default function GameOptionsButton({ className }: { className?: string })
   const setTextScale = useGameStore((state) => state.setTextScale);
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
-  const syncLocalSnapshotOnlineFirst = useGameStore((state) => state.syncLocalSnapshotOnlineFirst);
+  const loadServerSnapshotOnlineFirst = useGameStore((state) => state.loadServerSnapshotOnlineFirst);
 
   return (
     <>
@@ -202,14 +202,14 @@ export default function GameOptionsButton({ className }: { className?: string })
                           sfx.tap();
                           setAccountSyncBusy(true);
                           setAccountSyncNotice(null);
-                          const result = await syncLocalSnapshotOnlineFirst();
+                          const result = await loadServerSnapshotOnlineFirst();
                           setAccountSyncBusy(false);
                           if (result.ok) {
                             sfx.unlock();
-                            setAccountSyncNotice(t("options.accountSyncDone"));
+                            setAccountSyncNotice(t("options.accountRefreshDone"));
                           } else {
                             setAccountSyncNotice(
-                              t(result.authoritative ? "options.accountSyncFailed" : "options.accountSyncUnavailable"),
+                              t(result.authoritative ? "options.accountRefreshFailed" : "options.accountSyncUnavailable"),
                             );
                           }
                         }}
@@ -220,7 +220,7 @@ export default function GameOptionsButton({ className }: { className?: string })
                             : "border-emerald-200/24 bg-emerald-300/10 text-emerald-50 hover:border-emerald-100/44",
                         )}
                       >
-                        {accountSyncBusy ? t("options.accountSyncing") : t("options.syncLocalProgress")}
+                        {accountSyncBusy ? t("options.accountSyncing") : t("options.refreshOnlineProgress")}
                       </button>
                       <button
                         type="button"
@@ -283,13 +283,13 @@ export default function GameOptionsButton({ className }: { className?: string })
             setAccountLinkMode("linked");
             setAccountSyncBusy(true);
             setAccountSyncNotice(t("options.accountSyncing"));
-            const result = await syncLocalSnapshotOnlineFirst();
+            const result = await loadServerSnapshotOnlineFirst();
             setAccountSyncBusy(false);
             setAccountGateOpen(false);
             if (result.ok) {
-              setAccountSyncNotice(t("options.accountSyncDone"));
+              setAccountSyncNotice(t("options.accountSaveDone"));
             } else {
-              setAccountSyncNotice(t(result.authoritative ? "options.accountSyncFailed" : "options.accountSyncUnavailable"));
+              setAccountSyncNotice(t(result.authoritative ? "options.accountSaveFailed" : "options.accountSyncUnavailable"));
             }
           }}
         />

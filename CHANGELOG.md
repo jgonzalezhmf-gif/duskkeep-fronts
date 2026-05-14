@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.7] - 2026-05-14
+
+### Changed
+- Opciones deja de presentar la accion principal como sincronizacion de progreso local.
+- El flujo de crear cuenta desde invitado refresca el snapshot server-side tras convertir la sesion invitada.
+- El panel de cuenta vinculada ahora ofrece actualizar desde servidor en vez de importar estado local.
+- Actualizados textos de autenticacion para describir invitado anonimo respaldado por servidor y fallback local de alpha.
+
+### Security
+- El flujo visible de cuenta sigue la direccion servidor -> cliente y no promueve `localStorage` como fuente de verdad.
+- Se conserva `syncLocalSnapshotOnlineFirst` solo como mecanismo transicional interno/de alpha, no como accion principal visible.
+
+### Tested
+- `npm.cmd run test -- tests/sessionSecurity.test.ts tests/serverPlayerSnapshotState.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.6] - 2026-05-14
 
 ### Added
