@@ -263,6 +263,26 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps Frontline fortress raid resolution to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "resolveFrontlineFortressRaid",
+        idempotencyKey: "frontline-fortress-raid-20260515",
+        payload: {},
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "resolve_frontline_fortress_raid",
+      rpcArgs: {
+        p_idempotency_key: "frontline-fortress-raid-20260515",
+      },
+    });
+  });
+
   it("maps hero level ups to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

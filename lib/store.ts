@@ -62,6 +62,7 @@ import {
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
   starUpHeroAuthoritatively,
@@ -288,6 +289,42 @@ export const useGameStore = create<GameState & GameActions>()(
               : "Fortress was breached",
         );
         return report;
+      },
+
+      resolveFrontlineFortressRaidOnlineFirst: async () => {
+        const authoritative = await resolveFrontlineFortressRaidAuthoritatively();
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return null;
+          }
+          return get().resolveFrontlineFortressRaid();
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set({
+          resources: authoritative.resources,
+          frontlineFortress: authoritative.frontlineFortress,
+        });
+        get().pushNotification(
+          authoritative.report.outcome === "breach" ? "error" : "success",
+          authoritative.report.outcome === "full_repel"
+            ? "Fortress held the line"
+            : authoritative.report.outcome === "partial_hold"
+              ? "Fortress held with damage"
+              : "Fortress was breached",
+        );
+        return authoritative.report;
       },
 
       awardRewards: (r, source) => {

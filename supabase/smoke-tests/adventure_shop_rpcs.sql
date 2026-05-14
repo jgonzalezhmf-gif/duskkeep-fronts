@@ -33,6 +33,9 @@ declare
   v_fortress_upgrade_result jsonb;
   v_fortress_upgrade_replay jsonb;
   v_invalid_fortress_upgrade_result jsonb;
+  v_fortress_raid_result jsonb;
+  v_fortress_raid_replay jsonb;
+  v_fortress_raid_second_attempt jsonb;
   v_daily_result jsonb;
   v_daily_replay jsonb;
   v_daily_second_attempt jsonb;
@@ -418,6 +421,40 @@ begin
   );
   if coalesce(v_invalid_fortress_upgrade_result ->> 'code', '') <> 'invalid_request' then
     raise exception 'Expected invalid_request for unknown fortress building: %', v_invalid_fortress_upgrade_result;
+  end if;
+
+  update public.player_frontline_fortress
+    set next_attack_at = now() - interval '1 minute'
+    where profile_id = v_profile_id;
+
+  v_fortress_raid_result := public.resolve_frontline_fortress_raid(
+    'smoke-frontline-fortress-raid-20260515-0001'
+  );
+  if coalesce((v_fortress_raid_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'resolve_frontline_fortress_raid failed: %', v_fortress_raid_result;
+  end if;
+  if coalesce(v_fortress_raid_result #>> '{result,report,outcome}', '') not in ('full_repel', 'partial_hold', 'breach') then
+    raise exception 'Expected fortress raid outcome report: %', v_fortress_raid_result;
+  end if;
+  if coalesce((v_fortress_raid_result #>> '{result,frontlineFortress,raidsResolved}')::int, 0) <> 3 then
+    raise exception 'Expected fortress raid to increment raidsResolved to 3: %', v_fortress_raid_result;
+  end if;
+  if coalesce((v_fortress_raid_result #>> '{result,resources,gold}')::int, 0) <= 0 then
+    raise exception 'Expected fortress raid to return authoritative resources: %', v_fortress_raid_result;
+  end if;
+
+  v_fortress_raid_replay := public.resolve_frontline_fortress_raid(
+    'smoke-frontline-fortress-raid-20260515-0001'
+  );
+  if v_fortress_raid_replay <> v_fortress_raid_result then
+    raise exception 'resolve_frontline_fortress_raid is not idempotent: % <> %', v_fortress_raid_replay, v_fortress_raid_result;
+  end if;
+
+  v_fortress_raid_second_attempt := public.resolve_frontline_fortress_raid(
+    'smoke-frontline-fortress-raid-20260515-0002'
+  );
+  if coalesce(v_fortress_raid_second_attempt ->> 'code', '') <> 'locked' then
+    raise exception 'Expected second fortress raid to be blocked by cooldown: %', v_fortress_raid_second_attempt;
   end if;
 
   v_daily_result := public.claim_daily_login(

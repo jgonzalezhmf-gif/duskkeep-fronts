@@ -201,6 +201,7 @@ export const serverOperationPayloadSchemas = {
   upgradeFrontlineFortress: z.object({
     buildingId: z.enum(["keep", "treasury", "barracks"]),
   }),
+  resolveFrontlineFortressRaid: z.object({}).strict(),
   recordArenaResult: z.object({
     opponentId: idSchema,
     battleSeed: z.number().int().safe(),
@@ -234,6 +235,7 @@ export const supportedAuthoritativeApiOperations = [
   "skillUpHero",
   "upgradeFrontlineCard",
   "upgradeFrontlineFortress",
+  "resolveFrontlineFortressRaid",
 ] as const satisfies ServerOperationType[];
 
 export type SupportedAuthoritativeApiOperation = (typeof supportedAuthoritativeApiOperations)[number];

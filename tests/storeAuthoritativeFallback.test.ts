@@ -8,6 +8,7 @@ import {
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
   starUpHeroAuthoritatively,
@@ -26,6 +27,7 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   levelUpHeroAuthoritatively: vi.fn(),
   openAdventureMapInteractionAuthoritatively: vi.fn(),
   purchaseShopOfferAuthoritatively: vi.fn(),
+  resolveFrontlineFortressRaidAuthoritatively: vi.fn(),
   saveFrontlineLoadoutAuthoritatively: vi.fn(),
   skillUpHeroAuthoritatively: vi.fn(),
   starUpHeroAuthoritatively: vi.fn(),
@@ -43,6 +45,7 @@ const mockedAdventureNode = vi.mocked(claimAdventureNodeRewardAuthoritatively);
 const mockedPurchase = vi.mocked(purchaseShopOfferAuthoritatively);
 const mockedCardUpgrade = vi.mocked(upgradeFrontlineCardAuthoritatively);
 const mockedFortressUpgrade = vi.mocked(upgradeFrontlineFortressAuthoritatively);
+const mockedFortressRaid = vi.mocked(resolveFrontlineFortressRaidAuthoritatively);
 const mockedHeroLevelUp = vi.mocked(levelUpHeroAuthoritatively);
 const mockedHeroStarUp = vi.mocked(starUpHeroAuthoritatively);
 const mockedHeroSkillUp = vi.mocked(skillUpHeroAuthoritatively);
@@ -59,6 +62,7 @@ describe("store authoritative fallback policy", () => {
     vi.mocked(claimMissionAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(openAdventureMapInteractionAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedPurchase.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedFortressRaid.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedCardUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
@@ -141,6 +145,20 @@ describe("store authoritative fallback policy", () => {
     const result = await useGameStore.getState().upgradeFrontlineFortressOnlineFirst("keep");
 
     expect(result).toEqual({ ok: false, reason: "missing_session", authoritative: true });
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().frontlineFortress).toEqual(beforeFortress);
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("blocks linked account Frontline fortress raids when the session is missing", async () => {
+    useGameStore.setState({ accountLinkMode: "linked" });
+    mockedFortressRaid.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+    const beforeFortress = useGameStore.getState().frontlineFortress;
+
+    const result = await useGameStore.getState().resolveFrontlineFortressRaidOnlineFirst();
+
+    expect(result).toBeNull();
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().frontlineFortress).toEqual(beforeFortress);
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
@@ -290,6 +308,41 @@ describe("store authoritative fallback policy", () => {
     expect(result).toEqual({ ok: true, authoritative: true });
     expect(useGameStore.getState().frontlineFortress.buildings.keep).toBe(2);
     expect(useGameStore.getState().resources).toEqual({ gold: 380, dust: 42, gems: 50, arenaTickets: 5, adventureKeys: 0 });
+  });
+
+  it("applies authoritative Frontline fortress raid rewards without trusting local timing or rewards", async () => {
+    const report = {
+      resolvedAt: "2026-05-15T00:00:00.000Z",
+      outcome: "full_repel" as const,
+      attackPower: 52,
+      defensePower: 76,
+      integrityDelta: 0,
+      rewards: { gold: 95, dust: 8, gems: 0 },
+    };
+    const frontlineFortress = {
+      ...useGameStore.getState().frontlineFortress,
+      nextAttackAt: "2026-05-15T08:00:00.000Z",
+      lastResolvedAt: report.resolvedAt,
+      raidsResolved: 1,
+      lastReport: report,
+    };
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { gold: 1, dust: 1, gems: 1, arenaTickets: 5, adventureKeys: 0 },
+    });
+    mockedFortressRaid.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      report,
+      resources: { gold: 595, dust: 58, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+      frontlineFortress,
+    });
+
+    const result = await useGameStore.getState().resolveFrontlineFortressRaidOnlineFirst();
+
+    expect(result).toEqual(report);
+    expect(useGameStore.getState().frontlineFortress.lastReport).toEqual(report);
+    expect(useGameStore.getState().resources).toEqual({ gold: 595, dust: 58, gems: 50, arenaTickets: 5, adventureKeys: 0 });
   });
 
   it("keeps local fallback available for linked accounts when the API is disabled", async () => {

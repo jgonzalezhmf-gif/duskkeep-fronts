@@ -413,6 +413,38 @@ type UpgradeFrontlineFortressResult = {
 };
 ```
 
+### `resolveFrontlineFortressRaid`
+
+Resuelve el raid disponible de la Fortress visible.
+
+Primera implementacion SQL: `public.resolve_frontline_fortress_raid(p_idempotency_key text)`. El cliente no envia poder de ataque, defensa, rewards ni timing; solo solicita resolver el raid. El servidor calcula disponibilidad, ataque, defensa, resultado, recompensas, cooldown y snapshot final.
+
+Payload:
+
+```ts
+type ResolveFrontlineFortressRaidPayload = Record<string, never>;
+```
+
+Validaciones:
+
+- El usuario esta autenticado.
+- La Fortress existe o se inicializa con estado base server-side.
+- `nextAttackAt` no esta en el futuro.
+- Ataque, defensa y rewards se calculan en servidor desde edificios, guarnicion, heroes, nivel de cuenta e integridad.
+- La operacion es idempotente.
+- Los recursos ganados quedan en `resource_ledger`.
+- La siguiente ventana de raid queda bloqueada por cooldown server-side.
+
+Resultado:
+
+```ts
+type ResolveFrontlineFortressRaidResult = {
+  report: FrontlineFortressReport;
+  resources: Resources;
+  frontlineFortress: FrontlineFortressState;
+};
+```
+
 Validaciones:
 
 - La carta existe.

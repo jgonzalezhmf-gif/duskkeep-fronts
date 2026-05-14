@@ -37,7 +37,7 @@ export default function FortressPage() {
   const playerHeroes = useGameStore((state) => state.heroes);
   const upgrade = useGameStore((state) => state.upgradeFrontlineFortressOnlineFirst);
   const setGarrisonSlot = useGameStore((state) => state.setFrontlineGarrisonSlot);
-  const resolveRaid = useGameStore((state) => state.resolveFrontlineFortressRaid);
+  const resolveRaid = useGameStore((state) => state.resolveFrontlineFortressRaidOnlineFirst);
   const [now, setNow] = useState<number | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<FrontlineFortressBuildingId>("keep");
   const [reportPulse, setReportPulse] = useState(false);
@@ -67,8 +67,8 @@ export default function FortressPage() {
   const selectedAffordable = resources.gold >= selectedCost.gold && resources.dust >= (selectedCost.dust ?? 0);
   const garrisonFilled = fortress.garrison.filter(Boolean).length;
 
-  function handleResolveRaid() {
-    const report = resolveRaid();
+  async function handleResolveRaid() {
+    const report = await resolveRaid();
     if (!report) return;
     setReportPulse(true);
     setNow(Date.now());

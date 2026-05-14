@@ -7,6 +7,7 @@ import {
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
   starUpHeroAuthoritatively,
@@ -155,6 +156,14 @@ describe("authoritative operation dispatcher", () => {
 
   it("falls back to local Frontline fortress upgrades when there is no Supabase session", async () => {
     const result = await upgradeFrontlineFortressAuthoritatively("keep", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local Frontline fortress raid resolution when there is no Supabase session", async () => {
+    const result = await resolveFrontlineFortressRaidAuthoritatively({
       tokenProvider: async () => null,
     });
 
@@ -570,6 +579,83 @@ describe("authoritative operation dispatcher", () => {
         adventureKeys: 0,
       },
       frontlineFortress,
+    });
+  });
+
+  it("returns authoritative Frontline fortress raid report and resources", async () => {
+    const report = {
+      resolvedAt: "2026-05-15T00:00:00.000Z",
+      outcome: "full_repel",
+      attackPower: 52,
+      defensePower: 76,
+      integrityDelta: 0,
+      rewards: { gold: 95, dust: 8, gems: 0 },
+    };
+    const frontlineFortress = {
+      buildings: { keep: 1, treasury: 1, barracks: 1 },
+      integrity: 100,
+      garrison: ["bran", "kara", "mira"],
+      lastResolvedAt: "2026-05-15T00:00:00.000Z",
+      nextAttackAt: "2026-05-15T08:00:00.000Z",
+      raidsResolved: 1,
+      lastReport: report,
+    };
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          report,
+          resources: {
+            gold: 595,
+            dust: 58,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+          frontlineFortress,
+        },
+      }),
+    });
+
+    const result = await resolveFrontlineFortressRaidAuthoritatively({
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      report,
+      resources: {
+        gold: 595,
+        dust: 58,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+      frontlineFortress,
+    });
+  });
+
+  it("does not fallback when the connected server rejects a Frontline fortress raid", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "locked", reason: "Fortress raid is not ready" }),
+    });
+
+    const result = await resolveFrontlineFortressRaidAuthoritatively({
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Fortress raid is not ready",
     });
   });
 

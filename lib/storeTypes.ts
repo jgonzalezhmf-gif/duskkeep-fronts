@@ -96,6 +96,7 @@ export type GameActions = {
   upgradeFrontlineFortressOnlineFirst: (buildingId: FrontlineFortressBuildingId) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   setFrontlineGarrisonSlot: (slotIdx: number, heroId: string | null) => void;
   resolveFrontlineFortressRaid: () => FrontlineFortressReport | null;
+  resolveFrontlineFortressRaidOnlineFirst: () => Promise<FrontlineFortressReport | null>;
   awardRewards: (r: Rewards, source?: string) => void;
   spend: (cost: { gold?: number; gems?: number; dust?: number; adventureKeys?: number }) => boolean;
   levelUpHero: (heroId: string) => boolean;

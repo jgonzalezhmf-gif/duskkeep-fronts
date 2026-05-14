@@ -248,6 +248,15 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "resolveFrontlineFortressRaid") {
+    return {
+      rpcName: "resolve_frontline_fortress_raid",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+      },
+    };
+  }
+
   if (operationType === "levelUpHero") {
     const heroPayload = payload as ServerOperationPayload<"levelUpHero">;
     return {

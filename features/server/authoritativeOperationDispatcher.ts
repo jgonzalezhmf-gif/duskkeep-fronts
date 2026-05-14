@@ -380,6 +380,37 @@ export type UpgradeFrontlineFortressAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeFrontlineFortressRaidSuccess = {
+  ok: true;
+  mode: "authoritative";
+  report: NonNullable<FrontlineFortressState["lastReport"]>;
+  resources: Resources;
+  frontlineFortress: FrontlineFortressState;
+};
+
+export type AuthoritativeFrontlineFortressRaidFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeFrontlineFortressRaidFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeFrontlineFortressRaidResult =
+  | AuthoritativeFrontlineFortressRaidSuccess
+  | AuthoritativeFrontlineFortressRaidFailure
+  | AuthoritativeFrontlineFortressRaidFallback;
+
+export type ResolveFrontlineFortressRaidAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export type AuthoritativeHeroLevelUpSuccess = {
   ok: true;
   mode: "authoritative";
@@ -734,6 +765,46 @@ export async function upgradeFrontlineFortressAuthoritatively(
   }
   if (parsed.buildingId !== buildingId) {
     return { ok: false, mode: "authoritative", reason: "Server response building mismatch" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+export async function resolveFrontlineFortressRaidAuthoritatively(
+  options: ResolveFrontlineFortressRaidAuthoritativelyOptions = {},
+): Promise<AuthoritativeFrontlineFortressRaidResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "resolveFrontlineFortressRaid",
+    {
+      idempotencyKey: createIdempotencyKey("frontline-fortress-raid", "resolve"),
+      payload: {},
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractFrontlineFortressRaidResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
 
   return {
@@ -1234,6 +1305,48 @@ function extractFrontlineFortressUpgradeResult(
   };
 }
 
+function extractFrontlineFortressRaidResult(
+  result: unknown,
+): Omit<AuthoritativeFrontlineFortressRaidSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result) || !isRecord(result.report) || !isRecord(result.frontlineFortress)) return null;
+
+  const report = parseFrontlineFortressReport(result.report);
+  const resources = extractResources(result);
+  const frontlineFortress = parseFrontlineFortressState(result.frontlineFortress);
+  if (!report || !resources || !frontlineFortress) return null;
+
+  return {
+    report,
+    resources,
+    frontlineFortress: {
+      ...frontlineFortress,
+      lastReport: report,
+    },
+  };
+}
+
+function parseFrontlineFortressReport(value: Record<string, unknown>): NonNullable<FrontlineFortressState["lastReport"]> | null {
+  const resolvedAt = parseString(value.resolvedAt);
+  const outcome = parseFrontlineFortressOutcome(value.outcome);
+  const attackPower = parseIntegerRange(value.attackPower, 0, 100000);
+  const defensePower = parseIntegerRange(value.defensePower, 0, 100000);
+  const integrityDelta = parseIntegerRange(value.integrityDelta, -100, 100);
+  const rewards = parseRewardPayload(value.rewards);
+
+  if (resolvedAt === undefined || !outcome || attackPower === null || defensePower === null || integrityDelta === null || !rewards.success) {
+    return null;
+  }
+
+  return {
+    resolvedAt,
+    outcome,
+    attackPower,
+    defensePower,
+    integrityDelta,
+    rewards: rewards.data,
+  };
+}
+
 function parseFrontlineFortressState(value: Record<string, unknown>): FrontlineFortressState | null {
   if (!isRecord(value.buildings)) return null;
   const keep = parseIntegerRange(value.buildings.keep, 1, 60);
@@ -1265,7 +1378,7 @@ function parseFrontlineFortressState(value: Record<string, unknown>): FrontlineF
     lastResolvedAt,
     nextAttackAt,
     raidsResolved,
-    lastReport: null,
+    lastReport: isRecord(value.lastReport) ? parseFrontlineFortressReport(value.lastReport) : null,
   };
 }
 
@@ -1352,6 +1465,11 @@ function parseOptionalString(value: unknown): string | null | undefined {
 
 function parseFrontlineFortressBuildingId(value: unknown): FrontlineFortressBuildingId | undefined {
   if (value === "keep" || value === "treasury" || value === "barracks") return value;
+  return undefined;
+}
+
+function parseFrontlineFortressOutcome(value: unknown): NonNullable<FrontlineFortressState["lastReport"]>["outcome"] | undefined {
+  if (value === "full_repel" || value === "partial_hold" || value === "breach") return value;
   return undefined;
 }
 

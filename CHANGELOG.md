@@ -7,6 +7,32 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.15] - 2026-05-14
+
+### Added
+- Aniadida RPC autoritativa `resolve_frontline_fortress_raid` para resolver raids de la Fortress visible desde Supabase.
+- Aniadido contrato cliente/API para `resolveFrontlineFortressRaid` y proxy hacia la RPC.
+- El smoke Supabase cubre resolucion de raid, replay idempotente y bloqueo por cooldown.
+
+### Changed
+- `/fortress` usa ahora `resolveFrontlineFortressRaidOnlineFirst`; cuentas invitadas o API desactivada mantienen fallback local.
+- La resolucion online devuelve snapshot autoritativo de recursos y `frontlineFortress`.
+
+### Security
+- El cliente deja de decidir ataque, defensa, rewards o timing del raid cuando hay sesion vinculada.
+- La RPC valida `auth.uid()`, perfil, cooldown, estado de Fortress e idempotencia antes de conceder recursos.
+- Oro, Dust y Gems ganados por raids quedan registrados en `resource_ledger`.
+- Cuentas vinculadas sin sesion no pueden resolver raids localmente para saltarse reglas autoritativas.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run typecheck`
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.14] - 2026-05-14
 
 ### Changed

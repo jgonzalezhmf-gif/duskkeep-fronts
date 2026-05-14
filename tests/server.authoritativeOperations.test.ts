@@ -26,6 +26,7 @@ describe("server authoritative operation contracts", () => {
       "skillUpHero",
       "upgradeFrontlineCard",
       "upgradeFrontlineFortress",
+      "resolveFrontlineFortressRaid",
       "recordArenaResult",
     ]);
   });
@@ -45,6 +46,7 @@ describe("server authoritative operation contracts", () => {
       "skillUpHero",
       "upgradeFrontlineCard",
       "upgradeFrontlineFortress",
+      "resolveFrontlineFortressRaid",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("syncLocalSnapshot")).toBe(true);
@@ -55,6 +57,7 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("skillUpHero")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineCard")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineFortress")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("resolveFrontlineFortressRaid")).toBe(true);
   });
 
   it("accepts a capped local snapshot sync payload", () => {
@@ -195,6 +198,22 @@ describe("server authoritative operation contracts", () => {
       parseServerActionRequest("upgradeFrontlineFortress", {
         idempotencyKey: "frontline-fortress-20260514-0002",
         payload: { buildingId: "vault" },
+      }).ok,
+    ).toBe(false);
+  });
+
+  it("accepts Frontline fortress raid resolution without client-computed combat data", () => {
+    const parsed = parseServerActionRequest("resolveFrontlineFortressRaid", {
+      idempotencyKey: "frontline-fortress-raid-20260515",
+      payload: {},
+    });
+
+    expect(parsed.ok).toBe(true);
+
+    expect(
+      parseServerActionRequest("resolveFrontlineFortressRaid", {
+        idempotencyKey: "frontline-fortress-raid-extra-20260515",
+        payload: { attackPower: 1, rewards: { gems: 999 } },
       }).ok,
     ).toBe(false);
   });
