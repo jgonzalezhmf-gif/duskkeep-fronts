@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.27.1] - 2026-05-14
+
+### Security
+- Actualizado `next` a `16.2.6`, eliminando las vulnerabilidades altas reportadas para Next 16.
+- Actualizados `postcss` a `8.5.10`, `autoprefixer` a `10.5.0` y `eslint-config-next` a `16.2.6`.
+
+### Notes
+- `npm audit` queda con 2 vulnerabilidades moderadas por la copia interna `next/node_modules/postcss@8.4.31`; `next@16.2.6` es el `latest` estable y no hay fix estable disponible sin usar canary o dejar un override npm invalido.
+
+### Tested
+- `npm.cmd audit --audit-level=high`
+
 ## [0.27.0] - 2026-05-14
 
 ### Added
