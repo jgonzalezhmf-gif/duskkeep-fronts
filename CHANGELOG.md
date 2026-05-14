@@ -7,6 +7,34 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.5] - 2026-05-14
+
+### Added
+- Backend introduce `server_adventure_map_interactions` para definir interactuables Adventure por `interaction_id`, coste de llave, prerequisitos y cooldown.
+- Backend introduce `server_adventure_map_loot_entries` para definir loot tables ponderadas por tier y `reward_id`.
+- Registrado catalogo inicial de loot para `c1-lower-cache` manteniendo los mismos lotes common/rare/epic/legendary.
+
+### Changed
+- `open_adventure_map_interaction` deja de tener hardcodeado el key chest y lee interaccion, coste, reset y loot desde catalogos server-side.
+- El loot elegido concede rewards mediante `grant_reward_definition`.
+- El smoke valida el reward del cofre contra `server_adventure_map_loot_entries` + `server_reward_definitions`.
+- Actualizada la documentacion de operaciones autoritativas para reflejar key chest data-driven.
+
+### Security
+- El cliente sigue sin enviar ni decidir loot, probabilidades, coste ni rewards del cofre de mapa.
+- Los catalogos internos de interacciones y loot quedan sin grants para `authenticated`.
+- La apertura mantiene ownership, idempotencia, prerequisitos server-side, coste atomico de llave y bloqueo por cooldown.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer catalogos internos ni ejecutar grants internos.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.4] - 2026-05-14
 
 ### Added

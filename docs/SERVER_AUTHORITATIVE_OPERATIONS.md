@@ -43,6 +43,7 @@ Tablas y funciones:
 - `grant_reward_definition`: resuelve un `reward_id` del catalogo y llama a `grant_reward_bundle`.
 - `server_mission_definitions`: define ciclo, metrica, target y `reward_id` de misiones server-side.
 - `server_adventure_node_rewards`: define nodos Adventure no-combate reclamables, prerequisitos y `reward_id`.
+- `server_adventure_map_interactions` y `server_adventure_map_loot_entries`: definen interactuables de mapa, coste, cooldown, prerequisitos y loot table ponderada por `reward_id`.
 
 Alcance actual:
 
@@ -50,7 +51,8 @@ Alcance actual:
 - Daily Login ya usa `grant_reward_definition` para resolver `daily_login_streak_1..7`.
 - Missions ya usa `server_mission_definitions` para progreso/claim y `grant_reward_definition` para rewards.
 - Adventure node rewards no-combate ya usa `server_adventure_node_rewards` para `c1l3`/`c1l7`.
-- El siguiente paso natural es migrar Adventure battle rewards o map interactions de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
+- Adventure map interactions ya usa catalogos internos para `c1-lower-cache`, coste de llave, cooldown y loot table.
+- El siguiente paso natural es migrar Adventure battle rewards de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
 
@@ -206,7 +208,7 @@ type ClaimAdventureBattleResultResult = {
 
 Abre un interactuable de mapa como key chest.
 
-Primera implementacion SQL: `public.open_adventure_map_interaction(p_idempotency_key text, p_interaction_id text)`.
+Implementacion SQL: `public.open_adventure_map_interaction(p_idempotency_key text, p_interaction_id text)`. La interaccion, coste, prerequisitos, cooldown y loot ponderado se leen desde `server_adventure_map_interactions` y `server_adventure_map_loot_entries`; el cliente no envia ni decide rewards ni probabilidades.
 
 Payload:
 
@@ -223,6 +225,7 @@ Validaciones:
 - La claim anterior no esta activa o ya vencio el reset.
 - El jugador tiene suficientes `adventureKeys`.
 - El coste se consume y el loot se genera en la misma transaccion.
+- El loot entry elegido resuelve su contenido por `reward_id` desde `server_reward_definitions`.
 
 Resultado:
 

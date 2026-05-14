@@ -990,6 +990,22 @@ begin
     raise exception 'open_adventure_map_interaction is not idempotent: % <> %', v_cache_replay, v_cache_result;
   end if;
 
+  select reward.rewards
+    into v_catalog_contents
+    from public.adventure_map_claims claim
+    join public.server_adventure_map_loot_entries loot
+      on loot.interaction_id = claim.interaction_id
+     and loot.loot_id = claim.loot_id
+    join public.server_reward_definitions reward on reward.reward_id = loot.reward_id
+    where claim.profile_id = v_profile_id
+      and claim.interaction_id = 'c1-lower-cache'
+      and loot.enabled = true
+      and reward.enabled = true;
+
+  if (v_cache_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'Cache reward must match server map loot catalog: % <> %', v_cache_result #> '{result,rewardsGranted}', v_catalog_contents;
+  end if;
+
   select count(*)
     into v_cache_claim_count
     from public.adventure_map_claims
