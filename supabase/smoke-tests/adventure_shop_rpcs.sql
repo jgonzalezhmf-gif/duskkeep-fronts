@@ -75,6 +75,7 @@ declare
   v_catalog_account_xp int;
   v_catalog_shards int;
   v_purchase_index int;
+  v_catalog_target int;
   v_cache_claim_count int;
 begin
   insert into auth.users (
@@ -620,6 +621,12 @@ begin
     raise exception 'Expected second daily login claim to be blocked: %', v_daily_second_attempt;
   end if;
 
+  select target
+    into v_catalog_target
+    from public.server_mission_definitions
+    where mission_id = 'd_battles_3'
+      and enabled = true;
+
   insert into public.missions_progress (
     profile_id,
     mission_id,
@@ -628,11 +635,11 @@ begin
     target,
     claimed
   )
-  values (v_profile_id, 'd_battles_3', v_mission_cycle_key, 3, 3, false)
+  values (v_profile_id, 'd_battles_3', v_mission_cycle_key, v_catalog_target, v_catalog_target, false)
   on conflict (profile_id, mission_id, cycle_key)
   do update set
-    progress = 3,
-    target = 3,
+    progress = v_catalog_target,
+    target = v_catalog_target,
     claimed = false,
     updated_at = now();
 
@@ -644,8 +651,18 @@ begin
   if coalesce((v_mission_result ->> 'ok')::boolean, false) is not true then
     raise exception 'claim_mission_reward failed: %', v_mission_result;
   end if;
-  if coalesce((v_mission_result #>> '{result,rewardsGranted,gold}')::int, 0) <> 100 then
-    raise exception 'Expected d_battles_3 gold reward: %', v_mission_result;
+  select reward.rewards, mission.target
+    into v_catalog_contents, v_catalog_target
+    from public.server_mission_definitions mission
+    join public.server_reward_definitions reward on reward.reward_id = mission.reward_id
+    where mission.mission_id = 'd_battles_3'
+      and mission.enabled = true
+      and reward.enabled = true;
+  if (v_mission_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'd_battles_3 reward must match server mission catalog: % <> %', v_mission_result #> '{result,rewardsGranted}', v_catalog_contents;
+  end if;
+  if coalesce((v_mission_result #>> '{result,rewardId}'), '') <> coalesce((select reward_id from public.server_mission_definitions where mission_id = 'd_battles_3'), '') then
+    raise exception 'd_battles_3 response must include catalog rewardId: %', v_mission_result;
   end if;
 
   v_mission_replay := public.claim_mission_reward(
@@ -756,8 +773,15 @@ begin
   if coalesce((v_generated_mission_result ->> 'ok')::boolean, false) is not true then
     raise exception 'claim_mission_reward for generated Adventure progress failed: %', v_generated_mission_result;
   end if;
-  if coalesce((v_generated_mission_result #>> '{result,rewardsGranted,gems}')::int, 0) <> 5 then
-    raise exception 'Expected d_adv_2 generated claim to grant gems: %', v_generated_mission_result;
+  select reward.rewards
+    into v_catalog_contents
+    from public.server_mission_definitions mission
+    join public.server_reward_definitions reward on reward.reward_id = mission.reward_id
+    where mission.mission_id = 'd_adv_2'
+      and mission.enabled = true
+      and reward.enabled = true;
+  if (v_generated_mission_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'd_adv_2 reward must match server mission catalog: % <> %', v_generated_mission_result #> '{result,rewardsGranted}', v_catalog_contents;
   end if;
 
   v_shop_result := public.purchase_shop_offer('smoke-shop-20260511-0001', 'adventure_key_ring', 1);

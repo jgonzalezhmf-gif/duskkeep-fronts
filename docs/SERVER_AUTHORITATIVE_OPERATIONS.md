@@ -41,12 +41,14 @@ Tablas y funciones:
 - `jsonb_reward_payload_is_valid`: valida el shape permitido de rewards server-side.
 - `grant_reward_bundle`: aplica un payload validado a `player_resources`, `profiles`, `player_heroes`, `player_frontline_cards` y `resource_ledger`.
 - `grant_reward_definition`: resuelve un `reward_id` del catalogo y llama a `grant_reward_bundle`.
+- `server_mission_definitions`: define ciclo, metrica, target y `reward_id` de misiones server-side.
 
 Alcance actual:
 
 - Shop ya usa `grant_reward_bundle` desde `purchase_shop_offer`.
 - Daily Login ya usa `grant_reward_definition` para resolver `daily_login_streak_1..7`.
-- El siguiente paso natural es migrar Adventure/Missions de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
+- Missions ya usa `server_mission_definitions` para progreso/claim y `grant_reward_definition` para rewards.
+- El siguiente paso natural es migrar Adventure de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
 
@@ -312,10 +314,11 @@ Primera implementacion SQL: `public.advance_mission_progress` y triggers sobre `
 
 Reglas actuales:
 
-- `adventure_progress` avanza `adventure_levels_cleared` cuando un nodo pasa por primera vez a `cleared`, `claimed` o `first_clear_taken`.
-- `battle_results` avanza `battles_won` cuando el ganador es `ally`.
-- `battle_results` prepara tambien `arena_battles` y `events_played` cuando esas fuentes escriban resultados autoritativos.
-- El progreso se escribe en `missions_progress` con ciclos `daily:YYYY-MM-DD` y `weekly:IYYY-IW`, calculados en servidor.
+- `server_mission_definitions` define `kind`, `metric`, `target` y `reward_id`.
+- `adventure_progress` emite la metrica `adventure_levels_cleared` cuando un nodo pasa por primera vez a `cleared`, `claimed` o `first_clear_taken`.
+- `battle_results` emite `battles_won` cuando el ganador es `ally`.
+- `battle_results` emite tambien `arena_battles` y `events_played` cuando esas fuentes escriben resultados autoritativos.
+- `advance_mission_progress` busca misiones activas por metrica y escribe `missions_progress` con ciclos `daily:YYYY-MM-DD` y `weekly:IYYY-IW`, calculados en servidor.
 
 La UI de Missions usa `claimMissionAuthoritatively` para las metricas actuales porque su progreso visible ya puede nacer de operaciones server-side: Adventure, Arena, Events y upgrades de heroes.
 
@@ -328,7 +331,7 @@ Pendiente:
 
 Reclama una mission completada.
 
-Primera implementacion SQL: `public.claim_mission_reward(p_idempotency_key text, p_mission_id text, p_cycle_key text)`. Solo reclama filas existentes en `missions_progress` para el ciclo server-side actual. No acepta progreso ni recompensas enviados por el cliente.
+Implementacion SQL: `public.claim_mission_reward(p_idempotency_key text, p_mission_id text, p_cycle_key text)`. Solo reclama filas existentes en `missions_progress` para el ciclo server-side actual. No acepta progreso ni recompensas enviados por el cliente. El target y reward se leen desde `server_mission_definitions`; el contenido se concede mediante `grant_reward_definition`.
 
 Payload:
 

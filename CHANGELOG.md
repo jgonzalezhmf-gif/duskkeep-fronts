@@ -7,6 +7,33 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.3] - 2026-05-14
+
+### Added
+- Backend introduce `server_mission_definitions` para definir misiones server-side por `kind`, `metric`, `target` y `reward_id`.
+- Missions registra rewards `mission_*` en `server_reward_definitions`.
+
+### Changed
+- `advance_mission_progress` ya no usa ramas fijas por metrica; avanza las misiones activas definidas en `server_mission_definitions`.
+- `claim_mission_reward` lee target/reward desde catalogo y concede mediante `grant_reward_definition`.
+- El smoke de Adventure/Shop valida misiones contra el catalogo server-side en vez de asumir rewards o targets fijos.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Missions data-driven.
+
+### Security
+- El cliente sigue sin poder enviar progreso ni rewards de misiones.
+- `server_mission_definitions` queda sin grants para `authenticated`.
+- Claims de Missions mantienen ciclo server-side, ownership, idempotencia y bloqueo de doble claim.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer `server_reward_definitions`/`server_mission_definitions` ni ejecutar grants internos.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/storeAuthoritativeFallback.test.ts tests/missionAuthoritativeClaims.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.2] - 2026-05-14
 
 ### Added
