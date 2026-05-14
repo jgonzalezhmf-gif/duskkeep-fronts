@@ -13,6 +13,7 @@ import {
   starUpHeroAuthoritatively,
   syncLocalSnapshotAuthoritatively,
   upgradeFrontlineCardAuthoritatively,
+  upgradeFrontlineFortressAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 import { loadServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
 import { useGameStore } from "@/lib/store";
@@ -30,6 +31,7 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   starUpHeroAuthoritatively: vi.fn(),
   syncLocalSnapshotAuthoritatively: vi.fn(),
   upgradeFrontlineCardAuthoritatively: vi.fn(),
+  upgradeFrontlineFortressAuthoritatively: vi.fn(),
 }));
 
 vi.mock("@/features/server/serverPlayerSnapshot", () => ({
@@ -40,6 +42,7 @@ const mockedDailyLogin = vi.mocked(claimDailyLoginAuthoritatively);
 const mockedAdventureNode = vi.mocked(claimAdventureNodeRewardAuthoritatively);
 const mockedPurchase = vi.mocked(purchaseShopOfferAuthoritatively);
 const mockedCardUpgrade = vi.mocked(upgradeFrontlineCardAuthoritatively);
+const mockedFortressUpgrade = vi.mocked(upgradeFrontlineFortressAuthoritatively);
 const mockedHeroLevelUp = vi.mocked(levelUpHeroAuthoritatively);
 const mockedHeroStarUp = vi.mocked(starUpHeroAuthoritatively);
 const mockedHeroSkillUp = vi.mocked(skillUpHeroAuthoritatively);
@@ -59,6 +62,7 @@ describe("store authoritative fallback policy", () => {
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedCardUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedFortressUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedHeroLevelUp.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedHeroStarUp.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedHeroSkillUp.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
@@ -122,6 +126,23 @@ describe("store authoritative fallback policy", () => {
     expect(result).toEqual({ ok: false, reason: "missing_session", authoritative: true });
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().frontlineCardLevels.order_guard_wall).toBeUndefined();
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("blocks linked account Frontline fortress upgrades when the session is missing", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { ...useGameStore.getState().resources, gold: 1000, dust: 1000 },
+    });
+    mockedFortressUpgrade.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+    const beforeFortress = useGameStore.getState().frontlineFortress;
+
+    const result = await useGameStore.getState().upgradeFrontlineFortressOnlineFirst("keep");
+
+    expect(result).toEqual({ ok: false, reason: "missing_session", authoritative: true });
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().frontlineFortress).toEqual(beforeFortress);
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 
@@ -245,6 +266,32 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().resources).toEqual({ gold: 365, dust: 30, gems: 50, arenaTickets: 5, adventureKeys: 0 });
   });
 
+  it("applies authoritative Frontline fortress upgrades without trusting local resources", async () => {
+    const frontlineFortress = {
+      ...useGameStore.getState().frontlineFortress,
+      buildings: { keep: 2, treasury: 1, barracks: 1 },
+    };
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { gold: 1, dust: 1, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+    mockedFortressUpgrade.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      buildingId: "keep",
+      level: 2,
+      costPaid: { gold: 120, dust: 8 },
+      resources: { gold: 380, dust: 42, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+      frontlineFortress,
+    });
+
+    const result = await useGameStore.getState().upgradeFrontlineFortressOnlineFirst("keep");
+
+    expect(result).toEqual({ ok: true, authoritative: true });
+    expect(useGameStore.getState().frontlineFortress.buildings.keep).toBe(2);
+    expect(useGameStore.getState().resources).toEqual({ gold: 380, dust: 42, gems: 50, arenaTickets: 5, adventureKeys: 0 });
+  });
+
   it("keeps local fallback available for linked accounts when the API is disabled", async () => {
     useGameStore.setState({ accountLinkMode: "linked" });
     mockedAdventureNode.mockResolvedValueOnce({ ok: false, mode: "local", reason: "api_disabled" });
@@ -269,6 +316,7 @@ describe("store authoritative fallback policy", () => {
           frontlineCardUnlocks: {},
           frontlineCardLevels: {},
           frontlineLoadout: null,
+          frontlineFortress: null,
           adventureProgress: {},
           adventureMapClaims: {},
           missionsProgress: {},

@@ -25,6 +25,7 @@ describe("server authoritative operation contracts", () => {
       "starUpHero",
       "skillUpHero",
       "upgradeFrontlineCard",
+      "upgradeFrontlineFortress",
       "recordArenaResult",
     ]);
   });
@@ -43,6 +44,7 @@ describe("server authoritative operation contracts", () => {
       "starUpHero",
       "skillUpHero",
       "upgradeFrontlineCard",
+      "upgradeFrontlineFortress",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("syncLocalSnapshot")).toBe(true);
@@ -52,6 +54,7 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("starUpHero")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("skillUpHero")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineCard")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineFortress")).toBe(true);
   });
 
   it("accepts a capped local snapshot sync payload", () => {
@@ -79,6 +82,14 @@ describe("server authoritative operation contracts", () => {
           },
           frontlineCardUnlocks: { order_guard_wall: true },
           frontlineCardLevels: { order_guard_wall: 2 },
+          frontlineFortress: {
+            buildings: { keep: 2, treasury: 1, barracks: 1 },
+            integrity: 100,
+            garrison: ["bran", "kara", "mira"],
+            lastResolvedAt: null,
+            nextAttackAt: "2026-05-14T12:00:00.000Z",
+            raidsResolved: 0,
+          },
           adventureProgress: { c1l1: { status: "cleared", cleared: true, firstClearTaken: true } },
           adventureMapClaims: { "c1-lower-cache": { claimed: true } },
         },
@@ -170,6 +181,22 @@ describe("server authoritative operation contracts", () => {
     });
 
     expect(parsed.ok).toBe(true);
+  });
+
+  it("accepts only supported Frontline fortress building upgrades", () => {
+    expect(
+      parseServerActionRequest("upgradeFrontlineFortress", {
+        idempotencyKey: "frontline-fortress-20260514-0001",
+        payload: { buildingId: "keep" },
+      }).ok,
+    ).toBe(true);
+
+    expect(
+      parseServerActionRequest("upgradeFrontlineFortress", {
+        idempotencyKey: "frontline-fortress-20260514-0002",
+        payload: { buildingId: "vault" },
+      }).ok,
+    ).toBe(false);
   });
 
   it("enforces current Frontline loadout shape", () => {

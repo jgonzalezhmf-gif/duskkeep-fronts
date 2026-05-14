@@ -7,6 +7,30 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.13] - 2026-05-14
+
+### Added
+- Aniadida tabla `player_frontline_fortress` para persistir edificios, integridad, guarnicion y raids de la Fortress visible.
+- Aniadida RPC autoritativa `upgrade_frontline_fortress` para mejorar `keep`, `treasury` y `barracks` consumiendo recursos server-side.
+- El snapshot de servidor devuelve `frontlineFortress` para hidratar progreso online al recargar.
+
+### Changed
+- La pantalla `/fortress` usa `upgradeFrontlineFortressOnlineFirst`; el fallback local queda solo para invitado/API desactivada.
+- `frontlineFortress.upgradeBuilding` pasa a politica autoritativa. La fortaleza clasica legacy sigue local por separado.
+
+### Security
+- La mejora valida `auth.uid()`, perfil, edificio permitido, coste calculado en servidor, recursos suficientes e idempotencia.
+- El gasto de oro/polvo queda en `resource_ledger`; cuentas vinculadas no pueden mejorar localmente si la sesion falta.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts tests/serverPlayerSnapshot.test.ts tests/serverPlayerSnapshotState.test.ts tests/localSyncSnapshot.test.ts tests/progressionAuthoritativePolicy.test.ts`
+- `npm.cmd run typecheck`
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.12] - 2026-05-14
 
 ### Added

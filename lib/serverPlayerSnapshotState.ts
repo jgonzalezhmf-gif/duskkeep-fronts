@@ -9,6 +9,7 @@ type ServerSnapshotPatch = Pick<GameState, "account" | "resources"> &
     Pick<
       GameState,
       "heroes" | "frontlineCardUnlocks" | "frontlineCardLevels" | "frontlineLoadout" | "adventureProgress" | "adventureMapClaims"
+      | "frontlineFortress"
     >
   >;
 
@@ -32,6 +33,7 @@ export function createServerPlayerSnapshotPatch(state: GameState, serverSnapshot
     ...(Object.keys(snapshot.frontlineCardUnlocks).length > 0 ? { frontlineCardUnlocks: snapshot.frontlineCardUnlocks } : {}),
     ...(Object.keys(snapshot.frontlineCardLevels).length > 0 ? { frontlineCardLevels: snapshot.frontlineCardLevels } : {}),
     ...(frontlineLoadout ? { frontlineLoadout } : {}),
+    ...(snapshot.frontlineFortress ? { frontlineFortress: snapshot.frontlineFortress } : {}),
     ...(Object.keys(adventureProgress).length > 0 ? { adventureProgress } : {}),
     ...(Object.keys(adventureMapClaims).length > 0 ? { adventureMapClaims } : {}),
   };

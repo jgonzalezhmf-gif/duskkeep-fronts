@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from "@/features/server/supabaseBrowserSession";
+import type { FrontlineFortressState } from "@/lib/types";
 
 export type ServerPlayerSnapshot = {
   profileId: string;
@@ -27,6 +28,7 @@ export type ServerPlayerSnapshot = {
       deck: string[];
       updatedAt?: string | null;
     } | null;
+    frontlineFortress: FrontlineFortressState | null;
     adventureProgress: Record<string, Record<string, unknown>>;
     adventureMapClaims: Record<string, Record<string, unknown>>;
     missionsProgress: Record<string, Record<string, unknown>>;
@@ -104,6 +106,8 @@ export function parseServerPlayerSnapshotRpcResult(value: unknown): ServerPlayer
 
   const frontlineLoadout = normalizeLoadout(snapshot.frontlineLoadout);
   if (frontlineLoadout === undefined) return { ok: false, reason: "invalid_response" };
+  const frontlineFortress = normalizeFrontlineFortress(snapshot.frontlineFortress);
+  if (frontlineFortress === undefined) return { ok: false, reason: "invalid_response" };
 
   const parsed: ServerPlayerSnapshot = {
     profileId,
@@ -127,6 +131,7 @@ export function parseServerPlayerSnapshotRpcResult(value: unknown): ServerPlayer
       frontlineCardUnlocks: normalizeBooleanRecord(snapshot.frontlineCardUnlocks),
       frontlineCardLevels: normalizeNumberRecord(snapshot.frontlineCardLevels),
       frontlineLoadout,
+      frontlineFortress,
       adventureProgress: normalizeRecordMap(snapshot.adventureProgress),
       adventureMapClaims: normalizeRecordMap(snapshot.adventureMapClaims),
       missionsProgress: normalizeRecordMap(snapshot.missionsProgress),
@@ -136,6 +141,37 @@ export function parseServerPlayerSnapshotRpcResult(value: unknown): ServerPlayer
   };
 
   return { ok: true, authoritative: true, result: parsed };
+}
+
+function normalizeFrontlineFortress(value: unknown): FrontlineFortressState | null | undefined {
+  if (value === null || value === undefined) return null;
+  if (!isRecord(value) || !isRecord(value.buildings)) return undefined;
+
+  const keep = normalizeInt(value.buildings.keep, 1, 60);
+  const treasury = normalizeInt(value.buildings.treasury, 1, 60);
+  const barracks = normalizeInt(value.buildings.barracks, 1, 60);
+  const integrity = normalizeInt(value.integrity, 0, 100);
+  const raidsResolved = normalizeInt(value.raidsResolved, 0, 100000);
+  if (
+    keep === null ||
+    treasury === null ||
+    barracks === null ||
+    integrity === null ||
+    raidsResolved === null ||
+    !isNullableStringArray(value.garrison, 3)
+  ) {
+    return undefined;
+  }
+
+  return {
+    buildings: { keep, treasury, barracks },
+    integrity,
+    garrison: [value.garrison[0] ?? null, value.garrison[1] ?? null, value.garrison[2] ?? null],
+    lastResolvedAt: optionalString(value.lastResolvedAt) ?? null,
+    nextAttackAt: optionalString(value.nextAttackAt) ?? null,
+    raidsResolved,
+    lastReport: null,
+  };
 }
 
 function normalizeLoadout(value: unknown): ServerPlayerSnapshot["snapshot"]["frontlineLoadout"] | undefined {
@@ -181,8 +217,17 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function isNullableStringArray(value: unknown, length: number): value is Array<string | null> {
+  return Array.isArray(value) && value.length === length && value.every((item) => item === null || typeof item === "string");
+}
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function normalizeInt(value: unknown, min: number, max: number): number | null {
+  if (!isFiniteNumber(value) || !Number.isInteger(value) || value < min || value > max) return null;
+  return value;
 }
 
 function optionalString(value: unknown): string | null | undefined {

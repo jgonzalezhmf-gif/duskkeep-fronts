@@ -30,6 +30,9 @@ declare
   v_card_upgrade_result jsonb;
   v_card_upgrade_replay jsonb;
   v_invalid_card_upgrade_result jsonb;
+  v_fortress_upgrade_result jsonb;
+  v_fortress_upgrade_replay jsonb;
+  v_invalid_fortress_upgrade_result jsonb;
   v_daily_result jsonb;
   v_daily_replay jsonb;
   v_daily_second_attempt jsonb;
@@ -113,6 +116,7 @@ begin
   delete from public.frontline_loadouts where profile_id = v_profile_id;
   delete from public.player_heroes where profile_id = v_profile_id;
   delete from public.player_frontline_cards where profile_id = v_profile_id;
+  delete from public.player_frontline_fortress where profile_id = v_profile_id;
   delete from public.daily_login_claims where profile_id = v_profile_id;
   delete from public.missions_progress where profile_id = v_profile_id;
   delete from public.resource_ledger where profile_id = v_profile_id;
@@ -356,6 +360,45 @@ begin
   );
   if coalesce(v_invalid_card_upgrade_result ->> 'code', '') <> 'invalid_request' then
     raise exception 'Expected invalid_request for non-player card upgrade: %', v_invalid_card_upgrade_result;
+  end if;
+
+  v_fortress_upgrade_result := public.upgrade_frontline_fortress(
+    'smoke-frontline-fortress-20260514-0001',
+    'keep'
+  );
+  if coalesce((v_fortress_upgrade_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'upgrade_frontline_fortress failed: %', v_fortress_upgrade_result;
+  end if;
+  if coalesce((v_fortress_upgrade_result #>> '{result,level}')::int, 0) <> 2 then
+    raise exception 'Expected keep to reach level 2: %', v_fortress_upgrade_result;
+  end if;
+  if coalesce((v_fortress_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> 120 then
+    raise exception 'Expected keep level 1 gold cost 120: %', v_fortress_upgrade_result;
+  end if;
+
+  v_fortress_upgrade_replay := public.upgrade_frontline_fortress(
+    'smoke-frontline-fortress-20260514-0001',
+    'keep'
+  );
+  if v_fortress_upgrade_replay <> v_fortress_upgrade_result then
+    raise exception 'upgrade_frontline_fortress is not idempotent: % <> %', v_fortress_upgrade_replay, v_fortress_upgrade_result;
+  end if;
+
+  if not exists (
+    select 1
+      from public.player_frontline_fortress
+      where profile_id = v_profile_id
+        and (buildings ->> 'keep')::int = 2
+  ) then
+    raise exception 'Expected keep to be upgraded to level 2';
+  end if;
+
+  v_invalid_fortress_upgrade_result := public.upgrade_frontline_fortress(
+    'smoke-frontline-fortress-invalid-20260514-0001',
+    'unknown'
+  );
+  if coalesce(v_invalid_fortress_upgrade_result ->> 'code', '') <> 'invalid_request' then
+    raise exception 'Expected invalid_request for unknown fortress building: %', v_invalid_fortress_upgrade_result;
   end if;
 
   v_daily_result := public.claim_daily_login(

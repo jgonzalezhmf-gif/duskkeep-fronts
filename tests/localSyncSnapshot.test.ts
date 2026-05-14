@@ -31,6 +31,14 @@ describe("local sync snapshot", () => {
         adventureKeys: 0,
       },
       frontlineLoadout: state.frontlineLoadout,
+      frontlineFortress: {
+        buildings: state.frontlineFortress.buildings,
+        integrity: state.frontlineFortress.integrity,
+        garrison: state.frontlineFortress.garrison,
+        lastResolvedAt: state.frontlineFortress.lastResolvedAt,
+        nextAttackAt: state.frontlineFortress.nextAttackAt,
+        raidsResolved: state.frontlineFortress.raidsResolved,
+      },
     });
     expect(JSON.stringify(snapshot)).not.toContain("notifications");
     expect(JSON.stringify(snapshot)).not.toContain("audioMuted");

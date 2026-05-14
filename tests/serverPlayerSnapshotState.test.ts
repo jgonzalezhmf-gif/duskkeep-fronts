@@ -24,6 +24,7 @@ describe("server player snapshot state patch", () => {
         frontlineCardUnlocks: {},
         frontlineCardLevels: {},
         frontlineLoadout: null,
+        frontlineFortress: null,
         adventureProgress: {},
         adventureMapClaims: {},
         missionsProgress: {},
@@ -51,6 +52,7 @@ describe("server player snapshot state patch", () => {
         frontlineCardUnlocks: {},
         frontlineCardLevels: {},
         frontlineLoadout: null,
+        frontlineFortress: null,
         adventureProgress: {},
         adventureMapClaims: {},
         missionsProgress: {},
@@ -86,6 +88,15 @@ describe("server player snapshot state patch", () => {
             "summon_barrier",
           ],
         },
+        frontlineFortress: {
+          buildings: { keep: 3, treasury: 2, barracks: 1 },
+          integrity: 88,
+          garrison: ["bran", "kara", "mira"],
+          lastResolvedAt: null,
+          nextAttackAt: "2026-05-14T20:00:00.000Z",
+          raidsResolved: 2,
+          lastReport: null,
+        },
         adventureProgress: { c1l2: { cleared: true, firstClearTaken: true, claimed: false } },
         adventureMapClaims: { "c1-lower-cache": { claimed: true, lootTier: "rare", rewards: { gold: 300 } } },
         missionsProgress: {},
@@ -98,6 +109,7 @@ describe("server player snapshot state patch", () => {
     expect(patch.frontlineCardUnlocks).toEqual({ order_guard_wall: true });
     expect(patch.frontlineCardLevels).toEqual({ order_guard_wall: 3 });
     expect(patch.frontlineLoadout?.squad).toEqual(["bran", "kara", "mira"]);
+    expect(patch.frontlineFortress?.buildings).toEqual({ keep: 3, treasury: 2, barracks: 1 });
     expect(patch.adventureProgress).toEqual({ c1l2: { cleared: true, firstClearTaken: true, claimed: false } });
     expect(patch.adventureMapClaims).toEqual({ "c1-lower-cache": { claimed: true, lootTier: "rare", rewards: { gold: 300 } } });
   });

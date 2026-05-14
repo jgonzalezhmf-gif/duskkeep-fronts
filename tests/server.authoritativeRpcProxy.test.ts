@@ -242,6 +242,27 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps Frontline fortress upgrades to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "upgradeFrontlineFortress",
+        idempotencyKey: "frontline-fortress-20260514",
+        payload: { buildingId: "keep" },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "upgrade_frontline_fortress",
+      rpcArgs: {
+        p_idempotency_key: "frontline-fortress-20260514",
+        p_building_id: "keep",
+      },
+    });
+  });
+
   it("maps hero level ups to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

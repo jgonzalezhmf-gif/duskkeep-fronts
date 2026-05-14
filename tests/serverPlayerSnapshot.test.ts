@@ -28,6 +28,15 @@ describe("server player snapshot", () => {
               "summon_barrier",
             ],
           },
+          frontlineFortress: {
+            buildings: { keep: 2, treasury: 1, barracks: 1 },
+            integrity: 100,
+            garrison: ["bran", "kara", "mira"],
+            lastResolvedAt: null,
+            nextAttackAt: "2026-05-14T20:00:00.000Z",
+            raidsResolved: 0,
+            lastReport: null,
+          },
           adventureProgress: { c1l2: { status: "cleared" } },
           adventureMapClaims: {},
           missionsProgress: {},
@@ -48,6 +57,10 @@ describe("server player snapshot", () => {
           resources: { gold: 700, dust: 80, gems: 55, arenaTickets: 4, adventureKeys: 2 },
           frontlineCardUnlocks: { order_guard_wall: true },
           frontlineCardLevels: { order_guard_wall: 2 },
+          frontlineFortress: {
+            buildings: { keep: 2, treasury: 1, barracks: 1 },
+            integrity: 100,
+          },
         },
       },
     });

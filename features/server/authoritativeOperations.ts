@@ -101,6 +101,23 @@ const syncAdventureClaimSchema = z
   })
   .strict();
 
+const syncFrontlineFortressSchema = z
+  .object({
+    buildings: z
+      .object({
+        keep: z.number().int().min(1).max(60),
+        treasury: z.number().int().min(1).max(60),
+        barracks: z.number().int().min(1).max(60),
+      })
+      .strict(),
+    integrity: z.number().int().min(0).max(100),
+    garrison: z.array(nullableIdSchema).length(SERVER_FRONTLINE_SQUAD_SIZE),
+    lastResolvedAt: z.string().trim().max(64).nullable().optional(),
+    nextAttackAt: z.string().trim().max(64).nullable().optional(),
+    raidsResolved: z.number().int().nonnegative().max(100000),
+  })
+  .strict();
+
 function cappedRecordSchema<TValue extends z.ZodTypeAny>(valueSchema: TValue, maxEntries: number) {
   return z.record(idSchema, valueSchema).refine((record) => Object.keys(record).length <= maxEntries, {
     message: `must contain at most ${maxEntries} entries`,
@@ -129,6 +146,7 @@ const syncLocalSnapshotSchema = z
       .optional(),
     frontlineCardUnlocks: cappedRecordSchema(z.boolean(), MAX_SYNC_FRONTLINE_CARD_RECORDS).optional(),
     frontlineCardLevels: cappedRecordSchema(z.number().int().min(1).max(5), MAX_SYNC_FRONTLINE_CARD_RECORDS).optional(),
+    frontlineFortress: syncFrontlineFortressSchema.optional(),
     adventureProgress: cappedRecordSchema(syncAdventureProgressEntrySchema, MAX_SYNC_ADVENTURE_PROGRESS_RECORDS).optional(),
     adventureMapClaims: cappedRecordSchema(syncAdventureClaimSchema, MAX_SYNC_ADVENTURE_CLAIM_RECORDS).optional(),
   })
@@ -180,6 +198,9 @@ export const serverOperationPayloadSchemas = {
   upgradeFrontlineCard: z.object({
     cardId: idSchema,
   }),
+  upgradeFrontlineFortress: z.object({
+    buildingId: z.enum(["keep", "treasury", "barracks"]),
+  }),
   recordArenaResult: z.object({
     opponentId: idSchema,
     battleSeed: z.number().int().safe(),
@@ -212,6 +233,7 @@ export const supportedAuthoritativeApiOperations = [
   "starUpHero",
   "skillUpHero",
   "upgradeFrontlineCard",
+  "upgradeFrontlineFortress",
 ] as const satisfies ServerOperationType[];
 
 export type SupportedAuthoritativeApiOperation = (typeof supportedAuthoritativeApiOperations)[number];

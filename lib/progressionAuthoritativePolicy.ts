@@ -12,7 +12,7 @@ export type ProgressionAuthoritativePolicy =
     }
   | {
       mode: "authoritative";
-      operationType: "levelUpHero" | "starUpHero" | "skillUpHero" | "upgradeFrontlineCard";
+      operationType: "levelUpHero" | "starUpHero" | "skillUpHero" | "upgradeFrontlineCard" | "upgradeFrontlineFortress";
     };
 
 const PROGRESSION_AUTHORITATIVE_POLICY: Record<ProgressionCommandKind, ProgressionAuthoritativePolicy> = {
@@ -21,7 +21,7 @@ const PROGRESSION_AUTHORITATIVE_POLICY: Record<ProgressionCommandKind, Progressi
   "hero.skillUp": { mode: "authoritative", operationType: "skillUpHero" },
   "frontlineCard.upgrade": { mode: "authoritative", operationType: "upgradeFrontlineCard" },
   "fortress.upgradeBuilding": { mode: "local", reason: "fortress_progression_rpc_pending" },
-  "frontlineFortress.upgradeBuilding": { mode: "local", reason: "fortress_progression_rpc_pending" },
+  "frontlineFortress.upgradeBuilding": { mode: "authoritative", operationType: "upgradeFrontlineFortress" },
 };
 
 export function getProgressionAuthoritativePolicy(kind: ProgressionCommandKind): ProgressionAuthoritativePolicy {

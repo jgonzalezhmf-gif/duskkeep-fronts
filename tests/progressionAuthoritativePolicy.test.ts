@@ -13,7 +13,7 @@ describe("progression authoritative policy", () => {
       ["hero.skillUp", { mode: "authoritative", operationType: "skillUpHero" }],
       ["frontlineCard.upgrade", { mode: "authoritative", operationType: "upgradeFrontlineCard" }],
       ["fortress.upgradeBuilding", { mode: "local", reason: "fortress_progression_rpc_pending" }],
-      ["frontlineFortress.upgradeBuilding", { mode: "local", reason: "fortress_progression_rpc_pending" }],
+      ["frontlineFortress.upgradeBuilding", { mode: "authoritative", operationType: "upgradeFrontlineFortress" }],
     ]);
   });
 
@@ -23,6 +23,7 @@ describe("progression authoritative policy", () => {
       "hero.starUp",
       "hero.skillUp",
       "frontlineCard.upgrade",
+      "frontlineFortress.upgradeBuilding",
     ]);
   });
 });

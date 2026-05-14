@@ -28,6 +28,14 @@ export function createLocalSyncSnapshot(state: GameState): LocalSyncSnapshot {
     frontlineLoadout: state.frontlineLoadout,
     frontlineCardUnlocks: state.frontlineCardUnlocks,
     frontlineCardLevels: state.frontlineCardLevels,
+    frontlineFortress: {
+      buildings: state.frontlineFortress.buildings,
+      integrity: state.frontlineFortress.integrity,
+      garrison: state.frontlineFortress.garrison,
+      lastResolvedAt: state.frontlineFortress.lastResolvedAt,
+      nextAttackAt: state.frontlineFortress.nextAttackAt,
+      raidsResolved: state.frontlineFortress.raidsResolved,
+    },
     adventureProgress: Object.fromEntries(
       Object.entries(state.adventureProgress).map(([nodeId, entry]) => [
         nodeId,

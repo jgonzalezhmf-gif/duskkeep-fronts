@@ -2,7 +2,7 @@ import { callAuthoritativeOperation, type AuthoritativeClientFetch } from "@/fea
 import { parseRewardPayload } from "@/features/server/authoritativeOperations";
 import { getSupabaseAccessToken } from "@/features/server/supabaseBrowserSession";
 import type { AdventureMapInteractionLootTier, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
-import type { FrontlineLoadout, Resources, Rewards } from "@/lib/types";
+import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, Resources, Rewards } from "@/lib/types";
 
 const AUTHORITATIVE_SHOP_OFFERS = new Set(["adventure_key_ring"]);
 
@@ -71,6 +71,10 @@ export type LocalSyncSnapshot = {
       claimedAt?: string | null;
       resetAvailableAt?: string | null;
     }
+  >;
+  frontlineFortress?: Pick<
+    FrontlineFortressState,
+    "buildings" | "integrity" | "garrison" | "lastResolvedAt" | "nextAttackAt" | "raidsResolved"
   >;
 };
 
@@ -335,6 +339,42 @@ export type AuthoritativeFrontlineCardUpgradeResult =
   | AuthoritativeFrontlineCardUpgradeFallback;
 
 export type UpgradeFrontlineCardAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
+export type AuthoritativeFrontlineFortressUpgradeSuccess = {
+  ok: true;
+  mode: "authoritative";
+  buildingId: FrontlineFortressBuildingId;
+  level: number;
+  costPaid: {
+    gold: number;
+    dust: number;
+  };
+  resources: Resources;
+  frontlineFortress: FrontlineFortressState;
+};
+
+export type AuthoritativeFrontlineFortressUpgradeFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeFrontlineFortressUpgradeFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeFrontlineFortressUpgradeResult =
+  | AuthoritativeFrontlineFortressUpgradeSuccess
+  | AuthoritativeFrontlineFortressUpgradeFailure
+  | AuthoritativeFrontlineFortressUpgradeFallback;
+
+export type UpgradeFrontlineFortressAuthoritativelyOptions = {
   endpoint?: string;
   fetcher?: AuthoritativeClientFetch;
   tokenProvider?: () => Promise<string | null>;
@@ -650,6 +690,50 @@ export async function upgradeFrontlineCardAuthoritatively(
   }
   if (parsed.cardId !== cardId) {
     return { ok: false, mode: "authoritative", reason: "Server response card mismatch" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+export async function upgradeFrontlineFortressAuthoritatively(
+  buildingId: FrontlineFortressBuildingId,
+  options: UpgradeFrontlineFortressAuthoritativelyOptions = {},
+): Promise<AuthoritativeFrontlineFortressUpgradeResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "upgradeFrontlineFortress",
+    {
+      idempotencyKey: createIdempotencyKey("frontline-fortress", buildingId),
+      payload: { buildingId },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractFrontlineFortressUpgradeResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.buildingId !== buildingId) {
+    return { ok: false, mode: "authoritative", reason: "Server response building mismatch" };
   }
 
   return {
@@ -1128,6 +1212,63 @@ function extractFrontlineCardUpgradeResult(
   };
 }
 
+function extractFrontlineFortressUpgradeResult(
+  result: unknown,
+): Omit<AuthoritativeFrontlineFortressUpgradeSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result) || !isRecord(result.costPaid) || !isRecord(result.frontlineFortress)) return null;
+
+  const buildingId = parseFrontlineFortressBuildingId(result.buildingId);
+  const level = parseIntegerRange(result.level, 1, 60);
+  const gold = parseResourceValue(result.costPaid.gold);
+  const dust = parseResourceValue(result.costPaid.dust);
+  const resources = extractResources(result);
+  const frontlineFortress = parseFrontlineFortressState(result.frontlineFortress);
+  if (!buildingId || level === null || gold === null || dust === null || !resources || !frontlineFortress) return null;
+
+  return {
+    buildingId,
+    level,
+    costPaid: { gold, dust },
+    resources,
+    frontlineFortress,
+  };
+}
+
+function parseFrontlineFortressState(value: Record<string, unknown>): FrontlineFortressState | null {
+  if (!isRecord(value.buildings)) return null;
+  const keep = parseIntegerRange(value.buildings.keep, 1, 60);
+  const treasury = parseIntegerRange(value.buildings.treasury, 1, 60);
+  const barracks = parseIntegerRange(value.buildings.barracks, 1, 60);
+  const integrity = parseIntegerRange(value.integrity, 0, 100);
+  const garrison = parseNullableStringArray(value.garrison, 3);
+  const lastResolvedAt = value.lastResolvedAt === null ? null : parseOptionalString(value.lastResolvedAt);
+  const nextAttackAt = value.nextAttackAt === null ? null : parseOptionalString(value.nextAttackAt);
+  const raidsResolved = parseIntegerRange(value.raidsResolved, 0, 100000);
+
+  if (
+    keep === null ||
+    treasury === null ||
+    barracks === null ||
+    integrity === null ||
+    !garrison ||
+    lastResolvedAt === undefined ||
+    nextAttackAt === undefined ||
+    raidsResolved === null
+  ) {
+    return null;
+  }
+
+  return {
+    buildings: { keep, treasury, barracks },
+    integrity,
+    garrison: [garrison[0] ?? null, garrison[1] ?? null, garrison[2] ?? null],
+    lastResolvedAt,
+    nextAttackAt,
+    raidsResolved,
+    lastReport: null,
+  };
+}
+
 function extractHeroLevelUpResult(result: unknown): Omit<AuthoritativeHeroLevelUpSuccess, "ok" | "mode"> | null {
   if (!isRecord(result) || !isRecord(result.costPaid)) return null;
 
@@ -1202,6 +1343,16 @@ function parseResourceValue(value: unknown): number | null {
 
 function parseString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function parseOptionalString(value: unknown): string | null | undefined {
+  if (value === null) return null;
+  return parseString(value);
+}
+
+function parseFrontlineFortressBuildingId(value: unknown): FrontlineFortressBuildingId | undefined {
+  if (value === "keep" || value === "treasury" || value === "barracks") return value;
+  return undefined;
 }
 
 function parseLootTier(value: unknown): AdventureMapInteractionLootTier | undefined {

@@ -12,6 +12,7 @@ import {
   starUpHeroAuthoritatively,
   syncLocalSnapshotAuthoritatively,
   upgradeFrontlineCardAuthoritatively,
+  upgradeFrontlineFortressAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 
 describe("authoritative operation dispatcher", () => {
@@ -130,6 +131,14 @@ describe("authoritative operation dispatcher", () => {
 
   it("falls back to local card upgrades when there is no Supabase session", async () => {
     const result = await upgradeFrontlineCardAuthoritatively("order_guard_wall", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local Frontline fortress upgrades when there is no Supabase session", async () => {
+    const result = await upgradeFrontlineFortressAuthoritatively("keep", {
       tokenProvider: async () => null,
     });
 
@@ -491,6 +500,122 @@ describe("authoritative operation dispatcher", () => {
         arenaTickets: 5,
         adventureKeys: 0,
       },
+    });
+  });
+
+  it("returns authoritative Frontline fortress state after upgrading a building", async () => {
+    const frontlineFortress = {
+      buildings: { keep: 2, treasury: 1, barracks: 1 },
+      integrity: 100,
+      garrison: ["bran", "kara", "mira"],
+      lastResolvedAt: null,
+      nextAttackAt: "2026-05-14T20:00:00.000Z",
+      raidsResolved: 0,
+      lastReport: null,
+    };
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          buildingId: "keep",
+          level: 2,
+          costPaid: { gold: 120, dust: 8 },
+          resources: {
+            gold: 380,
+            dust: 42,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+          frontlineFortress,
+        },
+      }),
+    });
+
+    const result = await upgradeFrontlineFortressAuthoritatively("keep", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      buildingId: "keep",
+      level: 2,
+      costPaid: { gold: 120, dust: 8 },
+      resources: {
+        gold: 380,
+        dust: 42,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+      frontlineFortress,
+    });
+  });
+
+  it("does not fallback when the connected server rejects a Frontline fortress upgrade", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "insufficient_resources", reason: "Not enough resources" }),
+    });
+
+    const result = await upgradeFrontlineFortressAuthoritatively("keep", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Not enough resources",
+    });
+  });
+
+  it("rejects mismatched authoritative Frontline fortress upgrade responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          buildingId: "treasury",
+          level: 2,
+          costPaid: { gold: 110, dust: 0 },
+          resources: {
+            gold: 390,
+            dust: 50,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+          frontlineFortress: {
+            buildings: { keep: 1, treasury: 2, barracks: 1 },
+            integrity: 100,
+            garrison: ["bran", "kara", "mira"],
+            lastResolvedAt: null,
+            nextAttackAt: "2026-05-14T20:00:00.000Z",
+            raidsResolved: 0,
+            lastReport: null,
+          },
+        },
+      }),
+    });
+
+    const result = await upgradeFrontlineFortressAuthoritatively("keep", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response building mismatch",
     });
   });
 

@@ -237,6 +237,17 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "upgradeFrontlineFortress") {
+    const fortressPayload = payload as ServerOperationPayload<"upgradeFrontlineFortress">;
+    return {
+      rpcName: "upgrade_frontline_fortress",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_building_id: fortressPayload.buildingId,
+      },
+    };
+  }
+
   if (operationType === "levelUpHero") {
     const heroPayload = payload as ServerOperationPayload<"levelUpHero">;
     return {

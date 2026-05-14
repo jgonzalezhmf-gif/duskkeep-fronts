@@ -10,9 +10,9 @@ La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
-La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de nivel/estrellas/skills de heroes y cartas Frontline ya usan `levelUpHero`/`starUpHero`/`skillUpHero`/`upgradeFrontlineCard` como operaciones autoritativas. Las mejoras de fortaleza permanecen en local hasta tener modelo, RPC y migracion estables.
+La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de nivel/estrellas/skills de heroes, cartas Frontline y edificios de la Fortress visible ya usan `levelUpHero`/`starUpHero`/`skillUpHero`/`upgradeFrontlineCard`/`upgradeFrontlineFortress` como operaciones autoritativas. La fortaleza clasica usada por sistemas legacy permanece en local hasta tener un modelo de migracion separado.
 
 El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta con `npm.cmd run smoke:authoritative-api` despues de arrancar Supabase y Next con `SERVER_AUTHORITATIVE_API_ENABLED=true`. Este smoke usa Supabase Auth real, no service role.
 
@@ -373,6 +373,42 @@ Payload:
 ```ts
 type UpgradeFrontlineCardPayload = {
   cardId: string;
+};
+```
+
+### `upgradeFrontlineFortress`
+
+Mejora un edificio de la Fortress visible.
+
+Primera implementacion SQL: `public.upgrade_frontline_fortress(p_idempotency_key text, p_building_id text)`. Alcance inicial: `keep`, `treasury` y `barracks`. El cliente solicita solo el edificio; el servidor calcula coste y nuevo nivel.
+
+Payload:
+
+```ts
+type UpgradeFrontlineFortressPayload = {
+  buildingId: "keep" | "treasury" | "barracks";
+};
+```
+
+Validaciones:
+
+- El usuario esta autenticado.
+- El edificio pertenece a la allowlist actual.
+- El coste de oro/polvo se calcula en servidor.
+- El jugador tiene recursos suficientes.
+- La operacion es idempotente.
+- El gasto queda en `resource_ledger`.
+- El estado persiste en `player_frontline_fortress` y se devuelve en snapshots de servidor.
+
+Resultado:
+
+```ts
+type UpgradeFrontlineFortressResult = {
+  buildingId: "keep" | "treasury" | "barracks";
+  level: number;
+  costPaid: { gold: number; dust: number };
+  resources: Resources;
+  frontlineFortress: FrontlineFortressState;
 };
 ```
 

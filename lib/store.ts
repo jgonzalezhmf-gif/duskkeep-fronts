@@ -67,6 +67,7 @@ import {
   starUpHeroAuthoritatively,
   syncLocalSnapshotAuthoritatively,
   upgradeFrontlineCardAuthoritatively,
+  upgradeFrontlineFortressAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 import {
   AUTH_SESSION_EXPIRED_NOTICE,
@@ -235,6 +236,35 @@ export const useGameStore = create<GameState & GameActions>()(
       upgradeFrontlineFortress: (buildingId) => {
         const command = createFrontlineFortressUpgradeCommand(get().frontlineFortress, get().resources, buildingId);
         return applyProgressionCommandResultToStore(command, set, get);
+      },
+
+      upgradeFrontlineFortressOnlineFirst: async (buildingId) => {
+        const authoritative = await upgradeFrontlineFortressAuthoritatively(buildingId);
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return { ok: false, reason: authoritative.reason, authoritative: true };
+          }
+          return { ok: get().upgradeFrontlineFortress(buildingId), authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return { ok: false, reason: authoritative.reason, authoritative: true };
+        }
+
+        set({
+          resources: authoritative.resources,
+          frontlineFortress: authoritative.frontlineFortress,
+        });
+        get().pushNotification("success", "Fortress upgraded");
+        return { ok: true, authoritative: true };
       },
 
       setFrontlineGarrisonSlot: (slotIdx, heroId) =>

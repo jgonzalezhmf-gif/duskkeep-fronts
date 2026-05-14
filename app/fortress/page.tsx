@@ -35,7 +35,7 @@ export default function FortressPage() {
   const account = useGameStore((state) => state.account);
   const resources = useGameStore((state) => state.resources);
   const playerHeroes = useGameStore((state) => state.heroes);
-  const upgrade = useGameStore((state) => state.upgradeFrontlineFortress);
+  const upgrade = useGameStore((state) => state.upgradeFrontlineFortressOnlineFirst);
   const setGarrisonSlot = useGameStore((state) => state.setFrontlineGarrisonSlot);
   const resolveRaid = useGameStore((state) => state.resolveFrontlineFortressRaid);
   const [now, setNow] = useState<number | null>(null);
@@ -147,7 +147,7 @@ export default function FortressPage() {
               cost={selectedCost}
               affordable={selectedAffordable}
               resources={resources}
-              onUpgrade={() => upgrade(selectedBuilding)}
+              onUpgrade={() => void upgrade(selectedBuilding)}
               t={t}
             />
 
