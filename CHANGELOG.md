@@ -7,6 +7,27 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.13] - 2026-05-15
+
+### Changed
+- `sync_local_snapshot` endurece la importacion de progreso invitado validando heroes, cartas, nodos Adventure e interacciones contra catalogos server-side habilitados.
+- La importacion de loadout y garrison rechaza configuraciones con IDs desconocidos, duplicados o no poseidos/desbloqueados tras la importacion validada.
+- Actualizada la documentacion de operaciones autoritativas para dejar claro que el snapshot local es un puente alpha limitado, no una fuente de verdad para economia final.
+
+### Security
+- El cliente ya no puede crear heroes, cartas, progreso Adventure ni claims de mapa inventando IDs dentro de un snapshot local manipulado.
+- La migracion mantiene `auth.uid()`, idempotencia, caps conservadores y grants acotados a la RPC publica.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` puede ejecutar `sync_local_snapshot` pero no leer catalogos internos de heroes, cartas, nodos ni claims.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.12] - 2026-05-15
 
 ### Added

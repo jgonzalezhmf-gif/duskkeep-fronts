@@ -127,6 +127,8 @@ Validaciones:
 - El snapshot tiene shape esperado.
 - Los valores estan dentro de rangos permitidos.
 - No se importan balances imposibles.
+- Los heroes, cartas, nodos Adventure e interacciones de mapa deben existir en catalogos server-side habilitados.
+- El loadout y la garrison solo aceptan unidades/cartas ya poseidas o desbloqueadas tras la importacion validada.
 
 Resultado:
 
@@ -144,7 +146,9 @@ Notas:
 - Puede rechazar o recortar datos sospechosos.
 - El cliente envia solo un snapshot whitelisted mediante `createLocalSyncSnapshot`; no se envia el store completo.
 - La RPC aplica limites conservadores antes de persistir para reducir abuso de localStorage manipulado.
+- La RPC ignora IDs desconocidos o no habilitados aunque aparezcan en el snapshot local; el cliente no puede crear heroes, cartas, nodos ni claims nuevos por enviar strings inventados.
 - `frontlineFortress` importa solo `buildings`, `integrity`, `garrison` y `raidsResolved`; no acepta reports ni datos calculados por cliente.
+- Esta importacion sigue siendo un puente alpha para vincular progreso invitado a una cuenta nueva; para economia monetizada final debe mantenerse el enfoque de operaciones incrementales autoritativas.
 
 ### `saveLoadout`
 

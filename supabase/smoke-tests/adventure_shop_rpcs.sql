@@ -167,14 +167,17 @@ begin
     jsonb_build_object(
       'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
       'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 200, 'arenaTickets', 5, 'adventureKeys', 0),
-      'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2)),
+      'heroes', jsonb_build_array(
+        jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2),
+        jsonb_build_object('heroId', 'unknown_hero_from_client', 'level', 60, 'stars', 6, 'shards', 5000, 'xp', 999999, 'skillLevel', 5)
+      ),
       'frontlineLoadout', jsonb_build_object(
         'leaderId', 'leader_aurora',
         'squad', '["bran","kara","mira"]'::jsonb,
         'deck', '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
       ),
-      'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true),
-      'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2),
+      'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true, 'enemy_order_bone_arrow', true),
+      'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2, 'enemy_order_bone_arrow', 5),
       'frontlineFortress', jsonb_build_object(
         'buildings', jsonb_build_object('keep', 3, 'treasury', 2, 'barracks', 1),
         'integrity', 92,
@@ -183,8 +186,8 @@ begin
         'nextAttackAt', null,
         'raidsResolved', 2
       ),
-      'adventureProgress', jsonb_build_object(),
-      'adventureMapClaims', jsonb_build_object()
+      'adventureProgress', jsonb_build_object('unknown_node_from_client', jsonb_build_object('status', 'claimed', 'claimed', true)),
+      'adventureMapClaims', jsonb_build_object('unknown-cache-from-client', jsonb_build_object('claimed', true))
     )
   );
   if coalesce((v_sync_result ->> 'ok')::boolean, false) is not true then
@@ -196,6 +199,38 @@ begin
   if coalesce((v_sync_result #>> '{result,normalizedSnapshot,frontlineFortress,buildings,keep}')::int, 0) <> 3 then
     raise exception 'Expected synced Frontline Fortress keep level 3: %', v_sync_result;
   end if;
+  if exists (
+    select 1
+      from public.player_heroes
+      where profile_id = v_profile_id
+        and hero_id = 'unknown_hero_from_client'
+  ) then
+    raise exception 'sync_local_snapshot imported an unknown hero id';
+  end if;
+  if exists (
+    select 1
+      from public.player_frontline_cards
+      where profile_id = v_profile_id
+        and card_id = 'enemy_order_bone_arrow'
+  ) then
+    raise exception 'sync_local_snapshot imported a non-player card id';
+  end if;
+  if exists (
+    select 1
+      from public.adventure_progress
+      where profile_id = v_profile_id
+        and node_id = 'unknown_node_from_client'
+  ) then
+    raise exception 'sync_local_snapshot imported an unknown adventure node';
+  end if;
+  if exists (
+    select 1
+      from public.adventure_map_claims
+      where profile_id = v_profile_id
+        and interaction_id = 'unknown-cache-from-client'
+  ) then
+    raise exception 'sync_local_snapshot imported an unknown map interaction';
+  end if;
 
   v_sync_replay := public.sync_local_snapshot(
     'smoke-sync-local-20260514-0001',
@@ -203,14 +238,17 @@ begin
     jsonb_build_object(
       'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
       'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 200, 'arenaTickets', 5, 'adventureKeys', 0),
-      'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2)),
+      'heroes', jsonb_build_array(
+        jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2),
+        jsonb_build_object('heroId', 'unknown_hero_from_client', 'level', 60, 'stars', 6, 'shards', 5000, 'xp', 999999, 'skillLevel', 5)
+      ),
       'frontlineLoadout', jsonb_build_object(
         'leaderId', 'leader_aurora',
         'squad', '["bran","kara","mira"]'::jsonb,
         'deck', '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
       ),
-      'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true),
-      'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2),
+      'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true, 'enemy_order_bone_arrow', true),
+      'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2, 'enemy_order_bone_arrow', 5),
       'frontlineFortress', jsonb_build_object(
         'buildings', jsonb_build_object('keep', 3, 'treasury', 2, 'barracks', 1),
         'integrity', 92,
@@ -219,8 +257,8 @@ begin
         'nextAttackAt', null,
         'raidsResolved', 2
       ),
-      'adventureProgress', jsonb_build_object(),
-      'adventureMapClaims', jsonb_build_object()
+      'adventureProgress', jsonb_build_object('unknown_node_from_client', jsonb_build_object('status', 'claimed', 'claimed', true)),
+      'adventureMapClaims', jsonb_build_object('unknown-cache-from-client', jsonb_build_object('claimed', true))
     )
   );
   if v_sync_replay <> v_sync_result then
