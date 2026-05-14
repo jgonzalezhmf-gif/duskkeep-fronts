@@ -878,9 +878,6 @@ export const useGameStore = create<GameState & GameActions>()(
 
         const authoritative = await purchaseShopOfferAuthoritatively(offerId);
         if (authoritative.mode === "local") {
-          if (get().accountLinkMode === "linked" && authoritative.reason === "unsupported_offer") {
-            return { ok: false, reason: "Shop offer requires server validation", authoritative: true };
-          }
           if (
             shouldBlockLocalAuthoritativeFallback({
               accountLinkMode: get().accountLinkMode,

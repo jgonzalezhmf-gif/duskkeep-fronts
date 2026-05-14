@@ -7,6 +7,32 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.31.0] - 2026-05-14
+
+### Added
+- Shop introduce el catalogo server-side `server_shop_offers` para compras data-driven.
+- `purchase_shop_offer` lee coste, recompensa, limite diario, one-time, ventana temporal y prerequisitos desde datos en vez de ramas hardcodeadas por oferta.
+- El catalogo inicial cubre ofertas de recursos simples: `adventure_key_ring`, `daily_raid_payout`, `daily_arena_tickets`, `keep_construction_chest`, `arcane_ink_crate` y `arena_push_kit`.
+
+### Changed
+- El dispatcher cliente ya no mantiene una allowlist fija de ofertas autoritativas.
+- Cuentas vinculadas envian cualquier compra de Shop al servidor; si el catalogo server-side la rechaza, no hay fallback local.
+- Documentada la frontera actual: ofertas con `xp`, `accountXp`, shards o cartas quedan pendientes hasta aplicar snapshots/patches autoritativos completos de cuenta/heroes/cartas.
+
+### Security
+- Reduce el riesgo de divergencia cliente-servidor al mover coste/reward/limites de Shop a datos controlados por servidor.
+- Mantiene idempotencia, validacion de recursos, prerequisitos, limites diarios y ledger dentro de la RPC.
+- Evita que una oferta nueva quede accidentalmente autorizada por el cliente sin existir en el catalogo del servidor.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.30.24] - 2026-05-14
 
 ### Added

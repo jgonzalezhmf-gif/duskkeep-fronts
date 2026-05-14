@@ -4,8 +4,6 @@ import { getSupabaseAccessToken } from "@/features/server/supabaseBrowserSession
 import type { AdventureMapInteractionLootTier, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
 import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, Resources, Rewards } from "@/lib/types";
 
-const AUTHORITATIVE_SHOP_OFFERS = new Set(["adventure_key_ring", "daily_raid_payout", "daily_arena_tickets"]);
-
 export type AuthoritativeDispatcherMode = "authoritative" | "local";
 
 export type AuthoritativePurchaseSuccess = {
@@ -23,7 +21,7 @@ export type AuthoritativePurchaseFailure = {
 export type AuthoritativePurchaseFallback = {
   ok: false;
   mode: "local";
-  reason: "unsupported_offer" | "missing_session" | "api_disabled";
+  reason: "missing_session" | "api_disabled";
 };
 
 export type AuthoritativePurchaseResult =
@@ -903,10 +901,6 @@ export async function purchaseShopOfferAuthoritatively(
   offerId: string,
   options: PurchaseShopOfferAuthoritativelyOptions = {},
 ): Promise<AuthoritativePurchaseResult> {
-  if (!AUTHORITATIVE_SHOP_OFFERS.has(offerId)) {
-    return { ok: false, mode: "local", reason: "unsupported_offer" };
-  }
-
   const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
   if (!token) {
     return { ok: false, mode: "local", reason: "missing_session" };

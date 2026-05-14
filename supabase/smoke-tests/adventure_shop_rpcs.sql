@@ -64,6 +64,7 @@ declare
   v_shop_arena_result jsonb;
   v_shop_arena_replay jsonb;
   v_shop_arena_second_result jsonb;
+  v_shop_resource_result jsonb;
   v_cache_claim_count int;
 begin
   insert into auth.users (
@@ -812,6 +813,17 @@ begin
   v_shop_arena_second_result := public.purchase_shop_offer('smoke-shop-arena-20260515-0002', 'daily_arena_tickets', 1);
   if coalesce(v_shop_arena_second_result ->> 'code', '') <> 'daily_limit_reached' then
     raise exception 'Expected second daily_arena_tickets purchase to hit daily limit: %', v_shop_arena_second_result;
+  end if;
+
+  v_shop_resource_result := public.purchase_shop_offer('smoke-shop-resource-20260515-0001', 'keep_construction_chest', 1);
+  if coalesce((v_shop_resource_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'purchase_shop_offer keep_construction_chest failed: %', v_shop_resource_result;
+  end if;
+  if coalesce((v_shop_resource_result #>> '{result,contentsGranted,gold}')::int, 0) <> 2200 then
+    raise exception 'Expected keep_construction_chest to grant 2200 gold from server catalog: %', v_shop_resource_result;
+  end if;
+  if (v_shop_resource_result #>> '{result,remaining}') is not null then
+    raise exception 'Expected unlimited catalog offer remaining to be null: %', v_shop_resource_result;
   end if;
 
   v_cache_result := public.open_adventure_map_interaction('smoke-cache-20260511-0001', 'c1-lower-cache');

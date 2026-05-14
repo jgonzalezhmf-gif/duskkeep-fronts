@@ -114,17 +114,17 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 
-  it("blocks linked account purchases for shop offers without a server operation", async () => {
+  it("blocks linked account purchases when the server catalog rejects the offer", async () => {
     useGameStore.setState({
       accountLinkMode: "linked",
       resources: { ...useGameStore.getState().resources, gems: 500 },
     });
-    mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "local", reason: "unsupported_offer" });
+    mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "authoritative", reason: "Shop offer is not available" });
     const beforeResources = useGameStore.getState().resources;
 
     const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_command_drill");
 
-    expect(result).toEqual({ ok: false, reason: "Shop offer requires server validation", authoritative: true });
+    expect(result).toEqual({ ok: false, reason: "Shop offer is not available", authoritative: true });
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().dailyShopPurchases.daily_command_drill).toBeUndefined();
   });
@@ -141,12 +141,12 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().resources.gold).toBeGreaterThanOrEqual(beforeGold);
   });
 
-  it("keeps local shop purchases available for guest accounts when an offer has no server operation", async () => {
+  it("keeps local shop purchases available for guest accounts without a Supabase session", async () => {
     useGameStore.setState({
       accountLinkMode: "guest",
       resources: { ...useGameStore.getState().resources, gold: 500 },
     });
-    mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "local", reason: "unsupported_offer" });
+    mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
 
     const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_command_drill");
 

@@ -1199,12 +1199,23 @@ describe("authoritative operation dispatcher", () => {
     });
   });
 
-  it("keeps unsupported shop offers on the local path", async () => {
-    const result = await purchaseShopOfferAuthoritatively("daily_command_drill", {
-      tokenProvider: async () => "valid-token-value",
+  it("routes shop offers to the authoritative catalog instead of a client allowlist", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({ ok: false, code: "not_found", reason: "Shop offer is not available" }),
     });
 
-    expect(result).toEqual({ ok: false, mode: "local", reason: "unsupported_offer" });
+    const result = await purchaseShopOfferAuthoritatively("daily_command_drill", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "authoritative", reason: "Shop offer is not available" });
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toMatchObject({
+      operationType: "purchaseShopOffer",
+      payload: { offerId: "daily_command_drill", quantity: 1 },
+    });
   });
 
   it("falls back to local mode when there is no Supabase session", async () => {
