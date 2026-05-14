@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.28.2] - 2026-05-14
+
+### Fixed
+- La intro ahora se muestra una vez por carga real de la web y no se repite al volver a Home durante la misma sesion SPA.
+- Home deja de montar el world map detras de la intro para evitar que los efectos de World arranquen ocultos y aparezcan desalineados al cerrar la cinematica.
+- Los campos del gate de cuenta ya no quedan deshabilitados cuando la configuracion online no esta disponible; solo se bloquea el envio.
+
+### Tested
+- `npm.cmd run check`
+
 ## [0.28.1] - 2026-05-14
 
 ### Fixed

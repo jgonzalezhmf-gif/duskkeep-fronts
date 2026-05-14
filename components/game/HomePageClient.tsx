@@ -12,6 +12,8 @@ const GameAuthGate = dynamic(() => import("@/components/game/auth/GameAuthGate")
   ssr: false,
 });
 
+let introSeenInPageRuntime = false;
+
 export default function HomePageClient({
   qaClean = false,
   qaEffects = false,
@@ -24,15 +26,14 @@ export default function HomePageClient({
   const { t } = useI18n();
   const store = useGameStore();
   const nextLevel = nextUnlockedLevel(store);
-  const hasSeenIntro = useGameStore((state) => state.hasSeenIntro);
   const markIntroSeen = useGameStore((state) => state.markIntroSeen);
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
   const [introDismissed, setIntroDismissed] = useState(false);
+  const [introSeenThisPageLoad, setIntroSeenThisPageLoad] = useState(() => introSeenInPageRuntime);
   const introEligible = !qaClean && !qaEffects;
   const mustResolveAccountChoice = accountLinkMode === "undecided";
-  const showIntro =
-    store.hydrated && !introDismissed && introEligible && (forceIntro || !hasSeenIntro || mustResolveAccountChoice);
+  const showIntro = store.hydrated && !introDismissed && introEligible && (forceIntro || !introSeenThisPageLoad);
   // Until the persisted store has hydrated we don't know whether to show
   // the intro yet. If we render Home behind it we get a visible flash of
   // HUD before the cinematic mounts (the user reported this). Cover the
@@ -40,8 +41,11 @@ export default function HomePageClient({
   // always either black or the intro itself.
   const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed;
   const showAuthGate = store.hydrated && introEligible && !showIntro && mustResolveAccountChoice;
+  const showHomeWorld = !showIntro && !showPreHydrationVeil;
 
   function handleIntroDone() {
+    introSeenInPageRuntime = true;
+    setIntroSeenThisPageLoad(true);
     setIntroDismissed(true);
     markIntroSeen();
   }
@@ -115,7 +119,9 @@ export default function HomePageClient({
 
   return (
     <>
-      <HomeWorldMap hotspots={hotspots} tutorialOpen={!store.onboarding.completed} qaClean={qaClean} qaEffects={qaEffects} />
+      {showHomeWorld ? (
+        <HomeWorldMap hotspots={hotspots} tutorialOpen={!store.onboarding.completed} qaClean={qaClean} qaEffects={qaEffects} />
+      ) : null}
       {showPreHydrationVeil ? (
         <div
           aria-hidden="true"

@@ -186,7 +186,7 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
                       autoComplete="email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
-                      disabled={!configured || busy}
+                      disabled={busy}
                       className="mt-2 w-full rounded-[18px] border border-white/10 bg-black/28 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-white/24 focus:border-[#f5c451]/42"
                       placeholder="commander@example.com"
                     />
@@ -198,7 +198,7 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
                       autoComplete={mode === "signIn" ? "current-password" : "new-password"}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      disabled={!configured || busy}
+                      disabled={busy}
                       className="mt-2 w-full rounded-[18px] border border-white/10 bg-black/28 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-white/24 focus:border-[#f5c451]/42"
                       placeholder={t("auth.passwordHint")}
                     />
