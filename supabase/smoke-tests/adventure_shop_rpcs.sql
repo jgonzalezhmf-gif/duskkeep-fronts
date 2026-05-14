@@ -17,6 +17,7 @@ declare
   v_battle_second_clear jsonb;
   v_loadout_result jsonb;
   v_loadout_replay jsonb;
+  v_invalid_loadout_result jsonb;
   v_daily_result jsonb;
   v_daily_replay jsonb;
   v_daily_second_attempt jsonb;
@@ -172,6 +173,26 @@ begin
   );
   if v_loadout_replay <> v_loadout_result then
     raise exception 'save_frontline_loadout is not idempotent: % <> %', v_loadout_replay, v_loadout_result;
+  end if;
+
+  v_invalid_loadout_result := public.save_frontline_loadout(
+    'smoke-loadout-invalid-20260514-0001',
+    'leader_aurora',
+    '["bran","unknown_hero","mira"]'::jsonb,
+    '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
+  );
+  if coalesce(v_invalid_loadout_result ->> 'code', '') <> 'invalid_loadout' then
+    raise exception 'Expected invalid_loadout for unknown squad hero: %', v_invalid_loadout_result;
+  end if;
+
+  v_invalid_loadout_result := public.save_frontline_loadout(
+    'smoke-loadout-invalid-20260514-0002',
+    'leader_aurora',
+    '["bran","kara","mira"]'::jsonb,
+    '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","unknown_card"]'::jsonb
+  );
+  if coalesce(v_invalid_loadout_result ->> 'code', '') <> 'invalid_loadout' then
+    raise exception 'Expected invalid_loadout for unknown deck card: %', v_invalid_loadout_result;
   end if;
 
   v_daily_result := public.claim_daily_login(

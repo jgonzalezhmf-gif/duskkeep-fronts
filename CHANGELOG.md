@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.8] - 2026-05-14
+
+### Changed
+- Endurecida la RPC `save_frontline_loadout` para validar ownership de loadout en servidor.
+- El servidor rechaza leaders fuera de allowlist, heroes no desbloqueados, cartas no desbloqueadas y duplicados en squad/deck.
+
+### Security
+- El cliente ya no puede guardar un loadout online con unidades o cartas que no pertenezcan al perfil.
+- La validacion vive en Postgres/RPC, detras de `auth.uid()` y sin confiar en el estado del navegador.
+- El smoke autoritativo cubre casos negativos de heroes/cartas desconocidos.
+
+### Tested
+- `npm.cmd run smoke:supabase:snapshot`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperationDispatcher.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.7] - 2026-05-14
 
 ### Changed

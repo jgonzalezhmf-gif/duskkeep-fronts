@@ -60,6 +60,7 @@ La ruta `/api/server/authoritative` es el primer proxy HTTP hacia RPCs autoritat
 - `supabase/migrations/20260512100000_mission_progress_from_authoritative_events.sql` crea helpers/triggers para avanzar misiones desde eventos autoritativos (`adventure_progress` y `battle_results`) sin aceptar progreso arbitrario del cliente.
 - `supabase/migrations/20260514170000_get_player_snapshot_rpc.sql` crea la RPC read-only `get_player_snapshot` para leer el estado normalizado del jugador autenticado o anonimo sin exponer operaciones internas.
 - `supabase/migrations/20260514183000_provision_starter_player_state.sql` amplia el provisioning de Auth para crear recursos, heroes starter, cartas starter y loadout inicial de Frontline en servidor.
+- `supabase/migrations/20260514193000_validate_frontline_loadout_ownership.sql` endurece `save_frontline_loadout` para aceptar solo lideres permitidos y heroes/cartas desbloqueados por el perfil.
 - Las migraciones nuevas deben seguir `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
 
 ## Smoke Tests Locales
@@ -70,7 +71,7 @@ Despues de `npx.cmd supabase start` o `npx.cmd supabase db reset`, validar las p
 psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/smoke-tests/adventure_shop_rpcs.sql
 ```
 
-El script crea un usuario local de prueba, valida `save_frontline_loadout`, `claim_daily_login`, `claim_mission_reward`, `claim_adventure_battle_result`, `claim_adventure_node_reward`, `purchase_shop_offer` y `open_adventure_map_interaction`; tambien comprueba idempotencia, confirma que Adventure genera progreso de misiones server-side y confirma que el cofre consume la llave.
+El script crea un usuario local de prueba, valida `save_frontline_loadout`, `claim_daily_login`, `claim_mission_reward`, `claim_adventure_battle_result`, `claim_adventure_node_reward`, `purchase_shop_offer` y `open_adventure_map_interaction`; tambien comprueba idempotencia, rechaza loadouts con heroes/cartas no desbloqueados, confirma que Adventure genera progreso de misiones server-side y confirma que el cofre consume la llave.
 
 Para validar que un invitado anonimo provisiona perfil y recursos base:
 
