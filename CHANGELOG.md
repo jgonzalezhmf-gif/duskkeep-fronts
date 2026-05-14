@@ -7,6 +7,33 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.7] - 2026-05-14
+
+### Added
+- Backend introduce `server_arena_opponents` para definir rivales Arena, preset, coste de ticket y rewards por resultado.
+- Registrado catalogo inicial de rewards para victorias Arena y recompensas de empate/derrota.
+
+### Changed
+- `record_arena_result` deja de tener hardcodeados los rivales, presets y rewards y lee la configuracion desde catalogo server-side.
+- Los rewards de Arena se conceden mediante `grant_reward_definition`.
+- El smoke valida coste y reward de `arena_bonewood` contra `server_arena_opponents` + `server_reward_definitions`.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Arena results data-driven.
+
+### Security
+- El cliente sigue sin enviar ni decidir coste de ticket, preset ni rewards de Arena.
+- `server_arena_opponents` queda sin grants para `authenticated`.
+- La operacion mantiene ownership, idempotencia, coste atomico de ticket y ledger por coste/reward.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer catalogos internos ni ejecutar grants internos.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.6] - 2026-05-14
 
 ### Added

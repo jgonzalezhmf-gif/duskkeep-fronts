@@ -45,6 +45,7 @@ Tablas y funciones:
 - `server_adventure_node_rewards`: define nodos Adventure no-combate reclamables, prerequisitos y `reward_id`.
 - `server_adventure_map_interactions` y `server_adventure_map_loot_entries`: definen interactuables de mapa, coste, cooldown, prerequisitos y loot table ponderada por `reward_id`.
 - `server_adventure_battle_nodes`: define nodos Adventure de combate, prerequisitos, unlocks, tipo y rewards first-clear/replay por `reward_id`.
+- `server_arena_opponents`: define rivales Arena, preset, coste de ticket y rewards por resultado mediante `reward_id`.
 
 Alcance actual:
 
@@ -54,6 +55,7 @@ Alcance actual:
 - Adventure node rewards no-combate ya usa `server_adventure_node_rewards` para `c1l3`/`c1l7`.
 - Adventure map interactions ya usa catalogos internos para `c1-lower-cache`, coste de llave, cooldown y loot table.
 - Adventure battle results ya usa `server_adventure_battle_nodes` para Chapter 1 combat nodes.
+- Arena results ya usa `server_arena_opponents` para rivales, coste de ticket y rewards win/draw/loss.
 - El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
@@ -615,9 +617,9 @@ type SkillUpHeroResult = {
 
 ### `recordArenaResult`
 
-Registra un resultado de Arena y actualiza estadisticas basicas. La primera implementacion SQL es `public.record_arena_result(p_idempotency_key text, p_opponent_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`.
+Registra un resultado de Arena y actualiza estadisticas basicas. La implementacion SQL es `public.record_arena_result(p_idempotency_key text, p_opponent_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`.
 
-Alcance MVP: consume 1 `arenaTicket`, concede rewards server-side segun rival/resultado, escribe `battle_results`, avanza misiones mediante trigger y devuelve el record de Arena. Todavia no simula la batalla en servidor ni calcula ladder real; para ladder competitivo sera necesario validar el resultado con seed/log o ejecutar la simulacion autoritativa.
+Alcance MVP: lee rival, preset, coste de `arenaTicket` y reward por resultado desde `server_arena_opponents`, escribe `battle_results`, avanza misiones mediante trigger y devuelve el record de Arena. Todavia no simula la batalla en servidor ni calcula ladder real; para ladder competitivo sera necesario validar el resultado con seed/log o ejecutar la simulacion autoritativa.
 
 Payload:
 
@@ -634,9 +636,9 @@ type RecordArenaResultPayload = {
 Validaciones:
 
 - El usuario esta autenticado.
-- El oponente pertenece a la allowlist de rivales Arena actuales.
+- El oponente pertenece al catalogo server-side de rivales Arena actuales.
 - El jugador tiene al menos 1 `arenaTicket`.
-- El servidor calcula coste y rewards; el cliente no envia recompensas.
+- El servidor calcula coste y rewards por `reward_id`; el cliente no envia recompensas.
 - La operacion es idempotente.
 - El gasto de ticket y rewards quedan en `resource_ledger`.
 - El resultado se escribe en `battle_results` con `source = 'arena'`.

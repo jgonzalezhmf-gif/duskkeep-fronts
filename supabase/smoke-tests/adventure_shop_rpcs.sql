@@ -77,6 +77,7 @@ declare
   v_purchase_index int;
   v_catalog_target int;
   v_cache_claim_count int;
+  v_catalog_cost int;
 begin
   insert into auth.users (
     instance_id,
@@ -495,11 +496,23 @@ begin
   if coalesce((v_arena_result ->> 'ok')::boolean, false) is not true then
     raise exception 'record_arena_result failed: %', v_arena_result;
   end if;
-  if coalesce((v_arena_result #>> '{result,resources,arenaTickets}')::int, -1) <> 4 then
+  select arena_ticket_cost
+    into v_catalog_cost
+    from public.server_arena_opponents
+    where opponent_id = 'arena_bonewood'
+      and enabled = true;
+  if coalesce((v_arena_result #>> '{result,resources,arenaTickets}')::int, -1) <> (5 - v_catalog_cost) then
     raise exception 'Expected Arena result to consume exactly 1 ticket: %', v_arena_result;
   end if;
-  if coalesce((v_arena_result #>> '{result,rewardsGranted,gems}')::int, 0) <> 3 then
-    raise exception 'Expected arena_bonewood win to grant 3 gems: %', v_arena_result;
+  select reward.rewards
+    into v_catalog_contents
+    from public.server_arena_opponents opponent
+    join public.server_reward_definitions reward on reward.reward_id = opponent.win_reward_id
+    where opponent.opponent_id = 'arena_bonewood'
+      and opponent.enabled = true
+      and reward.enabled = true;
+  if (v_arena_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'Arena win reward must match server arena catalog: % <> %', v_arena_result #> '{result,rewardsGranted}', v_catalog_contents;
   end if;
   if coalesce((v_arena_result #>> '{result,arenaWins}')::int, 0) <> 1 then
     raise exception 'Expected Arena win count 1: %', v_arena_result;
