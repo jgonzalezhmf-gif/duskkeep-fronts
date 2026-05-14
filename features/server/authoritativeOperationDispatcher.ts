@@ -37,6 +37,74 @@ export type PurchaseShopOfferAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type LocalSyncSnapshot = {
+  account?: {
+    name?: string;
+    level?: number;
+    xp?: number;
+  };
+  resources?: Partial<Resources>;
+  heroes?: Array<{
+    heroId: string;
+    level?: number;
+    stars?: number;
+    shards?: number;
+    xp?: number;
+    skillLevel?: number;
+  }>;
+  frontlineLoadout?: FrontlineLoadout;
+  frontlineCardUnlocks?: Record<string, boolean>;
+  frontlineCardLevels?: Record<string, number>;
+  adventureProgress?: Record<
+    string,
+    {
+      status?: "locked" | "available" | "current" | "cleared" | "completed" | "claimed" | "hidden";
+      cleared?: boolean;
+      firstClearTaken?: boolean;
+      claimed?: boolean;
+    }
+  >;
+  adventureMapClaims?: Record<
+    string,
+    {
+      claimed?: boolean;
+      claimedAt?: string | null;
+      resetAvailableAt?: string | null;
+    }
+  >;
+};
+
+export type AuthoritativeLocalSnapshotSyncSuccess = {
+  ok: true;
+  mode: "authoritative";
+  profileId: string;
+  imported: boolean;
+  normalizedSnapshot: LocalSyncSnapshot;
+};
+
+export type AuthoritativeLocalSnapshotSyncFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeLocalSnapshotSyncFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeLocalSnapshotSyncResult =
+  | AuthoritativeLocalSnapshotSyncSuccess
+  | AuthoritativeLocalSnapshotSyncFailure
+  | AuthoritativeLocalSnapshotSyncFallback;
+
+export type SyncLocalSnapshotAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export type AuthoritativeMapInteractionSuccess = {
   ok: true;
   mode: "authoritative";
@@ -236,6 +304,48 @@ export type ClaimMissionAuthoritativelyOptions = {
   fetcher?: AuthoritativeClientFetch;
   tokenProvider?: () => Promise<string | null>;
 };
+
+export async function syncLocalSnapshotAuthoritatively(
+  localVersion: string,
+  snapshot: LocalSyncSnapshot,
+  options: SyncLocalSnapshotAuthoritativelyOptions = {},
+): Promise<AuthoritativeLocalSnapshotSyncResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "syncLocalSnapshot",
+    {
+      idempotencyKey: createIdempotencyKey("sync", localVersion),
+      payload: { localVersion, snapshot },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractLocalSnapshotSyncResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
 
 export async function purchaseShopOfferAuthoritatively(
   offerId: string,
@@ -683,6 +793,20 @@ function extractMissionClaimResult(result: unknown): Omit<AuthoritativeMissionCl
     cycleKey,
     rewards: rewards.data,
     resources,
+  };
+}
+
+function extractLocalSnapshotSyncResult(result: unknown): Omit<AuthoritativeLocalSnapshotSyncSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const profileId = parseString(result.profileId);
+  const imported = parseBoolean(result.imported);
+  if (!profileId || imported === null || !isRecord(result.normalizedSnapshot)) return null;
+
+  return {
+    profileId,
+    imported,
+    normalizedSnapshot: result.normalizedSnapshot as LocalSyncSnapshot,
   };
 }
 

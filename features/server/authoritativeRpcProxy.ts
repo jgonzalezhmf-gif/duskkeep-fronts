@@ -148,6 +148,18 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "syncLocalSnapshot") {
+    const syncPayload = payload as ServerOperationPayload<"syncLocalSnapshot">;
+    return {
+      rpcName: "sync_local_snapshot",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_local_version: syncPayload.localVersion,
+        p_snapshot: syncPayload.snapshot,
+      },
+    };
+  }
+
   if (operationType === "claimAdventureBattleResult") {
     const battlePayload = payload as ServerOperationPayload<"claimAdventureBattleResult">;
     return {

@@ -25,6 +25,7 @@ describe("server authoritative operation contracts", () => {
 
   it("keeps the public authoritative API limited to RPC-backed operations", () => {
     expect(supportedAuthoritativeApiOperations).toEqual([
+      "syncLocalSnapshot",
       "saveLoadout",
       "claimAdventureBattleResult",
       "claimAdventureNodeReward",
@@ -34,8 +35,43 @@ describe("server authoritative operation contracts", () => {
       "claimDailyLogin",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("syncLocalSnapshot")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("claimDailyLogin")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("claimMission")).toBe(true);
+  });
+
+  it("accepts a capped local snapshot sync payload", () => {
+    const parsed = parseServerActionRequest("syncLocalSnapshot", {
+      idempotencyKey: "sync-local-20260514-0001",
+      payload: {
+        localVersion: "1",
+        snapshot: {
+          account: { name: "Commander", level: 12, xp: 1200 },
+          resources: { gold: 1200, dust: 250, gems: 30, arenaTickets: 5, adventureKeys: 2 },
+          heroes: [{ heroId: "bran", level: 4, stars: 2, shards: 12, xp: 40, skillLevel: 2 }],
+          frontlineLoadout: {
+            leaderId: "leader_aurora",
+            squad: ["bran", "kara", "mira"],
+            deck: [
+              "order_guard_wall",
+              "order_twin_slash",
+              "order_focus_fire",
+              "tactic_battle_hymn",
+              "tactic_sanctuary",
+              "tactic_smokescreen",
+              "summon_wolf",
+              "summon_barrier",
+            ],
+          },
+          frontlineCardUnlocks: { order_guard_wall: true },
+          frontlineCardLevels: { order_guard_wall: 2 },
+          adventureProgress: { c1l1: { status: "cleared", cleared: true, firstClearTaken: true } },
+          adventureMapClaims: { "c1-lower-cache": { claimed: true } },
+        },
+      },
+    });
+
+    expect(parsed.ok).toBe(true);
   });
 
   it("normalizes purchase quantity while requiring idempotency", () => {

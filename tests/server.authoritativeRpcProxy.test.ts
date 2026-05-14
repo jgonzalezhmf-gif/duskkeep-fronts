@@ -131,6 +131,31 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps local snapshot sync to the correct RPC call", () => {
+    const snapshot = {
+      resources: { gold: 1200, dust: 200, gems: 40, arenaTickets: 5, adventureKeys: 1 },
+    };
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "syncLocalSnapshot",
+        idempotencyKey: "sync-local-20260514-0001",
+        payload: { localVersion: "1", snapshot },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "sync_local_snapshot",
+      rpcArgs: {
+        p_idempotency_key: "sync-local-20260514-0001",
+        p_local_version: "1",
+        p_snapshot: snapshot,
+      },
+    });
+  });
+
   it("normalizes purchase quantity before mapping to RPC", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

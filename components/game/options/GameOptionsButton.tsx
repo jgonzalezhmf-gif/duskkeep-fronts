@@ -27,6 +27,8 @@ export default function GameOptionsButton({ className }: { className?: string })
   const [open, setOpen] = useState(false);
   const [introPreviewOpen, setIntroPreviewOpen] = useState(false);
   const [accountGateOpen, setAccountGateOpen] = useState(false);
+  const [accountSyncBusy, setAccountSyncBusy] = useState(false);
+  const [accountSyncNotice, setAccountSyncNotice] = useState<string | null>(null);
   const language = useGameStore((state) => state.language);
   const setLanguage = useGameStore((state) => state.setLanguage);
   const muted = useGameStore((state) => state.audioMuted);
@@ -43,6 +45,7 @@ export default function GameOptionsButton({ className }: { className?: string })
   const setTextScale = useGameStore((state) => state.setTextScale);
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
+  const syncLocalSnapshotOnlineFirst = useGameStore((state) => state.syncLocalSnapshotOnlineFirst);
 
   return (
     <>
@@ -188,6 +191,36 @@ export default function GameOptionsButton({ className }: { className?: string })
                       {t("options.linkAccount")}
                     </button>
                   ) : null}
+                  {accountLinkMode === "linked" ? (
+                    <button
+                      type="button"
+                      disabled={accountSyncBusy}
+                      onClick={async () => {
+                        sfx.tap();
+                        setAccountSyncBusy(true);
+                        setAccountSyncNotice(null);
+                        const result = await syncLocalSnapshotOnlineFirst();
+                        setAccountSyncBusy(false);
+                        if (result.ok) {
+                          sfx.unlock();
+                          setAccountSyncNotice(t("options.accountSyncDone"));
+                        } else {
+                          setAccountSyncNotice(
+                            t(result.authoritative ? "options.accountSyncFailed" : "options.accountSyncUnavailable"),
+                          );
+                        }
+                      }}
+                      className={cn(
+                        "frontline-motion-action mt-3 w-full rounded-[20px] border px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.16em] transition",
+                        accountSyncBusy
+                          ? "cursor-wait border-white/8 bg-white/[0.04] text-white/30"
+                          : "border-emerald-200/24 bg-emerald-300/10 text-emerald-50 hover:border-emerald-100/44",
+                      )}
+                    >
+                      {accountSyncBusy ? t("options.accountSyncing") : t("options.syncLocalProgress")}
+                    </button>
+                  ) : null}
+                  {accountSyncNotice ? <div className="mt-2 text-[12px] leading-5 text-white/54">{accountSyncNotice}</div> : null}
                 </OptionPanel>
 
                 <OptionPanel title={t("options.intro")} hint={t("options.introHint")}>

@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.0] - 2026-05-14
+
+### Added
+- Aniadida operacion autoritativa `syncLocalSnapshot` para importar progreso local/invitado a una cuenta autenticada.
+- Aniadida RPC Supabase `sync_local_snapshot` con idempotencia, hash de payload, caps conservadores y merge que no reduce progreso online existente.
+- Aniadido builder `createLocalSyncSnapshot` para enviar solo campos whitelisted del store local.
+- Aniadido boton en Opciones para sincronizar progreso local cuando la cuenta ya esta vinculada.
+
+### Security
+- La importacion no acepta el store completo ni recursos ilimitados: valida shape en TypeScript, aplica allowlists/caps en SQL y requiere JWT autenticado.
+- La operacion no hace fallback local si el servidor conectado rechaza la solicitud.
+
+### Tested
+- `npm.cmd run test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/localSyncSnapshot.test.ts`
+- `npm.cmd run typecheck`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+
 ## [0.28.2] - 2026-05-14
 
 ### Fixed

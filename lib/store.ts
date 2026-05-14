@@ -31,6 +31,7 @@ import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
 import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
+import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import {
   createFortressBuildingUpgradeCommand,
   createFrontlineCardUpgradeCommand,
@@ -61,6 +62,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
+  syncLocalSnapshotAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 import {
   DAILY_ARENA_TICKETS,
@@ -599,6 +601,36 @@ export const useGameStore = create<GameState & GameActions>()(
       setReducedMotion: (enabled) => set({ reducedMotion: enabled }),
       setVisualEffects: (enabled) => set({ visualEffects: enabled }),
       setTextScale: (scale) => set({ textScale: scale }),
+      syncLocalSnapshotOnlineFirst: async () => {
+        const result = await syncLocalSnapshotAuthoritatively(
+          LOCAL_SYNC_SNAPSHOT_VERSION,
+          createLocalSyncSnapshot(get()),
+        );
+
+        if (!result.ok) {
+          return {
+            ok: false,
+            reason: result.reason,
+            authoritative: result.mode === "authoritative",
+          };
+        }
+
+        const normalized = result.normalizedSnapshot;
+        set((state) => ({
+          account: {
+            ...state.account,
+            ...(normalized.account ?? {}),
+          },
+          resources: {
+            ...state.resources,
+            ...(normalized.resources ?? {}),
+          },
+          frontlineLoadout: normalized.frontlineLoadout ?? state.frontlineLoadout,
+          accountLinkMode: "linked",
+        }));
+
+        return { ok: true, authoritative: true };
+      },
       setOnboardingStep: (step) =>
         set((st) => ({ onboarding: setOnboardingStepState(st.onboarding, step) })),
       completeOnboarding: () =>

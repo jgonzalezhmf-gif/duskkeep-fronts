@@ -59,10 +59,75 @@ const rewardsSchema: z.ZodType<Rewards> = z
   })
   .strict();
 
+const syncResourcesSchema = z
+  .object({
+    gold: z.number().int().nonnegative().max(200_000).optional(),
+    dust: z.number().int().nonnegative().max(100_000).optional(),
+    gems: z.number().int().nonnegative().max(10_000).optional(),
+    arenaTickets: z.number().int().nonnegative().max(99).optional(),
+    adventureKeys: z.number().int().nonnegative().max(99).optional(),
+  })
+  .strict();
+
+const syncHeroSchema = z
+  .object({
+    heroId: idSchema,
+    level: z.number().int().min(1).max(60).optional(),
+    stars: z.number().int().min(1).max(6).optional(),
+    shards: z.number().int().nonnegative().max(5000).optional(),
+    xp: z.number().int().nonnegative().max(1_000_000).optional(),
+    skillLevel: z.number().int().min(1).max(5).optional(),
+  })
+  .strict();
+
+const syncAdventureProgressEntrySchema = z
+  .object({
+    status: z.enum(["locked", "available", "current", "cleared", "completed", "claimed", "hidden"]).optional(),
+    cleared: z.boolean().optional(),
+    firstClearTaken: z.boolean().optional(),
+    claimed: z.boolean().optional(),
+  })
+  .strict();
+
+const syncAdventureClaimSchema = z
+  .object({
+    claimed: z.boolean().optional(),
+    claimedAt: z.string().trim().max(64).nullable().optional(),
+    resetAvailableAt: z.string().trim().max(64).nullable().optional(),
+  })
+  .strict();
+
+const syncLocalSnapshotSchema = z
+  .object({
+    account: z
+      .object({
+        name: z.string().trim().min(1).max(48).optional(),
+        level: z.number().int().min(1).max(60).optional(),
+        xp: z.number().int().nonnegative().max(1_000_000).optional(),
+      })
+      .strict()
+      .optional(),
+    resources: syncResourcesSchema.optional(),
+    heroes: z.array(syncHeroSchema).max(64).optional(),
+    frontlineLoadout: z
+      .object({
+        leaderId: idSchema,
+        squad: z.array(nullableIdSchema).length(SERVER_FRONTLINE_SQUAD_SIZE),
+        deck: z.array(nullableIdSchema).length(DECK_SIZE),
+      })
+      .strict()
+      .optional(),
+    frontlineCardUnlocks: z.record(idSchema, z.boolean()).optional(),
+    frontlineCardLevels: z.record(idSchema, z.number().int().min(1).max(5)).optional(),
+    adventureProgress: z.record(idSchema, syncAdventureProgressEntrySchema).optional(),
+    adventureMapClaims: z.record(idSchema, syncAdventureClaimSchema).optional(),
+  })
+  .strict();
+
 export const serverOperationPayloadSchemas = {
   syncLocalSnapshot: z.object({
     localVersion: z.string().trim().min(1).max(32),
-    snapshot: z.unknown(),
+    snapshot: syncLocalSnapshotSchema,
   }),
   saveLoadout: z.object({
     leaderId: idSchema,
@@ -116,6 +181,7 @@ export type ServerOperationInputPayload<TType extends ServerOperationType> = z.i
 export const serverOperationTypes = Object.keys(serverOperationPayloadSchemas) as ServerOperationType[];
 
 export const supportedAuthoritativeApiOperations = [
+  "syncLocalSnapshot",
   "saveLoadout",
   "claimAdventureBattleResult",
   "claimAdventureNodeReward",

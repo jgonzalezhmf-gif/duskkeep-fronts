@@ -28,6 +28,8 @@ declare
   v_node_claim_result jsonb;
   v_node_claim_replay jsonb;
   v_node_claim_second_attempt jsonb;
+  v_sync_result jsonb;
+  v_sync_replay jsonb;
   v_shop_purchase_count int;
   v_cache_claim_count int;
 begin
@@ -101,6 +103,53 @@ begin
 
   perform set_config('request.jwt.claim.sub', v_user_id::text, true);
   perform set_config('request.jwt.claim.role', 'authenticated', true);
+
+  v_sync_result := public.sync_local_snapshot(
+    'smoke-sync-local-20260514-0001',
+    '1',
+    jsonb_build_object(
+      'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
+      'resources', jsonb_build_object('gold', 650, 'dust', 80, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
+      'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 12, 'xp', 40, 'skillLevel', 2)),
+      'frontlineLoadout', jsonb_build_object(
+        'leaderId', 'leader_aurora',
+        'squad', '["bran","kara","mira"]'::jsonb,
+        'deck', '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
+      ),
+      'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true),
+      'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2),
+      'adventureProgress', jsonb_build_object(),
+      'adventureMapClaims', jsonb_build_object()
+    )
+  );
+  if coalesce((v_sync_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'sync_local_snapshot failed: %', v_sync_result;
+  end if;
+  if coalesce((v_sync_result #>> '{result,normalizedSnapshot,resources,gold}')::int, 0) < 650 then
+    raise exception 'Expected synced gold in normalized snapshot: %', v_sync_result;
+  end if;
+
+  v_sync_replay := public.sync_local_snapshot(
+    'smoke-sync-local-20260514-0001',
+    '1',
+    jsonb_build_object(
+      'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
+      'resources', jsonb_build_object('gold', 650, 'dust', 80, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
+      'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 12, 'xp', 40, 'skillLevel', 2)),
+      'frontlineLoadout', jsonb_build_object(
+        'leaderId', 'leader_aurora',
+        'squad', '["bran","kara","mira"]'::jsonb,
+        'deck', '["order_guard_wall","order_twin_slash","order_focus_fire","tactic_battle_hymn","tactic_sanctuary","tactic_smokescreen","summon_wolf","summon_barrier"]'::jsonb
+      ),
+      'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true),
+      'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2),
+      'adventureProgress', jsonb_build_object(),
+      'adventureMapClaims', jsonb_build_object()
+    )
+  );
+  if v_sync_replay <> v_sync_result then
+    raise exception 'sync_local_snapshot is not idempotent: % <> %', v_sync_replay, v_sync_result;
+  end if;
 
   v_loadout_result := public.save_frontline_loadout(
     'smoke-loadout-20260511-0001',

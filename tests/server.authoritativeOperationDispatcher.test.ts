@@ -7,9 +7,72 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
+  syncLocalSnapshotAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 
 describe("authoritative operation dispatcher", () => {
+  it("falls back to local snapshot sync when there is no Supabase session", async () => {
+    const result = await syncLocalSnapshotAuthoritatively("1", { resources: { gold: 500 } }, {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns normalized snapshot after server-backed local sync", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          profileId: "11111111-1111-4111-8111-111111111111",
+          imported: true,
+          normalizedSnapshot: {
+            account: { name: "Commander", level: 4, xp: 300 },
+            resources: { gold: 1200, dust: 250, gems: 50, arenaTickets: 5, adventureKeys: 1 },
+          },
+        },
+      }),
+    });
+
+    const result = await syncLocalSnapshotAuthoritatively("1", { resources: { gold: 1200 } }, {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      profileId: "11111111-1111-4111-8111-111111111111",
+      imported: true,
+      normalizedSnapshot: {
+        account: { name: "Commander", level: 4, xp: 300 },
+        resources: { gold: 1200, dust: 250, gems: 50, arenaTickets: 5, adventureKeys: 1 },
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects local sync", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "invalid_request", reason: "Invalid snapshot shape" }),
+    });
+
+    const result = await syncLocalSnapshotAuthoritatively("1", { resources: { gold: 500 } }, {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Invalid snapshot shape",
+    });
+  });
+
   it("falls back to local mission claims when there is no Supabase session", async () => {
     const result = await claimMissionAuthoritatively("d_battles_3", "daily:2026-05-12", {
       tokenProvider: async () => null,

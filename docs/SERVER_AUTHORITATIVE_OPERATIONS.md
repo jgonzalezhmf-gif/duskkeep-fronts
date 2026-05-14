@@ -8,7 +8,7 @@ La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salv
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
 La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. De momento mantiene en local las mejoras de heroes, cartas y fortaleza, aunque existan contratos preparados, porque esos sistemas todavia pueden cambiar y no deben exponerse como economia autoritativa hasta tener modelo, RPC y migracion estables.
 
@@ -61,6 +61,8 @@ Codigos recomendados:
 
 Migra un snapshot local a cuenta autenticada.
 
+Primera implementacion SQL: `public.sync_local_snapshot(p_idempotency_key text, p_local_version text, p_snapshot jsonb)`. Alcance inicial: importacion explicita de recursos, perfil basico, heroes, cartas Frontline, loadout, progreso Adventure y claims de mapa con allowlists/caps. No reduce progreso online existente y no debe considerarse suficiente para economia monetizada final.
+
 Payload:
 
 ```ts
@@ -91,6 +93,8 @@ Notas:
 
 - Debe ser una operacion explicita, no automatica y silenciosa.
 - Puede rechazar o recortar datos sospechosos.
+- El cliente envia solo un snapshot whitelisted mediante `createLocalSyncSnapshot`; no se envia el store completo.
+- La RPC aplica limites conservadores antes de persistir para reducir abuso de localStorage manipulado.
 
 ### `saveLoadout`
 
