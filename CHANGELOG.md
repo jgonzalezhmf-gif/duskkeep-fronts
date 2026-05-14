@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.15] - 2026-05-15
+
+### Changed
+- El smoke `smoke:supabase:guest-upgrade` ahora valida tambien la sincronizacion del snapshot local tras convertir una sesion invitada anonima en cuenta nueva.
+- Actualizada la documentacion de seguridad para reflejar que el smoke cubre `user_id`, `profileId`, starter state y progreso local sincronizado.
+
+### Security
+- La validacion operativa cubre el punto critico del flujo invitado -> cuenta nueva: no basta con convertir Auth, tambien debe persistirse progreso local mediante la RPC endurecida.
+
+### Tested
+- `npm.cmd run smoke:supabase:guest-upgrade`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.14] - 2026-05-15
 
 ### Changed

@@ -59,9 +59,25 @@ if (secondSnapshot.result.profileId !== firstProfileId) {
   fail("Anonymous upgrade did not preserve the server profile id.");
 }
 
+const syncResult = await supabase.rpc("sync_local_snapshot", {
+  p_idempotency_key: `guest-upgrade-sync-${Date.now()}`,
+  p_local_version: "1",
+  p_snapshot: createLocalProgressSnapshot(),
+});
+if (syncResult.error || !syncResult.data?.ok) {
+  fail("Guest-upgrade local snapshot sync failed.");
+}
+
+const syncedSnapshot = await loadPlayerSnapshot("post-upgrade synced snapshot");
+if (syncedSnapshot.result.profileId !== firstProfileId) {
+  fail("Snapshot sync after guest upgrade changed the server profile id.");
+}
+assertSyncedLocalProgress(syncedSnapshot);
+
 console.log("Anonymous guest upgrade smoke passed.");
 console.log(`User id preserved: ${anonymousUserId}`);
 console.log(`Profile id preserved: ${firstProfileId}`);
+console.log("Local guest progress sync preserved after upgrade.");
 console.log(`Email used: ${email}`);
 
 async function loadPlayerSnapshot(label) {
@@ -92,6 +108,91 @@ function assertStarterSnapshot(snapshotResult, label) {
     snapshot.frontlineLoadout.deck.length !== 8
   ) {
     fail(`${label} did not include the starter Frontline loadout.`);
+  }
+}
+
+function createLocalProgressSnapshot() {
+  return {
+    account: {
+      name: "Guest Upgrade Smoke",
+      level: 4,
+      xp: 240,
+    },
+    resources: {
+      gold: 650,
+      dust: 400,
+      gems: 200,
+      arenaTickets: 5,
+      adventureKeys: 1,
+    },
+    heroes: [
+      {
+        heroId: "bran",
+        level: 3,
+        stars: 2,
+        shards: 25,
+        xp: 40,
+        skillLevel: 2,
+      },
+    ],
+    frontlineCardUnlocks: {
+      order_guard_wall: true,
+    },
+    frontlineCardLevels: {
+      order_guard_wall: 2,
+    },
+    frontlineLoadout: {
+      leaderId: "leader_aurora",
+      squad: ["bran", "kara", "mira"],
+      deck: [
+        "order_guard_wall",
+        "order_twin_slash",
+        "order_focus_fire",
+        "tactic_battle_hymn",
+        "tactic_sanctuary",
+        "tactic_smokescreen",
+        "summon_wolf",
+        "summon_barrier",
+      ],
+    },
+    frontlineFortress: {
+      buildings: {
+        keep: 3,
+        treasury: 2,
+        barracks: 1,
+      },
+      integrity: 92,
+      garrison: ["bran", "kara", "mira"],
+      nextAttackAt: null,
+      raidsResolved: 2,
+    },
+    adventureProgress: {},
+    adventureMapClaims: {},
+  };
+}
+
+function assertSyncedLocalProgress(snapshotResult) {
+  const snapshot = snapshotResult.result.snapshot;
+  if (snapshot.account?.level !== 4 || snapshot.account?.xp !== 240) {
+    fail("Post-upgrade sync did not preserve local account progress.");
+  }
+  if (
+    snapshot.resources?.gold !== 650 ||
+    snapshot.resources?.dust !== 400 ||
+    snapshot.resources?.gems !== 200 ||
+    snapshot.resources?.adventureKeys !== 1
+  ) {
+    fail("Post-upgrade sync did not preserve local resources.");
+  }
+  const bran = snapshot.heroes?.find((hero) => hero.heroId === "bran");
+  if (!bran || bran.level !== 3 || bran.stars !== 2 || bran.skillLevel !== 2) {
+    fail("Post-upgrade sync did not preserve local hero progress.");
+  }
+  if (snapshot.frontlineCardLevels?.order_guard_wall !== 2) {
+    fail("Post-upgrade sync did not preserve local card progress.");
+  }
+  if (snapshot.frontlineFortress?.buildings?.keep !== 3 || snapshot.frontlineFortress?.raidsResolved !== 2) {
+    fail("Post-upgrade sync did not preserve local Frontline Fortress progress.");
   }
 }
 
