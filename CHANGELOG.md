@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.3] - 2026-05-14
+
+### Added
+- Aniadida RPC read-only `get_player_snapshot` para leer el estado normalizado del jugador autenticado o anonimo desde Supabase.
+- Aniadido helper cliente tipado `loadServerPlayerSnapshot` para consumir el snapshot sin exponer tokens ni detalles internos.
+- Aniadido smoke `npm.cmd run smoke:supabase:snapshot` para validar ownership del snapshot local.
+
+### Security
+- El snapshot usa `auth.uid()` y devuelve solo datos del perfil propietario.
+- La respuesta excluye `server_operations`, ledger e identificadores internos de operaciones.
+- Cubierto por smoke que dos usuarios locales no pueden leer datos cruzados.
+
+### Tested
+- `npm.cmd run test -- tests/serverPlayerSnapshot.test.ts tests/supabaseBrowserSession.test.ts`
+- `npm.cmd run smoke:supabase:snapshot`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.2] - 2026-05-14
 
 ### Added

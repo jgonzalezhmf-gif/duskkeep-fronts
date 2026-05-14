@@ -58,6 +58,7 @@ La ruta `/api/server/authoritative` es el primer proxy HTTP hacia RPCs autoritat
 - `supabase/migrations/20260511223000_claim_daily_login_rpc.sql` crea la RPC autoritativa de recompensa diaria.
 - `supabase/migrations/20260512082000_claim_mission_reward_rpc.sql` crea la RPC autoritativa para reclamar misiones ya completadas en `missions_progress`.
 - `supabase/migrations/20260512100000_mission_progress_from_authoritative_events.sql` crea helpers/triggers para avanzar misiones desde eventos autoritativos (`adventure_progress` y `battle_results`) sin aceptar progreso arbitrario del cliente.
+- `supabase/migrations/20260514170000_get_player_snapshot_rpc.sql` crea la RPC read-only `get_player_snapshot` para leer el estado normalizado del jugador autenticado o anonimo sin exponer operaciones internas.
 - Las migraciones nuevas deben seguir `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
 
 ## Smoke Tests Locales
@@ -77,6 +78,14 @@ npm.cmd run smoke:supabase:guest
 ```
 
 El script inserta un usuario anonimo local en `auth.users` y comprueba que el trigger crea `profiles` y `player_resources`.
+
+Para validar la lectura del snapshot server-side del jugador autenticado:
+
+```bash
+npm.cmd run smoke:supabase:snapshot
+```
+
+El script crea dos usuarios locales de prueba y comprueba que `get_player_snapshot` devuelve solo el perfil, recursos, loadout, cartas y progreso del usuario autenticado por `auth.uid()`.
 
 Para validar el proxy HTTP con JWT real de Supabase Auth local:
 

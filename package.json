@@ -1,6 +1,6 @@
 {
   "name": "duskkeep-fronts",
-  "version": "0.30.2",
+  "version": "0.30.3",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -19,6 +19,7 @@
     "check:performance": "node scripts/check-performance-budget.mjs",
     "smoke:authoritative-api": "node scripts/smoke-authoritative-api.mjs",
     "smoke:supabase:guest": "npx supabase db query --local --file supabase/smoke-tests/auth_guest_provisioning.sql --output table",
+    "smoke:supabase:snapshot": "npx supabase db query --local --file supabase/smoke-tests/player_snapshot_rpc.sql --output table",
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:reset": "node scripts/reset.mjs",
