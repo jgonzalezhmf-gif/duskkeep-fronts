@@ -48,6 +48,8 @@ Tablas y funciones:
 - `server_arena_opponents`: define rivales Arena, preset, coste de ticket y rewards por resultado mediante `reward_id`.
 - `server_event_definitions`: define eventos, preset, nivel de desbloqueo y reward diario first-clear mediante `reward_id`.
 - `server_frontline_fortress_buildings`: define edificios de Fortress visible, nivel maximo y curva de coste server-side.
+- `server_frontline_fortress_hero_scores`: define la contribucion base de cada heroe a la defensa de Fortress.
+- `server_frontline_fortress_raid_profiles`: define formula de ataque/defensa, cooldown, outcomes e importes base de rewards de raids Fortress.
 
 Alcance actual:
 
@@ -60,6 +62,7 @@ Alcance actual:
 - Arena results ya usa `server_arena_opponents` para rivales, coste de ticket y rewards win/draw/loss.
 - Event results ya usa `server_event_definitions` para eventos, unlock level, preset y reward diario first-clear.
 - Fortress upgrades ya usa `server_frontline_fortress_buildings` para edificios habilitados, nivel maximo y costes.
+- Fortress raids ya usa `server_frontline_fortress_hero_scores` y `server_frontline_fortress_raid_profiles` para calcular defensa, ataque, outcome, cooldown y rewards.
 - El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
@@ -462,7 +465,7 @@ type UpgradeFrontlineFortressResult = {
 
 Resuelve el raid disponible de la Fortress visible.
 
-Primera implementacion SQL: `public.resolve_frontline_fortress_raid(p_idempotency_key text)`. El cliente no envia poder de ataque, defensa, rewards ni timing; solo solicita resolver el raid. El servidor calcula disponibilidad, ataque, defensa, resultado, recompensas, cooldown y snapshot final.
+Primera implementacion SQL: `public.resolve_frontline_fortress_raid(p_idempotency_key text)`. El cliente no envia poder de ataque, defensa, rewards ni timing; solo solicita resolver el raid. El servidor calcula disponibilidad, ataque, defensa, resultado, recompensas, cooldown y snapshot final desde catalogos internos.
 
 Payload:
 
@@ -475,9 +478,10 @@ Validaciones:
 - El usuario esta autenticado.
 - La Fortress existe o se inicializa con estado base server-side.
 - `nextAttackAt` no esta en el futuro.
-- Ataque, defensa y rewards se calculan en servidor desde edificios, guarnicion, heroes, nivel de cuenta e integridad.
+- Ataque, defensa y rewards se calculan en servidor desde edificios, guarnicion, heroes, nivel de cuenta, integridad y `server_frontline_fortress_raid_profiles`.
+- La contribucion de heroes se resuelve desde `server_frontline_fortress_hero_scores`.
 - La operacion es idempotente.
-- Los recursos ganados quedan en `resource_ledger`.
+- Los recursos ganados pasan por `grant_reward_bundle` y quedan en `resource_ledger`.
 - La siguiente ventana de raid queda bloqueada por cooldown server-side.
 
 Resultado:

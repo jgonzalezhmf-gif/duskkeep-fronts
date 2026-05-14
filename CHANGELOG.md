@@ -7,6 +7,33 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.10] - 2026-05-14
+
+### Added
+- Backend introduce `server_frontline_fortress_hero_scores` para definir la contribucion base de heroes a raids Fortress.
+- Backend introduce `server_frontline_fortress_raid_profiles` para definir formula de ataque/defensa, outcomes, cooldown y rewards base.
+
+### Changed
+- `resolve_frontline_fortress_raid` deja de tener hardcodeadas las formulas de raid y lee la configuracion desde catalogos internos.
+- `frontline_fortress_hero_presence_score` deja de hardcodear stats base de heroes y pasa a resolverlos desde catalogo server-side.
+- Los rewards de raid Fortress pasan por `grant_reward_bundle` para compartir validacion y ledger centralizado.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Fortress raids data-driven.
+
+### Security
+- El cliente sigue solicitando solo resolver el raid; no decide ataque, defensa, outcome, cooldown ni rewards.
+- `server_frontline_fortress_hero_scores` y `server_frontline_fortress_raid_profiles` quedan sin grants para `authenticated`.
+- La operacion mantiene ownership, idempotencia, cooldown server-side y ledger de recursos ganados.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer los catalogos de raids ni ejecutar `frontline_fortress_hero_presence_score`.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.9] - 2026-05-14
 
 ### Added
