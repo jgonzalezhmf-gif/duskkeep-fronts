@@ -21,6 +21,7 @@ export type GameAuthGateProps = {
   open: boolean;
   allowGuest?: boolean;
   intent?: "entry" | "guestUpgrade";
+  initialNoticeKey?: string;
   onGuest?: () => void;
   onLinked: () => void | Promise<void>;
   onClose?: () => void;
@@ -32,11 +33,13 @@ export function GameAuthGate({
   open,
   allowGuest = true,
   intent = "entry",
+  initialNoticeKey,
   onGuest,
   onLinked,
   onClose,
 }: GameAuthGateProps) {
   const { t } = useI18n();
+  const initialNotice = initialNoticeKey ? t(initialNoticeKey) : null;
   const [mode, setMode] = useState<AuthMode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -61,6 +64,12 @@ export function GameAuthGate({
       subscription?.unsubscribe();
     };
   }, [open]);
+
+  useEffect(() => {
+    if (open && initialNotice) {
+      setNotice(initialNotice);
+    }
+  }, [initialNotice, open]);
 
   if (!open) return null;
 

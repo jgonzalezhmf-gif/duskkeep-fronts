@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.5] - 2026-05-14
+
+### Added
+- Aniadido monitor global de seguridad de sesion para detectar inactividad en cualquier pantalla del juego.
+- Aniadido timeout de inactividad de una hora para cuentas vinculadas, con re-login obligatorio al expirar.
+- Aniadidos helpers puros para evaluar expiracion por inactividad y throttling de actividad.
+
+### Security
+- La sesion Supabase sigue con refresh automatico mientras existe sesion, pero el cliente fuerza cierre tras inactividad prolongada.
+- Al expirar por inactividad, se cierra Supabase, se marca la cuenta como no resuelta y se muestra el gate de login con mensaje generico.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test -- tests/sessionSecurity.test.ts tests/supabaseBrowserSession.test.ts`
+
 ## [0.29.4] - 2026-05-14
 
 ### Added

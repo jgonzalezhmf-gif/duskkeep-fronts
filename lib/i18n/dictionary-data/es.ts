@@ -135,6 +135,7 @@ export const esDictionary = {
       checkEmail: "Revisa tu email para confirmar la cuenta antes de usar sincronizacion online.",
       guestUpgradeCheckEmail: "Si la solicitud puede continuar, revisa tu email para confirmar la cuenta antes de usar sincronizacion online.",
       accountRequestGeneric: "No hemos podido completar la solicitud de cuenta. Revisa los datos y vuelve a intentarlo.",
+      sessionExpired: "Tu sesion ha expirado por inactividad. Inicia sesion de nuevo para continuar.",
       recoveryEmailHint: "Introduce el email de la cuenta antes de solicitar la recuperacion de acceso.",
       recoveryGeneric: "Si la solicitud puede continuar, recibiras los siguientes pasos de acceso por email.",
       passwordRecoveryEyebrow: "Recuperacion de cuenta",

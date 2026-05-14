@@ -135,6 +135,7 @@ export const enDictionary = {
       checkEmail: "Check your email to confirm the account before online sync is available.",
       guestUpgradeCheckEmail: "If the request can continue, check your email to confirm the account before online sync is available.",
       accountRequestGeneric: "We could not complete the account request. Check the details and try again.",
+      sessionExpired: "Your session expired after inactivity. Sign in again to continue.",
       recoveryEmailHint: "Enter the account email before requesting access recovery.",
       recoveryGeneric: "If the request can continue, you will receive the next access steps by email.",
       passwordRecoveryEyebrow: "Account recovery",
