@@ -9,6 +9,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   recordArenaResultAuthoritatively,
+  recordEventResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
@@ -29,6 +30,7 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   openAdventureMapInteractionAuthoritatively: vi.fn(),
   purchaseShopOfferAuthoritatively: vi.fn(),
   recordArenaResultAuthoritatively: vi.fn(),
+  recordEventResultAuthoritatively: vi.fn(),
   resolveFrontlineFortressRaidAuthoritatively: vi.fn(),
   saveFrontlineLoadoutAuthoritatively: vi.fn(),
   skillUpHeroAuthoritatively: vi.fn(),
@@ -49,6 +51,7 @@ const mockedCardUpgrade = vi.mocked(upgradeFrontlineCardAuthoritatively);
 const mockedFortressUpgrade = vi.mocked(upgradeFrontlineFortressAuthoritatively);
 const mockedFortressRaid = vi.mocked(resolveFrontlineFortressRaidAuthoritatively);
 const mockedArenaResult = vi.mocked(recordArenaResultAuthoritatively);
+const mockedEventResult = vi.mocked(recordEventResultAuthoritatively);
 const mockedHeroLevelUp = vi.mocked(levelUpHeroAuthoritatively);
 const mockedHeroStarUp = vi.mocked(starUpHeroAuthoritatively);
 const mockedHeroSkillUp = vi.mocked(skillUpHeroAuthoritatively);
@@ -67,6 +70,7 @@ describe("store authoritative fallback policy", () => {
     mockedPurchase.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedFortressRaid.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedArenaResult.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedEventResult.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedCardUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
@@ -187,6 +191,27 @@ describe("store authoritative fallback policy", () => {
     expect(result).toBeNull();
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().arenaWins).toBe(0);
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("blocks linked account Event results when the session is missing", async () => {
+    useGameStore.setState({ accountLinkMode: "linked" });
+    mockedEventResult.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().recordEventResultOnlineFirst({
+      eventId: "gold_rush",
+      battleSeed: 123,
+      winner: "ally",
+      turns: 7,
+      battleSummary: {},
+      rewards: { gold: 400, xp: 60, accountXp: 12 },
+      source: "Gold Rush",
+    });
+
+    expect(result).toBeNull();
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().eventCompletions.gold_rush).toBeUndefined();
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 
@@ -406,6 +431,42 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().resources).toEqual({ gold: 620, dust: 50, gems: 53, arenaTickets: 4, adventureKeys: 0 });
     expect(useGameStore.getState().arenaWins).toBe(1);
     expect(useGameStore.getState().arenaLosses).toBe(0);
+  });
+
+  it("applies authoritative Event results without trusting local rewards", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      account: { ...useGameStore.getState().account, level: 4 },
+      resources: { gold: 1, dust: 1, gems: 1, arenaTickets: 5, adventureKeys: 0 },
+    });
+    mockedEventResult.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      eventId: "gold_rush",
+      winner: "ally",
+      firstClear: true,
+      rewards: { gold: 400, xp: 60, accountXp: 12 },
+      resources: { gold: 900, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+
+    const result = await useGameStore.getState().recordEventResultOnlineFirst({
+      eventId: "gold_rush",
+      battleSeed: 123,
+      winner: "ally",
+      turns: 7,
+      battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      rewards: { gems: 9999 },
+      source: "Gold Rush",
+    });
+
+    expect(result).toEqual({
+      rewards: { gold: 400, xp: 60, accountXp: 12 },
+      firstClear: true,
+      authoritative: true,
+      resources: { gold: 900, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+    expect(useGameStore.getState().resources).toEqual({ gold: 900, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 });
+    expect(useGameStore.getState().eventCompletions.gold_rush).toBeTruthy();
   });
 
   it("keeps local fallback available for linked accounts when the API is disabled", async () => {

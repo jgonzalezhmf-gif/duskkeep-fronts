@@ -28,6 +28,7 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineFortress",
       "resolveFrontlineFortressRaid",
       "recordArenaResult",
+      "recordEventResult",
     ]);
   });
 
@@ -48,6 +49,7 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineFortress",
       "resolveFrontlineFortressRaid",
       "recordArenaResult",
+      "recordEventResult",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("syncLocalSnapshot")).toBe(true);
@@ -60,6 +62,7 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineFortress")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("resolveFrontlineFortressRaid")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordArenaResult")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("recordEventResult")).toBe(true);
   });
 
   it("accepts a capped local snapshot sync payload", () => {
@@ -242,6 +245,35 @@ describe("server authoritative operation contracts", () => {
           battleSeed: 123,
           winner: "ally",
           turns: 9,
+          rewards: { gems: 999 },
+          battleSummary: {},
+        },
+      }).ok,
+    ).toBe(false);
+  });
+
+  it("accepts Event results without client-supplied rewards", () => {
+    const parsed = parseServerActionRequest("recordEventResult", {
+      idempotencyKey: "event-result-20260515-0001",
+      payload: {
+        eventId: "gold_rush",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      },
+    });
+
+    expect(parsed.ok).toBe(true);
+
+    expect(
+      parseServerActionRequest("recordEventResult", {
+        idempotencyKey: "event-result-extra-20260515-0001",
+        payload: {
+          eventId: "gold_rush",
+          battleSeed: 123,
+          winner: "ally",
+          turns: 7,
           rewards: { gems: 999 },
           battleSummary: {},
         },

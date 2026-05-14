@@ -8,6 +8,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   recordArenaResultAuthoritatively,
+  recordEventResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
@@ -178,6 +179,23 @@ describe("authoritative operation dispatcher", () => {
         battleSeed: 123,
         winner: "ally",
         turns: 6,
+        battleSummary: {},
+      },
+      {
+        tokenProvider: async () => null,
+      },
+    );
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local Event results when there is no Supabase session", async () => {
+    const result = await recordEventResultAuthoritatively(
+      {
+        eventId: "gold_rush",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
         battleSummary: {},
       },
       {
@@ -758,6 +776,88 @@ describe("authoritative operation dispatcher", () => {
       ok: false,
       mode: "authoritative",
       reason: "Arena ticket required",
+    });
+  });
+
+  it("returns authoritative Event rewards after a daily clear", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          eventId: "gold_rush",
+          winner: "ally",
+          firstClear: true,
+          rewardsGranted: { gold: 400, xp: 60, accountXp: 12 },
+          resources: {
+            gold: 900,
+            dust: 50,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await recordEventResultAuthoritatively(
+      {
+        eventId: "gold_rush",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      eventId: "gold_rush",
+      winner: "ally",
+      firstClear: true,
+      rewards: { gold: 400, xp: 60, accountXp: 12 },
+      resources: {
+        gold: 900,
+        dust: 50,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects an Event result", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "locked", reason: "Event operation is locked" }),
+    });
+
+    const result = await recordEventResultAuthoritatively(
+      {
+        eventId: "gold_rush",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: {},
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Event operation is locked",
     });
   });
 

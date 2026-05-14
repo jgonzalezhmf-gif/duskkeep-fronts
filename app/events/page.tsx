@@ -50,9 +50,7 @@ export default function EventsPage() {
   const level = useGameStore((state) => state.account.level);
   const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
   const nextSeed = useGameStore((state) => state.nextSeed);
-  const awardRewards = useGameStore((state) => state.awardRewards);
-  const recordBattleResult = useGameStore((state) => state.recordBattleResult);
-  const markEventCompleted = useGameStore((state) => state.markEventCompleted);
+  const recordEventResult = useGameStore((state) => state.recordEventResultOnlineFirst);
   const eventCompletions = useGameStore((state) => state.eventCompletions);
 
   const operations = useMemo(() => eventOperations((key, params) => translate(locale, key, params)), [locale]);
@@ -86,32 +84,36 @@ export default function EventsPage() {
     setPhase("battle");
   }
 
-  function finishOperation(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
+  async function finishOperation(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
     if (!activeOperation) return;
     const won = winner === "ally";
     const alreadyDone = doneToday(activeOperation.id);
-    const rewards = won
-      ? alreadyDone
-        ? {}
-        : mergeRewards(activeOperation.rewards, activeOperation.firstClearRewards)
-      : winner === "draw"
-        ? { gold: 35, accountXp: 2 }
-        : { accountXp: 1 };
-
-    recordBattleResult(won, "event");
-    if (won && !alreadyDone) {
-      awardRewards(rewards, activeOperation.name);
-      markEventCompleted(activeOperation.id);
+    const previewRewards = won && !alreadyDone ? mergeRewards(activeOperation.rewards, activeOperation.firstClearRewards) : {};
+    const recorded = await recordEventResult({
+      eventId: activeOperation.id,
+      battleSeed: seed,
+      winner,
+      turns: battleState.round,
+      battleSummary: {
+        allyCoreHp: battleState.allyCoreHp,
+        enemyCoreHp: battleState.enemyCoreHp,
+      },
+      rewards: previewRewards,
+      source: activeOperation.name,
+    });
+    if (!recorded) {
+      setPhase("list");
+      return;
     }
 
     setResult({
       winner,
       operation: activeOperation,
-      rewards,
+      rewards: recorded.rewards,
       rounds: battleState.round,
       allyCoreHp: battleState.allyCoreHp,
       enemyCoreHp: battleState.enemyCoreHp,
-      firstClear: won && !alreadyDone,
+      firstClear: recorded.firstClear,
     });
     setPhase("post");
   }

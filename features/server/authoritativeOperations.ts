@@ -211,6 +211,15 @@ export const serverOperationPayloadSchemas = {
       battleSummary: z.unknown(),
     })
     .strict(),
+  recordEventResult: z
+    .object({
+      eventId: idSchema,
+      battleSeed: z.number().int().safe(),
+      winner: z.enum(["ally", "enemy", "draw"]),
+      turns: z.number().int().nonnegative().max(500),
+      battleSummary: z.unknown(),
+    })
+    .strict(),
 } as const;
 
 export type ServerOperationType = keyof typeof serverOperationPayloadSchemas;
@@ -239,6 +248,7 @@ export const supportedAuthoritativeApiOperations = [
   "upgradeFrontlineFortress",
   "resolveFrontlineFortressRaid",
   "recordArenaResult",
+  "recordEventResult",
 ] as const satisfies ServerOperationType[];
 
 export type SupportedAuthoritativeApiOperation = (typeof supportedAuthoritativeApiOperations)[number];

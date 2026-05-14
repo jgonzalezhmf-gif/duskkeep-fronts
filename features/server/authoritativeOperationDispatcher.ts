@@ -259,6 +259,47 @@ export type RecordArenaResultAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type RecordEventResultInput = {
+  eventId: string;
+  battleSeed: number;
+  winner: AuthoritativeArenaWinner;
+  turns: number;
+  battleSummary: unknown;
+};
+
+export type AuthoritativeEventResultSuccess = {
+  ok: true;
+  mode: "authoritative";
+  eventId: string;
+  winner: AuthoritativeArenaWinner;
+  firstClear: boolean;
+  rewards: Rewards;
+  resources: Resources;
+};
+
+export type AuthoritativeEventResultFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeEventResultFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeEventResult =
+  | AuthoritativeEventResultSuccess
+  | AuthoritativeEventResultFailure
+  | AuthoritativeEventResultFallback;
+
+export type RecordEventResultAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export type AuthoritativeLoadoutSaveSuccess = {
   ok: true;
   mode: "authoritative";
@@ -1209,6 +1250,53 @@ export async function recordArenaResultAuthoritatively(
   };
 }
 
+export async function recordEventResultAuthoritatively(
+  input: RecordEventResultInput,
+  options: RecordEventResultAuthoritativelyOptions = {},
+): Promise<AuthoritativeEventResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "recordEventResult",
+    {
+      idempotencyKey: createIdempotencyKey("event", `${input.eventId}:${input.battleSeed}:${input.winner}`),
+      payload: input,
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractEventResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.eventId !== input.eventId) {
+    return { ok: false, mode: "authoritative", reason: "Server response event mismatch" };
+  }
+  if (parsed.winner !== input.winner) {
+    return { ok: false, mode: "authoritative", reason: "Server response winner mismatch" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
 function createIdempotencyKey(scope: string, id: string) {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
   return `${scope}:${id}:${Date.now()}:${suffix}`;
@@ -1319,6 +1407,25 @@ function extractArenaResult(result: unknown): Omit<AuthoritativeArenaResultSucce
     resources,
     arenaWins,
     arenaLosses,
+  };
+}
+
+function extractEventResult(result: unknown): Omit<AuthoritativeEventResultSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const eventId = parseString(result.eventId);
+  const winner = parseArenaWinner(result.winner);
+  const firstClear = parseBoolean(result.firstClear);
+  const rewards = parseRewardPayload(result.rewardsGranted);
+  const resources = extractResources(result);
+  if (!eventId || !winner || firstClear === null || !rewards.success || !resources) return null;
+
+  return {
+    eventId,
+    winner,
+    firstClear,
+    rewards: rewards.data,
+    resources,
   };
 }
 

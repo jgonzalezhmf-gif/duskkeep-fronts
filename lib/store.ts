@@ -63,6 +63,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   recordArenaResultAuthoritatively,
+  recordEventResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
@@ -539,6 +540,62 @@ export const useGameStore = create<GameState & GameActions>()(
         get().updateMissionProgress("arena_battles", 1);
         return {
           rewards: authoritative.rewards,
+          authoritative: true,
+          resources: authoritative.resources,
+        };
+      },
+
+      recordEventResultOnlineFirst: async ({ eventId, battleSeed, winner, turns, battleSummary, rewards, source }) => {
+        const authoritative = await recordEventResultAuthoritatively({
+          eventId,
+          battleSeed,
+          winner,
+          turns,
+          battleSummary,
+        });
+
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return null;
+          }
+
+          const won = winner === "ally";
+          const today = todayYMD();
+          const firstClear = won && get().eventCompletions[eventId] !== today;
+          get().recordBattleResult(won, "event");
+          if (firstClear) {
+            get().awardRewards(rewards, source);
+            get().markEventCompleted(eventId);
+          }
+          return { rewards: firstClear ? rewards : {}, firstClear, authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((state) => {
+          const rewardedState = applyRewardsToGameState(state, authoritative.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
+          };
+        });
+        if (authoritative.winner === "ally") get().updateMissionProgress("battles_won", 1);
+        get().updateMissionProgress("events_played", 1);
+        if (authoritative.firstClear) get().markEventCompleted(authoritative.eventId);
+        return {
+          rewards: authoritative.rewards,
+          firstClear: authoritative.firstClear,
           authoritative: true,
           resources: authoritative.resources,
         };

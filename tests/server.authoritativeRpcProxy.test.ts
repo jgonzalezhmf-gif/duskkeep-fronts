@@ -313,6 +313,36 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps Event results to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "recordEventResult",
+        idempotencyKey: "event-result-20260515",
+        payload: {
+          eventId: "gold_rush",
+          battleSeed: 123,
+          winner: "ally",
+          turns: 7,
+          battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+        },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "record_event_result",
+      rpcArgs: {
+        p_idempotency_key: "event-result-20260515",
+        p_event_id: "gold_rush",
+        p_battle_seed: 123,
+        p_winner: "ally",
+        p_turns: 7,
+      },
+    });
+  });
+
   it("maps hero level ups to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

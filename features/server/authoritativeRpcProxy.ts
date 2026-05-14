@@ -272,6 +272,21 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "recordEventResult") {
+    const eventPayload = payload as ServerOperationPayload<"recordEventResult">;
+    return {
+      rpcName: "record_event_result",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_event_id: eventPayload.eventId,
+        p_battle_seed: eventPayload.battleSeed,
+        p_winner: eventPayload.winner,
+        p_turns: eventPayload.turns,
+        p_battle_summary: eventPayload.battleSummary,
+      },
+    };
+  }
+
   if (operationType === "levelUpHero") {
     const heroPayload = payload as ServerOperationPayload<"levelUpHero">;
     return {

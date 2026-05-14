@@ -7,6 +7,35 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.17] - 2026-05-14
+
+### Added
+- Aniadida RPC autoritativa `record_event_result` para registrar resultados de Events.
+- Aniadido contrato `recordEventResult` al cliente/proxy autoritativo.
+- El smoke Supabase cubre primera victoria diaria de Event, idempotencia, segundo intento sin reward y rechazo de evento no soportado.
+
+### Changed
+- `/events` usa `recordEventResultOnlineFirst` al finalizar combate.
+- En cuentas vinculadas, el servidor decide si el Event concede recompensa diaria; invitado/API desactivada conserva flujo local.
+- El smoke Supabase limpia `battle_results` del perfil de prueba para evitar resultados acumulados entre ejecuciones.
+
+### Security
+- El cliente ya no puede elegir rewards de Events cuando hay sesion vinculada.
+- La RPC valida `auth.uid()`, evento allowlisted, desbloqueo por nivel, idempotencia y registra recursos en `resource_ledger`.
+- Los resultados se guardan en `battle_results` con `source = 'event'` para alimentar misiones server-side.
+
+### Known Limitations
+- El MVP no simula la batalla en servidor ni valida todavia un log determinista completo; antes de Events competitivos o rankings habra que validar resultado con seed/log o ejecutar simulacion autoritativa.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run typecheck`
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.16] - 2026-05-14
 
 ### Added

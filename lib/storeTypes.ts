@@ -120,6 +120,15 @@ export type GameActions = {
     source: string;
     ticketAlreadySpent: boolean;
   }) => Promise<{ rewards: Rewards; authoritative?: boolean; resources?: Resources } | null>;
+  recordEventResultOnlineFirst: (input: {
+    eventId: string;
+    battleSeed: number;
+    winner: "ally" | "enemy" | "draw";
+    turns: number;
+    battleSummary: unknown;
+    rewards: Rewards;
+    source: string;
+  }) => Promise<{ rewards: Rewards; firstClear: boolean; authoritative?: boolean; resources?: Resources } | null>;
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
   claimAdventureBattleResultOnlineFirst: (input: {
     levelId: string;

@@ -39,6 +39,10 @@ declare
   v_arena_result jsonb;
   v_arena_replay jsonb;
   v_invalid_arena_result jsonb;
+  v_event_result jsonb;
+  v_event_replay jsonb;
+  v_event_second_attempt jsonb;
+  v_invalid_event_result jsonb;
   v_daily_result jsonb;
   v_daily_replay jsonb;
   v_daily_second_attempt jsonb;
@@ -125,6 +129,7 @@ begin
   delete from public.player_frontline_fortress where profile_id = v_profile_id;
   delete from public.daily_login_claims where profile_id = v_profile_id;
   delete from public.missions_progress where profile_id = v_profile_id;
+  delete from public.battle_results where profile_id = v_profile_id;
   delete from public.resource_ledger where profile_id = v_profile_id;
   delete from public.server_operations where profile_id = v_profile_id;
 
@@ -503,6 +508,66 @@ begin
   );
   if coalesce(v_invalid_arena_result ->> 'code', '') <> 'not_found' then
     raise exception 'Expected unsupported Arena opponent to be rejected: %', v_invalid_arena_result;
+  end if;
+
+  v_event_result := public.record_event_result(
+    'smoke-event-result-20260515-0001',
+    'gold_rush',
+    22345,
+    'ally',
+    7,
+    '{"allyCoreHp":12,"enemyCoreHp":0}'::jsonb
+  );
+  if coalesce((v_event_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'record_event_result failed: %', v_event_result;
+  end if;
+  if coalesce((v_event_result #>> '{result,firstClear}')::boolean, false) is not true then
+    raise exception 'Expected first Event clear to be marked firstClear: %', v_event_result;
+  end if;
+  if coalesce((v_event_result #>> '{result,rewardsGranted,gold}')::int, 0) <> 400 then
+    raise exception 'Expected gold_rush first clear to grant 400 gold: %', v_event_result;
+  end if;
+
+  v_event_replay := public.record_event_result(
+    'smoke-event-result-20260515-0001',
+    'gold_rush',
+    22345,
+    'ally',
+    7,
+    '{"allyCoreHp":12,"enemyCoreHp":0}'::jsonb
+  );
+  if v_event_replay <> v_event_result then
+    raise exception 'record_event_result is not idempotent: % <> %', v_event_replay, v_event_result;
+  end if;
+
+  v_event_second_attempt := public.record_event_result(
+    'smoke-event-result-20260515-0002',
+    'gold_rush',
+    22346,
+    'ally',
+    6,
+    '{}'::jsonb
+  );
+  if coalesce((v_event_second_attempt ->> 'ok')::boolean, false) is not true then
+    raise exception 'Second record_event_result attempt should return ok with no reward: %', v_event_second_attempt;
+  end if;
+  if coalesce((v_event_second_attempt #>> '{result,firstClear}')::boolean, true) is not false then
+    raise exception 'Expected second Event clear in same day to not be firstClear: %', v_event_second_attempt;
+  end if;
+  if coalesce((v_event_second_attempt #>> '{result,rewardsGranted,gold}')::int, 0) <> 0 then
+    raise exception 'Expected second Event clear in same day to grant no gold: %', v_event_second_attempt;
+  end if;
+
+  v_invalid_event_result := public.record_event_result(
+    'smoke-event-result-invalid-20260515-0001',
+    'unknown_event',
+    22347,
+    'ally',
+    5,
+    '{}'::jsonb
+  );
+  if coalesce(v_invalid_event_result ->> 'code', '') <> 'not_found' then
+    raise exception 'Expected unsupported Event to be rejected: %', v_invalid_event_result;
   end if;
 
   v_daily_result := public.claim_daily_login(
