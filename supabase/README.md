@@ -15,19 +15,29 @@ El estado de cliente no es seguro para economia, compras, ladder ni claims de re
 1. Copiar `.env.example` a `.env.local`.
 2. Rellenar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 3. Definir `NEXT_PUBLIC_PERSISTENCE=supabase`.
-4. Para el schema alpha legacy, aplicar:
+4. Para el flujo invitado respaldado por servidor, activar Anonymous Auth:
+
+   ```toml
+   # supabase/config.toml local, o dashboard Auth en remoto
+   [auth]
+   enable_anonymous_sign_ins = true
+   ```
+
+   `supabase/config.toml` es local y no se versiona. En remoto hay que activar esta opcion explicitamente en el proyecto Supabase antes de validar invitados reales.
+
+5. Para el schema alpha legacy, aplicar:
 
    ```bash
    psql "$SUPABASE_DB_URL" -f supabase/schema.sql
    ```
 
-5. Para empezar la linea de persistencia online segura, aplicar migraciones:
+6. Para empezar la linea de persistencia online segura, aplicar migraciones:
 
    ```bash
    supabase db push
    ```
 
-6. Opcional: cargar datos seed con `supabase/seed.sql`. El seed actual es tolerante con el schema seguro y salta datos legacy si las tablas antiguas no existen.
+7. Opcional: cargar datos seed con `supabase/seed.sql`. El seed actual es tolerante con el schema seguro y salta datos legacy si las tablas antiguas no existen.
 
 La interfaz de persistencia (`lib/persistence.ts`) ya expone un skeleton `SupabaseBackend`. Sustituir sus metodos solo despues de definir estrategia de validacion server-side para acciones sensibles.
 
@@ -59,6 +69,14 @@ psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/smoke
 ```
 
 El script crea un usuario local de prueba, valida `save_frontline_loadout`, `claim_daily_login`, `claim_mission_reward`, `claim_adventure_battle_result`, `claim_adventure_node_reward`, `purchase_shop_offer` y `open_adventure_map_interaction`; tambien comprueba idempotencia, confirma que Adventure genera progreso de misiones server-side y confirma que el cofre consume la llave.
+
+Para validar que un invitado anonimo provisiona perfil y recursos base:
+
+```bash
+npm.cmd run smoke:supabase:guest
+```
+
+El script inserta un usuario anonimo local en `auth.users` y comprueba que el trigger crea `profiles` y `player_resources`.
 
 Para validar el proxy HTTP con JWT real de Supabase Auth local:
 

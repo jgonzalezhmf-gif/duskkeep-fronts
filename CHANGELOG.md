@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.2] - 2026-05-14
+
+### Added
+- Activado Anonymous Auth en la configuracion local de Supabase.
+- Aniadido smoke `npm.cmd run smoke:supabase:guest` para comprobar provisioning de perfiles invitados anonimos.
+
+### Security
+- Verificado que un usuario anonimo Supabase crea `profiles` y `player_resources` iniciales mediante el trigger server-side.
+- Documentado que Anonymous Sign-Ins debe activarse tambien en Supabase remoto y que produccion debe usar mitigaciones anti-abuso.
+
+### Tested
+- `npm.cmd run smoke:supabase:guest`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.1] - 2026-05-14
 
 ### Fixed

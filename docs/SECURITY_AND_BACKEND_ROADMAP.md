@@ -129,6 +129,13 @@ El flujo objetivo no debe ser `localStorage -> subir progreso -> cuenta`, sino `
 8. El snapshot local queda como mecanismo de transicion/desarrollo, con allowlists y limites estrictos, no como arquitectura final.
 9. Los mensajes de login, registro y recuperacion deben ser genericos: no confirmar si una cuenta existe, no existe o esta en otro estado.
 
+Requisitos operativos:
+
+- En Supabase local, `supabase/config.toml` debe tener `auth.enable_anonymous_sign_ins = true`.
+- En Supabase remoto, Anonymous Sign-Ins debe activarse explicitamente antes de validar el flujo invitado real.
+- El smoke `npm.cmd run smoke:supabase:guest` comprueba que un usuario anonimo provisiona `profiles` y `player_resources`.
+- En produccion conviene activar captcha o mitigaciones equivalentes para altas anonimas si aumenta el abuso.
+
 ## Riesgos a Evitar
 
 - Conceder moneda premium directamente desde cliente.
