@@ -259,6 +259,17 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "skillUpHero") {
+    const heroPayload = payload as ServerOperationPayload<"skillUpHero">;
+    return {
+      rpcName: "skill_up_hero",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_hero_id: heroPayload.heroId,
+      },
+    };
+  }
+
   const purchasePayload = payload as ServerOperationPayload<"purchaseShopOffer">;
   return {
     rpcName: "purchase_shop_offer",

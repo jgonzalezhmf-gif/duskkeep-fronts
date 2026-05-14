@@ -407,6 +407,40 @@ export type StarUpHeroAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeHeroSkillUpSuccess = {
+  ok: true;
+  mode: "authoritative";
+  heroId: string;
+  skillLevel: number;
+  costPaid: {
+    dust: number;
+  };
+  resources: Resources;
+};
+
+export type AuthoritativeHeroSkillUpFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeHeroSkillUpFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeHeroSkillUpResult =
+  | AuthoritativeHeroSkillUpSuccess
+  | AuthoritativeHeroSkillUpFailure
+  | AuthoritativeHeroSkillUpFallback;
+
+export type SkillUpHeroAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export async function syncLocalSnapshotAuthoritatively(
   localVersion: string,
   snapshot: LocalSyncSnapshot,
@@ -440,6 +474,50 @@ export async function syncLocalSnapshotAuthoritatively(
   const parsed = extractLocalSnapshotSyncResult(response.body.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+export async function skillUpHeroAuthoritatively(
+  heroId: string,
+  options: SkillUpHeroAuthoritativelyOptions = {},
+): Promise<AuthoritativeHeroSkillUpResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "skillUpHero",
+    {
+      idempotencyKey: createIdempotencyKey("hero-skill", heroId),
+      payload: { heroId },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractHeroSkillUpResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.heroId !== heroId) {
+    return { ok: false, mode: "authoritative", reason: "Server response hero mismatch" };
   }
 
   return {
@@ -1082,6 +1160,23 @@ function extractHeroStarUpResult(result: unknown): Omit<AuthoritativeHeroStarUpS
     stars,
     shards,
     shardsSpent,
+    resources,
+  };
+}
+
+function extractHeroSkillUpResult(result: unknown): Omit<AuthoritativeHeroSkillUpSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result) || !isRecord(result.costPaid)) return null;
+
+  const heroId = parseString(result.heroId);
+  const skillLevel = parseIntegerRange(result.skillLevel, 1, 5);
+  const dust = parseResourceValue(result.costPaid.dust);
+  const resources = extractResources(result);
+  if (!heroId || skillLevel === null || dust === null || !resources) return null;
+
+  return {
+    heroId,
+    skillLevel,
+    costPaid: { dust },
     resources,
   };
 }

@@ -63,6 +63,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
+  skillUpHeroAuthoritatively,
   starUpHeroAuthoritatively,
   syncLocalSnapshotAuthoritatively,
   upgradeFrontlineCardAuthoritatively,
@@ -358,6 +359,39 @@ export const useGameStore = create<GameState & GameActions>()(
       skillUpHero: (heroId) => {
         const s = get();
         return applyProgressionCommandResultToStore(createHeroSkillUpCommand(s.heroes, s.resources, heroId), set, get);
+      },
+
+      skillUpHeroOnlineFirst: async (heroId) => {
+        const authoritative = await skillUpHeroAuthoritatively(heroId);
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return { ok: false, reason: authoritative.reason, authoritative: true };
+          }
+          return { ok: get().skillUpHero(heroId), authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return { ok: false, reason: authoritative.reason, authoritative: true };
+        }
+
+        set((s) => ({
+          resources: authoritative.resources,
+          heroes: s.heroes.map((hero) =>
+            hero.heroId === authoritative.heroId ? { ...hero, skillLevel: authoritative.skillLevel } : hero,
+          ),
+          heroesUpgraded: s.heroesUpgraded + 1,
+        }));
+        get().updateMissionProgress("heroes_upgraded", 1);
+        get().pushNotification("success", `Skill enhanced to level ${authoritative.skillLevel}!`);
+        return { ok: true, authoritative: true };
       },
 
       recordBattleResult: (won, source) => {

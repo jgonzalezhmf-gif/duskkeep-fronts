@@ -102,6 +102,7 @@ export type GameActions = {
   starUpHero: (heroId: string) => boolean;
   starUpHeroOnlineFirst: (heroId: string) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   skillUpHero: (heroId: string) => boolean;
+  skillUpHeroOnlineFirst: (heroId: string) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   recordBattleResult: (
     won: boolean,
     source: "adventure" | "arena" | "vsai" | "event",

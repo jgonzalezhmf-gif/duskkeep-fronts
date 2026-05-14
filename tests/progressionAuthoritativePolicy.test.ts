@@ -10,7 +10,7 @@ describe("progression authoritative policy", () => {
     expect(PROGRESSION_COMMAND_KINDS.map((kind) => [kind, getProgressionAuthoritativePolicy(kind)])).toEqual([
       ["hero.levelUp", { mode: "authoritative", operationType: "levelUpHero" }],
       ["hero.starUp", { mode: "authoritative", operationType: "starUpHero" }],
-      ["hero.skillUp", { mode: "local", reason: "hero_progression_model_pending" }],
+      ["hero.skillUp", { mode: "authoritative", operationType: "skillUpHero" }],
       ["frontlineCard.upgrade", { mode: "authoritative", operationType: "upgradeFrontlineCard" }],
       ["fortress.upgradeBuilding", { mode: "local", reason: "fortress_progression_rpc_pending" }],
       ["frontlineFortress.upgradeBuilding", { mode: "local", reason: "fortress_progression_rpc_pending" }],
@@ -21,6 +21,7 @@ describe("progression authoritative policy", () => {
     expect(PROGRESSION_COMMAND_KINDS.filter(isProgressionCommandAuthoritative)).toEqual([
       "hero.levelUp",
       "hero.starUp",
+      "hero.skillUp",
       "frontlineCard.upgrade",
     ]);
   });

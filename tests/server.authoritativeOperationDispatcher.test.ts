@@ -8,6 +8,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
+  skillUpHeroAuthoritatively,
   starUpHeroAuthoritatively,
   syncLocalSnapshotAuthoritatively,
   upgradeFrontlineCardAuthoritatively,
@@ -149,6 +150,110 @@ describe("authoritative operation dispatcher", () => {
     });
 
     expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local hero skill ups when there is no Supabase session", async () => {
+    const result = await skillUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative hero skill level and resources after enhancing a skill", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          heroId: "bran",
+          skillLevel: 3,
+          costPaid: { dust: 250 },
+          resources: {
+            gold: 500,
+            dust: 150,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await skillUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      heroId: "bran",
+      skillLevel: 3,
+      costPaid: { dust: 250 },
+      resources: {
+        gold: 500,
+        dust: 150,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects a hero skill up", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "insufficient_resources", reason: "Not enough Arcane Dust" }),
+    });
+
+    const result = await skillUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Not enough Arcane Dust",
+    });
+  });
+
+  it("rejects mismatched authoritative hero skill up responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          heroId: "kara",
+          skillLevel: 2,
+          costPaid: { dust: 100 },
+          resources: {
+            gold: 500,
+            dust: 400,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await skillUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response hero mismatch",
+    });
   });
 
   it("returns authoritative hero stars and remaining shards after starring up a hero", async () => {

@@ -24,6 +24,9 @@ declare
   v_hero_star_result jsonb;
   v_hero_star_replay jsonb;
   v_invalid_hero_star_result jsonb;
+  v_hero_skill_result jsonb;
+  v_hero_skill_replay jsonb;
+  v_invalid_hero_skill_result jsonb;
   v_card_upgrade_result jsonb;
   v_card_upgrade_replay jsonb;
   v_invalid_card_upgrade_result jsonb;
@@ -125,7 +128,7 @@ begin
     '1',
     jsonb_build_object(
       'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
-      'resources', jsonb_build_object('gold', 650, 'dust', 80, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
+      'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
       'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2)),
       'frontlineLoadout', jsonb_build_object(
         'leaderId', 'leader_aurora',
@@ -150,7 +153,7 @@ begin
     '1',
     jsonb_build_object(
       'account', jsonb_build_object('name', 'RPC Smoke', 'level', 4, 'xp', 240),
-      'resources', jsonb_build_object('gold', 650, 'dust', 80, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
+      'resources', jsonb_build_object('gold', 650, 'dust', 400, 'gems', 55, 'arenaTickets', 5, 'adventureKeys', 0),
       'heroes', jsonb_build_array(jsonb_build_object('heroId', 'bran', 'level', 3, 'stars', 2, 'shards', 25, 'xp', 40, 'skillLevel', 2)),
       'frontlineLoadout', jsonb_build_object(
         'leaderId', 'leader_aurora',
@@ -282,6 +285,36 @@ begin
   );
   if coalesce(v_invalid_hero_star_result ->> 'code', '') <> 'invalid_request' then
     raise exception 'Expected invalid_request for unknown hero star up: %', v_invalid_hero_star_result;
+  end if;
+
+  v_hero_skill_result := public.skill_up_hero(
+    'smoke-hero-skill-20260514-0001',
+    'bran'
+  );
+  if coalesce((v_hero_skill_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'skill_up_hero failed: %', v_hero_skill_result;
+  end if;
+  if coalesce((v_hero_skill_result #>> '{result,skillLevel}')::int, 0) <> 3 then
+    raise exception 'Expected bran skill to reach level 3: %', v_hero_skill_result;
+  end if;
+  if coalesce((v_hero_skill_result #>> '{result,costPaid,dust}')::int, 0) <> 250 then
+    raise exception 'Expected skill level 2 dust cost 250: %', v_hero_skill_result;
+  end if;
+
+  v_hero_skill_replay := public.skill_up_hero(
+    'smoke-hero-skill-20260514-0001',
+    'bran'
+  );
+  if v_hero_skill_replay <> v_hero_skill_result then
+    raise exception 'skill_up_hero is not idempotent: % <> %', v_hero_skill_replay, v_hero_skill_result;
+  end if;
+
+  v_invalid_hero_skill_result := public.skill_up_hero(
+    'smoke-hero-skill-invalid-20260514-0001',
+    'unknown_hero'
+  );
+  if coalesce(v_invalid_hero_skill_result ->> 'code', '') <> 'invalid_request' then
+    raise exception 'Expected invalid_request for unknown hero skill up: %', v_invalid_hero_skill_result;
   end if;
 
   v_card_upgrade_result := public.upgrade_frontline_card(

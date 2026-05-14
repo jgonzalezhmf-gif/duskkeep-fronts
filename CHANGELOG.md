@@ -7,6 +7,25 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.12] - 2026-05-14
+
+### Added
+- Aniadida RPC autoritativa `skill_up_hero` para mejorar skills de heroes consumiendo Arcane Dust server-side.
+- Aniadida accion `skillUpHeroOnlineFirst` en store para futuras UI de mejora de skill.
+- El smoke Supabase cubre skill up de heroe, replay idempotente y rechazo de hero id no valido.
+
+### Security
+- La mejora online valida `auth.uid()`, perfil, allowlist de heroes, ownership/desbloqueo, skill maximo, Dust suficiente e idempotencia.
+- El gasto de Dust queda registrado en `resource_ledger`.
+- La mision `heroes_upgraded` avanza desde evento server-side en la RPC.
+
+### Tested
+- `npm.cmd run test -- --run tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts tests/progressionAuthoritativePolicy.test.ts`
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.11] - 2026-05-14
 
 ### Added
