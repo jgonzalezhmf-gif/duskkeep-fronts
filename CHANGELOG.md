@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.3] - 2026-05-14
+
+### Added
+- Aniadido modal de recuperacion para establecer nueva password cuando Supabase devuelve una sesion `PASSWORD_RECOVERY`.
+- Aniadido helper central `updateSupabasePassword` y suscripcion a eventos Auth sin exponer tokens en el store.
+
+### Security
+- El modal limpia tokens/hash de recuperacion de la URL tras detectar el flujo.
+- Los errores de cambio de password se muestran con mensajes genericos, sin revelar detalles internos del proveedor.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test -- tests/supabaseBrowserSession.test.ts`
+
 ## [0.29.2] - 2026-05-14
 
 ### Added

@@ -12,6 +12,13 @@ const GameAuthGate = dynamic(() => import("@/components/game/auth/GameAuthGate")
   ssr: false,
 });
 
+const PasswordRecoveryGate = dynamic(
+  () => import("@/components/game/auth/PasswordRecoveryGate").then((mod) => mod.PasswordRecoveryGate),
+  {
+    ssr: false,
+  },
+);
+
 let introSeenInPageRuntime = false;
 
 export default function HomePageClient({
@@ -140,6 +147,7 @@ export default function HomePageClient({
         onGuest={() => setAccountLinkMode("guest")}
         onLinked={() => setAccountLinkMode("linked")}
       />
+      <PasswordRecoveryGate onRecovered={() => setAccountLinkMode("linked")} />
     </>
   );
 }
