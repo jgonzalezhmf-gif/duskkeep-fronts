@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.28.1] - 2026-05-14
+
+### Fixed
+- Home ahora fuerza la intro antes del gate de cuenta cuando `accountLinkMode` sigue sin decidir, incluso si el flag historico `hasSeenIntro` ya estaba marcado.
+
+### Tested
+- `npm.cmd run check`
+
 ## [0.28.0] - 2026-05-14
 
 ### Added

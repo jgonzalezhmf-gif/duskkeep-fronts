@@ -30,14 +30,16 @@ export default function HomePageClient({
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
   const [introDismissed, setIntroDismissed] = useState(false);
   const introEligible = !qaClean && !qaEffects;
-  const showIntro = store.hydrated && !introDismissed && introEligible && (forceIntro || !hasSeenIntro);
+  const mustResolveAccountChoice = accountLinkMode === "undecided";
+  const showIntro =
+    store.hydrated && !introDismissed && introEligible && (forceIntro || !hasSeenIntro || mustResolveAccountChoice);
   // Until the persisted store has hydrated we don't know whether to show
   // the intro yet. If we render Home behind it we get a visible flash of
   // HUD before the cinematic mounts (the user reported this). Cover the
   // viewport with a solid black layer while we wait so the first frame is
   // always either black or the intro itself.
   const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed;
-  const showAuthGate = store.hydrated && introEligible && !showIntro && accountLinkMode === "undecided";
+  const showAuthGate = store.hydrated && introEligible && !showIntro && mustResolveAccountChoice;
 
   function handleIntroDone() {
     setIntroDismissed(true);
