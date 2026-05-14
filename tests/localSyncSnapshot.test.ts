@@ -34,5 +34,7 @@ describe("local sync snapshot", () => {
     });
     expect(JSON.stringify(snapshot)).not.toContain("notifications");
     expect(JSON.stringify(snapshot)).not.toContain("audioMuted");
+    expect(JSON.stringify(snapshot)).not.toContain("accountLinkMode");
+    expect(JSON.stringify(snapshot)).not.toContain("hasSeenIntro");
   });
 });

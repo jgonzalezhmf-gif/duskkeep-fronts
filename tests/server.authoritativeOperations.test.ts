@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   isSupportedAuthoritativeApiOperation,
+  MAX_SYNC_ADVENTURE_CLAIM_RECORDS,
+  MAX_SYNC_ADVENTURE_PROGRESS_RECORDS,
+  MAX_SYNC_FRONTLINE_CARD_RECORDS,
   parseRewardPayload,
   parseServerActionRequest,
   serverOperationTypes,
@@ -72,6 +75,58 @@ describe("server authoritative operation contracts", () => {
     });
 
     expect(parsed.ok).toBe(true);
+  });
+
+  it("rejects local snapshot sync payloads with non-whitelisted root fields", () => {
+    const parsed = parseServerActionRequest("syncLocalSnapshot", {
+      idempotencyKey: "sync-local-20260514-extra",
+      payload: {
+        localVersion: "1",
+        snapshot: {
+          resources: { gold: 1200 },
+          serviceRoleKey: "never-accepted",
+        },
+      },
+    });
+
+    expect(parsed).toMatchObject({
+      ok: false,
+      code: "invalid_request",
+    });
+  });
+
+  it("rejects oversized local snapshot maps before reaching server persistence", () => {
+    const parsedCards = parseServerActionRequest("syncLocalSnapshot", {
+      idempotencyKey: "sync-local-20260514-cards",
+      payload: {
+        localVersion: "1",
+        snapshot: {
+          frontlineCardUnlocks: numberedRecord(MAX_SYNC_FRONTLINE_CARD_RECORDS + 1, true),
+        },
+      },
+    });
+    const parsedProgress = parseServerActionRequest("syncLocalSnapshot", {
+      idempotencyKey: "sync-local-20260514-progress",
+      payload: {
+        localVersion: "1",
+        snapshot: {
+          adventureProgress: numberedRecord(MAX_SYNC_ADVENTURE_PROGRESS_RECORDS + 1, { cleared: true }),
+        },
+      },
+    });
+    const parsedClaims = parseServerActionRequest("syncLocalSnapshot", {
+      idempotencyKey: "sync-local-20260514-claims",
+      payload: {
+        localVersion: "1",
+        snapshot: {
+          adventureMapClaims: numberedRecord(MAX_SYNC_ADVENTURE_CLAIM_RECORDS + 1, { claimed: true }),
+        },
+      },
+    });
+
+    expect(parsedCards).toMatchObject({ ok: false, code: "invalid_request" });
+    expect(parsedProgress).toMatchObject({ ok: false, code: "invalid_request" });
+    expect(parsedClaims).toMatchObject({ ok: false, code: "invalid_request" });
   });
 
   it("normalizes purchase quantity while requiring idempotency", () => {
@@ -148,3 +203,9 @@ describe("server authoritative operation contracts", () => {
     expect(parseRewardPayload({ gold: -1 }).success).toBe(false);
   });
 });
+
+function numberedRecord<TValue>(count: number, value: TValue) {
+  return Object.fromEntries(
+    Array.from({ length: count }, (_, index) => [`entry_${index}`, value]),
+  );
+}

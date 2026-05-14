@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.13] - 2026-05-14
+
+### Changed
+- Endurecido el contrato de `syncLocalSnapshot` con limites explicitos para mapas de cartas, progreso Adventure y claims de mapa.
+
+### Security
+- Los snapshots locales manipulados con mapas excesivos se rechazan antes de llegar a persistencia.
+- Cubierto por tests que el snapshot no acepta campos raiz no permitidos ni sincroniza campos locales como `accountLinkMode` o `hasSeenIntro`.
+
+### Tested
+- `npm.cmd run test -- tests/server.authoritativeOperations.test.ts tests/localSyncSnapshot.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.29.12] - 2026-05-14
 
 ### Changed

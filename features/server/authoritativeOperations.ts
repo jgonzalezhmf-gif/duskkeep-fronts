@@ -3,6 +3,9 @@ import { DECK_SIZE } from "@/lib/constants";
 import type { Rewards } from "@/lib/types";
 
 export const SERVER_FRONTLINE_SQUAD_SIZE = 3;
+export const MAX_SYNC_FRONTLINE_CARD_RECORDS = 256;
+export const MAX_SYNC_ADVENTURE_PROGRESS_RECORDS = 128;
+export const MAX_SYNC_ADVENTURE_CLAIM_RECORDS = 64;
 
 export const serverActionErrorCodes = [
   "unauthenticated",
@@ -98,6 +101,12 @@ const syncAdventureClaimSchema = z
   })
   .strict();
 
+function cappedRecordSchema<TValue extends z.ZodTypeAny>(valueSchema: TValue, maxEntries: number) {
+  return z.record(idSchema, valueSchema).refine((record) => Object.keys(record).length <= maxEntries, {
+    message: `must contain at most ${maxEntries} entries`,
+  });
+}
+
 const syncLocalSnapshotSchema = z
   .object({
     account: z
@@ -118,10 +127,10 @@ const syncLocalSnapshotSchema = z
       })
       .strict()
       .optional(),
-    frontlineCardUnlocks: z.record(idSchema, z.boolean()).optional(),
-    frontlineCardLevels: z.record(idSchema, z.number().int().min(1).max(5)).optional(),
-    adventureProgress: z.record(idSchema, syncAdventureProgressEntrySchema).optional(),
-    adventureMapClaims: z.record(idSchema, syncAdventureClaimSchema).optional(),
+    frontlineCardUnlocks: cappedRecordSchema(z.boolean(), MAX_SYNC_FRONTLINE_CARD_RECORDS).optional(),
+    frontlineCardLevels: cappedRecordSchema(z.number().int().min(1).max(5), MAX_SYNC_FRONTLINE_CARD_RECORDS).optional(),
+    adventureProgress: cappedRecordSchema(syncAdventureProgressEntrySchema, MAX_SYNC_ADVENTURE_PROGRESS_RECORDS).optional(),
+    adventureMapClaims: cappedRecordSchema(syncAdventureClaimSchema, MAX_SYNC_ADVENTURE_CLAIM_RECORDS).optional(),
   })
   .strict();
 
