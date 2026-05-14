@@ -7,6 +7,30 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.1] - 2026-05-14
+
+### Added
+- Backend introduce la base reutilizable `server_reward_definitions`, `grant_reward_bundle` y `grant_reward_definition` para aplicar rewards server-side desde datos.
+- `jsonb_reward_payload_is_valid` centraliza la validacion de payloads de rewards para recursos, account XP, XP de squad, shards y cartas.
+
+### Changed
+- `purchase_shop_offer` deja de duplicar la logica de concesion de rewards y usa `grant_reward_bundle` como primer consumidor controlado.
+- Documentado el patron de rewards server-side para futuras migraciones incrementales de Adventure, Missions y Daily Login.
+
+### Security
+- Mantiene las funciones internas de concesion sin grants para `authenticated`, reduciendo el riesgo de que el cliente invoque rewards directamente.
+- Refuerza el modelo server-authoritative: las RPCs validan accion/contexto y delegan la aplicacion atomica de rewards a una primitiva comun.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede ejecutar `grant_reward_bundle` ni `grant_reward_definition`.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.0] - 2026-05-14
 
 ### Added

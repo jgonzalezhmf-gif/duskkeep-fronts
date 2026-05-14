@@ -25,6 +25,28 @@ El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta c
 - Toda operacion devuelve un snapshot parcial autoritativo.
 - El cliente nunca envia el reward final como verdad; como maximo envia la accion solicitada.
 
+## Rewards Server-Side
+
+La base reutilizable vive en `public.grant_reward_bundle(...)` y `public.grant_reward_definition(...)`.
+
+Objetivo:
+
+- Las RPCs no deben duplicar la logica de sumar recursos, XP, shards o cartas.
+- Las cantidades deben vivir en catalogos server-side, no en condiciones por oferta o por mision dentro del cliente.
+- Los tests deben validar invariantes y comparar contra catalogo, no contra numeros de balance escritos a mano.
+
+Tablas y funciones:
+
+- `server_reward_definitions`: catalogo interno de recompensas reutilizables. No tiene policies de lectura/escritura para cliente.
+- `jsonb_reward_payload_is_valid`: valida el shape permitido de rewards server-side.
+- `grant_reward_bundle`: aplica un payload validado a `player_resources`, `profiles`, `player_heroes`, `player_frontline_cards` y `resource_ledger`.
+- `grant_reward_definition`: resuelve un `reward_id` del catalogo y llama a `grant_reward_bundle`.
+
+Alcance actual:
+
+- Shop ya usa `grant_reward_bundle` desde `purchase_shop_offer`.
+- El siguiente paso natural es migrar Adventure/Missions/Daily Login de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
+
 ## Formato Base
 
 Request comun:
