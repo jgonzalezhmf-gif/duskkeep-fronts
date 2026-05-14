@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.10] - 2026-05-14
+
+### Added
+- Aniadidos tests de integracion del store para la politica de fallback autoritativo.
+
+### Security
+- Cubierto por regresion que una cuenta `linked` sin sesion Supabase no pueda reclamar daily rewards ni comprar ofertas mediante fallback local.
+- Verificado que el fallback local sigue permitido para modo invitado/offline y para API desactivada.
+
+### Tested
+- `npm.cmd run test -- tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.29.9] - 2026-05-14
 
 ### Added
