@@ -8,6 +8,7 @@ import {
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  recordArenaResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
@@ -27,6 +28,7 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   levelUpHeroAuthoritatively: vi.fn(),
   openAdventureMapInteractionAuthoritatively: vi.fn(),
   purchaseShopOfferAuthoritatively: vi.fn(),
+  recordArenaResultAuthoritatively: vi.fn(),
   resolveFrontlineFortressRaidAuthoritatively: vi.fn(),
   saveFrontlineLoadoutAuthoritatively: vi.fn(),
   skillUpHeroAuthoritatively: vi.fn(),
@@ -46,6 +48,7 @@ const mockedPurchase = vi.mocked(purchaseShopOfferAuthoritatively);
 const mockedCardUpgrade = vi.mocked(upgradeFrontlineCardAuthoritatively);
 const mockedFortressUpgrade = vi.mocked(upgradeFrontlineFortressAuthoritatively);
 const mockedFortressRaid = vi.mocked(resolveFrontlineFortressRaidAuthoritatively);
+const mockedArenaResult = vi.mocked(recordArenaResultAuthoritatively);
 const mockedHeroLevelUp = vi.mocked(levelUpHeroAuthoritatively);
 const mockedHeroStarUp = vi.mocked(starUpHeroAuthoritatively);
 const mockedHeroSkillUp = vi.mocked(skillUpHeroAuthoritatively);
@@ -63,6 +66,7 @@ describe("store authoritative fallback policy", () => {
     vi.mocked(openAdventureMapInteractionAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedPurchase.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedFortressRaid.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedArenaResult.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedCardUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
@@ -161,6 +165,28 @@ describe("store authoritative fallback policy", () => {
     expect(result).toBeNull();
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().frontlineFortress).toEqual(beforeFortress);
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("blocks linked account Arena results when the session is missing", async () => {
+    useGameStore.setState({ accountLinkMode: "linked" });
+    mockedArenaResult.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().recordArenaResultOnlineFirst({
+      opponentId: "arena_bonewood",
+      battleSeed: 123,
+      winner: "ally",
+      turns: 6,
+      battleSummary: {},
+      rewards: { gold: 120, gems: 3, accountXp: 8 },
+      source: "Arena",
+      ticketAlreadySpent: false,
+    });
+
+    expect(result).toBeNull();
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().arenaWins).toBe(0);
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 
@@ -343,6 +369,43 @@ describe("store authoritative fallback policy", () => {
     expect(result).toEqual(report);
     expect(useGameStore.getState().frontlineFortress.lastReport).toEqual(report);
     expect(useGameStore.getState().resources).toEqual({ gold: 595, dust: 58, gems: 50, arenaTickets: 5, adventureKeys: 0 });
+  });
+
+  it("applies authoritative Arena results without trusting local ticket or rewards", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { gold: 1, dust: 1, gems: 1, arenaTickets: 99, adventureKeys: 0 },
+    });
+    mockedArenaResult.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      opponentId: "arena_bonewood",
+      winner: "ally",
+      rewards: { gold: 120, gems: 3, accountXp: 8 },
+      resources: { gold: 620, dust: 50, gems: 53, arenaTickets: 4, adventureKeys: 0 },
+      arenaWins: 1,
+      arenaLosses: 0,
+    });
+
+    const result = await useGameStore.getState().recordArenaResultOnlineFirst({
+      opponentId: "arena_bonewood",
+      battleSeed: 123,
+      winner: "ally",
+      turns: 6,
+      battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      rewards: { gold: 9999, gems: 9999 },
+      source: "Arena",
+      ticketAlreadySpent: false,
+    });
+
+    expect(result).toEqual({
+      rewards: { gold: 120, gems: 3, accountXp: 8 },
+      authoritative: true,
+      resources: { gold: 620, dust: 50, gems: 53, arenaTickets: 4, adventureKeys: 0 },
+    });
+    expect(useGameStore.getState().resources).toEqual({ gold: 620, dust: 50, gems: 53, arenaTickets: 4, adventureKeys: 0 });
+    expect(useGameStore.getState().arenaWins).toBe(1);
+    expect(useGameStore.getState().arenaLosses).toBe(0);
   });
 
   it("keeps local fallback available for linked accounts when the API is disabled", async () => {

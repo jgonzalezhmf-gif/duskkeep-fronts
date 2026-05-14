@@ -283,6 +283,36 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps Arena results to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "recordArenaResult",
+        idempotencyKey: "arena-result-20260515",
+        payload: {
+          opponentId: "arena_bonewood",
+          battleSeed: 123,
+          winner: "draw",
+          turns: 9,
+          battleSummary: { allyCoreHp: 0, enemyCoreHp: 0 },
+        },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "record_arena_result",
+      rpcArgs: {
+        p_idempotency_key: "arena-result-20260515",
+        p_opponent_id: "arena_bonewood",
+        p_battle_seed: 123,
+        p_winner: "draw",
+        p_turns: 9,
+      },
+    });
+  });
+
   it("maps hero level ups to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

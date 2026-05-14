@@ -36,6 +36,9 @@ declare
   v_fortress_raid_result jsonb;
   v_fortress_raid_replay jsonb;
   v_fortress_raid_second_attempt jsonb;
+  v_arena_result jsonb;
+  v_arena_replay jsonb;
+  v_invalid_arena_result jsonb;
   v_daily_result jsonb;
   v_daily_replay jsonb;
   v_daily_second_attempt jsonb;
@@ -457,6 +460,51 @@ begin
     raise exception 'Expected second fortress raid to be blocked by cooldown: %', v_fortress_raid_second_attempt;
   end if;
 
+  v_arena_result := public.record_arena_result(
+    'smoke-arena-result-20260515-0001',
+    'arena_bonewood',
+    12345,
+    'ally',
+    6,
+    '{"allyCoreHp":12,"enemyCoreHp":0}'::jsonb
+  );
+  if coalesce((v_arena_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'record_arena_result failed: %', v_arena_result;
+  end if;
+  if coalesce((v_arena_result #>> '{result,resources,arenaTickets}')::int, -1) <> 4 then
+    raise exception 'Expected Arena result to consume exactly 1 ticket: %', v_arena_result;
+  end if;
+  if coalesce((v_arena_result #>> '{result,rewardsGranted,gems}')::int, 0) <> 3 then
+    raise exception 'Expected arena_bonewood win to grant 3 gems: %', v_arena_result;
+  end if;
+  if coalesce((v_arena_result #>> '{result,arenaWins}')::int, 0) <> 1 then
+    raise exception 'Expected Arena win count 1: %', v_arena_result;
+  end if;
+
+  v_arena_replay := public.record_arena_result(
+    'smoke-arena-result-20260515-0001',
+    'arena_bonewood',
+    12345,
+    'ally',
+    6,
+    '{"allyCoreHp":12,"enemyCoreHp":0}'::jsonb
+  );
+  if v_arena_replay <> v_arena_result then
+    raise exception 'record_arena_result is not idempotent: % <> %', v_arena_replay, v_arena_result;
+  end if;
+
+  v_invalid_arena_result := public.record_arena_result(
+    'smoke-arena-result-invalid-20260515-0001',
+    'unknown_rival',
+    12345,
+    'ally',
+    6,
+    '{}'::jsonb
+  );
+  if coalesce(v_invalid_arena_result ->> 'code', '') <> 'not_found' then
+    raise exception 'Expected unsupported Arena opponent to be rejected: %', v_invalid_arena_result;
+  end if;
+
   v_daily_result := public.claim_daily_login(
     'smoke-daily-login-20260511-0001',
     to_char(now() at time zone 'utc', 'YYYY-MM-DD')
@@ -492,7 +540,13 @@ begin
     target,
     claimed
   )
-  values (v_profile_id, 'd_battles_3', v_mission_cycle_key, 3, 3, false);
+  values (v_profile_id, 'd_battles_3', v_mission_cycle_key, 3, 3, false)
+  on conflict (profile_id, mission_id, cycle_key)
+  do update set
+    progress = 3,
+    target = 3,
+    claimed = false,
+    updated_at = now();
 
   v_mission_result := public.claim_mission_reward(
     'smoke-mission-20260512-0001',

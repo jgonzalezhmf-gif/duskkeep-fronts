@@ -74,14 +74,14 @@ describe("authoritative API client", () => {
     });
   });
 
-  it("keeps unsupported contracts away from the exposed API client", async () => {
+  it("keeps unknown contracts away from the exposed API client", async () => {
     const fetcher = vi.fn();
 
     const result = await callAuthoritativeOperation(
-      "recordArenaResult" as never,
+      "recordEventResult" as never,
       {
-        idempotencyKey: "arena-result-20260511-0001",
-        payload: { opponentId: "arena-rival", battleSeed: 1, winner: "ally", turns: 4, battleSummary: {} } as never,
+        idempotencyKey: "event-result-20260511-0001",
+        payload: {} as never,
       },
       { token: "valid-token-value", fetcher },
     );

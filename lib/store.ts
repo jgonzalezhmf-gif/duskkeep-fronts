@@ -62,6 +62,7 @@ import {
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  recordArenaResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
@@ -471,6 +472,76 @@ export const useGameStore = create<GameState & GameActions>()(
           get().updateMissionProgress("arena_battles", 1);
         }
         if (source === "event") get().updateMissionProgress("events_played", 1);
+      },
+
+      recordArenaResultOnlineFirst: async ({
+        opponentId,
+        battleSeed,
+        winner,
+        turns,
+        battleSummary,
+        rewards,
+        source,
+        ticketAlreadySpent,
+      }) => {
+        const authoritative = await recordArenaResultAuthoritatively({
+          opponentId,
+          battleSeed,
+          winner,
+          turns,
+          battleSummary,
+        });
+
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return null;
+          }
+
+          if (!ticketAlreadySpent) {
+            const currentTickets = get().resources.arenaTickets;
+            if (currentTickets <= 0) {
+              get().pushNotification("error", "Arena ticket required");
+              return null;
+            }
+            set((state) => ({
+              resources: { ...state.resources, arenaTickets: Math.max(0, state.resources.arenaTickets - 1) },
+            }));
+          }
+
+          get().recordBattleResult(winner === "ally", "arena");
+          get().awardRewards(rewards, source);
+          return { rewards, authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((state) => {
+          const rewardedState = applyRewardsToGameState(state, authoritative.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            arenaWins: authoritative.arenaWins,
+            arenaLosses: authoritative.arenaLosses,
+            battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
+          };
+        });
+        if (authoritative.winner === "ally") get().updateMissionProgress("battles_won", 1);
+        get().updateMissionProgress("arena_battles", 1);
+        return {
+          rewards: authoritative.rewards,
+          authoritative: true,
+          resources: authoritative.resources,
+        };
       },
 
       markAdventureCleared: (levelId) => {

@@ -47,6 +47,7 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineCard",
       "upgradeFrontlineFortress",
       "resolveFrontlineFortressRaid",
+      "recordArenaResult",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("syncLocalSnapshot")).toBe(true);
@@ -58,6 +59,7 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineCard")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineFortress")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("resolveFrontlineFortressRaid")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("recordArenaResult")).toBe(true);
   });
 
   it("accepts a capped local snapshot sync payload", () => {
@@ -214,6 +216,35 @@ describe("server authoritative operation contracts", () => {
       parseServerActionRequest("resolveFrontlineFortressRaid", {
         idempotencyKey: "frontline-fortress-raid-extra-20260515",
         payload: { attackPower: 1, rewards: { gems: 999 } },
+      }).ok,
+    ).toBe(false);
+  });
+
+  it("accepts Arena results without client-supplied rewards", () => {
+    const parsed = parseServerActionRequest("recordArenaResult", {
+      idempotencyKey: "arena-result-20260515-0001",
+      payload: {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "draw",
+        turns: 9,
+        battleSummary: { allyCoreHp: 0, enemyCoreHp: 0 },
+      },
+    });
+
+    expect(parsed.ok).toBe(true);
+
+    expect(
+      parseServerActionRequest("recordArenaResult", {
+        idempotencyKey: "arena-result-extra-20260515-0001",
+        payload: {
+          opponentId: "arena_bonewood",
+          battleSeed: 123,
+          winner: "ally",
+          turns: 9,
+          rewards: { gems: 999 },
+          battleSummary: {},
+        },
       }).ok,
     ).toBe(false);
   });

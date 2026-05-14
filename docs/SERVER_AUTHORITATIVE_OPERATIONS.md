@@ -10,7 +10,7 @@ La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `recordArenaResult` para resultados de Arena, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
 La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de nivel/estrellas/skills de heroes, cartas Frontline y edificios de la Fortress visible ya usan `levelUpHero`/`starUpHero`/`skillUpHero`/`upgradeFrontlineCard`/`upgradeFrontlineFortress` como operaciones autoritativas. La fortaleza clasica usada por sistemas legacy permanece en local hasta tener un modelo de migracion separado.
 
@@ -576,7 +576,9 @@ type SkillUpHeroResult = {
 
 ### `recordArenaResult`
 
-Registra un resultado de Arena y actualiza estadisticas/ranking cuando exista ladder.
+Registra un resultado de Arena y actualiza estadisticas basicas. La primera implementacion SQL es `public.record_arena_result(p_idempotency_key text, p_opponent_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`.
+
+Alcance MVP: consume 1 `arenaTicket`, concede rewards server-side segun rival/resultado, escribe `battle_results`, avanza misiones mediante trigger y devuelve el record de Arena. Todavia no simula la batalla en servidor ni calcula ladder real; para ladder competitivo sera necesario validar el resultado con seed/log o ejecutar la simulacion autoritativa.
 
 Payload:
 
@@ -584,7 +586,7 @@ Payload:
 type RecordArenaResultPayload = {
   opponentId: string;
   battleSeed: number;
-  winner: "ally" | "enemy";
+  winner: "ally" | "enemy" | "draw";
   turns: number;
   battleSummary: unknown;
 };
@@ -592,10 +594,14 @@ type RecordArenaResultPayload = {
 
 Validaciones:
 
-- El jugador tiene ticket o permiso de entrada.
-- El oponente existe.
-- El resultado no fue enviado antes.
-- Para ladder futura, el servidor valida consistencia del resumen.
+- El usuario esta autenticado.
+- El oponente pertenece a la allowlist de rivales Arena actuales.
+- El jugador tiene al menos 1 `arenaTicket`.
+- El servidor calcula coste y rewards; el cliente no envia recompensas.
+- La operacion es idempotente.
+- El gasto de ticket y rewards quedan en `resource_ledger`.
+- El resultado se escribe en `battle_results` con `source = 'arena'`.
+- Para ladder futura, el servidor debera validar consistencia del resumen o simular el combate.
 
 Resultado:
 
@@ -603,7 +609,6 @@ Resultado:
 type RecordArenaResultResult = {
   arenaWins: number;
   arenaLosses: number;
-  rating?: number;
   rewardsGranted: Rewards;
   resources: Resources;
 };

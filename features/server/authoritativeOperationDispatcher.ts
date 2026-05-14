@@ -215,6 +215,50 @@ export type ClaimAdventureBattleResultAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeArenaWinner = "ally" | "enemy" | "draw";
+
+export type RecordArenaResultInput = {
+  opponentId: string;
+  battleSeed: number;
+  winner: AuthoritativeArenaWinner;
+  turns: number;
+  battleSummary: unknown;
+};
+
+export type AuthoritativeArenaResultSuccess = {
+  ok: true;
+  mode: "authoritative";
+  opponentId: string;
+  winner: AuthoritativeArenaWinner;
+  rewards: Rewards;
+  resources: Resources;
+  arenaWins: number;
+  arenaLosses: number;
+};
+
+export type AuthoritativeArenaResultFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeArenaResultFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeArenaResult =
+  | AuthoritativeArenaResultSuccess
+  | AuthoritativeArenaResultFailure
+  | AuthoritativeArenaResultFallback;
+
+export type RecordArenaResultAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export type AuthoritativeLoadoutSaveSuccess = {
   ok: true;
   mode: "authoritative";
@@ -1118,6 +1162,53 @@ export async function claimAdventureBattleResultAuthoritatively(
   };
 }
 
+export async function recordArenaResultAuthoritatively(
+  input: RecordArenaResultInput,
+  options: RecordArenaResultAuthoritativelyOptions = {},
+): Promise<AuthoritativeArenaResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "recordArenaResult",
+    {
+      idempotencyKey: createIdempotencyKey("arena", `${input.opponentId}:${input.battleSeed}:${input.winner}`),
+      payload: input,
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractArenaResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.opponentId !== input.opponentId) {
+    return { ok: false, mode: "authoritative", reason: "Server response opponent mismatch" };
+  }
+  if (parsed.winner !== input.winner) {
+    return { ok: false, mode: "authoritative", reason: "Server response winner mismatch" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
 function createIdempotencyKey(scope: string, id: string) {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
   return `${scope}:${id}:${Date.now()}:${suffix}`;
@@ -1207,6 +1298,27 @@ function extractAdventureBattleResult(result: unknown): Omit<AuthoritativeAdvent
     rewards: rewards.data,
     resources,
     unlockedNodeIds,
+  };
+}
+
+function extractArenaResult(result: unknown): Omit<AuthoritativeArenaResultSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result)) return null;
+
+  const opponentId = parseString(result.opponentId);
+  const winner = parseArenaWinner(result.winner);
+  const rewards = parseRewardPayload(result.rewardsGranted);
+  const resources = extractResources(result);
+  const arenaWins = parseIntegerRange(result.arenaWins, 0, 1000000);
+  const arenaLosses = parseIntegerRange(result.arenaLosses, 0, 1000000);
+  if (!opponentId || !winner || !rewards.success || !resources || arenaWins === null || arenaLosses === null) return null;
+
+  return {
+    opponentId,
+    winner,
+    rewards: rewards.data,
+    resources,
+    arenaWins,
+    arenaLosses,
   };
 }
 
@@ -1480,6 +1592,11 @@ function parseLootTier(value: unknown): AdventureMapInteractionLootTier | undefi
 
 function parseBattleWinner(value: unknown): AuthoritativeAdventureBattleWinner | undefined {
   if (value === "ally" || value === "enemy") return value;
+  return undefined;
+}
+
+function parseArenaWinner(value: unknown): AuthoritativeArenaWinner | undefined {
+  if (value === "ally" || value === "enemy" || value === "draw") return value;
   return undefined;
 }
 

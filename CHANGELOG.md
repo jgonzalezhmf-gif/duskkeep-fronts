@@ -7,6 +7,35 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.16] - 2026-05-14
+
+### Added
+- Aniadida RPC autoritativa `record_arena_result` para registrar resultados de Arena.
+- Aniadido contrato `recordArenaResult` al cliente/proxy autoritativo.
+- El smoke Supabase cubre resultado de Arena, consumo de ticket, rewards, idempotencia y rechazo de rival no soportado.
+
+### Changed
+- `/arena` usa `recordArenaResultOnlineFirst` al finalizar combate.
+- En cuentas vinculadas, el ticket y las recompensas de Arena los decide el servidor; invitado/API desactivada conserva flujo local.
+- El contrato de Arena acepta `draw` y bloquea campos extra como rewards enviados por cliente.
+
+### Security
+- El cliente ya no puede elegir rewards ni evitar coste de ticket en Arena cuando hay sesion vinculada.
+- La RPC valida `auth.uid()`, rival allowlisted, ticket disponible, idempotencia y registra recursos en `resource_ledger`.
+- Los resultados se guardan en `battle_results` con `source = 'arena'` para alimentar misiones server-side.
+
+### Known Limitations
+- El MVP no simula la batalla en servidor ni valida todavia un log determinista completo; antes de ladder competitivo real habra que validar el resultado con seed/log o ejecutar simulacion autoritativa.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run typecheck`
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.15] - 2026-05-14
 
 ### Added

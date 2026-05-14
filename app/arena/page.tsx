@@ -16,7 +16,6 @@ import {
   ScreenScaffold,
   SectionTitle,
 } from "@/components/game/screens/ScreenChrome";
-import { mergeRewards } from "@/features/battle/rewards";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState } from "@/features/frontline/types";
@@ -48,16 +47,17 @@ export default function ArenaPage() {
   const resources = useGameStore((state) => state.resources);
   const wins = useGameStore((state) => state.arenaWins);
   const losses = useGameStore((state) => state.arenaLosses);
+  const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
   const nextSeed = useGameStore((state) => state.nextSeed);
-  const awardRewards = useGameStore((state) => state.awardRewards);
-  const recordBattleResult = useGameStore((state) => state.recordBattleResult);
+  const recordArenaResult = useGameStore((state) => state.recordArenaResultOnlineFirst);
   const refreshTickets = useGameStore((state) => state.refreshArenaTicketsIfNeeded);
 
   const [phase, setPhase] = useState<ArenaPhase>("browse");
   const [picked, setPicked] = useState<ArenaRival | null>(null);
   const [seed, setSeed] = useState(1);
   const [result, setResult] = useState<ArenaResult | null>(null);
+  const [ticketSpentLocally, setTicketSpentLocally] = useState(false);
 
   useEffect(() => {
     setClientReady(true);
@@ -72,29 +72,48 @@ export default function ArenaPage() {
 
   function startArenaBattle(rival: ArenaRival) {
     if (tickets <= 0 || !loadoutReady) return;
-    useGameStore.setState((state) => ({
-      resources: { ...state.resources, arenaTickets: Math.max(0, state.resources.arenaTickets - 1) },
-    }));
+    const shouldSpendLocally = accountLinkMode !== "linked";
+    if (shouldSpendLocally) {
+      useGameStore.setState((state) => ({
+        resources: { ...state.resources, arenaTickets: Math.max(0, state.resources.arenaTickets - 1) },
+      }));
+    }
     setPicked(rival);
     setSeed(nextSeed());
     setResult(null);
+    setTicketSpentLocally(shouldSpendLocally);
     setPhase("battle");
   }
 
-  function finishArenaBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
+  async function finishArenaBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
     if (!picked) return;
     const won = winner === "ally";
     const rewards = won ? picked.rewards : winner === "draw" ? { gold: 45, dust: 5, accountXp: 3 } : { gold: 25, accountXp: 2 };
-    recordBattleResult(won, "arena");
-    awardRewards(
-      mergeRewards(rewards),
-      won ? t("arenaScreen.result.winSource", { name: picked.ownerName }) : t("arenaScreen.result.resultSource", { name: picked.ownerName }),
-    );
+    const rewardSource = won
+      ? t("arenaScreen.result.winSource", { name: picked.ownerName })
+      : t("arenaScreen.result.resultSource", { name: picked.ownerName });
+    const recorded = await recordArenaResult({
+      opponentId: picked.id,
+      battleSeed: seed,
+      winner,
+      turns: battleState.round,
+      battleSummary: {
+        allyCoreHp: battleState.allyCoreHp,
+        enemyCoreHp: battleState.enemyCoreHp,
+      },
+      rewards,
+      source: rewardSource,
+      ticketAlreadySpent: ticketSpentLocally,
+    });
+    if (!recorded) {
+      setPhase("browse");
+      return;
+    }
     setResult({
       winner,
       rival: picked,
       rounds: battleState.round,
-      rewards,
+      rewards: recorded.rewards,
       allyCoreHp: battleState.allyCoreHp,
       enemyCoreHp: battleState.enemyCoreHp,
     });

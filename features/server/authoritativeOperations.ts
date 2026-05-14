@@ -202,13 +202,15 @@ export const serverOperationPayloadSchemas = {
     buildingId: z.enum(["keep", "treasury", "barracks"]),
   }),
   resolveFrontlineFortressRaid: z.object({}).strict(),
-  recordArenaResult: z.object({
-    opponentId: idSchema,
-    battleSeed: z.number().int().safe(),
-    winner: z.enum(["ally", "enemy"]),
-    turns: z.number().int().nonnegative().max(500),
-    battleSummary: z.unknown(),
-  }),
+  recordArenaResult: z
+    .object({
+      opponentId: idSchema,
+      battleSeed: z.number().int().safe(),
+      winner: z.enum(["ally", "enemy", "draw"]),
+      turns: z.number().int().nonnegative().max(500),
+      battleSummary: z.unknown(),
+    })
+    .strict(),
 } as const;
 
 export type ServerOperationType = keyof typeof serverOperationPayloadSchemas;
@@ -236,6 +238,7 @@ export const supportedAuthoritativeApiOperations = [
   "upgradeFrontlineCard",
   "upgradeFrontlineFortress",
   "resolveFrontlineFortressRaid",
+  "recordArenaResult",
 ] as const satisfies ServerOperationType[];
 
 export type SupportedAuthoritativeApiOperation = (typeof supportedAuthoritativeApiOperations)[number];

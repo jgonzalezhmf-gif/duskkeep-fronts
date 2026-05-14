@@ -110,6 +110,16 @@ export type GameActions = {
     source: "adventure" | "arena" | "vsai" | "event",
     meta?: Record<string, unknown>,
   ) => void;
+  recordArenaResultOnlineFirst: (input: {
+    opponentId: string;
+    battleSeed: number;
+    winner: "ally" | "enemy" | "draw";
+    turns: number;
+    battleSummary: unknown;
+    rewards: Rewards;
+    source: string;
+    ticketAlreadySpent: boolean;
+  }) => Promise<{ rewards: Rewards; authoritative?: boolean; resources?: Resources } | null>;
   markAdventureCleared: (levelId: string) => { firstClear: boolean };
   claimAdventureBattleResultOnlineFirst: (input: {
     levelId: string;

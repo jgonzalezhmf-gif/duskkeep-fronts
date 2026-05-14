@@ -7,6 +7,7 @@ import {
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
+  recordArenaResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
@@ -166,6 +167,23 @@ describe("authoritative operation dispatcher", () => {
     const result = await resolveFrontlineFortressRaidAuthoritatively({
       tokenProvider: async () => null,
     });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local Arena results when there is no Supabase session", async () => {
+    const result = await recordArenaResultAuthoritatively(
+      {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 6,
+        battleSummary: {},
+      },
+      {
+        tokenProvider: async () => null,
+      },
+    );
 
     expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
   });
@@ -656,6 +674,90 @@ describe("authoritative operation dispatcher", () => {
       ok: false,
       mode: "authoritative",
       reason: "Fortress raid is not ready",
+    });
+  });
+
+  it("returns authoritative Arena rewards and record after a battle", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          opponentId: "arena_bonewood",
+          winner: "ally",
+          rewardsGranted: { gold: 120, gems: 3, accountXp: 8 },
+          resources: {
+            gold: 620,
+            dust: 50,
+            gems: 53,
+            arenaTickets: 4,
+            adventureKeys: 0,
+          },
+          arenaWins: 1,
+          arenaLosses: 0,
+        },
+      }),
+    });
+
+    const result = await recordArenaResultAuthoritatively(
+      {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 6,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      opponentId: "arena_bonewood",
+      winner: "ally",
+      rewards: { gold: 120, gems: 3, accountXp: 8 },
+      resources: {
+        gold: 620,
+        dust: 50,
+        gems: 53,
+        arenaTickets: 4,
+        adventureKeys: 0,
+      },
+      arenaWins: 1,
+      arenaLosses: 0,
+    });
+  });
+
+  it("does not fallback when the connected server rejects an Arena result", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "insufficient_resources", reason: "Arena ticket required" }),
+    });
+
+    const result = await recordArenaResultAuthoritatively(
+      {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 6,
+        battleSummary: {},
+      },
+      {
+        tokenProvider: async () => "valid-token-value",
+        fetcher,
+      },
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Arena ticket required",
     });
   });
 
