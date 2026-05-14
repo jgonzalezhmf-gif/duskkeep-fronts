@@ -122,11 +122,11 @@ describe("store authoritative fallback policy", () => {
     mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "local", reason: "unsupported_offer" });
     const beforeResources = useGameStore.getState().resources;
 
-    const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_raid_payout");
+    const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_command_drill");
 
     expect(result).toEqual({ ok: false, reason: "Shop offer requires server validation", authoritative: true });
     expect(useGameStore.getState().resources).toEqual(beforeResources);
-    expect(useGameStore.getState().dailyShopPurchases.daily_raid_payout).toBeUndefined();
+    expect(useGameStore.getState().dailyShopPurchases.daily_command_drill).toBeUndefined();
   });
 
   it("keeps local fallback available for guest accounts without a Supabase session", async () => {
@@ -144,15 +144,15 @@ describe("store authoritative fallback policy", () => {
   it("keeps local shop purchases available for guest accounts when an offer has no server operation", async () => {
     useGameStore.setState({
       accountLinkMode: "guest",
-      resources: { ...useGameStore.getState().resources, gems: 500 },
+      resources: { ...useGameStore.getState().resources, gold: 500 },
     });
     mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "local", reason: "unsupported_offer" });
 
-    const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_raid_payout");
+    const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_command_drill");
 
     expect(result).toEqual({ ok: true });
-    expect(useGameStore.getState().dailyShopPurchases.daily_raid_payout).toBe(1);
-    expect(useGameStore.getState().resources.gold).toBeGreaterThan(500);
+    expect(useGameStore.getState().dailyShopPurchases.daily_command_drill).toBe(1);
+    expect(useGameStore.getState().resources.gold).toBeLessThan(500);
   });
 
   it("blocks linked account card upgrades when the session is missing", async () => {

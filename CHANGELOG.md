@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.23] - 2026-05-14
+
+### Added
+- Shop soporta `daily_raid_payout` mediante la RPC autoritativa `purchase_shop_offer`.
+- El smoke de Adventure/Shop cubre compra, replay idempotente, segunda compra diaria y bloqueo por limite diario de `daily_raid_payout`.
+
+### Security
+- Cuentas vinculadas pueden comprar `daily_raid_payout` solo mediante validacion server-side de coste, limite diario, idempotencia y ledger.
+- Las ofertas de Shop sin operacion autoritativa siguen bloqueadas para cuentas vinculadas y quedan limitadas al fallback invitado de alpha.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.22] - 2026-05-14
 
 ### Changed

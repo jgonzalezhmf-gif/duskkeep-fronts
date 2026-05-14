@@ -1200,7 +1200,7 @@ describe("authoritative operation dispatcher", () => {
   });
 
   it("keeps unsupported shop offers on the local path", async () => {
-    const result = await purchaseShopOfferAuthoritatively("daily_raid_payout", {
+    const result = await purchaseShopOfferAuthoritatively("daily_command_drill", {
       tokenProvider: async () => "valid-token-value",
     });
 

@@ -4,7 +4,7 @@ import { getSupabaseAccessToken } from "@/features/server/supabaseBrowserSession
 import type { AdventureMapInteractionLootTier, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
 import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, Resources, Rewards } from "@/lib/types";
 
-const AUTHORITATIVE_SHOP_OFFERS = new Set(["adventure_key_ring"]);
+const AUTHORITATIVE_SHOP_OFFERS = new Set(["adventure_key_ring", "daily_raid_payout"]);
 
 export type AuthoritativeDispatcherMode = "authoritative" | "local";
 

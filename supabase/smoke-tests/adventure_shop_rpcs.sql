@@ -57,6 +57,10 @@ declare
   v_sync_result jsonb;
   v_sync_replay jsonb;
   v_shop_purchase_count int;
+  v_shop_daily_result jsonb;
+  v_shop_daily_replay jsonb;
+  v_shop_daily_second_result jsonb;
+  v_shop_daily_third_result jsonb;
   v_cache_claim_count int;
 begin
   insert into auth.users (
@@ -755,6 +759,35 @@ begin
 
   if v_shop_purchase_count <> 1 then
     raise exception 'Expected exactly 1 shop purchase, found %', v_shop_purchase_count;
+  end if;
+
+  v_shop_daily_result := public.purchase_shop_offer('smoke-shop-daily-20260514-0001', 'daily_raid_payout', 1);
+  if coalesce((v_shop_daily_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'purchase_shop_offer daily_raid_payout failed: %', v_shop_daily_result;
+  end if;
+  if coalesce((v_shop_daily_result #>> '{result,contentsGranted,gold}')::int, 0) <> 450 then
+    raise exception 'Expected daily_raid_payout to grant 450 gold: %', v_shop_daily_result;
+  end if;
+  if coalesce((v_shop_daily_result #>> '{result,remaining}')::int, -1) <> 1 then
+    raise exception 'Expected daily_raid_payout remaining count 1 after first purchase: %', v_shop_daily_result;
+  end if;
+
+  v_shop_daily_replay := public.purchase_shop_offer('smoke-shop-daily-20260514-0001', 'daily_raid_payout', 1);
+  if v_shop_daily_replay <> v_shop_daily_result then
+    raise exception 'purchase_shop_offer daily_raid_payout is not idempotent: % <> %', v_shop_daily_replay, v_shop_daily_result;
+  end if;
+
+  v_shop_daily_second_result := public.purchase_shop_offer('smoke-shop-daily-20260514-0002', 'daily_raid_payout', 1);
+  if coalesce((v_shop_daily_second_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'Second daily_raid_payout purchase should be allowed: %', v_shop_daily_second_result;
+  end if;
+  if coalesce((v_shop_daily_second_result #>> '{result,remaining}')::int, -1) <> 0 then
+    raise exception 'Expected daily_raid_payout remaining count 0 after second purchase: %', v_shop_daily_second_result;
+  end if;
+
+  v_shop_daily_third_result := public.purchase_shop_offer('smoke-shop-daily-20260514-0003', 'daily_raid_payout', 1);
+  if coalesce(v_shop_daily_third_result ->> 'code', '') <> 'daily_limit_reached' then
+    raise exception 'Expected third daily_raid_payout purchase to hit daily limit: %', v_shop_daily_third_result;
   end if;
 
   v_cache_result := public.open_adventure_map_interaction('smoke-cache-20260511-0001', 'c1-lower-cache');
