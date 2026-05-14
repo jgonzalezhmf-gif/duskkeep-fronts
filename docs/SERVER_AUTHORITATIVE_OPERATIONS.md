@@ -46,6 +46,7 @@ Tablas y funciones:
 - `server_adventure_map_interactions` y `server_adventure_map_loot_entries`: definen interactuables de mapa, coste, cooldown, prerequisitos y loot table ponderada por `reward_id`.
 - `server_adventure_battle_nodes`: define nodos Adventure de combate, prerequisitos, unlocks, tipo y rewards first-clear/replay por `reward_id`.
 - `server_arena_opponents`: define rivales Arena, preset, coste de ticket y rewards por resultado mediante `reward_id`.
+- `server_event_definitions`: define eventos, preset, nivel de desbloqueo y reward diario first-clear mediante `reward_id`.
 
 Alcance actual:
 
@@ -56,6 +57,7 @@ Alcance actual:
 - Adventure map interactions ya usa catalogos internos para `c1-lower-cache`, coste de llave, cooldown y loot table.
 - Adventure battle results ya usa `server_adventure_battle_nodes` para Chapter 1 combat nodes.
 - Arena results ya usa `server_arena_opponents` para rivales, coste de ticket y rewards win/draw/loss.
+- Event results ya usa `server_event_definitions` para eventos, unlock level, preset y reward diario first-clear.
 - El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
@@ -657,9 +659,9 @@ type RecordArenaResultResult = {
 
 ### `recordEventResult`
 
-Registra un resultado de Events y concede la recompensa diaria de primera victoria. La primera implementacion SQL es `public.record_event_result(p_idempotency_key text, p_event_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`.
+Registra un resultado de Events y concede la recompensa diaria de primera victoria. La implementacion SQL es `public.record_event_result(p_idempotency_key text, p_event_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`.
 
-Alcance MVP: valida una allowlist de eventos visibles, comprueba desbloqueo por nivel de cuenta, escribe `battle_results` con `source = 'event'`, avanza misiones mediante trigger y concede rewards server-side solo en la primera victoria diaria de ese evento. El cliente no envia recompensas finales. Todavia no simula la batalla en servidor; para eventos competitivos sera necesario validar el log/seed o ejecutar la simulacion autoritativa.
+Alcance MVP: lee evento, preset, nivel de desbloqueo y reward diario first-clear desde `server_event_definitions`, escribe `battle_results` con `source = 'event'`, avanza misiones mediante trigger y concede rewards server-side solo en la primera victoria diaria de ese evento. El cliente no envia recompensas finales. Todavia no simula la batalla en servidor; para eventos competitivos sera necesario validar el log/seed o ejecutar la simulacion autoritativa.
 
 Payload:
 
@@ -676,9 +678,9 @@ type RecordEventResultPayload = {
 Validaciones:
 
 - El usuario esta autenticado.
-- El evento pertenece a la allowlist actual.
+- El evento pertenece al catalogo server-side actual.
 - El perfil cumple el nivel minimo de desbloqueo del evento.
-- El servidor calcula first-clear diario y rewards; el cliente no envia recompensas.
+- El servidor calcula first-clear diario y rewards por `reward_id`; el cliente no envia recompensas.
 - Si no es primera victoria diaria, se registra el resultado pero no se conceden recompensas.
 - La operacion es idempotente.
 - Los recursos concedidos quedan en `resource_ledger`.

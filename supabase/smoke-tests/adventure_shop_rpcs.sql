@@ -556,8 +556,15 @@ begin
   if coalesce((v_event_result #>> '{result,firstClear}')::boolean, false) is not true then
     raise exception 'Expected first Event clear to be marked firstClear: %', v_event_result;
   end if;
-  if coalesce((v_event_result #>> '{result,rewardsGranted,gold}')::int, 0) <> 400 then
-    raise exception 'Expected gold_rush first clear to grant 400 gold: %', v_event_result;
+  select reward.rewards
+    into v_catalog_contents
+    from public.server_event_definitions event_definition
+    join public.server_reward_definitions reward on reward.reward_id = event_definition.daily_first_clear_reward_id
+    where event_definition.event_id = 'gold_rush'
+      and event_definition.enabled = true
+      and reward.enabled = true;
+  if (v_event_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'Event first clear reward must match server event catalog: % <> %', v_event_result #> '{result,rewardsGranted}', v_catalog_contents;
   end if;
 
   v_event_replay := public.record_event_result(

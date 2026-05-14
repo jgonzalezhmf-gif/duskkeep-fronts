@@ -7,6 +7,33 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.8] - 2026-05-14
+
+### Added
+- Backend introduce `server_event_definitions` para definir eventos, preset, nivel de desbloqueo y reward diario first-clear.
+- Registrado catalogo inicial de rewards para `gold_rush`, `arcane_surge` y `td_fortress_siege`.
+
+### Changed
+- `record_event_result` deja de tener hardcodeados eventos, presets, niveles de desbloqueo y rewards.
+- Los rewards diarios first-clear de Events se conceden mediante `grant_reward_definition`.
+- El smoke valida `gold_rush` contra `server_event_definitions` + `server_reward_definitions`.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Event results data-driven.
+
+### Security
+- El cliente sigue sin enviar ni decidir unlock level, preset ni rewards de Events.
+- `server_event_definitions` queda sin grants para `authenticated`.
+- La operacion mantiene ownership, idempotencia, daily first-clear server-side y ledger por reward grant.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer catalogos internos ni ejecutar grants internos.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.7] - 2026-05-14
 
 ### Added
