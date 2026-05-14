@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  getAuthGateModeForIntent,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
   shouldBlockLocalAuthoritativeFallback,
+  shouldBlockGuestUpgradeForSession,
   shouldRecordAuthActivity,
+  shouldUseGenericGuestUpgradeError,
 } from "@/features/server/sessionSecurity";
 
 describe("auth session security helpers", () => {
@@ -86,5 +89,25 @@ describe("auth session security helpers", () => {
         reason: "api_disabled",
       }),
     ).toBe(false);
+  });
+
+  it("forces guest account upgrades through account creation only", () => {
+    expect(getAuthGateModeForIntent({ intent: "guestUpgrade", requestedMode: "signIn" })).toBe("signUp");
+    expect(getAuthGateModeForIntent({ intent: "guestUpgrade", requestedMode: "signUp" })).toBe("signUp");
+    expect(getAuthGateModeForIntent({ intent: "entry", requestedMode: "signIn" })).toBe("signIn");
+  });
+
+  it("blocks guest upgrades when a session is already authenticated", () => {
+    expect(shouldBlockGuestUpgradeForSession({ intent: "guestUpgrade", sessionStatus: "authenticated" })).toBe(true);
+    expect(shouldBlockGuestUpgradeForSession({ intent: "guestUpgrade", sessionStatus: "anonymous" })).toBe(false);
+    expect(shouldBlockGuestUpgradeForSession({ intent: "entry", sessionStatus: "authenticated" })).toBe(false);
+  });
+
+  it("uses generic account request errors for guest upgrades without hiding config or rate-limit states", () => {
+    expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "invalid_credentials" })).toBe(true);
+    expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "auth_error" })).toBe(true);
+    expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "unconfigured" })).toBe(false);
+    expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "rate_limited" })).toBe(false);
+    expect(shouldUseGenericGuestUpgradeError({ intent: "entry", reason: "invalid_credentials" })).toBe(false);
   });
 });

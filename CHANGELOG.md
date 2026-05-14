@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.12] - 2026-05-14
+
+### Changed
+- Extraidas reglas del gate de autenticacion a helpers testeables de seguridad de sesion.
+
+### Security
+- Cubierto por tests que el flujo invitado -> cuenta fuerza creacion de cuenta nueva y no login.
+- Cubierto por tests que el flujo invitado -> cuenta bloquea sesiones ya autenticadas para evitar merge accidental.
+- Cubierto por tests que los errores de creacion desde invitado son genericos salvo configuracion/rate-limit.
+
+### Tested
+- `npm.cmd run test -- tests/sessionSecurity.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.29.11] - 2026-05-14
 
 ### Added

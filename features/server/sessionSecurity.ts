@@ -4,6 +4,8 @@ export const AUTH_SESSION_EXPIRED_NOTICE = "Session expired. Sign in again to co
 
 export type AuthAccountLinkMode = "undecided" | "guest" | "linked";
 export type AuthSessionStatus = "unconfigured" | "anonymous" | "authenticated";
+export type AuthGateIntent = "entry" | "guestUpgrade";
+export type AuthGateMode = "signIn" | "signUp";
 
 export function reconcileAuthSessionState({
   accountLinkMode,
@@ -35,6 +37,36 @@ export function shouldBlockLocalAuthoritativeFallback({
   reason: string;
 }) {
   return accountLinkMode === "linked" && reason === "missing_session";
+}
+
+export function getAuthGateModeForIntent({
+  intent,
+  requestedMode,
+}: {
+  intent: AuthGateIntent;
+  requestedMode: AuthGateMode;
+}): AuthGateMode {
+  return intent === "guestUpgrade" ? "signUp" : requestedMode;
+}
+
+export function shouldBlockGuestUpgradeForSession({
+  intent,
+  sessionStatus,
+}: {
+  intent: AuthGateIntent;
+  sessionStatus: AuthSessionStatus;
+}) {
+  return intent === "guestUpgrade" && sessionStatus === "authenticated";
+}
+
+export function shouldUseGenericGuestUpgradeError({
+  intent,
+  reason,
+}: {
+  intent: AuthGateIntent;
+  reason: string;
+}) {
+  return intent === "guestUpgrade" && reason !== "unconfigured" && reason !== "rate_limited";
 }
 
 export function hasAuthIdleSessionExpired({

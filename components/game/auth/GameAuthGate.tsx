@@ -11,6 +11,11 @@ import {
   type SupabaseAuthFailureReason,
   type SupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
+import {
+  getAuthGateModeForIntent,
+  shouldBlockGuestUpgradeForSession,
+  shouldUseGenericGuestUpgradeError,
+} from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -74,8 +79,8 @@ export function GameAuthGate({
   if (!open) return null;
 
   const guestUpgrade = intent === "guestUpgrade";
-  const activeMode = guestUpgrade ? "signUp" : mode;
-  const authenticatedSessionBlocked = guestUpgrade && session.status === "authenticated";
+  const activeMode = getAuthGateModeForIntent({ intent, requestedMode: mode });
+  const authenticatedSessionBlocked = shouldBlockGuestUpgradeForSession({ intent, sessionStatus: session.status });
   const configured = session.status !== "unconfigured";
   const emailReady = email.trim().length > 3 && email.includes("@");
   const passwordReady = password.length >= MIN_PASSWORD_LENGTH;
@@ -99,7 +104,7 @@ export function GameAuthGate({
 
     if (!result.ok) {
       setBusy(false);
-      setNotice(t(authFailureKey(result.reason, guestUpgrade)));
+      setNotice(t(authFailureKey(result.reason, intent)));
       return;
     }
 
@@ -356,8 +361,8 @@ function AuthPathCard({ title, body, tone }: { title: string; body: string; tone
   );
 }
 
-function authFailureKey(reason: SupabaseAuthFailureReason, genericAccountRequest = false) {
-  if (genericAccountRequest && reason !== "unconfigured" && reason !== "rate_limited") return "auth.accountRequestGeneric";
+function authFailureKey(reason: SupabaseAuthFailureReason, intent: "entry" | "guestUpgrade" = "entry") {
+  if (shouldUseGenericGuestUpgradeError({ intent, reason })) return "auth.accountRequestGeneric";
 
   switch (reason) {
     case "unconfigured":
