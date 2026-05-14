@@ -47,6 +47,7 @@ Tablas y funciones:
 - `server_adventure_battle_nodes`: define nodos Adventure de combate, prerequisitos, unlocks, tipo y rewards first-clear/replay por `reward_id`.
 - `server_arena_opponents`: define rivales Arena, preset, coste de ticket y rewards por resultado mediante `reward_id`.
 - `server_event_definitions`: define eventos, preset, nivel de desbloqueo y reward diario first-clear mediante `reward_id`.
+- `server_frontline_fortress_buildings`: define edificios de Fortress visible, nivel maximo y curva de coste server-side.
 
 Alcance actual:
 
@@ -58,6 +59,7 @@ Alcance actual:
 - Adventure battle results ya usa `server_adventure_battle_nodes` para Chapter 1 combat nodes.
 - Arena results ya usa `server_arena_opponents` para rivales, coste de ticket y rewards win/draw/loss.
 - Event results ya usa `server_event_definitions` para eventos, unlock level, preset y reward diario first-clear.
+- Fortress upgrades ya usa `server_frontline_fortress_buildings` para edificios habilitados, nivel maximo y costes.
 - El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
@@ -424,7 +426,7 @@ type UpgradeFrontlineCardPayload = {
 
 Mejora un edificio de la Fortress visible.
 
-Primera implementacion SQL: `public.upgrade_frontline_fortress(p_idempotency_key text, p_building_id text)`. Alcance inicial: `keep`, `treasury` y `barracks`. El cliente solicita solo el edificio; el servidor calcula coste y nuevo nivel.
+Primera implementacion SQL: `public.upgrade_frontline_fortress(p_idempotency_key text, p_building_id text)`. Alcance inicial: `keep`, `treasury` y `barracks`. El cliente solicita solo el edificio; el servidor calcula coste y nuevo nivel desde el catalogo interno `server_frontline_fortress_buildings`.
 
 Payload:
 
@@ -437,8 +439,8 @@ type UpgradeFrontlineFortressPayload = {
 Validaciones:
 
 - El usuario esta autenticado.
-- El edificio pertenece a la allowlist actual.
-- El coste de oro/polvo se calcula en servidor.
+- El edificio existe, esta habilitado y no supera el nivel maximo definido en `server_frontline_fortress_buildings`.
+- El coste de oro/polvo se calcula en servidor desde `gold_base`/`dust_base` y sus curvas de crecimiento.
 - El jugador tiene recursos suficientes.
 - La operacion es idempotente.
 - El gasto queda en `resource_ledger`.

@@ -7,6 +7,33 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.9] - 2026-05-14
+
+### Added
+- Backend introduce `server_frontline_fortress_buildings` para definir edificios de Fortress, nivel maximo y curvas de coste.
+- Registrado catalogo inicial para `keep`, `treasury` y `barracks` conservando los valores actuales.
+
+### Changed
+- `upgrade_frontline_fortress` deja de validar edificios y costes con valores hardcodeados y lee la configuracion desde catalogo server-side.
+- `frontline_fortress_building_cost` pasa a resolver costes desde catalogo interno con `security definer`.
+- El smoke valida costes de Fortress contra el catalogo en lugar de comparar contra un numero fijo.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Fortress upgrades data-driven.
+
+### Security
+- El cliente sigue solicitando solo `buildingId`; no decide coste, max level ni curva de progresion.
+- `server_frontline_fortress_buildings` queda sin grants para `authenticated`.
+- La operacion mantiene ownership, idempotencia, coste atomico y ledger de recursos gastados.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer ni modificar `server_frontline_fortress_buildings`.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.8] - 2026-05-14
 
 ### Added

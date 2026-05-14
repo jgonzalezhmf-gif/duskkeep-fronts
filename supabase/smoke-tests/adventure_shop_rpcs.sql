@@ -78,6 +78,7 @@ declare
   v_catalog_target int;
   v_cache_claim_count int;
   v_catalog_cost int;
+  v_catalog_fortress_cost jsonb;
 begin
   insert into auth.users (
     instance_id,
@@ -422,8 +423,12 @@ begin
   if coalesce((v_fortress_upgrade_result #>> '{result,level}')::int, 0) <> 4 then
     raise exception 'Expected keep to reach level 4 after imported snapshot: %', v_fortress_upgrade_result;
   end if;
-  if coalesce((v_fortress_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> 209 then
-    raise exception 'Expected keep level 3 gold cost 209: %', v_fortress_upgrade_result;
+  v_catalog_fortress_cost := public.frontline_fortress_building_cost('keep', 3);
+  if coalesce((v_fortress_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> coalesce((v_catalog_fortress_cost ->> 'gold')::int, -1) then
+    raise exception 'Expected keep level 3 gold cost to match catalog: % <> %', v_fortress_upgrade_result, v_catalog_fortress_cost;
+  end if;
+  if coalesce((v_fortress_upgrade_result #>> '{result,costPaid,dust}')::int, -1) <> coalesce((v_catalog_fortress_cost ->> 'dust')::int, -2) then
+    raise exception 'Expected keep level 3 dust cost to match catalog: % <> %', v_fortress_upgrade_result, v_catalog_fortress_cost;
   end if;
 
   v_fortress_upgrade_replay := public.upgrade_frontline_fortress(
