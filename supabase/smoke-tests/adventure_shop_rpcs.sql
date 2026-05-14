@@ -18,6 +18,9 @@ declare
   v_loadout_result jsonb;
   v_loadout_replay jsonb;
   v_invalid_loadout_result jsonb;
+  v_card_upgrade_result jsonb;
+  v_card_upgrade_replay jsonb;
+  v_invalid_card_upgrade_result jsonb;
   v_daily_result jsonb;
   v_daily_replay jsonb;
   v_daily_second_attempt jsonb;
@@ -75,6 +78,8 @@ begin
     gems = excluded.gems,
     arena_tickets = excluded.arena_tickets,
     adventure_keys = excluded.adventure_keys;
+
+  delete from public.adventure_progress where profile_id = v_profile_id;
 
   insert into public.adventure_progress (
     profile_id,
@@ -193,6 +198,47 @@ begin
   );
   if coalesce(v_invalid_loadout_result ->> 'code', '') <> 'invalid_loadout' then
     raise exception 'Expected invalid_loadout for unknown deck card: %', v_invalid_loadout_result;
+  end if;
+
+  v_card_upgrade_result := public.upgrade_frontline_card(
+    'smoke-card-upgrade-20260514-0001',
+    'order_twin_slash'
+  );
+  if coalesce((v_card_upgrade_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'upgrade_frontline_card failed: %', v_card_upgrade_result;
+  end if;
+  if coalesce((v_card_upgrade_result #>> '{result,level}')::int, 0) <> 2 then
+    raise exception 'Expected upgraded card level 2: %', v_card_upgrade_result;
+  end if;
+  if coalesce((v_card_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> 135 then
+    raise exception 'Expected level 1 card gold cost 135: %', v_card_upgrade_result;
+  end if;
+
+  v_card_upgrade_replay := public.upgrade_frontline_card(
+    'smoke-card-upgrade-20260514-0001',
+    'order_twin_slash'
+  );
+  if v_card_upgrade_replay <> v_card_upgrade_result then
+    raise exception 'upgrade_frontline_card is not idempotent: % <> %', v_card_upgrade_replay, v_card_upgrade_result;
+  end if;
+
+  if not exists (
+    select 1
+      from public.player_frontline_cards
+      where profile_id = v_profile_id
+        and card_id = 'order_twin_slash'
+        and unlocked = true
+        and level = 2
+  ) then
+    raise exception 'Expected order_twin_slash to be upgraded to level 2';
+  end if;
+
+  v_invalid_card_upgrade_result := public.upgrade_frontline_card(
+    'smoke-card-upgrade-invalid-20260514-0001',
+    'enemy_order_bone_arrow'
+  );
+  if coalesce(v_invalid_card_upgrade_result ->> 'code', '') <> 'invalid_request' then
+    raise exception 'Expected invalid_request for non-player card upgrade: %', v_invalid_card_upgrade_result;
   end if;
 
   v_daily_result := public.claim_daily_login(

@@ -88,6 +88,7 @@ export type GameActions = {
   syncFrontlineLoadoutOnlineFirst: () => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   unlockFrontlineCard: (cardId: string) => boolean;
   upgradeFrontlineCard: (cardId: string) => boolean;
+  upgradeFrontlineCardOnlineFirst: (cardId: string) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   addHero: (heroId: string) => void;
   collectFortressIncome: () => Rewards | null;
   upgradeFortressBuilding: (buildingId: string) => boolean;

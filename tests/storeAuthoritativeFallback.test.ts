@@ -9,6 +9,7 @@ import {
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   syncLocalSnapshotAuthoritatively,
+  upgradeFrontlineCardAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 import { loadServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
 import { useGameStore } from "@/lib/store";
@@ -22,6 +23,7 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   purchaseShopOfferAuthoritatively: vi.fn(),
   saveFrontlineLoadoutAuthoritatively: vi.fn(),
   syncLocalSnapshotAuthoritatively: vi.fn(),
+  upgradeFrontlineCardAuthoritatively: vi.fn(),
 }));
 
 vi.mock("@/features/server/serverPlayerSnapshot", () => ({
@@ -31,6 +33,7 @@ vi.mock("@/features/server/serverPlayerSnapshot", () => ({
 const mockedDailyLogin = vi.mocked(claimDailyLoginAuthoritatively);
 const mockedAdventureNode = vi.mocked(claimAdventureNodeRewardAuthoritatively);
 const mockedPurchase = vi.mocked(purchaseShopOfferAuthoritatively);
+const mockedCardUpgrade = vi.mocked(upgradeFrontlineCardAuthoritatively);
 
 describe("store authoritative fallback policy", () => {
   beforeEach(() => {
@@ -46,6 +49,7 @@ describe("store authoritative fallback policy", () => {
     mockedPurchase.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedCardUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(loadServerPlayerSnapshot).mockResolvedValue({ ok: false, reason: "unconfigured" });
   });
 
@@ -91,6 +95,43 @@ describe("store authoritative fallback policy", () => {
     expect(result).not.toBeNull();
     expect(useGameStore.getState().accountLinkMode).toBe("guest");
     expect(useGameStore.getState().resources.gold).toBeGreaterThanOrEqual(beforeGold);
+  });
+
+  it("blocks linked account card upgrades when the session is missing", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { ...useGameStore.getState().resources, gold: 1000, dust: 1000 },
+    });
+    mockedCardUpgrade.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().upgradeFrontlineCardOnlineFirst("order_guard_wall");
+
+    expect(result).toEqual({ ok: false, reason: "missing_session", authoritative: true });
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().frontlineCardLevels.order_guard_wall).toBeUndefined();
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("applies authoritative card upgrades without trusting local resources", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { gold: 1, dust: 1, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+    mockedCardUpgrade.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      cardId: "order_guard_wall",
+      level: 2,
+      costPaid: { gold: 135, dust: 20 },
+      resources: { gold: 365, dust: 30, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+
+    const result = await useGameStore.getState().upgradeFrontlineCardOnlineFirst("order_guard_wall");
+
+    expect(result).toEqual({ ok: true, authoritative: true });
+    expect(useGameStore.getState().frontlineCardLevels.order_guard_wall).toBe(2);
+    expect(useGameStore.getState().resources).toEqual({ gold: 365, dust: 30, gems: 50, arenaTickets: 5, adventureKeys: 0 });
   });
 
   it("keeps local fallback available for linked accounts when the API is disabled", async () => {

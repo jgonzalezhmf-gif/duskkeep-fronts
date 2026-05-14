@@ -63,6 +63,7 @@ import {
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   syncLocalSnapshotAuthoritatively,
+  upgradeFrontlineCardAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 import {
   AUTH_SESSION_EXPIRED_NOTICE,
@@ -173,6 +174,38 @@ export const useGameStore = create<GameState & GameActions>()(
           cardId,
         });
         return applyProgressionCommandResultToStore(command, set, get);
+      },
+
+      upgradeFrontlineCardOnlineFirst: async (cardId) => {
+        const authoritative = await upgradeFrontlineCardAuthoritatively(cardId);
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return { ok: false, reason: authoritative.reason, authoritative: true };
+          }
+          return { ok: get().upgradeFrontlineCard(cardId), authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return { ok: false, reason: authoritative.reason, authoritative: true };
+        }
+
+        set((s) => ({
+          resources: authoritative.resources,
+          frontlineCardLevels: {
+            ...s.frontlineCardLevels,
+            [authoritative.cardId]: authoritative.level,
+          },
+        }));
+        get().pushNotification("success", "Frontline card upgraded");
+        return { ok: true, authoritative: true };
       },
 
       addHero: (heroId) =>

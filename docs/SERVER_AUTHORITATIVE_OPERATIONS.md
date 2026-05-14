@@ -10,9 +10,9 @@ La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
-El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
+El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
-La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. De momento mantiene en local las mejoras de heroes, cartas y fortaleza, aunque existan contratos preparados, porque esos sistemas todavia pueden cambiar y no deben exponerse como economia autoritativa hasta tener modelo, RPC y migracion estables.
+La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de cartas Frontline ya usan `upgradeFrontlineCard` como operacion autoritativa. Las mejoras de heroes y fortaleza permanecen en local hasta tener modelo, RPC y migracion estables.
 
 El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta con `npm.cmd run smoke:authoritative-api` despues de arrancar Supabase y Next con `SERVER_AUTHORITATIVE_API_ENABLED=true`. Este smoke usa Supabase Auth real, no service role.
 
@@ -103,7 +103,7 @@ Notas:
 
 Guarda lider, squad y deck activos.
 
-Primera implementacion SQL: `public.save_frontline_loadout(p_idempotency_key text, p_leader_id text, p_squad jsonb, p_deck jsonb)`. Alcance inicial: persistencia shape-safe del loadout. Todavia no esta conectada al store ni se usa como fuente de verdad de Combat.
+Primera implementacion SQL: `public.save_frontline_loadout(p_idempotency_key text, p_leader_id text, p_squad jsonb, p_deck jsonb)`. Alcance inicial: persistencia shape-safe y ownership-safe del loadout.
 
 Payload:
 
@@ -119,8 +119,10 @@ Validaciones:
 
 - El usuario esta autenticado.
 - El tamano de squad/deck coincide con reglas actuales.
+- El lider pertenece a la allowlist actual.
+- Los heroes/cartas no nulos estan desbloqueados para el perfil.
+- No hay duplicados en squad/deck.
 - La operacion es idempotente.
-- Pendiente antes de usarlo como fuente autoritativa: validar lider/heroes/cartas contra roster desbloqueado server-side y duplicados ilegales.
 
 Resultado:
 
@@ -364,6 +366,8 @@ type ClaimDailyLoginResult = {
 
 Mejora una carta Frontline.
 
+Primera implementacion SQL: `public.upgrade_frontline_card(p_idempotency_key text, p_card_id text)`. Alcance inicial: cartas del pool de jugador actual. El cliente solicita solo el `cardId`; el servidor calcula coste y nuevo nivel.
+
 Payload:
 
 ```ts
@@ -375,9 +379,12 @@ type UpgradeFrontlineCardPayload = {
 Validaciones:
 
 - La carta existe.
+- La carta pertenece al pool de cartas de jugador.
 - La carta esta desbloqueada.
 - No supera nivel maximo.
 - El jugador tiene recursos suficientes.
+- La operacion es idempotente.
+- El gasto de oro/polvo queda en `resource_ledger`.
 
 Resultado:
 

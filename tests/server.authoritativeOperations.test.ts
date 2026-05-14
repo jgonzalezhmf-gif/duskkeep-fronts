@@ -36,11 +36,13 @@ describe("server authoritative operation contracts", () => {
       "purchaseShopOffer",
       "claimMission",
       "claimDailyLogin",
+      "upgradeFrontlineCard",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("syncLocalSnapshot")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("claimDailyLogin")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("claimMission")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineCard")).toBe(true);
   });
 
   it("accepts a capped local snapshot sync payload", () => {

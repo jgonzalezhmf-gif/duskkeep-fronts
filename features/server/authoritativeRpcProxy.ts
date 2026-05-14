@@ -226,6 +226,17 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "upgradeFrontlineCard") {
+    const cardPayload = payload as ServerOperationPayload<"upgradeFrontlineCard">;
+    return {
+      rpcName: "upgrade_frontline_card",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_card_id: cardPayload.cardId,
+      },
+    };
+  }
+
   const purchasePayload = payload as ServerOperationPayload<"purchaseShopOffer">;
   return {
     rpcName: "purchase_shop_offer",

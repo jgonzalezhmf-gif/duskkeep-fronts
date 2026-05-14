@@ -305,6 +305,41 @@ export type ClaimMissionAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeFrontlineCardUpgradeSuccess = {
+  ok: true;
+  mode: "authoritative";
+  cardId: string;
+  level: number;
+  costPaid: {
+    gold: number;
+    dust: number;
+  };
+  resources: Resources;
+};
+
+export type AuthoritativeFrontlineCardUpgradeFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeFrontlineCardUpgradeFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeFrontlineCardUpgradeResult =
+  | AuthoritativeFrontlineCardUpgradeSuccess
+  | AuthoritativeFrontlineCardUpgradeFailure
+  | AuthoritativeFrontlineCardUpgradeFallback;
+
+export type UpgradeFrontlineCardAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export async function syncLocalSnapshotAuthoritatively(
   localVersion: string,
   snapshot: LocalSyncSnapshot,
@@ -338,6 +373,50 @@ export async function syncLocalSnapshotAuthoritatively(
   const parsed = extractLocalSnapshotSyncResult(response.body.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+export async function upgradeFrontlineCardAuthoritatively(
+  cardId: string,
+  options: UpgradeFrontlineCardAuthoritativelyOptions = {},
+): Promise<AuthoritativeFrontlineCardUpgradeResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "upgradeFrontlineCard",
+    {
+      idempotencyKey: createIdempotencyKey("card", cardId),
+      payload: { cardId },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractFrontlineCardUpgradeResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.cardId !== cardId) {
+    return { ok: false, mode: "authoritative", reason: "Server response card mismatch" };
   }
 
   return {
@@ -792,6 +871,26 @@ function extractMissionClaimResult(result: unknown): Omit<AuthoritativeMissionCl
     missionId,
     cycleKey,
     rewards: rewards.data,
+    resources,
+  };
+}
+
+function extractFrontlineCardUpgradeResult(
+  result: unknown,
+): Omit<AuthoritativeFrontlineCardUpgradeSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result) || !isRecord(result.costPaid)) return null;
+
+  const cardId = parseString(result.cardId);
+  const level = parseIntegerRange(result.level, 1, 5);
+  const gold = parseResourceValue(result.costPaid.gold);
+  const dust = parseResourceValue(result.costPaid.dust);
+  const resources = extractResources(result);
+  if (!cardId || level === null || gold === null || dust === null || !resources) return null;
+
+  return {
+    cardId,
+    level,
+    costPaid: { gold, dust },
     resources,
   };
 }

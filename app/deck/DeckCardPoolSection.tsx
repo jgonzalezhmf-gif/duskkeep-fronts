@@ -36,7 +36,7 @@ export function DeckCardPoolSection({
   frontlineCardLevels: FrontlineCardLevels;
   resources: Pick<Resources, "gold" | "dust">;
   onToggleCard: (cardId: string) => void;
-  onUpgradeCard: (cardId: string) => void;
+  onUpgradeCard: (cardId: string) => void | Promise<unknown>;
   t: TranslateFn;
 }) {
   const selectedDeckSet = new Set(selectedDeck);

@@ -36,7 +36,7 @@ export default function DeckPage() {
   const setLeader = useGameStore((state) => state.setFrontlineLeader);
   const setSquadSlot = useGameStore((state) => state.setFrontlineSquadSlot);
   const toggleDeckCard = useGameStore((state) => state.toggleFrontlineDeckCard);
-  const upgradeFrontlineCard = useGameStore((state) => state.upgradeFrontlineCard);
+  const upgradeFrontlineCard = useGameStore((state) => state.upgradeFrontlineCardOnlineFirst);
 
   const selectedDeck = loadout.deck.filter(Boolean) as string[];
   const cardProfiles = useMemo(() => createFrontlineCardProfileMap(frontlineCardLevels), [frontlineCardLevels]);

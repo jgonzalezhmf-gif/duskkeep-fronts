@@ -199,6 +199,7 @@ export const supportedAuthoritativeApiOperations = [
   "purchaseShopOffer",
   "claimMission",
   "claimDailyLogin",
+  "upgradeFrontlineCard",
 ] as const satisfies ServerOperationType[];
 
 export type SupportedAuthoritativeApiOperation = (typeof supportedAuthoritativeApiOperations)[number];

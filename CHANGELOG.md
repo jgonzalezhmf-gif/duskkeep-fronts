@@ -7,6 +7,25 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.9] - 2026-05-14
+
+### Added
+- Aniadida RPC autoritativa `upgrade_frontline_card` para mejoras de cartas Frontline.
+- El Deck usa ahora `upgradeFrontlineCardOnlineFirst`, con fallback local solo para invitado/API desactivada.
+- El smoke Supabase cubre mejora de carta, replay idempotente y rechazo de carta no jugable.
+
+### Security
+- La mejora online valida `auth.uid()`, perfil, carta desbloqueada, nivel maximo, recursos suficientes, idempotencia y ledger server-side.
+- Las cuentas vinculadas ya no pueden mejorar cartas localmente si falta sesion: vuelven a login como en el resto de operaciones sensibles.
+- El cliente recibe solo errores seguros y no puede imponer recursos, nivel ni ownership desde el navegador.
+
+### Tested
+- `npm.cmd run test -- --run tests/server.authoritativeOperations.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts tests/progressionAuthoritativePolicy.test.ts`
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.8] - 2026-05-14
 
 ### Changed

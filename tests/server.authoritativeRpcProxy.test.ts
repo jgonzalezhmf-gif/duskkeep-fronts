@@ -221,6 +221,27 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps Frontline card upgrades to the correct RPC call", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "upgradeFrontlineCard",
+        idempotencyKey: "card-upgrade-20260514",
+        payload: { cardId: "order_guard_wall" },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "upgrade_frontline_card",
+      rpcArgs: {
+        p_idempotency_key: "card-upgrade-20260514",
+        p_card_id: "order_guard_wall",
+      },
+    });
+  });
+
   it("extracts only valid bearer authorization", () => {
     expect(getBearerAuthorization(headers("Bearer valid-token-value"))).toBe("Bearer valid-token-value");
     expect(getBearerAuthorization(headers("Basic value"))).toBeNull();

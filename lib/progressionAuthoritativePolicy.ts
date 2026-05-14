@@ -19,7 +19,7 @@ const PROGRESSION_AUTHORITATIVE_POLICY: Record<ProgressionCommandKind, Progressi
   "hero.levelUp": { mode: "local", reason: "hero_progression_model_pending" },
   "hero.starUp": { mode: "local", reason: "hero_progression_model_pending" },
   "hero.skillUp": { mode: "local", reason: "hero_progression_model_pending" },
-  "frontlineCard.upgrade": { mode: "local", reason: "card_progression_rpc_pending" },
+  "frontlineCard.upgrade": { mode: "authoritative", operationType: "upgradeFrontlineCard" },
   "fortress.upgradeBuilding": { mode: "local", reason: "fortress_progression_rpc_pending" },
   "frontlineFortress.upgradeBuilding": { mode: "local", reason: "fortress_progression_rpc_pending" },
 };

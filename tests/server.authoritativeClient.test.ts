@@ -78,10 +78,10 @@ describe("authoritative API client", () => {
     const fetcher = vi.fn();
 
     const result = await callAuthoritativeOperation(
-      "upgradeFrontlineCard" as never,
+      "recordArenaResult" as never,
       {
-        idempotencyKey: "card-upgrade-20260511-0001",
-        payload: { cardId: "guard_break" } as never,
+        idempotencyKey: "arena-result-20260511-0001",
+        payload: { opponentId: "arena-rival", battleSeed: 1, winner: "ally", turns: 4, battleSummary: {} } as never,
       },
       { token: "valid-token-value", fetcher },
     );

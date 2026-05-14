@@ -8,6 +8,7 @@ import {
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   syncLocalSnapshotAuthoritatively,
+  upgradeFrontlineCardAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 
 describe("authoritative operation dispatcher", () => {
@@ -121,6 +122,110 @@ describe("authoritative operation dispatcher", () => {
         arenaTickets: 5,
         adventureKeys: 0,
       },
+    });
+  });
+
+  it("falls back to local card upgrades when there is no Supabase session", async () => {
+    const result = await upgradeFrontlineCardAuthoritatively("order_guard_wall", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative card level and resources after upgrading a Frontline card", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          cardId: "order_guard_wall",
+          level: 2,
+          costPaid: { gold: 135, dust: 20 },
+          resources: {
+            gold: 365,
+            dust: 30,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await upgradeFrontlineCardAuthoritatively("order_guard_wall", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      cardId: "order_guard_wall",
+      level: 2,
+      costPaid: { gold: 135, dust: 20 },
+      resources: {
+        gold: 365,
+        dust: 30,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects a card upgrade", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "insufficient_resources", reason: "Not enough resources" }),
+    });
+
+    const result = await upgradeFrontlineCardAuthoritatively("order_guard_wall", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Not enough resources",
+    });
+  });
+
+  it("rejects mismatched authoritative card upgrade responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          cardId: "order_twin_slash",
+          level: 2,
+          costPaid: { gold: 135, dust: 20 },
+          resources: {
+            gold: 365,
+            dust: 30,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await upgradeFrontlineCardAuthoritatively("order_guard_wall", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response card mismatch",
     });
   });
 
