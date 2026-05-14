@@ -114,6 +114,21 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 
+  it("blocks linked account purchases for shop offers without a server operation", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { ...useGameStore.getState().resources, gems: 500 },
+    });
+    mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "local", reason: "unsupported_offer" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_raid_payout");
+
+    expect(result).toEqual({ ok: false, reason: "Shop offer requires server validation", authoritative: true });
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().dailyShopPurchases.daily_raid_payout).toBeUndefined();
+  });
+
   it("keeps local fallback available for guest accounts without a Supabase session", async () => {
     useGameStore.setState({ accountLinkMode: "guest" });
     mockedDailyLogin.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
@@ -124,6 +139,20 @@ describe("store authoritative fallback policy", () => {
     expect(result).not.toBeNull();
     expect(useGameStore.getState().accountLinkMode).toBe("guest");
     expect(useGameStore.getState().resources.gold).toBeGreaterThanOrEqual(beforeGold);
+  });
+
+  it("keeps local shop purchases available for guest accounts when an offer has no server operation", async () => {
+    useGameStore.setState({
+      accountLinkMode: "guest",
+      resources: { ...useGameStore.getState().resources, gems: 500 },
+    });
+    mockedPurchase.mockResolvedValueOnce({ ok: false, mode: "local", reason: "unsupported_offer" });
+
+    const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_raid_payout");
+
+    expect(result).toEqual({ ok: true });
+    expect(useGameStore.getState().dailyShopPurchases.daily_raid_payout).toBe(1);
+    expect(useGameStore.getState().resources.gold).toBeGreaterThan(500);
   });
 
   it("blocks linked account card upgrades when the session is missing", async () => {

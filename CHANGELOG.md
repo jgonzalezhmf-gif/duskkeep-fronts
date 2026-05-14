@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.22] - 2026-05-14
+
+### Changed
+- Shop bloquea en cuentas vinculadas las ofertas que aun no tienen operacion autoritativa.
+- El modo invitado mantiene compras locales de ofertas no autoritativas como fallback de alpha.
+
+### Security
+- Reduce el riesgo de que una cuenta online compre ofertas no validadas por servidor.
+- `adventure_key_ring` sigue usando la ruta autoritativa existente; el resto queda pendiente de RPC antes de economia online real.
+
+### Tested
+- `npm.cmd test -- tests/storeAuthoritativeFallback.test.ts tests/server.authoritativeOperationDispatcher.test.ts`
+- `npm.cmd run typecheck`
+
 ## [0.30.21] - 2026-05-14
 
 ### Changed
