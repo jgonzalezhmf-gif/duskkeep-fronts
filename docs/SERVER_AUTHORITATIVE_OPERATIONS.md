@@ -6,6 +6,8 @@ Los contratos TypeScript y esquemas de validacion base viven en `features/server
 
 La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salvo `SERVER_AUTHORITATIVE_API_ENABLED=true` y requiere `Authorization: Bearer <supabase-user-jwt>`. La ruta solo llama RPCs ya existentes y no usa service role.
 
+La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una clave derivada de hash del bearer token o, si no hay token valido, de la IP reenviada. Este limite reduce abuso accidental o automatizado en el MVP, pero para despliegue distribuido debe sustituirse por un limitador compartido externo.
+
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
 El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
@@ -54,6 +56,7 @@ Codigos recomendados:
 - `invalid_loadout`
 - `invalid_state`
 - `idempotency_conflict`
+- `rate_limited`
 
 ## Operaciones MVP
 

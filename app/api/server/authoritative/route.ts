@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  checkAuthoritativeRateLimit,
+  createAuthoritativeRateLimitKey,
+  type AuthoritativeRateLimitStore,
+} from "@/features/server/authoritativeRateLimit";
+import {
   executeAuthoritativeRpcCall,
   prepareAuthoritativeRpcCall,
 } from "@/features/server/authoritativeRpcProxy";
@@ -7,7 +12,21 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const rateLimitStore: AuthoritativeRateLimitStore = new Map();
+
 export async function POST(request: NextRequest) {
+  const rateLimit = checkAuthoritativeRateLimit({
+    key: createAuthoritativeRateLimitKey(request.headers),
+    store: rateLimitStore,
+    now: Date.now(),
+  });
+  if (!rateLimit.ok) {
+    return NextResponse.json(rateLimit.body, {
+      status: rateLimit.status,
+      headers: rateLimit.headers,
+    });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

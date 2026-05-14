@@ -16,6 +16,7 @@ export const serverActionErrorCodes = [
   "invalid_request",
   "invalid_state",
   "idempotency_conflict",
+  "rate_limited",
 ] as const;
 
 export type ServerActionErrorCode = (typeof serverActionErrorCodes)[number];

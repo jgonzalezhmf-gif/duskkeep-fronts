@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.9] - 2026-05-14
+
+### Added
+- Aniadido rate limit basico en memoria para `/api/server/authoritative`.
+- Documentado `rate_limited` como codigo de error esperado en operaciones autoritativas.
+
+### Security
+- El rate limit se aplica antes de parsear JSON y usa hash del bearer token o IP reenviada, sin almacenar tokens crudos.
+- Reducido el riesgo de abuso automatizado o rafagas sobre mutaciones autoritativas de rewards, compras y progreso.
+
+### Tested
+- `npm.cmd run test -- tests/server.authoritativeRateLimit.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.29.8] - 2026-05-14
 
 ### Fixed
