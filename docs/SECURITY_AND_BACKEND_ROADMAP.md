@@ -4,13 +4,14 @@ Este documento define la direccion objetivo para persistencia online segura y fu
 
 ## Estado Actual
 
-El alpha prioriza funcionamiento offline:
+El alpha empezo priorizando funcionamiento offline, pero la direccion objetivo cambia a invitado respaldado por servidor:
 
-- El estado del jugador se guarda en `localStorage` mediante Zustand persist.
-- El schema y SDK de Supabase existen, pero no son autoritativos.
-- El juego sigue siendo jugable sin conexion.
+- El modo invitado debe intentar crear una sesion anonima Supabase y un perfil de jugador en servidor.
+- `localStorage` queda como fallback de alpha y para preferencias/cache no sensibles.
+- El progreso real online debe vivir en servidor tanto para invitado como para cuenta vinculada.
+- El juego sigue siendo jugable sin conexion mientras el backend no este disponible, pero ese modo no es fuente de verdad para economia online.
 
-Esto es aceptable para iteracion alpha, pero no es seguro para economia online, ladder o funcionalidades monetizadas.
+Esto evita depender de importar progreso manipulable desde `localStorage` cuando el jugador decide crear una cuenta.
 
 ## Principio de Seguridad
 
@@ -44,10 +45,11 @@ El cliente puede renderizar previews y feedback local, pero el servidor decide s
 - Definir operaciones de servidor para acciones sensibles de economia.
 - Mantener fallback `localStorage` para desarrollo.
 
-### Fase 2: MVP de persistencia autenticada
+### Fase 2: MVP de persistencia invitada/autenticada
 
-- Anadir login/auth.
-- Migrar snapshot local del jugador a una cuenta autenticada.
+- Anadir sesion invitada anonima con Supabase Auth.
+- Crear/provisionar perfil servidor para usuarios anonimos y registrados.
+- Vincular la sesion invitada a cuenta nueva mediante actualizacion del usuario anonimo, no mediante merge con cuenta existente.
 - Guardar perfil/progreso no sensible online.
 - Mantener ejecucion de combate en cliente, pero persistir resultados en servidor tras validacion.
 
@@ -113,17 +115,19 @@ Supabase puede usarse para:
 
 No exponer service-role keys en cliente. Usar anon keys solo con RLS, y enrutar mutaciones sensibles mediante codigo de servidor.
 
-## Migracion desde LocalStorage
+## Invitado Respaldado por Servidor
 
-La migracion debe ser explicita y no debe filtrar informacion de cuentas:
+El flujo objetivo no debe ser `localStorage -> subir progreso -> cuenta`, sino `perfil invitado servidor -> vincular cuenta`.
 
-1. En la pantalla inicial, el usuario puede iniciar sesion con una cuenta existente o crear una cuenta nueva.
-2. Si el usuario entra como invitado, desde opciones solo puede crear una cuenta nueva para guardar ese progreso local.
-3. El flujo invitado -> cuenta no debe ofrecer inicio de sesion con una cuenta existente ni fusionar progreso invitado con una cuenta preexistente.
-4. El cliente lee el snapshot local solo despues de autenticarse con la nueva cuenta creada para esa partida invitada.
-5. El servidor valida shape y rangos permitidos antes de persistir el snapshot.
-6. El cliente cambia a persistencia online cuando la sincronizacion se confirma o deja la accion como reintentable si falla.
-7. Los mensajes de login, registro y recuperacion deben ser genericos: no confirmar si una cuenta existe, no existe o esta en otro estado.
+1. En la pantalla inicial, el usuario puede iniciar sesion con una cuenta existente, crear una cuenta nueva o jugar como invitado.
+2. Al elegir invitado, el cliente intenta `signInAnonymously` con Supabase.
+3. El usuario anonimo recibe un `auth.users.id`; las tablas de jugador usan el mismo ownership/RLS que una cuenta normal.
+4. Si Supabase no esta configurado o anonymous auth falla, se conserva fallback local solo para alpha/offline.
+5. Si el invitado quiere guardar el progreso, desde opciones solo puede crear una cuenta nueva sobre esa sesion anonima.
+6. El flujo invitado -> cuenta no debe ofrecer login con una cuenta existente ni fusionar progreso invitado con una cuenta preexistente.
+7. La conversion usa actualizacion del usuario anonimo con email/password para conservar el mismo `user_id` y sus filas de progreso.
+8. El snapshot local queda como mecanismo de transicion/desarrollo, con allowlists y limites estrictos, no como arquitectura final.
+9. Los mensajes de login, registro y recuperacion deben ser genericos: no confirmar si una cuenta existe, no existe o esta en otro estado.
 
 ## Riesgos a Evitar
 

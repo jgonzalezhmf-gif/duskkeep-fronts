@@ -11,6 +11,7 @@ export type SupabaseSessionSnapshot =
       userId: string;
       email: string | null;
       expiresAt: number | null;
+      isAnonymous: boolean;
     };
 
 export type SupabaseAuthResult =
@@ -102,6 +103,38 @@ export async function signUpSupabaseWithPassword({
   };
 }
 
+export async function signInSupabaseAnonymously(): Promise<SupabaseAuthResult> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { ok: false, reason: "unconfigured" };
+
+  const { data, error } = await supabase.auth.signInAnonymously();
+  if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+
+  return {
+    ok: true,
+    session: toSupabaseSessionSnapshot(data.session),
+  };
+}
+
+export async function upgradeAnonymousSupabaseUserWithPassword({
+  email,
+  password,
+}: SupabasePasswordCredentials): Promise<SupabaseAuthResult> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { ok: false, reason: "unconfigured" };
+
+  const { error } = await supabase.auth.updateUser({
+    email: email.trim(),
+    password,
+  });
+  if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+
+  return {
+    ok: true,
+    session: await getSupabaseSessionSnapshot(),
+  };
+}
+
 export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<SupabaseOAuthResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
@@ -184,6 +217,7 @@ export function toSupabaseSessionSnapshot(session: Session | null): SupabaseSess
     userId: session.user.id,
     email: session.user.email ?? null,
     expiresAt: session.expires_at ?? null,
+    isAnonymous: session.user.is_anonymous === true,
   };
 }
 

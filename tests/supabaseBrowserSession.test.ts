@@ -27,6 +27,34 @@ describe("Supabase browser session helpers", () => {
       userId: "user-1",
       email: "player@example.com",
       expiresAt: 1810000000,
+      isAnonymous: false,
+    });
+    expect(JSON.stringify(snapshot)).not.toContain("secret");
+  });
+
+  it("marks anonymous Supabase sessions without exposing tokens", () => {
+    const snapshot = toSupabaseSessionSnapshot({
+      access_token: "secret-access-token",
+      refresh_token: "secret-refresh-token",
+      expires_at: 1810000000,
+      expires_in: 3600,
+      token_type: "bearer",
+      user: {
+        id: "anonymous-user-1",
+        app_metadata: {},
+        user_metadata: {},
+        aud: "authenticated",
+        created_at: "2026-05-14T00:00:00.000Z",
+        is_anonymous: true,
+      },
+    });
+
+    expect(snapshot).toEqual({
+      status: "authenticated",
+      userId: "anonymous-user-1",
+      email: null,
+      expiresAt: 1810000000,
+      isAnonymous: true,
     });
     expect(JSON.stringify(snapshot)).not.toContain("secret");
   });

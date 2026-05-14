@@ -14,7 +14,7 @@ Este documento define el modelo de datos objetivo para mover Duskkeep Fronts des
 
 ### `profiles`
 
-Representa la cuenta jugable asociada al usuario autenticado.
+Representa el perfil jugable asociado a un usuario Supabase. Ese usuario puede ser anonimo/invitado o una cuenta vinculada.
 
 Campos objetivo:
 
@@ -29,6 +29,8 @@ Campos objetivo:
 Reglas:
 
 - `user_id` referencia la identidad autenticada.
+- El modo invitado debe usar un usuario anonimo Supabase, no progreso sensible guardado solo en `localStorage`.
+- Convertir invitado a cuenta debe conservar el mismo `user_id` siempre que Supabase permita actualizar el usuario anonimo con email/password.
 - RLS: cada usuario solo puede leer su perfil.
 - Las mutaciones de level/xp deben pasar por operaciones de servidor.
 
@@ -328,7 +330,7 @@ Estos datos deben tener ids estables para poder referenciarlos desde tablas de j
 
 ## Migracion desde Estado Local
 
-La migracion debe mapear:
+La migracion desde estado local queda como mecanismo transitorio de alpha. El modelo objetivo es que incluso el invitado tenga perfil de servidor desde el inicio. Mientras exista importacion local, debe mapear solo campos permitidos y con limites conservadores:
 
 - `account` -> `profiles`
 - `resources` -> `player_resources` + `resource_ledger` inicial

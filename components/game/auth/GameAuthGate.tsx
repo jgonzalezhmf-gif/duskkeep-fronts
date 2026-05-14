@@ -8,6 +8,7 @@ import {
   signInSupabaseWithPassword,
   signUpSupabaseWithPassword,
   subscribeToSupabaseSession,
+  upgradeAnonymousSupabaseUserWithPassword,
   type SupabaseAuthFailureReason,
   type SupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
@@ -27,7 +28,7 @@ export type GameAuthGateProps = {
   allowGuest?: boolean;
   intent?: "entry" | "guestUpgrade";
   initialNoticeKey?: string;
-  onGuest?: () => void;
+  onGuest?: () => void | Promise<void>;
   onLinked: () => void | Promise<void>;
   onClose?: () => void;
 };
@@ -80,7 +81,11 @@ export function GameAuthGate({
 
   const guestUpgrade = intent === "guestUpgrade";
   const activeMode = getAuthGateModeForIntent({ intent, requestedMode: mode });
-  const authenticatedSessionBlocked = shouldBlockGuestUpgradeForSession({ intent, sessionStatus: session.status });
+  const authenticatedSessionBlocked = shouldBlockGuestUpgradeForSession({
+    intent,
+    sessionStatus: session.status,
+    sessionIsAnonymous: session.status === "authenticated" ? session.isAnonymous : false,
+  });
   const configured = session.status !== "unconfigured";
   const emailReady = email.trim().length > 3 && email.includes("@");
   const passwordReady = password.length >= MIN_PASSWORD_LENGTH;
@@ -100,7 +105,9 @@ export function GameAuthGate({
     const result =
       activeMode === "signIn"
         ? await signInSupabaseWithPassword(credentials)
-        : await signUpSupabaseWithPassword(credentials);
+        : guestUpgrade && session.status === "authenticated" && session.isAnonymous
+          ? await upgradeAnonymousSupabaseUserWithPassword(credentials)
+          : await signUpSupabaseWithPassword(credentials);
 
     if (!result.ok) {
       setBusy(false);
@@ -109,7 +116,7 @@ export function GameAuthGate({
     }
 
     setSession(result.session);
-    if (result.session.status === "authenticated") {
+    if (result.session.status === "authenticated" && !result.session.isAnonymous) {
       sfx.unlock();
       await onLinked();
       setBusy(false);
@@ -155,9 +162,12 @@ export function GameAuthGate({
     setNotice(t("auth.recoveryGeneric"));
   }
 
-  function continueAsGuest() {
+  async function continueAsGuest() {
+    if (busy) return;
     sfx.tap();
-    onGuest?.();
+    setBusy(true);
+    await onGuest?.();
+    setBusy(false);
   }
 
   return (

@@ -53,6 +53,19 @@ describe("auth session security helpers", () => {
     });
   });
 
+  it("reconciles anonymous authenticated sessions as guest server sessions", () => {
+    expect(
+      reconcileAuthSessionState({
+        accountLinkMode: "undecided",
+        sessionStatus: "authenticated",
+        sessionIsAnonymous: true,
+      }),
+    ).toEqual({
+      accountLinkMode: "guest",
+      requiresLogin: false,
+    });
+  });
+
   it("requires login when a linked account has no active session", () => {
     expect(reconcileAuthSessionState({ accountLinkMode: "linked", sessionStatus: "anonymous" })).toEqual({
       accountLinkMode: "undecided",
@@ -99,6 +112,13 @@ describe("auth session security helpers", () => {
 
   it("blocks guest upgrades when a session is already authenticated", () => {
     expect(shouldBlockGuestUpgradeForSession({ intent: "guestUpgrade", sessionStatus: "authenticated" })).toBe(true);
+    expect(
+      shouldBlockGuestUpgradeForSession({
+        intent: "guestUpgrade",
+        sessionStatus: "authenticated",
+        sessionIsAnonymous: true,
+      }),
+    ).toBe(false);
     expect(shouldBlockGuestUpgradeForSession({ intent: "guestUpgrade", sessionStatus: "anonymous" })).toBe(false);
     expect(shouldBlockGuestUpgradeForSession({ intent: "entry", sessionStatus: "authenticated" })).toBe(false);
   });

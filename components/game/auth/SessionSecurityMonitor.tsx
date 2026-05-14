@@ -47,7 +47,7 @@ export function SessionSecurityMonitor() {
         lastRecordedAtRef.current = Date.now();
         if (session.status === "authenticated") {
           setExpired(false);
-          setAccountLinkMode("linked");
+          setAccountLinkMode(session.isAnonymous ? "guest" : "linked");
         }
       }
       if (event === "SIGNED_OUT" && linked) {
@@ -66,6 +66,7 @@ export function SessionSecurityMonitor() {
       const reconciled = reconcileAuthSessionState({
         accountLinkMode,
         sessionStatus: session.status,
+        sessionIsAnonymous: session.status === "authenticated" ? session.isAnonymous : false,
       });
       if (reconciled.accountLinkMode !== accountLinkMode) setAccountLinkMode(reconciled.accountLinkMode);
       if (reconciled.requiresLogin) setExpired(true);

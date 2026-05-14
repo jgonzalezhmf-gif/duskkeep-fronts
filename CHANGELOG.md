@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.0] - 2026-05-14
+
+### Changed
+- Redisenado el flujo objetivo de invitado hacia sesiones anonimas Supabase respaldadas por servidor.
+- `Jugar como invitado` intenta crear una sesion anonima Supabase antes de caer al modo local de alpha.
+- El monitor de sesion distingue usuarios anonimos de cuentas vinculadas.
+- El flujo invitado -> cuenta prepara conversion del usuario anonimo con email/password en vez de crear una cuenta separada.
+
+### Security
+- Documentado que el objetivo ya no es importar progreso sensible desde `localStorage`, sino conservar un perfil invitado de servidor y vincularlo a cuenta nueva.
+- El flujo invitado -> cuenta sigue sin permitir login/merge con cuenta existente.
+- Los snapshots locales quedan como transicion/fallback, no como arquitectura final para economia online.
+
+### Tested
+- `npm.cmd run test -- tests/sessionSecurity.test.ts tests/supabaseBrowserSession.test.ts`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.29.13] - 2026-05-14
 
 ### Changed

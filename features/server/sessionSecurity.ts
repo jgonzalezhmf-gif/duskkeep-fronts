@@ -10,11 +10,16 @@ export type AuthGateMode = "signIn" | "signUp";
 export function reconcileAuthSessionState({
   accountLinkMode,
   sessionStatus,
+  sessionIsAnonymous = false,
 }: {
   accountLinkMode: AuthAccountLinkMode;
   sessionStatus: AuthSessionStatus;
+  sessionIsAnonymous?: boolean;
 }): { accountLinkMode: AuthAccountLinkMode; requiresLogin: boolean } {
   if (sessionStatus === "authenticated") {
+    if (sessionIsAnonymous) {
+      return { accountLinkMode: "guest", requiresLogin: false };
+    }
     return { accountLinkMode: "linked", requiresLogin: false };
   }
 
@@ -52,11 +57,13 @@ export function getAuthGateModeForIntent({
 export function shouldBlockGuestUpgradeForSession({
   intent,
   sessionStatus,
+  sessionIsAnonymous = false,
 }: {
   intent: AuthGateIntent;
   sessionStatus: AuthSessionStatus;
+  sessionIsAnonymous?: boolean;
 }) {
-  return intent === "guestUpgrade" && sessionStatus === "authenticated";
+  return intent === "guestUpgrade" && sessionStatus === "authenticated" && !sessionIsAnonymous;
 }
 
 export function shouldUseGenericGuestUpgradeError({
