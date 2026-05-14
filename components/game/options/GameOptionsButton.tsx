@@ -188,7 +188,7 @@ export default function GameOptionsButton({ className }: { className?: string })
                       }}
                       className="frontline-motion-action mt-3 w-full rounded-[20px] border border-sky-200/24 bg-sky-300/10 px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.16em] text-sky-50 shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:border-sky-100/44"
                     >
-                      {t("options.linkAccount")}
+                      {t("options.createAccountAndSave")}
                     </button>
                   ) : null}
                   {accountLinkMode === "linked" ? (
@@ -248,10 +248,20 @@ export default function GameOptionsButton({ className }: { className?: string })
         <GameAuthGate
           open={accountGateOpen}
           allowGuest={false}
+          intent="guestUpgrade"
           onClose={() => setAccountGateOpen(false)}
-          onLinked={() => {
+          onLinked={async () => {
             setAccountLinkMode("linked");
+            setAccountSyncBusy(true);
+            setAccountSyncNotice(t("options.accountSyncing"));
+            const result = await syncLocalSnapshotOnlineFirst();
+            setAccountSyncBusy(false);
             setAccountGateOpen(false);
+            if (result.ok) {
+              setAccountSyncNotice(t("options.accountSyncDone"));
+            } else {
+              setAccountSyncNotice(t(result.authoritative ? "options.accountSyncFailed" : "options.accountSyncUnavailable"));
+            }
           }}
         />
       ) : null}

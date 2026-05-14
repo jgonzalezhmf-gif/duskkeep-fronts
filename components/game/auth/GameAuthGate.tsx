@@ -19,14 +19,22 @@ type AuthMode = "signIn" | "signUp";
 export type GameAuthGateProps = {
   open: boolean;
   allowGuest?: boolean;
+  intent?: "entry" | "guestUpgrade";
   onGuest?: () => void;
-  onLinked: () => void;
+  onLinked: () => void | Promise<void>;
   onClose?: () => void;
 };
 
 const MIN_PASSWORD_LENGTH = 8;
 
-export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClose }: GameAuthGateProps) {
+export function GameAuthGate({
+  open,
+  allowGuest = true,
+  intent = "entry",
+  onGuest,
+  onLinked,
+  onClose,
+}: GameAuthGateProps) {
   const { t } = useI18n();
   const [mode, setMode] = useState<AuthMode>("signIn");
   const [email, setEmail] = useState("");
@@ -55,11 +63,14 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
 
   if (!open) return null;
 
+  const guestUpgrade = intent === "guestUpgrade";
+  const activeMode = guestUpgrade ? "signUp" : mode;
+  const authenticatedSessionBlocked = guestUpgrade && session.status === "authenticated";
   const configured = session.status !== "unconfigured";
   const emailReady = email.trim().length > 3 && email.includes("@");
   const passwordReady = password.length >= MIN_PASSWORD_LENGTH;
   const canSubmit = configured && emailReady && passwordReady && !busy;
-  const authCta = mode === "signIn" ? t("auth.signInCta") : t("auth.createAccountCta");
+  const authCta = activeMode === "signIn" ? t("auth.signInCta") : t("auth.createAccountCta");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,24 +83,26 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
     setNotice(null);
     const credentials = { email, password };
     const result =
-      mode === "signIn"
+      activeMode === "signIn"
         ? await signInSupabaseWithPassword(credentials)
         : await signUpSupabaseWithPassword(credentials);
-    setBusy(false);
 
     if (!result.ok) {
-      setNotice(t(authFailureKey(result.reason)));
+      setBusy(false);
+      setNotice(t(authFailureKey(result.reason, guestUpgrade)));
       return;
     }
 
     setSession(result.session);
     if (result.session.status === "authenticated") {
       sfx.unlock();
-      onLinked();
+      await onLinked();
+      setBusy(false);
       return;
     }
 
-    setNotice(t("auth.checkEmail"));
+    setBusy(false);
+    setNotice(t(guestUpgrade ? "auth.guestUpgradeCheckEmail" : "auth.checkEmail"));
   }
 
   async function handleGoogle() {
@@ -127,22 +140,33 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
           <div className="border-b border-white/10 p-6 md:border-b-0 md:border-r md:p-8">
             <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#f5d498]">{t("auth.eyebrow")}</div>
             <h2 id="game-auth-title" className="mt-3 text-3xl font-black leading-none text-white sm:text-4xl">
-              {t("auth.title")}
+              {t(guestUpgrade ? "auth.guestUpgradeTitle" : "auth.title")}
             </h2>
-            <p className="mt-4 max-w-[26rem] text-sm leading-6 text-white/64">{t("auth.subtitle")}</p>
+            <p className="mt-4 max-w-[26rem] text-sm leading-6 text-white/64">
+              {t(guestUpgrade ? "auth.guestUpgradeSubtitle" : "auth.subtitle")}
+            </p>
 
             <div className="mt-6 grid gap-3">
-              <AuthPathCard title={t("auth.onlineTitle")} body={t("auth.onlineBody")} tone="gold" />
-              {allowGuest ? <AuthPathCard title={t("auth.guestTitle")} body={t("auth.guestBody")} tone="blue" /> : null}
+              <AuthPathCard
+                title={t(guestUpgrade ? "auth.guestUpgradeOnlineTitle" : "auth.onlineTitle")}
+                body={t(guestUpgrade ? "auth.guestUpgradeOnlineBody" : "auth.onlineBody")}
+                tone="gold"
+              />
+              {allowGuest && !guestUpgrade ? <AuthPathCard title={t("auth.guestTitle")} body={t("auth.guestBody")} tone="blue" /> : null}
             </div>
 
             <p className="mt-5 rounded-[20px] border border-white/10 bg-black/22 p-4 text-[12px] leading-5 text-white/52">
-              {t("auth.syncNote")}
+              {t(guestUpgrade ? "auth.guestUpgradeSyncNote" : "auth.syncNote")}
             </p>
           </div>
 
           <div className="p-6 md:p-8">
-            {session.status === "authenticated" ? (
+            {authenticatedSessionBlocked ? (
+              <div className="rounded-[26px] border border-amber-200/18 bg-amber-300/10 p-5">
+                <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100">{t("auth.createAccount")}</div>
+                <div className="mt-2 text-sm leading-6 text-white/64">{t("auth.guestUpgradeExistingSession")}</div>
+              </div>
+            ) : session.status === "authenticated" ? (
               <div className="rounded-[26px] border border-emerald-300/20 bg-emerald-400/10 p-5">
                 <div className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-100">{t("auth.connected")}</div>
                 <div className="mt-2 text-lg font-black text-white">{session.email ?? t("auth.connectedAccount")}</div>
@@ -159,24 +183,30 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
               </div>
             ) : (
               <>
-                <div className="flex rounded-full border border-white/10 bg-black/22 p-1">
-                  {(["signIn", "signUp"] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => {
-                        setMode(tab);
-                        setNotice(null);
-                      }}
-                      className={cn(
-                        "frontline-motion-action flex-1 rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition",
-                        mode === tab ? "bg-[#f5c451]/18 text-[#f5d498]" : "text-white/48 hover:text-white/70",
-                      )}
-                    >
-                      {tab === "signIn" ? t("auth.signIn") : t("auth.register")}
-                    </button>
-                  ))}
-                </div>
+                {guestUpgrade ? (
+                  <div className="rounded-full border border-[#f5c451]/18 bg-[#f5c451]/10 px-4 py-2 text-center text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
+                    {t("auth.createAccount")}
+                  </div>
+                ) : (
+                  <div className="flex rounded-full border border-white/10 bg-black/22 p-1">
+                    {(["signIn", "signUp"] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => {
+                          setMode(tab);
+                          setNotice(null);
+                        }}
+                        className={cn(
+                          "frontline-motion-action flex-1 rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition",
+                          mode === tab ? "bg-[#f5c451]/18 text-[#f5d498]" : "text-white/48 hover:text-white/70",
+                        )}
+                      >
+                        {tab === "signIn" ? t("auth.signIn") : t("auth.register")}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="mt-5 grid gap-3">
                   <label className="block">
@@ -195,7 +225,7 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
                     <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/48">{t("auth.password")}</span>
                     <input
                       type="password"
-                      autoComplete={mode === "signIn" ? "current-password" : "new-password"}
+                      autoComplete={activeMode === "signIn" ? "current-password" : "new-password"}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       disabled={busy}
@@ -229,27 +259,31 @@ export function GameAuthGate({ open, allowGuest = true, onGuest, onLinked, onClo
                   </button>
                 </form>
 
-                <div className="my-5 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.18em] text-white/32">
-                  <span className="h-px flex-1 bg-white/10" />
-                  {t("auth.or")}
-                  <span className="h-px flex-1 bg-white/10" />
-                </div>
+                {!guestUpgrade ? (
+                  <>
+                    <div className="my-5 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.18em] text-white/32">
+                      <span className="h-px flex-1 bg-white/10" />
+                      {t("auth.or")}
+                      <span className="h-px flex-1 bg-white/10" />
+                    </div>
 
-                <button
-                  type="button"
-                  disabled={!configured || busy}
-                  onClick={handleGoogle}
-                  className={cn(
-                    "frontline-motion-action w-full rounded-[20px] border px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] transition",
-                    configured && !busy
-                      ? "border-sky-200/24 bg-sky-300/10 text-sky-50 hover:border-sky-100/42"
-                      : "cursor-not-allowed border-white/8 bg-white/[0.04] text-white/30",
-                  )}
-                >
-                  {t("auth.google")}
-                </button>
+                    <button
+                      type="button"
+                      disabled={!configured || busy}
+                      onClick={handleGoogle}
+                      className={cn(
+                        "frontline-motion-action w-full rounded-[20px] border px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] transition",
+                        configured && !busy
+                          ? "border-sky-200/24 bg-sky-300/10 text-sky-50 hover:border-sky-100/42"
+                          : "cursor-not-allowed border-white/8 bg-white/[0.04] text-white/30",
+                      )}
+                    >
+                      {t("auth.google")}
+                    </button>
+                  </>
+                ) : null}
 
-                {allowGuest ? (
+                {allowGuest && !guestUpgrade ? (
                   <button
                     type="button"
                     onClick={continueAsGuest}
@@ -281,7 +315,9 @@ function AuthPathCard({ title, body, tone }: { title: string; body: string; tone
   );
 }
 
-function authFailureKey(reason: SupabaseAuthFailureReason) {
+function authFailureKey(reason: SupabaseAuthFailureReason, genericAccountRequest = false) {
+  if (genericAccountRequest && reason !== "unconfigured" && reason !== "rate_limited") return "auth.accountRequestGeneric";
+
   switch (reason) {
     case "unconfigured":
       return "auth.unconfigured";

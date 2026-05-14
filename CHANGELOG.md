@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.1] - 2026-05-14
+
+### Fixed
+- Separado el flujo de cuenta inicial del flujo invitado -> cuenta: desde Opciones ahora solo se puede crear una cuenta nueva para guardar el progreso invitado.
+- El flujo de guardado invitado ya no muestra pestañas de login ni acceso Google, evitando vincular o fusionar progreso invitado con una cuenta existente.
+- Al crear cuenta desde una partida invitada se intenta sincronizar automaticamente el snapshot local y queda reintentable desde Opciones si falla.
+
+### Security
+- Los errores de creacion de cuenta desde invitado usan mensajes genericos para no revelar si un email existe, no existe o esta en otro estado.
+- Documentada la regla de no enumeracion de cuentas y la prohibicion de merge invitado -> cuenta existente.
+
+### Tested
+- `npm.cmd run check`
+
 ## [0.29.0] - 2026-05-14
 
 ### Added

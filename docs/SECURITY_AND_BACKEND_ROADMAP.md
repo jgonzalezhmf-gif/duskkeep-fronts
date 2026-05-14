@@ -115,14 +115,15 @@ No exponer service-role keys en cliente. Usar anon keys solo con RLS, y enrutar 
 
 ## Migracion desde LocalStorage
 
-La migracion debe ser explicita:
+La migracion debe ser explicita y no debe filtrar informacion de cuentas:
 
-1. El usuario inicia sesion.
-2. El cliente lee el snapshot local.
-3. El servidor valida shape y rangos permitidos.
-4. El servidor crea o actualiza la cuenta online.
-5. El cliente cambia a persistencia online.
-6. El snapshot local queda como backup hasta confirmar sincronizacion.
+1. En la pantalla inicial, el usuario puede iniciar sesion con una cuenta existente o crear una cuenta nueva.
+2. Si el usuario entra como invitado, desde opciones solo puede crear una cuenta nueva para guardar ese progreso local.
+3. El flujo invitado -> cuenta no debe ofrecer inicio de sesion con una cuenta existente ni fusionar progreso invitado con una cuenta preexistente.
+4. El cliente lee el snapshot local solo despues de autenticarse con la nueva cuenta creada para esa partida invitada.
+5. El servidor valida shape y rangos permitidos antes de persistir el snapshot.
+6. El cliente cambia a persistencia online cuando la sincronizacion se confirma o deja la accion como reintentable si falla.
+7. Los mensajes de login, registro y recuperacion deben ser genericos: no confirmar si una cuenta existe, no existe o esta en otro estado.
 
 ## Riesgos a Evitar
 
