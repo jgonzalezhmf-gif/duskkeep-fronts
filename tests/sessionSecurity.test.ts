@@ -5,6 +5,7 @@ import {
   reconcileAuthSessionState,
   shouldBlockLocalAuthoritativeFallback,
   shouldBlockGuestUpgradeForSession,
+  shouldUseGenericAccountRequestError,
   shouldRecordAuthActivity,
   shouldShowEntryAuthGate,
   shouldUseGenericGuestUpgradeError,
@@ -130,6 +131,14 @@ describe("auth session security helpers", () => {
     expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "unconfigured" })).toBe(false);
     expect(shouldUseGenericGuestUpgradeError({ intent: "guestUpgrade", reason: "rate_limited" })).toBe(false);
     expect(shouldUseGenericGuestUpgradeError({ intent: "entry", reason: "invalid_credentials" })).toBe(false);
+  });
+
+  it("uses generic account request errors for registration to avoid account enumeration", () => {
+    expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signUp", reason: "invalid_credentials" })).toBe(true);
+    expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signUp", reason: "auth_error" })).toBe(true);
+    expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signUp", reason: "unconfigured" })).toBe(false);
+    expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signUp", reason: "rate_limited" })).toBe(false);
+    expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signIn", reason: "invalid_credentials" })).toBe(false);
   });
 
   it("shows the entry auth gate for guests once per page load so they can choose login or continue guest", () => {

@@ -73,7 +73,20 @@ export function shouldUseGenericGuestUpgradeError({
   intent: AuthGateIntent;
   reason: string;
 }) {
-  return intent === "guestUpgrade" && reason !== "unconfigured" && reason !== "rate_limited";
+  return intent === "guestUpgrade" && shouldUseGenericAccountRequestError({ intent, mode: "signUp", reason });
+}
+
+export function shouldUseGenericAccountRequestError({
+  intent,
+  mode,
+  reason,
+}: {
+  intent: AuthGateIntent;
+  mode: AuthGateMode;
+  reason: string;
+}) {
+  if (reason === "unconfigured" || reason === "rate_limited") return false;
+  return intent === "guestUpgrade" || mode === "signUp";
 }
 
 export function shouldShowEntryAuthGate({

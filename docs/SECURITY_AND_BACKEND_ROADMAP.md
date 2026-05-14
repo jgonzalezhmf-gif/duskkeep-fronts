@@ -126,8 +126,9 @@ El flujo objetivo no debe ser `localStorage -> subir progreso -> cuenta`, sino `
 5. Si el invitado quiere guardar el progreso, desde opciones solo puede crear una cuenta nueva sobre esa sesion anonima.
 6. El flujo invitado -> cuenta no debe ofrecer login con una cuenta existente ni fusionar progreso invitado con una cuenta preexistente.
 7. La conversion usa actualizacion del usuario anonimo con email/password para conservar el mismo `user_id` y sus filas de progreso.
-8. El snapshot local queda como mecanismo de transicion/desarrollo, con allowlists y limites estrictos, no como arquitectura final.
-9. Los mensajes de login, registro y recuperacion deben ser genericos: no confirmar si una cuenta existe, no existe o esta en otro estado.
+8. Tras convertir la sesion invitada, la UI ejecuta `syncLocalSnapshotOnlineFirst` como puente alpha para guardar progreso local validado antes de refrescar desde servidor.
+9. El snapshot local queda como mecanismo de transicion/desarrollo, con allowlists y limites estrictos, no como arquitectura final.
+10. Los mensajes de login, registro y recuperacion deben ser genericos: no confirmar si una cuenta existe, no existe o esta en otro estado.
 
 Requisitos operativos:
 

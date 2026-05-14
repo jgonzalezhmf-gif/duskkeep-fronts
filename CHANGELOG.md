@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.14] - 2026-05-15
+
+### Changed
+- El flujo de opciones `Crear cuenta y guardar progreso` sincroniza primero el snapshot local validado mediante `syncLocalSnapshotOnlineFirst` en lugar de cargar inmediatamente el snapshot del servidor.
+- Los errores de registro usan respuesta generica para reducir riesgo de enumeracion de cuentas, manteniendo mensajes especificos solo para configuracion ausente y rate limit.
+- Actualizada la documentacion de seguridad para reflejar el puente alpha de invitado a cuenta nueva.
+
+### Security
+- El flujo invitado -> cuenta nueva evita login/merge con cuentas existentes y no filtra si un email esta registrado.
+- Si la sincronizacion autoritativa falla, el modal de cuenta no se cierra ni marca el progreso como guardado.
+
+### Tested
+- `npm.cmd test -- tests/sessionSecurity.test.ts tests/supabaseBrowserSession.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.13] - 2026-05-15
 
 ### Changed

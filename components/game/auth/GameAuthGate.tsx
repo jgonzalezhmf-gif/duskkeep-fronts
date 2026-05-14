@@ -15,7 +15,7 @@ import {
 import {
   getAuthGateModeForIntent,
   shouldBlockGuestUpgradeForSession,
-  shouldUseGenericGuestUpgradeError,
+  shouldUseGenericAccountRequestError,
 } from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
@@ -111,7 +111,7 @@ export function GameAuthGate({
 
     if (!result.ok) {
       setBusy(false);
-      setNotice(t(authFailureKey(result.reason, intent)));
+      setNotice(t(authFailureKey(result.reason, intent, activeMode)));
       return;
     }
 
@@ -371,8 +371,8 @@ function AuthPathCard({ title, body, tone }: { title: string; body: string; tone
   );
 }
 
-function authFailureKey(reason: SupabaseAuthFailureReason, intent: "entry" | "guestUpgrade" = "entry") {
-  if (shouldUseGenericGuestUpgradeError({ intent, reason })) return "auth.accountRequestGeneric";
+function authFailureKey(reason: SupabaseAuthFailureReason, intent: "entry" | "guestUpgrade" = "entry", mode: AuthMode = "signIn") {
+  if (shouldUseGenericAccountRequestError({ intent, mode, reason })) return "auth.accountRequestGeneric";
 
   switch (reason) {
     case "unconfigured":

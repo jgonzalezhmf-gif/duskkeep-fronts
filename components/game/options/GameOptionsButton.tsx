@@ -48,6 +48,7 @@ export default function GameOptionsButton({ className }: { className?: string })
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
   const loadServerSnapshotOnlineFirst = useGameStore((state) => state.loadServerSnapshotOnlineFirst);
+  const syncLocalSnapshotOnlineFirst = useGameStore((state) => state.syncLocalSnapshotOnlineFirst);
 
   return (
     <>
@@ -280,13 +281,12 @@ export default function GameOptionsButton({ className }: { className?: string })
           intent="guestUpgrade"
           onClose={() => setAccountGateOpen(false)}
           onLinked={async () => {
-            setAccountLinkMode("linked");
             setAccountSyncBusy(true);
             setAccountSyncNotice(t("options.accountSyncing"));
-            const result = await loadServerSnapshotOnlineFirst();
+            const result = await syncLocalSnapshotOnlineFirst();
             setAccountSyncBusy(false);
-            setAccountGateOpen(false);
             if (result.ok) {
+              setAccountGateOpen(false);
               setAccountSyncNotice(t("options.accountSaveDone"));
             } else {
               setAccountSyncNotice(t(result.authoritative ? "options.accountSaveFailed" : "options.accountSyncUnavailable"));
