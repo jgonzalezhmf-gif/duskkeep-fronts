@@ -7,6 +7,32 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.12] - 2026-05-15
+
+### Added
+- Backend introduce `server_upgradeable_frontline_cards` para definir cartas Frontline habilitadas y nivel maximo.
+- Backend introduce `server_frontline_card_upgrade_costs` para definir costes de mejora de cartas por nivel actual.
+
+### Changed
+- `upgrade_frontline_card` deja de tener allowlist, nivel maximo y formula de coste hardcodeados.
+- El smoke valida costes de cartas contra catalogo en lugar de comparar numeros fijos.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Frontline card progression data-driven.
+
+### Security
+- El cliente sigue enviando solo `cardId`; no decide elegibilidad, nivel maximo ni costes.
+- `server_upgradeable_frontline_cards`, `server_frontline_card_upgrade_costs` y `frontline_card_upgrade_cost` quedan sin grants para `authenticated`.
+- La operacion mantiene ownership, idempotencia, locks sobre recursos/carta y ledger de oro/polvo gastados.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer catalogos de cartas ni ejecutar `frontline_card_upgrade_cost`.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.11] - 2026-05-14
 
 ### Added

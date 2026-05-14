@@ -52,6 +52,8 @@ Tablas y funciones:
 - `server_frontline_fortress_raid_profiles`: define formula de ataque/defensa, cooldown, outcomes e importes base de rewards de raids Fortress.
 - `server_upgradeable_heroes`: define heroes que pueden progresar y sus limites de nivel, estrellas y skill.
 - `server_hero_upgrade_costs`: define costes server-side de level/star/skill por valor actual.
+- `server_upgradeable_frontline_cards`: define cartas Frontline que pueden progresar y su nivel maximo.
+- `server_frontline_card_upgrade_costs`: define costes server-side de mejora de cartas por nivel actual.
 
 Alcance actual:
 
@@ -66,6 +68,7 @@ Alcance actual:
 - Fortress upgrades ya usa `server_frontline_fortress_buildings` para edificios habilitados, nivel maximo y costes.
 - Fortress raids ya usa `server_frontline_fortress_hero_scores` y `server_frontline_fortress_raid_profiles` para calcular defensa, ataque, outcome, cooldown y rewards.
 - Hero progression ya usa `server_upgradeable_heroes` y `server_hero_upgrade_costs` para heroes permitidos, limites y costes de level/star/skill.
+- Frontline card progression ya usa `server_upgradeable_frontline_cards` y `server_frontline_card_upgrade_costs` para cartas permitidas, nivel maximo y costes.
 - El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
@@ -497,12 +500,27 @@ type ResolveFrontlineFortressRaidResult = {
 };
 ```
 
+### `upgradeFrontlineCard`
+
+Mejora una carta Frontline desbloqueada.
+
+Implementacion SQL: `public.upgrade_frontline_card(p_idempotency_key text, p_card_id text)`. El cliente solicita solo `cardId`; la carta permitida, el nivel maximo y el coste se resuelven desde `server_upgradeable_frontline_cards` y `server_frontline_card_upgrade_costs`.
+
+Payload:
+
+```ts
+type UpgradeFrontlineCardPayload = {
+  cardId: string;
+};
+```
+
 Validaciones:
 
-- La carta existe.
+- La carta esta habilitada en `server_upgradeable_frontline_cards`.
 - La carta pertenece al pool de cartas de jugador.
 - La carta esta desbloqueada.
-- No supera nivel maximo.
+- No supera nivel maximo definido server-side.
+- El coste se resuelve por `server_frontline_card_upgrade_costs`.
 - El jugador tiene recursos suficientes.
 - La operacion es idempotente.
 - El gasto de oro/polvo queda en `resource_ledger`.

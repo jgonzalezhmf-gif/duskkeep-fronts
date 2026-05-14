@@ -80,6 +80,7 @@ declare
   v_catalog_cost int;
   v_catalog_fortress_cost jsonb;
   v_catalog_hero_cost jsonb;
+  v_catalog_card_cost jsonb;
 begin
   insert into auth.users (
     instance_id,
@@ -386,8 +387,12 @@ begin
   if coalesce((v_card_upgrade_result #>> '{result,level}')::int, 0) <> 2 then
     raise exception 'Expected upgraded card level 2: %', v_card_upgrade_result;
   end if;
-  if coalesce((v_card_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> 135 then
-    raise exception 'Expected level 1 card gold cost 135: %', v_card_upgrade_result;
+  v_catalog_card_cost := public.frontline_card_upgrade_cost(1);
+  if coalesce((v_card_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> coalesce((v_catalog_card_cost ->> 'gold')::int, -1) then
+    raise exception 'Expected level 1 card gold cost to match catalog: % <> %', v_card_upgrade_result, v_catalog_card_cost;
+  end if;
+  if coalesce((v_card_upgrade_result #>> '{result,costPaid,dust}')::int, 0) <> coalesce((v_catalog_card_cost ->> 'dust')::int, -1) then
+    raise exception 'Expected level 1 card dust cost to match catalog: % <> %', v_card_upgrade_result, v_catalog_card_cost;
   end if;
 
   v_card_upgrade_replay := public.upgrade_frontline_card(
