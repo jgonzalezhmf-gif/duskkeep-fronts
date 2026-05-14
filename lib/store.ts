@@ -616,6 +616,10 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         if (winner === "draw") {
+          if (get().accountLinkMode === "linked") {
+            get().pushNotification("info", "Draw rewards are not available for linked Adventure sessions yet");
+            return { rewards: ADVENTURE_DEFEAT_REWARDS, firstClear: false };
+          }
           get().awardRewards(ADVENTURE_DRAW_REWARDS, "Adventure draw");
           return { rewards: ADVENTURE_DRAW_REWARDS, firstClear: false };
         }

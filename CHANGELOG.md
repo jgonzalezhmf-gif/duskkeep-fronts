@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.20] - 2026-05-14
+
+### Changed
+- Los empates de Adventure ya no conceden rewards locales en cuentas vinculadas.
+- El modo invitado mantiene los rewards locales de empate de Adventure como fallback de alpha.
+
+### Security
+- Cierra un bypass donde una cuenta vinculada podia recibir rewards de empate sin pasar por RPC autoritativa.
+- Mantiene la regla de no convertir resultados no soportados por servidor en economia online.
+
+### Tested
+- `npm.cmd test -- tests/storeAuthoritativeFallback.test.ts tests/frontlineBattleRewardPolicy.test.ts`
+- `npm.cmd run typecheck`
+
 ## [0.30.19] - 2026-05-14
 
 ### Changed

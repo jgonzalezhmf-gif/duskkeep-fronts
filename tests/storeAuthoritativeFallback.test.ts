@@ -195,6 +195,40 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 
+  it("does not award local Adventure draw rewards to linked accounts", async () => {
+    useGameStore.setState({ accountLinkMode: "linked" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().claimAdventureBattleResultOnlineFirst({
+      levelId: "c1l2",
+      battleSeed: 123,
+      winner: "draw",
+      turns: 12,
+      battleSummary: {},
+    });
+
+    expect(result).toEqual({ rewards: { gold: 0, dust: 0, gems: 0, accountXp: 0 }, firstClear: false });
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(vi.mocked(claimAdventureBattleResultAuthoritatively)).not.toHaveBeenCalled();
+  });
+
+  it("keeps local Adventure draw rewards available for guest accounts", async () => {
+    useGameStore.setState({ accountLinkMode: "guest" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().claimAdventureBattleResultOnlineFirst({
+      levelId: "c1l2",
+      battleSeed: 123,
+      winner: "draw",
+      turns: 12,
+      battleSummary: {},
+    });
+
+    expect(result).toEqual({ rewards: { gold: 20, dust: 2, gems: 0, accountXp: 1 }, firstClear: false });
+    expect(useGameStore.getState().resources.gold).toBe(beforeResources.gold + 20);
+    expect(useGameStore.getState().resources.dust).toBe(beforeResources.dust + 2);
+  });
+
   it("blocks linked account Event results when the session is missing", async () => {
     useGameStore.setState({ accountLinkMode: "linked" });
     mockedEventResult.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
