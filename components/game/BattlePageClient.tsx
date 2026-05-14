@@ -30,6 +30,7 @@ import {
   projectAccountProgress,
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
+import { shouldPersistBattleOutcome } from "@/components/game/frontline/frontlineBattleRewardPolicy";
 import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 
@@ -49,6 +50,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const recordBattleResult = useGameStore((state) => state.recordBattleResult);
   const claimAdventureBattleResultOnlineFirst = useGameStore((state) => state.claimAdventureBattleResultOnlineFirst);
   const account = useGameStore((state) => state.account);
+  const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const resources = useGameStore((state) => state.resources);
   const playerHeroes = useGameStore((state) => state.heroes);
   const frontlineCardLevels = useGameStore((state) => state.frontlineCardLevels);
@@ -139,6 +141,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
 
     let firstClearAchieved = false;
     let rewardsAppliedByAdventureClaim = false;
+    let adventureClaimSucceeded = !adventureLevel;
     let authoritativeResourcesAfter: { gold: number; dust: number; gems: number } | null = null;
     if (adventureLevel) {
       const claim = await claimAdventureBattleResultOnlineFirst({
@@ -152,6 +155,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
         rewards = claim.rewards;
         firstClearAchieved = claim.firstClear;
         rewardsAppliedByAdventureClaim = true;
+        adventureClaimSucceeded = true;
         authoritativeResourcesAfter = claim.resources
           ? {
               gold: claim.resources.gold,
@@ -162,6 +166,14 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       } else {
         rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
       }
+    }
+    const shouldPersistOutcome = shouldPersistBattleOutcome({
+      accountLinkMode,
+      adventureLevelActive: Boolean(adventureLevel),
+      adventureClaimSucceeded,
+    });
+    if (!shouldPersistOutcome) {
+      rewards = {};
     }
     const normalizedRewards = {
       gold: rewards.gold ?? 0,
@@ -196,7 +208,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       firstClear: firstClearAchieved,
       adventureName: adventureLevel?.name ?? null,
     });
-    recordBattleResult(won, adventureLevel ? "adventure" : "vsai");
+    if (shouldPersistOutcome) recordBattleResult(won, adventureLevel ? "adventure" : "vsai");
     if (!rewardsAppliedByAdventureClaim && (rewards.gold || rewards.dust || rewards.gems || rewards.accountXp || rewards.xp || rewards.arenaTickets || rewards.adventureKeys || rewards.shards?.length || rewards.frontlineCards?.length)) {
       awardRewards(rewards, won && adventureLevel ? adventureLevel.name : won ? t("frontline.victory") : winner === "draw" ? t("frontline.draw") : t("frontline.defeat"));
     }

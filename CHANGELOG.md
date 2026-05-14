@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.19] - 2026-05-14
+
+### Changed
+- Extraida politica de persistencia de resultados Frontline para diferenciar combates autoritativos, Adventure y practica local.
+- Las cuentas vinculadas ya no persisten rewards/progreso de combates locales no autoritativos desde `/battle`.
+- Si un claim de Adventure falla por servidor/sesion, el resultado de combate no marca victoria local ni progreso local por accidente.
+
+### Security
+- Reduce el riesgo de que combates no validados por servidor alimenten misiones o recursos online en cuentas vinculadas.
+- El modo invitado conserva el fallback local de alpha.
+
+### Tested
+- `npm.cmd test -- tests/frontlineBattleRewardPolicy.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run typecheck`
+
 ## [0.30.18] - 2026-05-14
 
 ### Changed
