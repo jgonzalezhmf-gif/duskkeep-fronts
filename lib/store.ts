@@ -973,6 +973,10 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       claimRoadmapStep: (id) => {
+        if (get().accountLinkMode === "linked") {
+          get().pushNotification("error", "Roadmap rewards require server validation");
+          return null;
+        }
         const s = get();
         const step = ROADMAP.find((r) => r.id === id);
         const result = claimRoadmapReward(s.roadmapClaimed, step, step ? isRoadmapStepComplete(s, step) : false);
@@ -983,6 +987,10 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       claimMilestone: (level) => {
+        if (get().accountLinkMode === "linked") {
+          get().pushNotification("error", "Milestone rewards require server validation");
+          return null;
+        }
         const s = get();
         const m = MILESTONES.find((x) => x.level === level);
         const result = claimMilestoneReward(s.account.level, s.milestonesClaimed, m);

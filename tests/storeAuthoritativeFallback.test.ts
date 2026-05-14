@@ -300,6 +300,53 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
   });
 
+  it("blocks linked account roadmap rewards until they have a server operation", () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      adventureProgress: { c1l1: { cleared: true, firstClearTaken: true } },
+    });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = useGameStore.getState().claimRoadmapStep("r_first_win");
+
+    expect(result).toBeNull();
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().roadmapClaimed.r_first_win).toBeUndefined();
+    expect(useGameStore.getState().notifications).toContainEqual(
+      expect.objectContaining({ kind: "error", message: "Roadmap rewards require server validation" }),
+    );
+  });
+
+  it("blocks linked account milestone rewards until they have a server operation", () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      account: { ...useGameStore.getState().account, level: 2 },
+    });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = useGameStore.getState().claimMilestone(2);
+
+    expect(result).toBeNull();
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().milestonesClaimed[2]).toBeUndefined();
+    expect(useGameStore.getState().notifications).toContainEqual(
+      expect.objectContaining({ kind: "error", message: "Milestone rewards require server validation" }),
+    );
+  });
+
+  it("keeps local roadmap and milestone rewards available for guest accounts", () => {
+    useGameStore.setState({
+      accountLinkMode: "guest",
+      account: { ...useGameStore.getState().account, level: 2 },
+      adventureProgress: { c1l1: { cleared: true, firstClearTaken: true } },
+    });
+
+    expect(useGameStore.getState().claimRoadmapStep("r_first_win")).toEqual({ gold: 150, gems: 10, accountXp: 10 });
+    expect(useGameStore.getState().claimMilestone(2)).toEqual({ gold: 200, gems: 20 });
+    expect(useGameStore.getState().roadmapClaimed.r_first_win).toBe(true);
+    expect(useGameStore.getState().milestonesClaimed[2]).toBe(true);
+  });
+
   it("blocks linked account hero level ups when the session is missing", async () => {
     useGameStore.setState({
       accountLinkMode: "linked",

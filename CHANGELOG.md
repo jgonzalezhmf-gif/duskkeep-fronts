@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.21] - 2026-05-14
+
+### Changed
+- Roadmap y milestones ya no conceden rewards locales en cuentas vinculadas mientras no tengan RPC autoritativa propia.
+- El modo invitado conserva los claims locales de roadmap/milestones como fallback de alpha.
+
+### Security
+- Reduce la superficie donde una cuenta online podia convertir progreso local manipulable en recursos.
+- Los claims de progreso meta sin operación server-side quedan bloqueados para cuentas vinculadas.
+
+### Tested
+- `npm.cmd test -- tests/storeAuthoritativeFallback.test.ts tests/metaRewardClaims.test.ts`
+- `npm.cmd run typecheck`
+
 ## [0.30.20] - 2026-05-14
 
 ### Changed
