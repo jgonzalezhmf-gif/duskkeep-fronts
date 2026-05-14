@@ -158,6 +158,28 @@ Reglas:
 - `deck` contiene slots ordenados de cartas.
 - El servidor debe validar que heroes/cartas estan desbloqueados antes de guardar.
 
+### `player_frontline_fortress`
+
+Estado de la Fortress visible.
+
+Campos objetivo:
+
+- `profile_id uuid primary key`
+- `buildings jsonb not null`
+- `integrity int not null`
+- `garrison jsonb not null`
+- `last_resolved_at timestamptz`
+- `next_attack_at timestamptz`
+- `raids_resolved int not null`
+- `updated_at timestamptz not null`
+
+Reglas:
+
+- `buildings` contiene solo `keep`, `treasury` y `barracks`.
+- Las mejoras se hacen por RPC autoritativa con coste calculado en servidor.
+- `garrison` conserva slots ordenados y debe validar ids antes de usarse en combate/raids.
+- La importacion local solo acepta shape whitelisted y rangos conservadores.
+
 ### `adventure_progress`
 
 Progreso por nodo de Adventure.
@@ -337,6 +359,7 @@ La migracion desde estado local queda como mecanismo transitorio de alpha. El mo
 - `heroes` -> `player_heroes`
 - `frontlineCardUnlocks` y `frontlineCardLevels` -> `player_frontline_cards`
 - `frontlineLoadout` -> `frontline_loadouts`
+- `frontlineFortress` -> `player_frontline_fortress`
 - `adventureProgress` -> `adventure_progress`
 - `adventureMapClaims` -> `adventure_map_claims`
 - `missionsProgress` -> `missions_progress`

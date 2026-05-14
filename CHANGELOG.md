@@ -7,6 +7,26 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.30.14] - 2026-05-14
+
+### Changed
+- `sync_local_snapshot` importa ahora `frontlineFortress` para conservar el progreso de Fortress al convertir progreso invitado en cuenta.
+- El snapshot normalizado de `syncLocalSnapshot` devuelve tambien `frontlineFortress`.
+- La documentacion del modelo backend incluye `player_frontline_fortress` y su mapeo desde snapshot local.
+
+### Security
+- La importacion acepta solo campos whitelisted: `buildings`, `integrity`, `garrison` y `raidsResolved`.
+- Los niveles e integridad se recortan con rangos conservadores y no se aceptan reports calculados por cliente.
+- El estado online existente no se reduce: edificios y raids importados usan maximo contra el servidor.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/localSyncSnapshot.test.ts tests/serverPlayerSnapshot.test.ts tests/serverPlayerSnapshotState.test.ts`
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test`
+- `npm.cmd run check`
+- `npm.cmd run build`
+
 ## [0.30.13] - 2026-05-14
 
 ### Added

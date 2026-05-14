@@ -64,7 +64,7 @@ Codigos recomendados:
 
 Migra un snapshot local a cuenta autenticada.
 
-Primera implementacion SQL: `public.sync_local_snapshot(p_idempotency_key text, p_local_version text, p_snapshot jsonb)`. Alcance inicial: importacion explicita de recursos, perfil basico, heroes, cartas Frontline, loadout, progreso Adventure y claims de mapa con allowlists/caps. No reduce progreso online existente y no debe considerarse suficiente para economia monetizada final.
+Primera implementacion SQL: `public.sync_local_snapshot(p_idempotency_key text, p_local_version text, p_snapshot jsonb)`. Alcance inicial: importacion explicita de recursos, perfil basico, heroes, cartas Frontline, loadout, Fortress visible, progreso Adventure y claims de mapa con allowlists/caps. No reduce progreso online existente y no debe considerarse suficiente para economia monetizada final.
 
 Payload:
 
@@ -98,6 +98,7 @@ Notas:
 - Puede rechazar o recortar datos sospechosos.
 - El cliente envia solo un snapshot whitelisted mediante `createLocalSyncSnapshot`; no se envia el store completo.
 - La RPC aplica limites conservadores antes de persistir para reducir abuso de localStorage manipulado.
+- `frontlineFortress` importa solo `buildings`, `integrity`, `garrison` y `raidsResolved`; no acepta reports ni datos calculados por cliente.
 
 ### `saveLoadout`
 

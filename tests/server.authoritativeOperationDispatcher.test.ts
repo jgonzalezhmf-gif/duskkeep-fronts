@@ -37,6 +37,14 @@ describe("authoritative operation dispatcher", () => {
           normalizedSnapshot: {
             account: { name: "Commander", level: 4, xp: 300 },
             resources: { gold: 1200, dust: 250, gems: 50, arenaTickets: 5, adventureKeys: 1 },
+            frontlineFortress: {
+              buildings: { keep: 3, treasury: 2, barracks: 1 },
+              integrity: 92,
+              garrison: ["bran", "kara", "mira"],
+              lastResolvedAt: null,
+              nextAttackAt: null,
+              raidsResolved: 2,
+            },
           },
         },
       }),
@@ -55,6 +63,14 @@ describe("authoritative operation dispatcher", () => {
       normalizedSnapshot: {
         account: { name: "Commander", level: 4, xp: 300 },
         resources: { gold: 1200, dust: 250, gems: 50, arenaTickets: 5, adventureKeys: 1 },
+        frontlineFortress: {
+          buildings: { keep: 3, treasury: 2, barracks: 1 },
+          integrity: 92,
+          garrison: ["bran", "kara", "mira"],
+          lastResolvedAt: null,
+          nextAttackAt: null,
+          raidsResolved: 2,
+        },
       },
     });
   });

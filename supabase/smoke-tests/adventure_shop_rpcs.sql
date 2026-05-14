@@ -141,6 +141,14 @@ begin
       ),
       'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true),
       'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2),
+      'frontlineFortress', jsonb_build_object(
+        'buildings', jsonb_build_object('keep', 3, 'treasury', 2, 'barracks', 1),
+        'integrity', 92,
+        'garrison', '["bran","kara","mira"]'::jsonb,
+        'lastResolvedAt', null,
+        'nextAttackAt', null,
+        'raidsResolved', 2
+      ),
       'adventureProgress', jsonb_build_object(),
       'adventureMapClaims', jsonb_build_object()
     )
@@ -150,6 +158,9 @@ begin
   end if;
   if coalesce((v_sync_result #>> '{result,normalizedSnapshot,resources,gold}')::int, 0) < 650 then
     raise exception 'Expected synced gold in normalized snapshot: %', v_sync_result;
+  end if;
+  if coalesce((v_sync_result #>> '{result,normalizedSnapshot,frontlineFortress,buildings,keep}')::int, 0) <> 3 then
+    raise exception 'Expected synced Frontline Fortress keep level 3: %', v_sync_result;
   end if;
 
   v_sync_replay := public.sync_local_snapshot(
@@ -166,6 +177,14 @@ begin
       ),
       'frontlineCardUnlocks', jsonb_build_object('order_guard_wall', true),
       'frontlineCardLevels', jsonb_build_object('order_guard_wall', 2),
+      'frontlineFortress', jsonb_build_object(
+        'buildings', jsonb_build_object('keep', 3, 'treasury', 2, 'barracks', 1),
+        'integrity', 92,
+        'garrison', '["bran","kara","mira"]'::jsonb,
+        'lastResolvedAt', null,
+        'nextAttackAt', null,
+        'raidsResolved', 2
+      ),
       'adventureProgress', jsonb_build_object(),
       'adventureMapClaims', jsonb_build_object()
     )
@@ -369,11 +388,11 @@ begin
   if coalesce((v_fortress_upgrade_result ->> 'ok')::boolean, false) is not true then
     raise exception 'upgrade_frontline_fortress failed: %', v_fortress_upgrade_result;
   end if;
-  if coalesce((v_fortress_upgrade_result #>> '{result,level}')::int, 0) <> 2 then
-    raise exception 'Expected keep to reach level 2: %', v_fortress_upgrade_result;
+  if coalesce((v_fortress_upgrade_result #>> '{result,level}')::int, 0) <> 4 then
+    raise exception 'Expected keep to reach level 4 after imported snapshot: %', v_fortress_upgrade_result;
   end if;
-  if coalesce((v_fortress_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> 120 then
-    raise exception 'Expected keep level 1 gold cost 120: %', v_fortress_upgrade_result;
+  if coalesce((v_fortress_upgrade_result #>> '{result,costPaid,gold}')::int, 0) <> 209 then
+    raise exception 'Expected keep level 3 gold cost 209: %', v_fortress_upgrade_result;
   end if;
 
   v_fortress_upgrade_replay := public.upgrade_frontline_fortress(
@@ -388,9 +407,9 @@ begin
     select 1
       from public.player_frontline_fortress
       where profile_id = v_profile_id
-        and (buildings ->> 'keep')::int = 2
+        and (buildings ->> 'keep')::int = 4
   ) then
-    raise exception 'Expected keep to be upgraded to level 2';
+    raise exception 'Expected keep to be upgraded to level 4';
   end if;
 
   v_invalid_fortress_upgrade_result := public.upgrade_frontline_fortress(
