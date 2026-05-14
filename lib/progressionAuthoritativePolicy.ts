@@ -12,11 +12,11 @@ export type ProgressionAuthoritativePolicy =
     }
   | {
       mode: "authoritative";
-      operationType: "upgradeFrontlineCard";
+      operationType: "levelUpHero" | "upgradeFrontlineCard";
     };
 
 const PROGRESSION_AUTHORITATIVE_POLICY: Record<ProgressionCommandKind, ProgressionAuthoritativePolicy> = {
-  "hero.levelUp": { mode: "local", reason: "hero_progression_model_pending" },
+  "hero.levelUp": { mode: "authoritative", operationType: "levelUpHero" },
   "hero.starUp": { mode: "local", reason: "hero_progression_model_pending" },
   "hero.skillUp": { mode: "local", reason: "hero_progression_model_pending" },
   "frontlineCard.upgrade": { mode: "authoritative", operationType: "upgradeFrontlineCard" },

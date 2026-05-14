@@ -8,7 +8,7 @@ import { PROGRESSION_COMMAND_KINDS } from "@/lib/progressionCommands";
 describe("progression authoritative policy", () => {
   it("routes only stabilized progression commands through server authority", () => {
     expect(PROGRESSION_COMMAND_KINDS.map((kind) => [kind, getProgressionAuthoritativePolicy(kind)])).toEqual([
-      ["hero.levelUp", { mode: "local", reason: "hero_progression_model_pending" }],
+      ["hero.levelUp", { mode: "authoritative", operationType: "levelUpHero" }],
       ["hero.starUp", { mode: "local", reason: "hero_progression_model_pending" }],
       ["hero.skillUp", { mode: "local", reason: "hero_progression_model_pending" }],
       ["frontlineCard.upgrade", { mode: "authoritative", operationType: "upgradeFrontlineCard" }],
@@ -17,7 +17,10 @@ describe("progression authoritative policy", () => {
     ]);
   });
 
-  it("exposes only Frontline card upgrades as authoritative for now", () => {
-    expect(PROGRESSION_COMMAND_KINDS.filter(isProgressionCommandAuthoritative)).toEqual(["frontlineCard.upgrade"]);
+  it("exposes only stabilized progression commands as authoritative for now", () => {
+    expect(PROGRESSION_COMMAND_KINDS.filter(isProgressionCommandAuthoritative)).toEqual([
+      "hero.levelUp",
+      "frontlineCard.upgrade",
+    ]);
   });
 });

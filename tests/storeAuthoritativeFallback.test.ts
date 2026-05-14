@@ -5,6 +5,7 @@ import {
   claimAdventureNodeRewardAuthoritatively,
   claimDailyLoginAuthoritatively,
   claimMissionAuthoritatively,
+  levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
@@ -19,6 +20,7 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   claimAdventureNodeRewardAuthoritatively: vi.fn(),
   claimDailyLoginAuthoritatively: vi.fn(),
   claimMissionAuthoritatively: vi.fn(),
+  levelUpHeroAuthoritatively: vi.fn(),
   openAdventureMapInteractionAuthoritatively: vi.fn(),
   purchaseShopOfferAuthoritatively: vi.fn(),
   saveFrontlineLoadoutAuthoritatively: vi.fn(),
@@ -34,6 +36,7 @@ const mockedDailyLogin = vi.mocked(claimDailyLoginAuthoritatively);
 const mockedAdventureNode = vi.mocked(claimAdventureNodeRewardAuthoritatively);
 const mockedPurchase = vi.mocked(purchaseShopOfferAuthoritatively);
 const mockedCardUpgrade = vi.mocked(upgradeFrontlineCardAuthoritatively);
+const mockedHeroLevelUp = vi.mocked(levelUpHeroAuthoritatively);
 
 describe("store authoritative fallback policy", () => {
   beforeEach(() => {
@@ -50,6 +53,7 @@ describe("store authoritative fallback policy", () => {
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedCardUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedHeroLevelUp.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(loadServerPlayerSnapshot).mockResolvedValue({ ok: false, reason: "unconfigured" });
   });
 
@@ -111,6 +115,44 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().frontlineCardLevels.order_guard_wall).toBeUndefined();
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("blocks linked account hero level ups when the session is missing", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { ...useGameStore.getState().resources, gold: 1000 },
+    });
+    mockedHeroLevelUp.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+    const beforeHero = useGameStore.getState().heroes.find((hero) => hero.heroId === "bran");
+
+    const result = await useGameStore.getState().levelUpHeroOnlineFirst("bran");
+
+    expect(result).toEqual({ ok: false, reason: "missing_session", authoritative: true });
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().heroes.find((hero) => hero.heroId === "bran")).toEqual(beforeHero);
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("applies authoritative hero level ups without trusting local resources", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { gold: 1, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+    mockedHeroLevelUp.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      heroId: "bran",
+      level: 2,
+      costPaid: { gold: 75 },
+      resources: { gold: 425, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+
+    const result = await useGameStore.getState().levelUpHeroOnlineFirst("bran");
+
+    expect(result).toEqual({ ok: true, authoritative: true });
+    expect(useGameStore.getState().heroes.find((hero) => hero.heroId === "bran")?.level).toBe(2);
+    expect(useGameStore.getState().resources).toEqual({ gold: 425, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 });
   });
 
   it("applies authoritative card upgrades without trusting local resources", async () => {

@@ -340,6 +340,40 @@ export type UpgradeFrontlineCardAuthoritativelyOptions = {
   tokenProvider?: () => Promise<string | null>;
 };
 
+export type AuthoritativeHeroLevelUpSuccess = {
+  ok: true;
+  mode: "authoritative";
+  heroId: string;
+  level: number;
+  costPaid: {
+    gold: number;
+  };
+  resources: Resources;
+};
+
+export type AuthoritativeHeroLevelUpFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeHeroLevelUpFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeHeroLevelUpResult =
+  | AuthoritativeHeroLevelUpSuccess
+  | AuthoritativeHeroLevelUpFailure
+  | AuthoritativeHeroLevelUpFallback;
+
+export type LevelUpHeroAuthoritativelyOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
 export async function syncLocalSnapshotAuthoritatively(
   localVersion: string,
   snapshot: LocalSyncSnapshot,
@@ -373,6 +407,50 @@ export async function syncLocalSnapshotAuthoritatively(
   const parsed = extractLocalSnapshotSyncResult(response.body.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+export async function levelUpHeroAuthoritatively(
+  heroId: string,
+  options: LevelUpHeroAuthoritativelyOptions = {},
+): Promise<AuthoritativeHeroLevelUpResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(
+    "levelUpHero",
+    {
+      idempotencyKey: createIdempotencyKey("hero", heroId),
+      payload: { heroId },
+    },
+    {
+      endpoint: options.endpoint,
+      fetcher: options.fetcher,
+      token,
+    },
+  );
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  const parsed = extractHeroLevelUpResult(response.body.result);
+  if (!parsed) {
+    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+  }
+  if (parsed.heroId !== heroId) {
+    return { ok: false, mode: "authoritative", reason: "Server response hero mismatch" };
   }
 
   return {
@@ -891,6 +969,23 @@ function extractFrontlineCardUpgradeResult(
     cardId,
     level,
     costPaid: { gold, dust },
+    resources,
+  };
+}
+
+function extractHeroLevelUpResult(result: unknown): Omit<AuthoritativeHeroLevelUpSuccess, "ok" | "mode"> | null {
+  if (!isRecord(result) || !isRecord(result.costPaid)) return null;
+
+  const heroId = parseString(result.heroId);
+  const level = parseIntegerRange(result.level, 1, 60);
+  const gold = parseResourceValue(result.costPaid.gold);
+  const resources = extractResources(result);
+  if (!heroId || level === null || gold === null || !resources) return null;
+
+  return {
+    heroId,
+    level,
+    costPaid: { gold },
     resources,
   };
 }

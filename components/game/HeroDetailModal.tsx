@@ -19,7 +19,7 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
   const ph = useGameStore((state) => state.heroes.find((entry) => entry.heroId === heroId));
   const gold = useGameStore((state) => state.resources.gold);
   const accountLevel = useGameStore((state) => state.account.level);
-  const levelUp = useGameStore((state) => state.levelUpHero);
+  const levelUp = useGameStore((state) => state.levelUpHeroOnlineFirst);
   const starUp = useGameStore((state) => state.starUpHero);
 
   const owned = Boolean(ph && ph.stars > 0);
@@ -118,8 +118,9 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
             {owned && ph ? (
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
                 <Button
-                  onClick={() => {
-                    if (levelUp(heroId)) sfx.levelUp();
+                  onClick={async () => {
+                    const result = await levelUp(heroId);
+                    if (result.ok) sfx.levelUp();
                     else sfx.error();
                   }}
                   disabled={!canLevelUp}

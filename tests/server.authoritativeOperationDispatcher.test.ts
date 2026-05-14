@@ -4,6 +4,7 @@ import {
   claimAdventureNodeRewardAuthoritatively,
   claimDailyLoginAuthoritatively,
   claimMissionAuthoritatively,
+  levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
@@ -131,6 +132,110 @@ describe("authoritative operation dispatcher", () => {
     });
 
     expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local hero level ups when there is no Supabase session", async () => {
+    const result = await levelUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => null,
+    });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("returns authoritative hero level and resources after leveling a hero", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          heroId: "bran",
+          level: 4,
+          costPaid: { gold: 125 },
+          resources: {
+            gold: 375,
+            dust: 50,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await levelUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      mode: "authoritative",
+      heroId: "bran",
+      level: 4,
+      costPaid: { gold: 125 },
+      resources: {
+        gold: 375,
+        dust: 50,
+        gems: 50,
+        arenaTickets: 5,
+        adventureKeys: 0,
+      },
+    });
+  });
+
+  it("does not fallback when the connected server rejects a hero level up", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, code: "insufficient_resources", reason: "Not enough gold" }),
+    });
+
+    const result = await levelUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Not enough gold",
+    });
+  });
+
+  it("rejects mismatched authoritative hero level up responses", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        authoritative: true,
+        result: {
+          heroId: "kara",
+          level: 2,
+          costPaid: { gold: 75 },
+          resources: {
+            gold: 425,
+            dust: 50,
+            gems: 50,
+            arenaTickets: 5,
+            adventureKeys: 0,
+          },
+        },
+      }),
+    });
+
+    const result = await levelUpHeroAuthoritatively("bran", {
+      tokenProvider: async () => "valid-token-value",
+      fetcher,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      mode: "authoritative",
+      reason: "Server response hero mismatch",
+    });
   });
 
   it("returns authoritative card level and resources after upgrading a Frontline card", async () => {

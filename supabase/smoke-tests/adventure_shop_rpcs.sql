@@ -18,6 +18,9 @@ declare
   v_loadout_result jsonb;
   v_loadout_replay jsonb;
   v_invalid_loadout_result jsonb;
+  v_hero_level_result jsonb;
+  v_hero_level_replay jsonb;
+  v_invalid_hero_level_result jsonb;
   v_card_upgrade_result jsonb;
   v_card_upgrade_replay jsonb;
   v_invalid_card_upgrade_result jsonb;
@@ -102,10 +105,14 @@ begin
   delete from public.shop_purchases where profile_id = v_profile_id;
   delete from public.adventure_map_claims where profile_id = v_profile_id;
   delete from public.frontline_loadouts where profile_id = v_profile_id;
+  delete from public.player_heroes where profile_id = v_profile_id;
+  delete from public.player_frontline_cards where profile_id = v_profile_id;
   delete from public.daily_login_claims where profile_id = v_profile_id;
   delete from public.missions_progress where profile_id = v_profile_id;
   delete from public.resource_ledger where profile_id = v_profile_id;
   delete from public.server_operations where profile_id = v_profile_id;
+
+  perform public.provision_player_starter_state(v_profile_id);
 
   perform set_config('request.jwt.claim.sub', v_user_id::text, true);
   perform set_config('request.jwt.claim.role', 'authenticated', true);
@@ -198,6 +205,47 @@ begin
   );
   if coalesce(v_invalid_loadout_result ->> 'code', '') <> 'invalid_loadout' then
     raise exception 'Expected invalid_loadout for unknown deck card: %', v_invalid_loadout_result;
+  end if;
+
+  v_hero_level_result := public.level_up_hero(
+    'smoke-hero-level-20260514-0001',
+    'bran'
+  );
+  if coalesce((v_hero_level_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'level_up_hero failed: %', v_hero_level_result;
+  end if;
+  if coalesce((v_hero_level_result #>> '{result,level}')::int, 0) <> 4 then
+    raise exception 'Expected bran to reach level 4: %', v_hero_level_result;
+  end if;
+  if coalesce((v_hero_level_result #>> '{result,costPaid,gold}')::int, 0) <> 125 then
+    raise exception 'Expected level 3 hero gold cost 125: %', v_hero_level_result;
+  end if;
+
+  v_hero_level_replay := public.level_up_hero(
+    'smoke-hero-level-20260514-0001',
+    'bran'
+  );
+  if v_hero_level_replay <> v_hero_level_result then
+    raise exception 'level_up_hero is not idempotent: % <> %', v_hero_level_replay, v_hero_level_result;
+  end if;
+
+  if not exists (
+    select 1
+      from public.player_heroes
+      where profile_id = v_profile_id
+        and hero_id = 'bran'
+        and unlocked = true
+        and level = 4
+  ) then
+    raise exception 'Expected bran to be upgraded to level 4';
+  end if;
+
+  v_invalid_hero_level_result := public.level_up_hero(
+    'smoke-hero-level-invalid-20260514-0001',
+    'unknown_hero'
+  );
+  if coalesce(v_invalid_hero_level_result ->> 'code', '') <> 'invalid_request' then
+    raise exception 'Expected invalid_request for unknown hero level up: %', v_invalid_hero_level_result;
   end if;
 
   v_card_upgrade_result := public.upgrade_frontline_card(

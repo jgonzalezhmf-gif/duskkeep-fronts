@@ -98,6 +98,7 @@ export type GameActions = {
   awardRewards: (r: Rewards, source?: string) => void;
   spend: (cost: { gold?: number; gems?: number; dust?: number; adventureKeys?: number }) => boolean;
   levelUpHero: (heroId: string) => boolean;
+  levelUpHeroOnlineFirst: (heroId: string) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   starUpHero: (heroId: string) => boolean;
   skillUpHero: (heroId: string) => boolean;
   recordBattleResult: (

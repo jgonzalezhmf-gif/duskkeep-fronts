@@ -59,6 +59,7 @@ import {
   claimAdventureNodeRewardAuthoritatively,
   claimDailyLoginAuthoritatively,
   claimMissionAuthoritatively,
+  levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
@@ -279,6 +280,39 @@ export const useGameStore = create<GameState & GameActions>()(
       levelUpHero: (heroId) => {
         const s = get();
         return applyProgressionCommandResultToStore(createHeroLevelUpCommand(s.heroes, s.resources, heroId), set, get);
+      },
+
+      levelUpHeroOnlineFirst: async (heroId) => {
+        const authoritative = await levelUpHeroAuthoritatively(heroId);
+        if (authoritative.mode === "local") {
+          if (
+            shouldBlockLocalAuthoritativeFallback({
+              accountLinkMode: get().accountLinkMode,
+              reason: authoritative.reason,
+            })
+          ) {
+            set({ accountLinkMode: "undecided" });
+            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+            return { ok: false, reason: authoritative.reason, authoritative: true };
+          }
+          return { ok: get().levelUpHero(heroId), authoritative: false };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return { ok: false, reason: authoritative.reason, authoritative: true };
+        }
+
+        set((s) => ({
+          resources: authoritative.resources,
+          heroes: s.heroes.map((hero) =>
+            hero.heroId === authoritative.heroId ? { ...hero, level: authoritative.level } : hero,
+          ),
+          heroesUpgraded: s.heroesUpgraded + 1,
+        }));
+        get().updateMissionProgress("heroes_upgraded", 1);
+        get().pushNotification("success", "Hero leveled up");
+        return { ok: true, authoritative: true };
       },
 
       starUpHero: (heroId) => {

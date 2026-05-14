@@ -168,6 +168,9 @@ export const serverOperationPayloadSchemas = {
   claimDailyLogin: z.object({
     localDayKey: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
   }),
+  levelUpHero: z.object({
+    heroId: idSchema,
+  }),
   upgradeFrontlineCard: z.object({
     cardId: idSchema,
   }),
@@ -199,6 +202,7 @@ export const supportedAuthoritativeApiOperations = [
   "purchaseShopOffer",
   "claimMission",
   "claimDailyLogin",
+  "levelUpHero",
   "upgradeFrontlineCard",
 ] as const satisfies ServerOperationType[];
 

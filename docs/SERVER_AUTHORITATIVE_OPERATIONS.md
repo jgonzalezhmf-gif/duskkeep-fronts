@@ -12,7 +12,7 @@ El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza 
 
 El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` para `adventure_key_ring`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de eventos server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
 
-La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de cartas Frontline ya usan `upgradeFrontlineCard` como operacion autoritativa. Las mejoras de heroes y fortaleza permanecen en local hasta tener modelo, RPC y migracion estables.
+La politica de progresion vive en `lib/progressionAuthoritativePolicy.ts`. Las mejoras de nivel de heroes y cartas Frontline ya usan `levelUpHero`/`upgradeFrontlineCard` como operaciones autoritativas. Las mejoras de estrellas/skills de heroes y fortaleza permanecen en local hasta tener modelo, RPC y migracion estables.
 
 El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta con `npm.cmd run smoke:authoritative-api` despues de arrancar Supabase y Next con `SERVER_AUTHORITATIVE_API_ENABLED=true`. Este smoke usa Supabase Auth real, no service role.
 
@@ -393,6 +393,42 @@ type UpgradeFrontlineCardResult = {
   cardId: string;
   level: number;
   costPaid: Rewards;
+  resources: Resources;
+};
+```
+
+### `levelUpHero`
+
+Sube un nivel a un heroe desbloqueado.
+
+Primera implementacion SQL: `public.level_up_hero(p_idempotency_key text, p_hero_id text)`. Alcance inicial: subida de nivel con coste de oro. No cubre estrellas ni skills, que siguen en local hasta estabilizar su progresion.
+
+Payload:
+
+```ts
+type LevelUpHeroPayload = {
+  heroId: string;
+};
+```
+
+Validaciones:
+
+- El usuario esta autenticado.
+- El heroe pertenece a la allowlist actual.
+- El heroe existe en `player_heroes` y esta desbloqueado.
+- No supera nivel maximo server-side.
+- El jugador tiene oro suficiente.
+- La operacion es idempotente.
+- El gasto de oro queda en `resource_ledger`.
+- La mision `heroes_upgraded` avanza desde servidor.
+
+Resultado:
+
+```ts
+type LevelUpHeroResult = {
+  heroId: string;
+  level: number;
+  costPaid: { gold: number };
   resources: Resources;
 };
 ```
