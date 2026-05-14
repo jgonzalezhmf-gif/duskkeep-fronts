@@ -1,3 +1,13 @@
+type IntroAssetEntry = {
+  src: string;
+  expectedFile: string;
+};
+
+type IntroSpriteEntry = IntroAssetEntry & {
+  frameCount: number;
+  loopMs: number;
+};
+
 export const INTRO_ASSETS = {
   eclipseSky: {
     src: "/assets/intro/intro_eclipse_sky.webp",
@@ -23,10 +33,24 @@ export const INTRO_ASSETS = {
     src: "/assets/intro/intro_title_crest.webp",
     expectedFile: "intro_title_crest.webp",
   },
-} as const;
+} as const satisfies Record<string, IntroAssetEntry>;
+
+export const INTRO_SPRITE_ASSETS = {
+  crowLoop: {
+    src: "/assets/home/effects/crow_fly_loop.webp",
+    expectedFile: "crow_fly_loop.webp",
+    frameCount: 6,
+    loopMs: 720,
+  },
+} as const satisfies Record<string, IntroSpriteEntry>;
 
 export type IntroAssetKey = keyof typeof INTRO_ASSETS;
+export type IntroSpriteAssetKey = keyof typeof INTRO_SPRITE_ASSETS;
 
 export function getIntroAsset(key: IntroAssetKey) {
   return INTRO_ASSETS[key];
+}
+
+export function getIntroSpriteAsset(key: IntroSpriteAssetKey) {
+  return INTRO_SPRITE_ASSETS[key];
 }

@@ -52,7 +52,10 @@ export function GameIntro({ onDone }: GameIntroProps) {
 
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
-      if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
+      // Only Escape closes the intro. Enter/Space were causing accidental
+      // skips when the user happened to have one of those keys focused or
+      // pressed during page load — and they're easy to hit reflexively.
+      if (event.key === "Escape") {
         event.preventDefault();
         finish();
       }

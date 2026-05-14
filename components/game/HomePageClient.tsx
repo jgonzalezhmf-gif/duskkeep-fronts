@@ -1,18 +1,40 @@
 "use client";
 
+import { useState } from "react";
 import HomeWorldMap, { type HomeHotspot } from "@/components/game/HomeWorldMap";
 import { HOME_LANDMARK_LAYOUT, toPx } from "@/components/game/home/homeComposition";
 import { GameIntro } from "@/components/game/intro/GameIntro";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 
-export default function HomePageClient({ qaClean = false, qaEffects = false }: { qaClean?: boolean; qaEffects?: boolean }) {
+export default function HomePageClient({
+  qaClean = false,
+  qaEffects = false,
+  forceIntro = false,
+}: {
+  qaClean?: boolean;
+  qaEffects?: boolean;
+  forceIntro?: boolean;
+}) {
   const { t } = useI18n();
   const store = useGameStore();
   const nextLevel = nextUnlockedLevel(store);
   const hasSeenIntro = useGameStore((state) => state.hasSeenIntro);
   const markIntroSeen = useGameStore((state) => state.markIntroSeen);
-  const showIntro = store.hydrated && !hasSeenIntro && !qaClean && !qaEffects;
+  const [introDismissed, setIntroDismissed] = useState(false);
+  const introEligible = !qaClean && !qaEffects;
+  const showIntro = store.hydrated && !introDismissed && introEligible && (forceIntro || !hasSeenIntro);
+  // Until the persisted store has hydrated we don't know whether to show
+  // the intro yet. If we render Home behind it we get a visible flash of
+  // HUD before the cinematic mounts (the user reported this). Cover the
+  // viewport with a solid black layer while we wait so the first frame is
+  // always either black or the intro itself.
+  const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed;
+
+  function handleIntroDone() {
+    setIntroDismissed(true);
+    markIntroSeen();
+  }
 
   const hotspots: HomeHotspot[] = [
     {
@@ -84,7 +106,19 @@ export default function HomePageClient({ qaClean = false, qaEffects = false }: {
   return (
     <>
       <HomeWorldMap hotspots={hotspots} tutorialOpen={!store.onboarding.completed} qaClean={qaClean} qaEffects={qaEffects} />
-      {showIntro ? <GameIntro onDone={markIntroSeen} /> : null}
+      {showPreHydrationVeil ? (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9998,
+            background: "#050608",
+            pointerEvents: "none",
+          }}
+        />
+      ) : null}
+      {showIntro ? <GameIntro onDone={handleIntroDone} /> : null}
     </>
   );
 }

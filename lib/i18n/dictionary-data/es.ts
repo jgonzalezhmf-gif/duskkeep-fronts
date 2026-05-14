@@ -74,10 +74,11 @@ export const esDictionary = {
     intro: {
       skip: "Saltar",
       enter: "Entrar al bastión",
-      title: "Frontline Command",
+      title: "Duskkeep Front",
       eclipseRises: "El Eclipse asciende.",
       roadsBroken: "Los caminos han caído.",
       keepStands: "La fortaleza resiste.",
+      shadowClaims: "Una sombra reclama el frente.",
       gatherFrontline: "Reúne el frente.",
     },
     home: {

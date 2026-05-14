@@ -1,10 +1,33 @@
 "use client";
 
-import { useMemo } from "react";
-import { INTRO_ASSETS } from "@/lib/introAssets";
-import { useI18n } from "@/lib/i18n/useI18n";
+import { useEffect, useMemo, useState } from "react";
+import { INTRO_ASSETS, INTRO_SPRITE_ASSETS } from "@/lib/introAssets";
+import { useI18n, translate } from "@/lib/i18n/useI18n";
+import { DEFAULT_LOCALE, isLocaleCode, type LocaleCode } from "@/lib/i18n/locales";
 import { activeIntroScene } from "./introScenes";
 import { IntroLayer } from "./IntroLayer";
+import { IntroSpriteEffect } from "./IntroSpriteEffect";
+
+/**
+ * Resolve the locale used to render intro narrative.
+ *  - If the user explicitly chose a non-default language in options, honour it.
+ *  - Otherwise (still on DEFAULT_LOCALE), prefer the browser's language so a
+ *    Spanish-speaking visitor sees Spanish copy without having to dig into
+ *    options first. Doesn't mutate the store so the rest of the app stays
+ *    on its persisted setting.
+ */
+function useIntroLocale(storeLanguage: LocaleCode): LocaleCode {
+  const [browserLocale, setBrowserLocale] = useState<LocaleCode | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.navigator.language || "";
+    const base = raw.split("-")[0];
+    if (isLocaleCode(raw)) setBrowserLocale(raw as LocaleCode);
+    else if (isLocaleCode(base)) setBrowserLocale(base as LocaleCode);
+  }, []);
+  if (storeLanguage !== DEFAULT_LOCALE) return storeLanguage;
+  return browserLocale ?? storeLanguage;
+}
 
 type IntroStageProps = {
   elapsedMs: number;
@@ -14,78 +37,234 @@ type IntroStageProps = {
   onSkip: () => void;
 };
 
+/**
+ * 24-second cinematic. See `introScenes.ts` for the scene table — every
+ * memo below maps a visual to one or more of those beats. Camera moves
+ * are intentionally subtle and additive (drift + scene-specific bumps)
+ * so the playback never feels like discrete cuts.
+ */
 export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip }: IntroStageProps) {
-  const { t } = useI18n();
+  const { locale: storeLocale } = useI18n();
+  const introLocale = useIntroLocale(storeLocale);
+  const t = (key: string) => translate(introLocale, key);
   const scene = activeIntroScene(elapsedMs);
   const finished = elapsedMs >= totalMs;
 
-  // Camera scale 1.06 to 1.02 over the full timeline (very subtle).
+  // Stage fade-in and the omen darkening are driven by CSS animations
+  // (introStageFadeIn / introOmenLift) rather than the RAF-driven
+  // elapsedMs. Hydration adds ~2 seconds before the first animation
+  // frame, so anything tied to elapsedMs misses the opening beat
+  // entirely. CSS animations start the moment the component mounts.
+
+  // Camera scale, piecewise per beat.
+  //   omen     1.40 → 1.18   tight push, the world is still hidden
+  //   eclipse  1.18 → 1.05   slow pull-back revealing the sky
+  //   roads    1.05 → 1.12   push back in toward the valley
+  //   keep     1.12 → 1.28   strong push toward the fortress
+  //   shadow   1.28 → 0.98   sharp pull-back so the boss looms
+  //   gather   0.98 → 1.00   settle for the title reveal
   const cameraScale = useMemo(() => {
     if (reducedMotion) return 1;
-    const progress = Math.min(1, elapsedMs / totalMs);
-    return 1.06 - 0.04 * progress;
-  }, [elapsedMs, totalMs, reducedMotion]);
+    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
+    if (elapsedMs < 3000) return lerp(1.4, 1.18, elapsedMs / 3000);
+    if (elapsedMs < 7000) return lerp(1.18, 1.05, (elapsedMs - 3000) / 4000);
+    if (elapsedMs < 11000) return lerp(1.05, 1.12, (elapsedMs - 7000) / 4000);
+    if (elapsedMs < 15000) return lerp(1.12, 1.28, (elapsedMs - 11000) / 4000);
+    if (elapsedMs < 19000) return lerp(1.28, 0.98, (elapsedMs - 15000) / 4000);
+    if (elapsedMs < 22000) return lerp(0.98, 1.0, (elapsedMs - 19000) / 3000);
+    return 1;
+  }, [elapsedMs, reducedMotion]);
 
-  // Lightning flashes: brief peaks at ~2s and ~9.5s (also during the boss reveal).
+  // Transform-origin shifts per beat so each push/pull zooms on a
+  // different focal point of the same background:
+  //   eclipse → upper-left (where the eclipse sits)
+  //   roads   → mid-bottom (toward the valley path)
+  //   keep    → right (the fortress silhouette in the sky bg)
+  //   shadow  → centre-bottom (boss rises from the bottom)
+  //   crest   → centre
+  const cameraOrigin = useMemo(() => {
+    if (reducedMotion) return { x: 50, y: 55 };
+    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
+    const interp = (
+      from: { x: number; y: number },
+      to: { x: number; y: number },
+      t: number,
+    ) => ({ x: lerp(from.x, to.x, t), y: lerp(from.y, to.y, t) });
+    if (elapsedMs < 3000) return { x: 30, y: 30 };
+    if (elapsedMs < 7000) return interp({ x: 30, y: 30 }, { x: 25, y: 28 }, (elapsedMs - 3000) / 4000);
+    if (elapsedMs < 11000) return interp({ x: 25, y: 28 }, { x: 50, y: 68 }, (elapsedMs - 7000) / 4000);
+    if (elapsedMs < 15000) return interp({ x: 50, y: 68 }, { x: 78, y: 56 }, (elapsedMs - 11000) / 4000);
+    if (elapsedMs < 19000) return interp({ x: 78, y: 56 }, { x: 50, y: 78 }, (elapsedMs - 15000) / 4000);
+    return interp({ x: 50, y: 78 }, { x: 50, y: 55 }, Math.min(1, (elapsedMs - 19000) / 3000));
+  }, [elapsedMs, reducedMotion]);
+
+  // Lateral pan. Roads beat now sweeps a noticeable arc to the right and
+  // the keep beat keeps the framing slightly off-centre toward the keep
+  // (right side of the sky). Larger amplitudes so the move reads.
+  const cameraDriftX = useMemo(() => {
+    if (reducedMotion) return 0;
+    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
+    if (elapsedMs < 3000) return -20;
+    if (elapsedMs < 7000) return lerp(-20, -36, (elapsedMs - 3000) / 4000);
+    if (elapsedMs < 11000) return lerp(-36, 48, (elapsedMs - 7000) / 4000);
+    if (elapsedMs < 15000) return lerp(48, 30, (elapsedMs - 11000) / 4000);
+    if (elapsedMs < 19000) return lerp(30, 0, (elapsedMs - 15000) / 4000);
+    return 0;
+  }, [elapsedMs, reducedMotion]);
+
+  // Vertical tilt — start looking up at the sky, drift down to the valley,
+  // then lock for the boss rise. Bigger range so the tilt actually reads.
+  const cameraDriftY = useMemo(() => {
+    if (reducedMotion) return 0;
+    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
+    if (elapsedMs < 3000) return -28;
+    if (elapsedMs < 7000) return lerp(-28, -8, (elapsedMs - 3000) / 4000);
+    if (elapsedMs < 11000) return lerp(-8, 18, (elapsedMs - 7000) / 4000);
+    if (elapsedMs < 15000) return lerp(18, 4, (elapsedMs - 11000) / 4000);
+    return 0;
+  }, [elapsedMs, reducedMotion]);
+
+  // 4 lightning beats spread along the cinematic — one distant in the omen
+  // (1.6s, faint), one mid-roads (8.6s), and the boss-reveal pair (15.4s,
+  // 16.4s). Reduced motion strips the strikes entirely so nothing flashes.
   const lightningOpacity = useMemo(() => {
     if (reducedMotion) return 0;
     return lightningAt(elapsedMs);
   }, [elapsedMs, reducedMotion]);
 
-  // Boss shadow appears in scene 4 (9000 to 11500).
-  const bossOpacity = useMemo(() => {
-    if (elapsedMs < 9000 || elapsedMs > 11500) return 0;
-    const local = (elapsedMs - 9000) / 2500; // 0..1
-    // Ramp up to 0.65 at 0.5, then back to 0.
-    return 0.65 * Math.sin(Math.PI * local);
+  // Fog stays ambient — 0.10 alpha so it reads as atmospheric weather, not
+  // a grey band pasted on the sky. Drops further as the crest takes over.
+  const fogOpacity = useMemo(() => {
+    if (elapsedMs < 1500) return Math.max(0, (elapsedMs - 500) / 1000) * 0.1;
+    if (elapsedMs > 21500) return Math.max(0, 0.1 * (1 - (elapsedMs - 21500) / 1500));
+    return 0.1;
   }, [elapsedMs]);
 
-  // Fortress fades in during scene 3.
-  const fortressOpacity = useMemo(() => {
-    if (elapsedMs < 6000) return 0;
-    if (elapsedMs > 12000) return Math.max(0, 1 - (elapsedMs - 12000) / 1500);
-    return Math.min(1, (elapsedMs - 6000) / 1200);
+  // Two fog layers, both confined to the lower half of the sky.
+  // Layer A drifts right at ~7 px/s; layer B drifts left at ~4 px/s. The
+  // contrasting directions give parallax depth without piling up on the
+  // top band of the viewport.
+  const fogShiftA = useMemo(() => (reducedMotion ? 0 : (elapsedMs / 1000) * 7), [elapsedMs, reducedMotion]);
+  const fogShiftB = useMemo(
+    () => (reducedMotion ? 0 : (elapsedMs / 1000) * 4 * -1),
+    [elapsedMs, reducedMotion],
+  );
+
+  // Crows fly during the eclipse beat (4.0s–7.5s).
+  const crowOpacity = useMemo(() => {
+    if (elapsedMs < 4000 || elapsedMs > 7500) return 0;
+    const local = (elapsedMs - 4000) / 3500;
+    return 0.85 * Math.sin(Math.PI * Math.min(1, local));
   }, [elapsedMs]);
 
-  // Fog drifts horizontally.
-  const fogShift = useMemo(() => {
-    if (reducedMotion) return 0;
-    return (elapsedMs / 1000) * 14; // 14 px per second
+  const crowProgress = useMemo(() => {
+    if (reducedMotion) return 0.5;
+    if (elapsedMs < 4000) return 0;
+    if (elapsedMs > 7500) return 1;
+    return (elapsedMs - 4000) / 3500;
   }, [elapsedMs, reducedMotion]);
 
-  const fogOpacity = useMemo(() => {
-    if (elapsedMs < 500) return Math.max(0, (elapsedMs - 200) / 300) * 0.45;
-    if (elapsedMs > 12500) return Math.max(0, 1 - (elapsedMs - 12500) / 2000) * 0.55;
-    return 0.55;
+  const crowLeadVw = 110 - crowProgress * 140;
+  const crowTrailVw = 105 - crowProgress * 130;
+
+  // Keep glow during the keep beat (11s–15s). Held briefly, then released.
+  const keepGlow = useMemo(() => {
+    if (elapsedMs < 11000) return 0;
+    if (elapsedMs > 15500) return Math.max(0, 1 - (elapsedMs - 15500) / 800);
+    if (elapsedMs > 13500) return 1;
+    return (elapsedMs - 11000) / 2500;
   }, [elapsedMs]);
 
-  // Crest opacity: appears during scene 5.
-  const crestOpacity = useMemo(() => {
-    if (elapsedMs < 11500) return 0;
-    return Math.min(1, (elapsedMs - 11500) / 700);
+  // (The intro_fortress_layer PNG ships with a near-white background, so
+  // mix-blend-mode multiply works for the crow loop but not for the dark
+  // fortress silhouette against the already-dark sky — multiply renders
+  // it invisible. We commit to the brief's fallback: rely on the sky's
+  // own keep, plus the keep glow + camera push.)
+
+  // Boss reveal: 4-second window with a slow attack, longer hold, slow
+  // decay so the silhouette emerges from the fog rather than flicker in.
+  // Peak opacity capped at 0.6 per the polish brief — the boss is a
+  // shadow, not a hero portrait.
+  const bossOpacity = useMemo(() => {
+    if (elapsedMs < 15000 || elapsedMs > 19000) return 0;
+    const local = (elapsedMs - 15000) / 4000;
+    // Peak 0.75: low enough to read as "shadow", high enough that the
+    // multiply blend doesn't dim the silhouette into the sky completely.
+    if (local < 0.25) return (local / 0.25) * 0.75;
+    if (local < 0.7) return 0.75;
+    return Math.max(0, 0.75 * (1 - (local - 0.7) / 0.3));
   }, [elapsedMs]);
 
-  // Small camera shake when boss is at peak.
+  // Boss scale: very slow advance from 1.05 to 1.0 across the window so
+  // the silhouette feels like it sets into place. Big scale ranges (the
+  // 0.78→1.08 of the previous pass) read as gimmicky.
+  const bossScale = useMemo(() => {
+    if (reducedMotion) return 1;
+    if (elapsedMs < 15000 || elapsedMs > 19000) return 1.05;
+    const local = (elapsedMs - 15000) / 4000;
+    return 1.05 - 0.05 * Math.min(1, local);
+  }, [elapsedMs, reducedMotion]);
+
+  // Small shake aligned with the boss lightning hits.
   const shake = useMemo(() => {
     if (reducedMotion) return { x: 0, y: 0 };
-    if (elapsedMs < 9500 || elapsedMs > 11200) return { x: 0, y: 0 };
-    const t2 = elapsedMs - 9500;
+    const hits = [
+      { peakMs: 15400, decayMs: 360 },
+      { peakMs: 16400, decayMs: 320 },
+    ];
+    let amp = 0;
+    for (const hit of hits) {
+      if (elapsedMs < hit.peakMs || elapsedMs > hit.peakMs + hit.decayMs) continue;
+      const local = (elapsedMs - hit.peakMs) / hit.decayMs;
+      amp = Math.max(amp, 1 - local);
+    }
+    if (amp <= 0) return { x: 0, y: 0 };
     return {
-      x: Math.sin(t2 / 35) * 3,
-      y: Math.cos(t2 / 47) * 2,
+      x: Math.sin(elapsedMs / 24) * 2 * amp,
+      y: Math.cos(elapsedMs / 31) * 1.5 * amp,
     };
   }, [elapsedMs, reducedMotion]);
 
-  const sceneText = scene?.id !== "crest" ? (scene ? t(scene.textKey) : "") : "";
+  // Crest enters during the gather beat tail (21s+), holds through crest.
+  const crestOpacity = useMemo(() => {
+    if (elapsedMs < 21000) return 0;
+    return Math.min(1, (elapsedMs - 21000) / 800);
+  }, [elapsedMs]);
+
+  const crestScale = useMemo(() => {
+    if (reducedMotion) return 1;
+    if (elapsedMs < 21000) return 1.18;
+    const local = elapsedMs - 21000;
+    if (local >= 700) return 1;
+    return 1.18 - 0.18 * (local / 700);
+  }, [elapsedMs, reducedMotion]);
+
+  // Gold spectral glow behind the crest — pulses gently once the crest is in.
+  const goldShineOpacity = useMemo(() => {
+    if (elapsedMs < 21000) return 0;
+    const local = elapsedMs - 21000;
+    const ramp = Math.min(1, local / 800);
+    const pulse = 0.82 + 0.18 * Math.sin(local / 360);
+    return ramp * pulse;
+  }, [elapsedMs]);
+
+  const sceneText = scene?.id === "crest" || !scene?.textKey ? "" : t(scene.textKey);
   const crestText = t("intro.title");
-  const showCta = elapsedMs >= 12500 || finished;
+  // CTA fades in once the crest beat opens; doesn't wait for end-of-timeline.
+  const showCta = elapsedMs >= 22500 || finished;
 
   return (
-    <div className="intro-stage" role="dialog" aria-modal="true" aria-label={crestText}>
+    <div
+      className="intro-stage"
+      role="dialog"
+      aria-modal="true"
+      aria-label={crestText}
+    >
       <div
         className="intro-stage__camera"
         style={{
-          transform: `translate3d(${shake.x}px, ${shake.y}px, 0) scale(${cameraScale.toFixed(4)})`,
+          transform: `translate3d(${(shake.x + cameraDriftX).toFixed(2)}px, ${(shake.y + cameraDriftY).toFixed(2)}px, 0) scale(${cameraScale.toFixed(4)})`,
+          transformOrigin: `${cameraOrigin.x.toFixed(1)}% ${cameraOrigin.y.toFixed(1)}%`,
         }}
       >
         <IntroLayer
@@ -94,56 +273,137 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           fallbackColor="#070912"
         />
 
+        {/* Two parallax fog layers — A is the high band that's always been
+            there; B is a deeper, slower band beneath that adds depth. */}
         <IntroLayer
           src={INTRO_ASSETS.fogLayer.src}
-          className="intro-stage__layer intro-stage__layer--fog"
+          className="intro-stage__layer intro-stage__layer--fog intro-stage__layer--fog-a"
           fallbackColor="rgba(40, 36, 48, 0)"
           style={{
             opacity: fogOpacity,
-            transform: `translate3d(${-fogShift}px, 0, 0)`,
+            transform: `translate3d(${-fogShiftA}px, 0, 0)`,
           }}
         />
-
         <IntroLayer
-          src={INTRO_ASSETS.fortressLayer.src}
-          className="intro-stage__layer intro-stage__layer--fortress"
-          fallbackColor="rgba(20, 16, 24, 0)"
+          src={INTRO_ASSETS.fogLayer.src}
+          className="intro-stage__layer intro-stage__layer--fog intro-stage__layer--fog-b"
+          fallbackColor="rgba(40, 36, 48, 0)"
           style={{
-            opacity: fortressOpacity,
-            transform: `translate3d(0, ${reducedMotion ? 0 : (1 - fortressOpacity) * 14}px, 0)`,
+            opacity: fogOpacity * 0.7,
+            transform: `translate3d(${-fogShiftB}px, 0, 0) scaleY(1.15)`,
           }}
         />
 
-        <IntroLayer
-          src={INTRO_ASSETS.bossShadow.src}
-          className="intro-stage__layer intro-stage__layer--boss"
-          fallbackColor="rgba(0, 0, 0, 0)"
+        {/* Crows during scene 2. */}
+        <div className="intro-stage__crows" style={{ opacity: crowOpacity }} aria-hidden="true">
+          <div
+            className="intro-stage__crow intro-stage__crow--lead"
+            style={{ transform: `translate3d(${crowLeadVw.toFixed(2)}vw, 0, 0)` }}
+          >
+            <IntroSpriteEffect
+              src={INTRO_SPRITE_ASSETS.crowLoop.src}
+              frameCount={INTRO_SPRITE_ASSETS.crowLoop.frameCount}
+              loopMs={INTRO_SPRITE_ASSETS.crowLoop.loopMs}
+              className="intro-stage__crow-sprite"
+              loopId="crowLead"
+              blendMode="multiply"
+            />
+          </div>
+          <div
+            className="intro-stage__crow intro-stage__crow--trail"
+            style={{ transform: `translate3d(${crowTrailVw.toFixed(2)}vw, 0, 0)` }}
+          >
+            <IntroSpriteEffect
+              src={INTRO_SPRITE_ASSETS.crowLoop.src}
+              frameCount={INTRO_SPRITE_ASSETS.crowLoop.frameCount}
+              loopMs={INTRO_SPRITE_ASSETS.crowLoop.loopMs}
+              className="intro-stage__crow-sprite"
+              loopId="crowTrail"
+              blendMode="multiply"
+            />
+          </div>
+        </div>
+
+        {/* Keep beat focus: subtle violet halo over the castle silhouette
+            already drawn into the sky background. The PNG already ships
+            with lit windows / torches, so we don't stack custom torch
+            sprites on top (they read as duplicates and rarely line up
+            with the painted windows). */}
+        <div
+          className="intro-stage__keep-glow"
+          style={{ opacity: keepGlow }}
+          aria-hidden="true"
+        />
+
+        {/* Boss + eye pulse share the same transform wrapper so the glow
+            stays locked to the silhouette as it scales and translates.
+            Earlier the eyes lived on a separate fixed overlay, which made
+            them drift relative to the boss whenever the boss moved. */}
+        <div
+          className="intro-stage__boss-wrapper"
           style={{
             opacity: bossOpacity,
-            transform: `translate3d(0, ${reducedMotion ? 0 : (1 - bossOpacity) * 16}px, 0)`,
+            // translateX(-50%) is required because the wrapper is anchored
+            // with left: 50%; inline transform would otherwise override
+            // the CSS translateX and shift the boss off-centre to the right.
+            transform: `translate3d(calc(-50% + 0px), ${reducedMotion ? 0 : (1 - Math.min(1, bossOpacity / 0.75)) * 12}px, 0) scale(${bossScale.toFixed(4)})`,
+            transformOrigin: "50% 95%",
           }}
-        />
+        >
+          <IntroLayer
+            src={INTRO_ASSETS.bossShadow.src}
+            className="intro-stage__layer--boss-img"
+            fallbackColor="rgba(0, 0, 0, 0)"
+            position="center bottom"
+            size="contain"
+          />
+          {/* Eye-glow overlay removed: aligning two CSS dots with the
+              painted eyes proved fragile across viewport aspect ratios.
+              The PNG already includes lit eyes; we let those carry the
+              effect instead of stacking a second pair on top. */}
+        </div>
 
         <IntroLayer
           src={INTRO_ASSETS.lightningBolt.src}
           className="intro-stage__layer intro-stage__layer--lightning"
           fallbackColor="rgba(255, 244, 200, 0)"
+          size="contain"
+          position="left top"
           style={{ opacity: lightningOpacity }}
         />
 
         <div
           className="intro-stage__flash"
-          style={{ opacity: lightningOpacity * 0.55 }}
+          style={{ opacity: lightningOpacity * 0.32 }}
           aria-hidden="true"
         />
         <div className="intro-stage__vignette" aria-hidden="true" />
+
+        {/* Omen veil: opacity driven by a CSS animation so the opening
+            reads as black even before the RAF timer kicks in. */}
+        <div className="intro-stage__omen-veil" aria-hidden="true" />
       </div>
 
-      <div className="intro-stage__center">
+      <div
+        className={`intro-stage__center ${scene?.id === "shadow" ? "intro-stage__center--lower" : ""}`}
+      >
         <div
           className="intro-stage__crest"
-          style={{ opacity: crestOpacity }}
+          style={{
+            opacity: crestOpacity,
+            transform: `scale(${crestScale.toFixed(4)})`,
+          }}
         >
+          <div
+            className="intro-stage__crest-glow"
+            style={{ opacity: goldShineOpacity }}
+            aria-hidden="true"
+          />
+          <div
+            className="intro-stage__crest-rays"
+            style={{ opacity: goldShineOpacity * 0.6 }}
+            aria-hidden="true"
+          />
           <IntroLayer
             src={INTRO_ASSETS.titleCrest.src}
             className="intro-stage__crest-img"
@@ -152,8 +412,7 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           <div className="intro-stage__crest-text">{crestText}</div>
         </div>
         <div
-          className="intro-stage__text"
-          // Keyed so a new line fades in cleanly per scene.
+          className={`intro-stage__text ${scene?.id === "shadow" ? "intro-stage__text--delayed" : ""}`}
           key={scene?.id ?? "none"}
         >
           {sceneText}
@@ -175,7 +434,7 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
         </button>
       ) : null}
 
-      <style jsx>{`
+      <style jsx global>{`
         .intro-stage {
           position: fixed;
           inset: 0;
@@ -184,8 +443,10 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           overflow: hidden;
           font-family: inherit;
           color: #f5e7c1;
-          animation: introFadeIn 700ms ease both;
-          will-change: opacity;
+          /* No stage fade-in: the omen veil already handles the "open from
+             black" beat, and a global opacity fade was letting Home/HUD
+             bleed through during the first frames. */
+          will-change: auto;
         }
         .intro-stage__camera {
           position: absolute;
@@ -204,35 +465,172 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
         .intro-stage__layer--fog {
           z-index: 2;
           mix-blend-mode: screen;
-          /* Wider element so horizontal drift never reveals the edge. */
-          left: -10%;
-          right: -10%;
-          width: 120%;
+          left: -10% !important;
+          right: -10% !important;
+          /* Soft vertical mask so the fog dissolves at top and bottom. */
+          mask-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 1) 32%,
+            rgba(0, 0, 0, 1) 55%,
+            rgba(0, 0, 0, 0.5) 80%,
+            rgba(0, 0, 0, 0) 100%
+          );
+          -webkit-mask-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 1) 32%,
+            rgba(0, 0, 0, 1) 55%,
+            rgba(0, 0, 0, 0.5) 80%,
+            rgba(0, 0, 0, 0) 100%
+          );
         }
-        .intro-stage__layer--fortress {
+        .intro-stage__layer--fog-a {
+          /* Main fog body sits in the lower third of the sky — over the
+             valley, not pasted across the top horizon. */
+          top: 48% !important;
+          bottom: 6% !important;
+          filter: blur(1px);
+        }
+        .intro-stage__layer--fog-b {
+          /* Secondary very-soft band hugging the mid-distance, fades top
+             and bottom so it never reads as a rectangle. */
+          top: 32% !important;
+          bottom: 38% !important;
+          filter: blur(3px);
+        }
+        .intro-stage__crows {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          pointer-events: none;
+          will-change: opacity;
+        }
+        .intro-stage__crow {
+          position: absolute;
+          /* Aspect 1.5:1 (matches the sprite). Sized so the silhouettes
+             are clearly visible against the sky in a typical viewport. */
+          width: 72px;
+          height: 48px;
+          will-change: transform;
+        }
+        .intro-stage__crow--lead {
+          top: 16%;
+          left: 0;
+        }
+        .intro-stage__crow--trail {
+          top: 26%;
+          left: 0;
+          width: 56px;
+          height: 38px;
+        }
+        @media (max-width: 700px) {
+          .intro-stage__crow {
+            width: 52px;
+            height: 35px;
+          }
+          .intro-stage__crow--trail {
+            width: 40px;
+            height: 27px;
+          }
+        }
+        .intro-stage__keep-glow {
+          position: absolute;
+          /* Anchored over the castle silhouette in the upper-right of the
+             eclipse-sky background. The previous box stretched too low so
+             the bottom edge of the glow read as a separate light bleeding
+             over the valley. */
+          top: 14%;
+          right: 6%;
+          width: 30%;
+          height: 38%;
           z-index: 3;
+          pointer-events: none;
+          background:
+            radial-gradient(
+              circle at 50% 50%,
+              rgba(206, 186, 240, 0.22) 0%,
+              rgba(150, 130, 220, 0.1) 24%,
+              rgba(0, 0, 0, 0) 48%
+            );
+          mix-blend-mode: screen;
+          filter: blur(14px);
+          transition: opacity 800ms ease;
+          animation: introKeepGlowBreath 3800ms ease-in-out infinite;
+          will-change: opacity, transform;
+        }
+        @media (max-width: 700px) {
+          .intro-stage__keep-glow {
+            width: 46%;
+            right: -2%;
+          }
         }
         .intro-stage__layer--boss {
           z-index: 4;
-          mix-blend-mode: screen;
+        }
+        .intro-stage__boss-wrapper {
+          /* Sized to match the boss PNG (1536×1024 → 1.5:1) and anchored
+             to the bottom-centre of the viewport. The image fills the
+             wrapper exactly, so the boss-eyes overlay can be positioned
+             with percentages that are PNG-relative, not viewport-relative.
+             That keeps the glow locked onto the painted eyes regardless
+             of the host viewport aspect ratio. */
+          position: absolute;
+          left: 50%;
+          bottom: 0;
+          height: 100%;
+          aspect-ratio: 1536 / 1024;
+          max-width: 100%;
+          transform: translateX(-50%);
+          z-index: 4;
+          will-change: opacity, transform;
+        }
+        .intro-stage__layer--boss-img {
+          position: absolute;
+          inset: 0;
+          /* The boss PNG ships with a near-white background, so multiply
+             drops the white out (white × sky = sky) and leaves the dark
+             silhouette + ember details visible against the night sky.
+             Same trick as the crow loop. */
+          mix-blend-mode: multiply;
         }
         .intro-stage__layer--lightning {
-          z-index: 5;
+          z-index: 6;
           mix-blend-mode: screen;
+          /* Smaller, off-centre to the upper-left so the bolt never slices
+             through the boss silhouette or the text line. */
+          top: -4%;
+          left: -8%;
+          width: 55%;
+          height: 70%;
+          inset: auto;
+          opacity: 0.85; /* base intensity multiplied by lightningOpacity */
         }
         .intro-stage__flash {
           position: absolute;
           inset: 0;
-          z-index: 6;
-          background: radial-gradient(circle at 50% 40%, rgba(255, 244, 200, 0.55), transparent 65%);
+          z-index: 7;
+          background: radial-gradient(circle at 50% 38%, rgba(255, 244, 200, 0.78), rgba(255, 244, 200, 0.15) 38%, transparent 70%);
           pointer-events: none;
         }
         .intro-stage__vignette {
           position: absolute;
           inset: 0;
-          z-index: 7;
+          z-index: 8;
           background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(5, 6, 8, 0.78) 100%);
           pointer-events: none;
+        }
+        .intro-stage__omen-veil {
+          position: absolute;
+          inset: 0;
+          z-index: 9;
+          pointer-events: none;
+          /* Solid black during the hold (controlled via animation opacity).
+             The radial centre being 0.7 alpha previously let too much of
+             the sky bleed through and killed the "opens from black" beat. */
+          background: #050608;
+          animation: introOmenLift 3500ms ease-out both;
+          will-change: opacity;
         }
         .intro-stage__center {
           position: absolute;
@@ -244,6 +642,20 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           align-items: center;
           padding: 0 6vw 14vh;
           pointer-events: none;
+          transition: justify-content 600ms ease;
+        }
+        .intro-stage__center--lower {
+          /* During the boss reveal the narrative line drops into the
+             lower third so it never overlaps the silhouette's eyes/core
+             (which sit in the upper third of the frame). */
+          justify-content: flex-end;
+          padding-top: 0;
+          padding-bottom: 8vh;
+        }
+        .intro-stage__text--delayed {
+          /* Boss enters first, text comes ~800ms later so the audience
+             reads the silhouette before the narrative names it. */
+          animation-delay: 800ms;
         }
         .intro-stage__crest {
           position: relative;
@@ -254,19 +666,70 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
         .intro-stage__crest-img {
           position: absolute;
           inset: 0;
+          z-index: 2;
+        }
+        .intro-stage__crest-glow {
+          position: absolute;
+          inset: -32%;
+          z-index: 1;
+          pointer-events: none;
+          background: radial-gradient(
+            circle at 50% 50%,
+            rgba(176, 142, 232, 0.58) 0%,
+            rgba(108, 88, 184, 0.28) 35%,
+            rgba(60, 50, 110, 0.12) 60%,
+            rgba(60, 50, 110, 0) 72%
+          );
+          mix-blend-mode: screen;
+          filter: blur(0.5px);
+          animation: introCrestGlowPulse 2200ms ease-in-out infinite;
+          will-change: opacity, transform;
+        }
+        .intro-stage__crest-rays {
+          position: absolute;
+          inset: -55%;
+          z-index: 0;
+          pointer-events: none;
+          background: conic-gradient(
+            from 0deg,
+            rgba(176, 142, 232, 0) 0deg,
+            rgba(176, 142, 232, 0.2) 10deg,
+            rgba(176, 142, 232, 0) 30deg,
+            rgba(225, 210, 255, 0.16) 70deg,
+            rgba(225, 210, 255, 0) 90deg,
+            rgba(176, 142, 232, 0.2) 130deg,
+            rgba(176, 142, 232, 0) 150deg,
+            rgba(225, 210, 255, 0.16) 190deg,
+            rgba(225, 210, 255, 0) 210deg,
+            rgba(176, 142, 232, 0.2) 250deg,
+            rgba(176, 142, 232, 0) 270deg,
+            rgba(225, 210, 255, 0.16) 310deg,
+            rgba(225, 210, 255, 0) 330deg
+          );
+          mix-blend-mode: screen;
+          mask: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 1) 30%, transparent 75%);
+          -webkit-mask: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 1) 30%, transparent 75%);
+          animation: introCrestRaysSpin 9s linear infinite;
+          will-change: transform, opacity;
         }
         .intro-stage__crest-text {
           position: absolute;
           left: 0;
           right: 0;
-          bottom: -2.6rem;
+          bottom: -3rem;
           text-align: center;
-          font-weight: 900;
-          letter-spacing: 0.18em;
+          font-family: "IM Fell English SC", "Cormorant SC", "Cormorant Garamond",
+            "Trajan Pro", "Garamond", "Georgia", serif;
+          font-weight: 700;
+          font-variant: small-caps;
+          letter-spacing: 0.32em;
           text-transform: uppercase;
-          font-size: clamp(18px, 3.4vw, 32px);
-          color: #f5d498;
-          text-shadow: 0 2px 18px rgba(245, 196, 81, 0.32);
+          font-size: clamp(20px, 3.6vw, 36px);
+          color: #e7d6b3;
+          text-shadow:
+            0 0 14px rgba(196, 168, 240, 0.45),
+            0 2px 10px rgba(60, 40, 90, 0.55),
+            0 0 2px rgba(245, 220, 180, 0.5);
         }
         .intro-stage__text {
           margin-top: clamp(2rem, 6vh, 5rem);
@@ -275,52 +738,77 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           letter-spacing: 0.06em;
           text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
           opacity: 0;
-          animation: introTextIn 1100ms ease both;
+          /* Each beat is 4s, so the text now holds longer: 0.6s in, 2.6s hold, 0.8s out. */
+          animation: introTextIn 4000ms ease both;
           max-width: 92vw;
           text-align: center;
         }
+        /* Buttons styled as dark-fantasy chips: muted dark ink, thin gold
+           trim, serif label, no glassy web vibe. */
         .intro-stage__skip,
         .intro-stage__cta {
           position: absolute;
           z-index: 20;
           pointer-events: auto;
-          border: 1px solid rgba(245, 196, 81, 0.5);
-          background: rgba(7, 9, 12, 0.55);
-          color: #f5e7c1;
-          padding: 0.55rem 1.1rem;
-          border-radius: 999px;
-          font-weight: 700;
-          letter-spacing: 0.16em;
-          font-size: 11px;
-          text-transform: uppercase;
+          font-family: "IM Fell English SC", "Cormorant SC", "Cormorant Garamond",
+            "Trajan Pro", "Garamond", "Georgia", serif;
+          color: #e8d59a;
           cursor: pointer;
-          backdrop-filter: blur(4px);
-          transition: background 200ms ease, transform 160ms ease, border-color 200ms ease;
+          transition: background 220ms ease, transform 180ms ease,
+            border-color 220ms ease, color 200ms ease;
         }
         .intro-stage__skip {
-          top: max(env(safe-area-inset-top, 0px) + 16px, 22px);
-          right: max(env(safe-area-inset-right, 0px) + 16px, 22px);
+          /* Compact chip in the corner — easy to focus, hard to misread
+             as the main CTA. */
+          top: max(env(safe-area-inset-top, 0px) + 16px, 18px);
+          right: max(env(safe-area-inset-right, 0px) + 16px, 18px);
+          border: 1px solid rgba(196, 162, 92, 0.35);
+          background: rgba(7, 9, 12, 0.45);
+          padding: 0.32rem 0.78rem;
+          border-radius: 4px;
+          font-weight: 700;
+          font-variant: small-caps;
+          letter-spacing: 0.22em;
+          font-size: 10px;
+          text-transform: lowercase;
         }
         .intro-stage__cta {
-          bottom: max(env(safe-area-inset-bottom, 0px) + 28px, 36px);
+          bottom: max(env(safe-area-inset-bottom, 0px) + 32px, 40px);
           left: 50%;
           transform: translateX(-50%);
-          padding: 0.85rem 1.6rem;
-          font-size: 13px;
-          background: rgba(245, 196, 81, 0.18);
-          border-color: rgba(245, 196, 81, 0.8);
+          /* Larger, gold-trimmed plate with a double-line border for the
+             medieval/dark-fantasy look. */
+          padding: 0.85rem 2.2rem;
+          font-size: 14px;
+          font-weight: 700;
+          font-variant: small-caps;
+          letter-spacing: 0.28em;
+          text-transform: lowercase;
+          color: #f3e2b4;
+          background: linear-gradient(
+            180deg,
+            rgba(28, 22, 16, 0.85),
+            rgba(14, 10, 6, 0.9)
+          );
+          border: 1px solid rgba(196, 162, 92, 0.7);
+          border-radius: 2px;
+          box-shadow:
+            inset 0 0 0 1px rgba(245, 220, 160, 0.18),
+            0 6px 24px rgba(0, 0, 0, 0.55);
           animation: introCtaIn 600ms ease both;
         }
-        .intro-stage__skip:hover,
-        .intro-stage__cta:hover {
-          background: rgba(245, 196, 81, 0.24);
-          border-color: rgba(245, 196, 81, 0.95);
+        .intro-stage__skip:hover {
+          background: rgba(20, 14, 6, 0.6);
+          border-color: rgba(220, 184, 110, 0.55);
+          color: #f5e7c1;
         }
         .intro-stage__cta:hover {
           transform: translateX(-50%) translateY(-1px);
+          border-color: rgba(245, 220, 160, 0.95);
+          color: #fff3cc;
         }
 
-        @keyframes introFadeIn {
+        @keyframes introStageFadeIn {
           from {
             opacity: 0;
           }
@@ -328,16 +816,53 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
             opacity: 1;
           }
         }
+        @keyframes introOmenLift {
+          0% {
+            opacity: 1;
+          }
+          40% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
+        @keyframes introKeepGlowBreath {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.08);
+          }
+        }
+        @keyframes introCrestGlowPulse {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.08);
+          }
+        }
+        @keyframes introCrestRaysSpin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
         @keyframes introTextIn {
           0% {
             opacity: 0;
             transform: translateY(8px);
           }
-          25% {
+          15% {
             opacity: 1;
             transform: translateY(0);
           }
-          85% {
+          82% {
             opacity: 1;
             transform: translateY(0);
           }
@@ -364,8 +889,18 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           .intro-stage__layer--fog {
             transform: none !important;
           }
+          .intro-stage__layer--boss {
+            transform: none !important;
+          }
+          .intro-stage__crest-rays,
+          .intro-stage__crest-glow,
+          .intro-stage__keep-glow,
+          .intro-stage__torch {
+            animation: none !important;
+            transform: none !important;
+          }
           .intro-stage__text {
-            animation-duration: 600ms;
+            animation-duration: 2400ms;
           }
         }
 
@@ -384,15 +919,18 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
 }
 
 /**
- * Returns a 0..1 opacity for the lightning bolt based on two short flashes.
- * Each flash is a fast attack-decay curve so the SVG/PNG never sits visible
- * for more than ~280ms at a time.
+ * Lightning curve over the full timeline. Brief, dramatic strikes — each
+ * peak lasts under ~160 ms and most decay in <250 ms. Only three flashes
+ * in total to keep the cinematic from feeling lightning-heavy.
+ *  - 2200 ms: distant flicker far in the omen background.
+ *  - 9500 ms: mid-roads strike, low intensity.
+ *  - 16200 ms: revealing strike on the boss, short but bright.
  */
 function lightningAt(ms: number): number {
   const flashes = [
-    { peakMs: 2000, attackMs: 90, decayMs: 220 },
-    { peakMs: 9700, attackMs: 70, decayMs: 280 },
-    { peakMs: 10500, attackMs: 60, decayMs: 220 },
+    { peakMs: 2200, attackMs: 70, decayMs: 200, scale: 0.4 },
+    { peakMs: 9500, attackMs: 60, decayMs: 220, scale: 0.6 },
+    { peakMs: 16200, attackMs: 60, decayMs: 220, scale: 0.85 },
   ];
   let opacity = 0;
   for (const flash of flashes) {
@@ -400,7 +938,7 @@ function lightningAt(ms: number): number {
     if (ms > flash.peakMs + flash.decayMs) continue;
     const local = ms - flash.peakMs;
     const value = local <= 0 ? 1 + local / flash.attackMs : 1 - local / flash.decayMs;
-    opacity = Math.max(opacity, Math.max(0, Math.min(1, value)));
+    opacity = Math.max(opacity, Math.max(0, Math.min(1, value)) * flash.scale);
   }
   return opacity;
 }

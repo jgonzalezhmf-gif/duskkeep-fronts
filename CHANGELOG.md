@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.27.0] - 2026-05-14
+
+### Added
+- Ampliada la intro cinematica con timeline de 24 segundos, nueva escena de presagio, sombra del jefe, cuervos animados y CTA final.
+- Aniadido replay de intro por query param (`?replayIntro=1` o `?intro=1`) manteniendo el control existente desde Opciones.
+- Registrado el sprite loop de cuervos en el manifest de intro con test de existencia.
+
+### Changed
+- Home vuelve a respetar `hasSeenIntro` para no repetir la intro en cada carga, salvo replay explicito.
+- La intro ya no se cierra con Enter/Espacio para evitar skips accidentales durante la carga.
+- Limpieza de keys/asset entries no usados y de backups locales mediante ignore de `*.bak`.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run test -- tests/introAssets.test.ts tests/persistedGameState.test.ts`
+- `npm.cmd run check`
+
 ## [0.26.5] - 2026-05-12
 
 ### Fixed

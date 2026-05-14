@@ -74,10 +74,11 @@ export const enDictionary = {
     intro: {
       skip: "Skip",
       enter: "Enter the Keep",
-      title: "Frontline Command",
+      title: "Duskkeep Front",
       eclipseRises: "The Eclipse rises.",
       roadsBroken: "The roads are broken.",
       keepStands: "The keep still stands.",
+      shadowClaims: "A shadow claims the front.",
       gatherFrontline: "Gather the frontline.",
     },
     home: {

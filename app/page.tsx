@@ -15,8 +15,10 @@ export default async function HomePage({
   const qa = firstValue(resolved.qa);
   const clean = firstValue(resolved.clean);
   const effectsEditor = firstValue(resolved.effectsEditor);
+  const replayIntro = firstValue(resolved.replayIntro) ?? firstValue(resolved.intro);
   const qaClean = qa === "1" || qa === "true" || qa === "clean" || clean === "1";
   const qaEffects = qa === "effects" || effectsEditor === "1" || effectsEditor === "true";
+  const forceIntro = replayIntro === "1" || replayIntro === "true";
 
-  return <HomePageClient qaClean={qaClean} qaEffects={qaEffects} />;
+  return <HomePageClient qaClean={qaClean} qaEffects={qaEffects} forceIntro={forceIntro} />;
 }
