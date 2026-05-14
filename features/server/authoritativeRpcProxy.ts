@@ -31,6 +31,8 @@ export type AuthoritativeRpcProxySuccess = {
   authorization: string;
 };
 
+export const AUTHORITATIVE_RPC_FAILURE_REASON = "Server operation failed";
+
 export function isAuthoritativeServerApiEnabled(env: RuntimeEnv = process.env) {
   return env.SERVER_AUTHORITATIVE_API_ENABLED === "true";
 }
@@ -120,7 +122,7 @@ export async function executeAuthoritativeRpcCall(call: AuthoritativeRpcProxySuc
 
   const { data, error } = await supabase.rpc(call.rpcName, call.rpcArgs);
   if (error) {
-    return failure(502, "invalid_state", error.message);
+    return createAuthoritativeRpcFailureResponse();
   }
 
   return {
@@ -128,6 +130,10 @@ export async function executeAuthoritativeRpcCall(call: AuthoritativeRpcProxySuc
     status: 200,
     body: data,
   };
+}
+
+export function createAuthoritativeRpcFailureResponse(): AuthoritativeRpcProxyFailure {
+  return failure(502, "invalid_state", AUTHORITATIVE_RPC_FAILURE_REASON);
 }
 
 function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(

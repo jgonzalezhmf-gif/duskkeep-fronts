@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.29.8] - 2026-05-14
+
+### Fixed
+- Normalizadas las respuestas de fallo de RPC en `/api/server/authoritative`.
+
+### Security
+- Los errores internos de Supabase/Postgres ya no se devuelven al cliente como `reason`.
+- Reducida la exposicion de detalles internos de base de datos, JWT o schema ante fallos de operaciones autoritativas.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd run test -- tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run build`
+
 ## [0.29.7] - 2026-05-14
 
 ### Fixed

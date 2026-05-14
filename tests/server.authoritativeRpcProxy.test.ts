@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  AUTHORITATIVE_RPC_FAILURE_REASON,
+  createAuthoritativeRpcFailureResponse,
   getBearerAuthorization,
   prepareAuthoritativeRpcCall,
 } from "@/features/server/authoritativeRpcProxy";
@@ -222,5 +224,22 @@ describe("authoritative RPC proxy", () => {
   it("extracts only valid bearer authorization", () => {
     expect(getBearerAuthorization(headers("Bearer valid-token-value"))).toBe("Bearer valid-token-value");
     expect(getBearerAuthorization(headers("Basic value"))).toBeNull();
+  });
+
+  it("returns generic RPC failure responses without leaking database details", () => {
+    const response = createAuthoritativeRpcFailureResponse();
+
+    expect(response).toEqual({
+      ok: false,
+      status: 502,
+      body: {
+        ok: false,
+        code: "invalid_state",
+        reason: AUTHORITATIVE_RPC_FAILURE_REASON,
+      },
+    });
+    expect(response.body.reason).not.toContain("relation");
+    expect(response.body.reason).not.toContain("JWT");
+    expect(response.body.reason).not.toContain("SQLSTATE");
   });
 });
