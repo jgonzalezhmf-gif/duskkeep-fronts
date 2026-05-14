@@ -42,13 +42,15 @@ Tablas y funciones:
 - `grant_reward_bundle`: aplica un payload validado a `player_resources`, `profiles`, `player_heroes`, `player_frontline_cards` y `resource_ledger`.
 - `grant_reward_definition`: resuelve un `reward_id` del catalogo y llama a `grant_reward_bundle`.
 - `server_mission_definitions`: define ciclo, metrica, target y `reward_id` de misiones server-side.
+- `server_adventure_node_rewards`: define nodos Adventure no-combate reclamables, prerequisitos y `reward_id`.
 
 Alcance actual:
 
 - Shop ya usa `grant_reward_bundle` desde `purchase_shop_offer`.
 - Daily Login ya usa `grant_reward_definition` para resolver `daily_login_streak_1..7`.
 - Missions ya usa `server_mission_definitions` para progreso/claim y `grant_reward_definition` para rewards.
-- El siguiente paso natural es migrar Adventure de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
+- Adventure node rewards no-combate ya usa `server_adventure_node_rewards` para `c1l3`/`c1l7`.
+- El siguiente paso natural es migrar Adventure battle rewards o map interactions de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
 
@@ -241,7 +243,7 @@ type OpenAdventureMapInteractionResult = {
 
 Reclama un nodo no-combate de Adventure, como cofres de ruta.
 
-Primera implementacion SQL: `public.claim_adventure_node_reward(p_idempotency_key text, p_node_id text)`. Alcance inicial: `c1l3` y `c1l7`.
+Implementacion SQL: `public.claim_adventure_node_reward(p_idempotency_key text, p_node_id text)`. Alcance actual: nodos no-combate definidos en `server_adventure_node_rewards`, empezando por `c1l3` y `c1l7`.
 
 Payload:
 
@@ -257,6 +259,7 @@ Validaciones:
 - Los prerequisitos de ruta estan completados.
 - El nodo no fue reclamado antes.
 - La operacion es idempotente.
+- El reward se resuelve por `reward_id` desde catalogo server-side.
 
 Resultado:
 

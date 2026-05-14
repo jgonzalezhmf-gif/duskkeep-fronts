@@ -732,8 +732,18 @@ begin
   if coalesce((v_node_claim_result ->> 'ok')::boolean, false) is not true then
     raise exception 'claim_adventure_node_reward failed: %', v_node_claim_result;
   end if;
-  if coalesce(v_node_claim_result #>> '{result,rewardsGranted,frontlineCards,0,cardId}', '') <> 'order_shadow_dive' then
-    raise exception 'Expected c1l3 to unlock order_shadow_dive: %', v_node_claim_result;
+  select reward.rewards
+    into v_catalog_contents
+    from public.server_adventure_node_rewards node_reward
+    join public.server_reward_definitions reward on reward.reward_id = node_reward.reward_id
+    where node_reward.node_id = 'c1l3'
+      and node_reward.enabled = true
+      and reward.enabled = true;
+  if (v_node_claim_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'c1l3 reward must match server adventure node catalog: % <> %', v_node_claim_result #> '{result,rewardsGranted}', v_catalog_contents;
+  end if;
+  if coalesce((v_node_claim_result #>> '{result,rewardId}'), '') <> coalesce((select reward_id from public.server_adventure_node_rewards where node_id = 'c1l3'), '') then
+    raise exception 'c1l3 response must include catalog rewardId: %', v_node_claim_result;
   end if;
 
   v_node_claim_replay := public.claim_adventure_node_reward(

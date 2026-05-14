@@ -7,6 +7,32 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.4] - 2026-05-14
+
+### Added
+- Backend introduce `server_adventure_node_rewards` para definir nodos Adventure no-combate reclamables por `node_id`, `chapter_id`, prerequisitos y `reward_id`.
+- Registrados rewards catalogados para `c1l3` y `c1l7`.
+
+### Changed
+- `claim_adventure_node_reward` lee prerequisitos y rewards desde catalogo server-side y concede mediante `grant_reward_definition`.
+- El smoke valida el reward de `c1l3` contra `server_adventure_node_rewards` + `server_reward_definitions`.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Adventure node rewards data-driven.
+
+### Security
+- El cliente sigue sin enviar ni decidir rewards de nodos Adventure.
+- `server_adventure_node_rewards` queda sin grants para `authenticated`.
+- Claims de nodos mantienen ownership, idempotencia, prerequisitos server-side y bloqueo de doble claim.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer catalogos internos ni ejecutar grants internos.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.3] - 2026-05-14
 
 ### Added
