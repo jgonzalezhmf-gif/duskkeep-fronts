@@ -44,6 +44,7 @@ Tablas y funciones:
 - `server_mission_definitions`: define ciclo, metrica, target y `reward_id` de misiones server-side.
 - `server_adventure_node_rewards`: define nodos Adventure no-combate reclamables, prerequisitos y `reward_id`.
 - `server_adventure_map_interactions` y `server_adventure_map_loot_entries`: definen interactuables de mapa, coste, cooldown, prerequisitos y loot table ponderada por `reward_id`.
+- `server_adventure_battle_nodes`: define nodos Adventure de combate, prerequisitos, unlocks, tipo y rewards first-clear/replay por `reward_id`.
 
 Alcance actual:
 
@@ -52,7 +53,8 @@ Alcance actual:
 - Missions ya usa `server_mission_definitions` para progreso/claim y `grant_reward_definition` para rewards.
 - Adventure node rewards no-combate ya usa `server_adventure_node_rewards` para `c1l3`/`c1l7`.
 - Adventure map interactions ya usa catalogos internos para `c1-lower-cache`, coste de llave, cooldown y loot table.
-- El siguiente paso natural es migrar Adventure battle rewards de forma incremental, reutilizando esta primitiva sin cambiar UI ni flujo local invitado.
+- Adventure battle results ya usa `server_adventure_battle_nodes` para Chapter 1 combat nodes.
+- El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
 
 ## Formato Base
 
@@ -169,7 +171,7 @@ type SaveLoadoutResult = {
 
 Registra resultado de un nodo Adventure y concede recompensas validas.
 
-Primera implementacion SQL: `public.claim_adventure_battle_result(p_idempotency_key text, p_node_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`. Alcance inicial: combates de Chapter 1. Chapter 2 permanece bloqueado.
+Implementacion SQL: `public.claim_adventure_battle_result(p_idempotency_key text, p_node_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`. Alcance actual: combates de Chapter 1 definidos en `server_adventure_battle_nodes`. Chapter 2 permanece bloqueado.
 
 Payload:
 
@@ -192,6 +194,7 @@ Validaciones:
 - Si es primera victoria, se conceden base + first-clear.
 - Si es replay, se aplica politica de repeticion.
 - Chapter 2 sigue bloqueado hasta tener contenido.
+- Prerequisitos, unlocks y rewards first-clear/replay se resuelven desde catalogo server-side.
 
 Resultado:
 

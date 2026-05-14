@@ -7,6 +7,33 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.6] - 2026-05-14
+
+### Added
+- Backend introduce `server_adventure_battle_nodes` para definir nodos Adventure de combate por `node_id`, tipo, prerequisitos, unlocks y rewards first-clear/replay.
+- Registrado catalogo inicial de rewards para nodos de combate Chapter 1 manteniendo el comportamiento actual.
+
+### Changed
+- `claim_adventure_battle_result` deja de tener hardcodeadas las ramas por nodo y lee la configuracion desde catalogo server-side.
+- Los rewards de victoria Adventure se conceden mediante `grant_reward_definition`.
+- El smoke valida first-clear y replay de `c1l1` contra `server_adventure_battle_nodes` + `server_reward_definitions`.
+- Actualizada la documentacion de operaciones autoritativas para reflejar Adventure battle rewards data-driven.
+
+### Security
+- El cliente sigue sin enviar ni decidir rewards, unlocks, prerequisitos ni repeat policy de nodos de combate Adventure.
+- `server_adventure_battle_nodes` queda sin grants para `authenticated`.
+- La claim mantiene ownership, idempotencia, prerequisitos server-side, ledger por reward grant y bloqueo de Chapter 2 al no estar catalogado.
+
+### Tested
+- `npx.cmd supabase migration up --local`
+- `npx.cmd supabase db reset`
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npx.cmd supabase db query --local --output table` para confirmar que `authenticated` no puede leer catalogos internos ni ejecutar grants internos.
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.5] - 2026-05-14
 
 ### Added

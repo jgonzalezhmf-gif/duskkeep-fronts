@@ -697,6 +697,16 @@ begin
   if coalesce((v_battle_result #>> '{result,firstClear}')::boolean, false) is not true then
     raise exception 'Expected c1l1 first clear reward: %', v_battle_result;
   end if;
+  select reward.rewards
+    into v_catalog_contents
+    from public.server_adventure_battle_nodes battle_node
+    join public.server_reward_definitions reward on reward.reward_id = battle_node.first_clear_reward_id
+    where battle_node.node_id = 'c1l1'
+      and battle_node.enabled = true
+      and reward.enabled = true;
+  if (v_battle_result #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'c1l1 first clear reward must match server battle catalog: % <> %', v_battle_result #> '{result,rewardsGranted}', v_catalog_contents;
+  end if;
 
   v_battle_replay := public.claim_adventure_battle_result(
     'smoke-battle-20260511-0001',
@@ -721,8 +731,15 @@ begin
   if coalesce((v_battle_second_clear #>> '{result,firstClear}')::boolean, true) is not false then
     raise exception 'Expected replay to avoid first-clear rewards: %', v_battle_second_clear;
   end if;
-  if coalesce((v_battle_second_clear #>> '{result,rewardsGranted,gold}')::int, 0) <> 16 then
-    raise exception 'Expected c1l1 replay gold to be 16: %', v_battle_second_clear;
+  select reward.rewards
+    into v_catalog_contents
+    from public.server_adventure_battle_nodes battle_node
+    join public.server_reward_definitions reward on reward.reward_id = battle_node.repeat_reward_id
+    where battle_node.node_id = 'c1l1'
+      and battle_node.enabled = true
+      and reward.enabled = true;
+  if (v_battle_second_clear #> '{result,rewardsGranted}') <> v_catalog_contents then
+    raise exception 'c1l1 replay reward must match server battle catalog: % <> %', v_battle_second_clear #> '{result,rewardsGranted}', v_catalog_contents;
   end if;
 
   v_node_claim_result := public.claim_adventure_node_reward(
