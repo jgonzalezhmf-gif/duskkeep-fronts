@@ -10,6 +10,7 @@ export type AuthoritativePurchaseSuccess = {
   ok: true;
   mode: "authoritative";
   resources: Resources;
+  requiresSnapshotRefresh: boolean;
 };
 
 export type AuthoritativePurchaseFailure = {
@@ -935,6 +936,9 @@ export async function purchaseShopOfferAuthoritatively(
     ok: true,
     mode: "authoritative",
     resources,
+    requiresSnapshotRefresh: isRecord(response.body.result)
+      ? parseBoolean(response.body.result.requiresSnapshotRefresh) ?? false
+      : false,
   };
 }
 

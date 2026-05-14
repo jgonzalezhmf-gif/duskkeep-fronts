@@ -61,10 +61,20 @@ declare
   v_shop_daily_replay jsonb;
   v_shop_daily_second_result jsonb;
   v_shop_daily_third_result jsonb;
+  v_shop_daily_limit_result jsonb;
   v_shop_arena_result jsonb;
   v_shop_arena_replay jsonb;
   v_shop_arena_second_result jsonb;
+  v_shop_arena_limit_result jsonb;
   v_shop_resource_result jsonb;
+  v_shop_progression_result jsonb;
+  v_shop_shard_result jsonb;
+  v_catalog_contents jsonb;
+  v_catalog_daily_limit int;
+  v_catalog_xp int;
+  v_catalog_account_xp int;
+  v_catalog_shards int;
+  v_purchase_index int;
   v_cache_claim_count int;
 begin
   insert into auth.users (
@@ -765,15 +775,20 @@ begin
     raise exception 'Expected exactly 1 shop purchase, found %', v_shop_purchase_count;
   end if;
 
+  select contents, daily_limit
+    into v_catalog_contents, v_catalog_daily_limit
+    from public.server_shop_offers
+    where offer_id = 'daily_raid_payout';
+
   v_shop_daily_result := public.purchase_shop_offer('smoke-shop-daily-20260514-0001', 'daily_raid_payout', 1);
   if coalesce((v_shop_daily_result ->> 'ok')::boolean, false) is not true then
     raise exception 'purchase_shop_offer daily_raid_payout failed: %', v_shop_daily_result;
   end if;
-  if coalesce((v_shop_daily_result #>> '{result,contentsGranted,gold}')::int, 0) <> 450 then
-    raise exception 'Expected daily_raid_payout to grant 450 gold: %', v_shop_daily_result;
+  if (v_shop_daily_result #> '{result,contentsGranted}') <> v_catalog_contents then
+    raise exception 'daily_raid_payout contents must match server catalog: % <> %', v_shop_daily_result #> '{result,contentsGranted}', v_catalog_contents;
   end if;
-  if coalesce((v_shop_daily_result #>> '{result,remaining}')::int, -1) <> 1 then
-    raise exception 'Expected daily_raid_payout remaining count 1 after first purchase: %', v_shop_daily_result;
+  if coalesce((v_shop_daily_result #>> '{result,remaining}')::int, -1) <> v_catalog_daily_limit - 1 then
+    raise exception 'Expected daily_raid_payout remaining count to follow catalog limit: %', v_shop_daily_result;
   end if;
 
   v_shop_daily_replay := public.purchase_shop_offer('smoke-shop-daily-20260514-0001', 'daily_raid_payout', 1);
@@ -781,27 +796,44 @@ begin
     raise exception 'purchase_shop_offer daily_raid_payout is not idempotent: % <> %', v_shop_daily_replay, v_shop_daily_result;
   end if;
 
-  v_shop_daily_second_result := public.purchase_shop_offer('smoke-shop-daily-20260514-0002', 'daily_raid_payout', 1);
-  if coalesce((v_shop_daily_second_result ->> 'ok')::boolean, false) is not true then
-    raise exception 'Second daily_raid_payout purchase should be allowed: %', v_shop_daily_second_result;
-  end if;
-  if coalesce((v_shop_daily_second_result #>> '{result,remaining}')::int, -1) <> 0 then
-    raise exception 'Expected daily_raid_payout remaining count 0 after second purchase: %', v_shop_daily_second_result;
+  v_purchase_index := 2;
+  while v_purchase_index <= v_catalog_daily_limit loop
+    v_shop_daily_second_result := public.purchase_shop_offer(
+      'smoke-shop-daily-20260514-' || lpad(v_purchase_index::text, 4, '0'),
+      'daily_raid_payout',
+      1
+    );
+    if coalesce((v_shop_daily_second_result ->> 'ok')::boolean, false) is not true then
+      raise exception 'daily_raid_payout purchase % should be allowed by catalog limit %: %', v_purchase_index, v_catalog_daily_limit, v_shop_daily_second_result;
+    end if;
+    if coalesce((v_shop_daily_second_result #>> '{result,remaining}')::int, -1) <> greatest(0, v_catalog_daily_limit - v_purchase_index) then
+      raise exception 'daily_raid_payout remaining count must follow catalog limit after purchase %: %', v_purchase_index, v_shop_daily_second_result;
+    end if;
+    v_purchase_index := v_purchase_index + 1;
+  end loop;
+
+  v_shop_daily_limit_result := public.purchase_shop_offer(
+    'smoke-shop-daily-20260514-' || lpad((v_catalog_daily_limit + 1)::text, 4, '0'),
+    'daily_raid_payout',
+    1
+  );
+  if coalesce(v_shop_daily_limit_result ->> 'code', '') <> 'daily_limit_reached' then
+    raise exception 'Expected daily_raid_payout purchase after catalog limit % to be blocked: %', v_catalog_daily_limit, v_shop_daily_limit_result;
   end if;
 
-  v_shop_daily_third_result := public.purchase_shop_offer('smoke-shop-daily-20260514-0003', 'daily_raid_payout', 1);
-  if coalesce(v_shop_daily_third_result ->> 'code', '') <> 'daily_limit_reached' then
-    raise exception 'Expected third daily_raid_payout purchase to hit daily limit: %', v_shop_daily_third_result;
-  end if;
+  select contents, daily_limit
+    into v_catalog_contents, v_catalog_daily_limit
+    from public.server_shop_offers
+    where offer_id = 'daily_arena_tickets';
 
   v_shop_arena_result := public.purchase_shop_offer('smoke-shop-arena-20260515-0001', 'daily_arena_tickets', 1);
   if coalesce((v_shop_arena_result ->> 'ok')::boolean, false) is not true then
     raise exception 'purchase_shop_offer daily_arena_tickets failed: %', v_shop_arena_result;
   end if;
-  if coalesce((v_shop_arena_result #>> '{result,contentsGranted,arenaTickets}')::int, 0) <> 3 then
-    raise exception 'Expected daily_arena_tickets to grant 3 tickets: %', v_shop_arena_result;
+  if (v_shop_arena_result #> '{result,contentsGranted}') <> v_catalog_contents then
+    raise exception 'daily_arena_tickets contents must match server catalog: % <> %', v_shop_arena_result #> '{result,contentsGranted}', v_catalog_contents;
   end if;
-  if coalesce((v_shop_arena_result #>> '{result,remaining}')::int, -1) <> 0 then
+  if coalesce((v_shop_arena_result #>> '{result,remaining}')::int, -1) <> greatest(0, v_catalog_daily_limit - 1) then
     raise exception 'Expected daily_arena_tickets remaining count 0 after purchase: %', v_shop_arena_result;
   end if;
 
@@ -810,20 +842,103 @@ begin
     raise exception 'purchase_shop_offer daily_arena_tickets is not idempotent: % <> %', v_shop_arena_replay, v_shop_arena_result;
   end if;
 
-  v_shop_arena_second_result := public.purchase_shop_offer('smoke-shop-arena-20260515-0002', 'daily_arena_tickets', 1);
-  if coalesce(v_shop_arena_second_result ->> 'code', '') <> 'daily_limit_reached' then
-    raise exception 'Expected second daily_arena_tickets purchase to hit daily limit: %', v_shop_arena_second_result;
+  v_purchase_index := 2;
+  while v_purchase_index <= v_catalog_daily_limit loop
+    v_shop_arena_second_result := public.purchase_shop_offer(
+      'smoke-shop-arena-20260515-' || lpad(v_purchase_index::text, 4, '0'),
+      'daily_arena_tickets',
+      1
+    );
+    if coalesce((v_shop_arena_second_result ->> 'ok')::boolean, false) is not true then
+      raise exception 'daily_arena_tickets purchase % should be allowed by catalog limit %: %', v_purchase_index, v_catalog_daily_limit, v_shop_arena_second_result;
+    end if;
+    if coalesce((v_shop_arena_second_result #>> '{result,remaining}')::int, -1) <> greatest(0, v_catalog_daily_limit - v_purchase_index) then
+      raise exception 'daily_arena_tickets remaining count must follow catalog limit after purchase %: %', v_purchase_index, v_shop_arena_second_result;
+    end if;
+    v_purchase_index := v_purchase_index + 1;
+  end loop;
+
+  v_shop_arena_limit_result := public.purchase_shop_offer(
+    'smoke-shop-arena-20260515-' || lpad((v_catalog_daily_limit + 1)::text, 4, '0'),
+    'daily_arena_tickets',
+    1
+  );
+  if coalesce(v_shop_arena_limit_result ->> 'code', '') <> 'daily_limit_reached' then
+    raise exception 'Expected daily_arena_tickets purchase after catalog limit % to be blocked: %', v_catalog_daily_limit, v_shop_arena_limit_result;
   end if;
+
+  select contents
+    into v_catalog_contents
+    from public.server_shop_offers
+    where offer_id = 'keep_construction_chest';
 
   v_shop_resource_result := public.purchase_shop_offer('smoke-shop-resource-20260515-0001', 'keep_construction_chest', 1);
   if coalesce((v_shop_resource_result ->> 'ok')::boolean, false) is not true then
     raise exception 'purchase_shop_offer keep_construction_chest failed: %', v_shop_resource_result;
   end if;
-  if coalesce((v_shop_resource_result #>> '{result,contentsGranted,gold}')::int, 0) <> 2200 then
-    raise exception 'Expected keep_construction_chest to grant 2200 gold from server catalog: %', v_shop_resource_result;
+  if (v_shop_resource_result #> '{result,contentsGranted}') <> v_catalog_contents then
+    raise exception 'keep_construction_chest contents must match server catalog: % <> %', v_shop_resource_result #> '{result,contentsGranted}', v_catalog_contents;
   end if;
   if (v_shop_resource_result #>> '{result,remaining}') is not null then
     raise exception 'Expected unlimited catalog offer remaining to be null: %', v_shop_resource_result;
+  end if;
+
+  select contents, coalesce((contents ->> 'xp')::int, 0), coalesce((contents ->> 'accountXp')::int, 0)
+    into v_catalog_contents, v_catalog_xp, v_catalog_account_xp
+    from public.server_shop_offers
+    where offer_id = 'daily_command_drill';
+
+  v_shop_progression_result := public.purchase_shop_offer('smoke-shop-progression-20260515-0001', 'daily_command_drill', 1);
+  if coalesce((v_shop_progression_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'purchase_shop_offer daily_command_drill failed: %', v_shop_progression_result;
+  end if;
+  if (v_shop_progression_result #> '{result,contentsGranted}') <> v_catalog_contents then
+    raise exception 'daily_command_drill contents must match server catalog: % <> %', v_shop_progression_result #> '{result,contentsGranted}', v_catalog_contents;
+  end if;
+  if coalesce((v_shop_progression_result #>> '{result,requiresSnapshotRefresh}')::boolean, false) is not true then
+    raise exception 'Expected daily_command_drill to require snapshot refresh: %', v_shop_progression_result;
+  end if;
+  if not exists (
+    select 1
+      from public.profiles
+      where id = v_profile_id
+        and account_xp >= v_catalog_account_xp
+  ) then
+    raise exception 'Expected daily_command_drill to grant account xp';
+  end if;
+  if not exists (
+    select 1
+      from public.player_heroes
+      where profile_id = v_profile_id
+        and hero_id = 'bran'
+        and xp >= v_catalog_xp
+  ) then
+    raise exception 'Expected daily_command_drill to grant squad hero xp';
+  end if;
+
+  select contents, coalesce((contents #>> '{shards,0,amount}')::int, 0)
+    into v_catalog_contents, v_catalog_shards
+    from public.server_shop_offers
+    where offer_id = 'shard_bran_pack';
+
+  v_shop_shard_result := public.purchase_shop_offer('smoke-shop-shard-20260515-0001', 'shard_bran_pack', 1);
+  if coalesce((v_shop_shard_result ->> 'ok')::boolean, false) is not true then
+    raise exception 'purchase_shop_offer shard_bran_pack failed: %', v_shop_shard_result;
+  end if;
+  if (v_shop_shard_result #> '{result,contentsGranted}') <> v_catalog_contents then
+    raise exception 'shard_bran_pack contents must match server catalog: % <> %', v_shop_shard_result #> '{result,contentsGranted}', v_catalog_contents;
+  end if;
+  if coalesce((v_shop_shard_result #>> '{result,requiresSnapshotRefresh}')::boolean, false) is not true then
+    raise exception 'Expected shard_bran_pack to require snapshot refresh: %', v_shop_shard_result;
+  end if;
+  if not exists (
+    select 1
+      from public.player_heroes
+      where profile_id = v_profile_id
+        and hero_id = 'bran'
+        and shards >= v_catalog_shards
+  ) then
+    raise exception 'Expected shard_bran_pack to grant Bran shards';
   end if;
 
   v_cache_result := public.open_adventure_map_interaction('smoke-cache-20260511-0001', 'c1-lower-cache');

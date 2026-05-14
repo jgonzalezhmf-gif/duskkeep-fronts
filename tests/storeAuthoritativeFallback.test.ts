@@ -155,6 +155,44 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().resources.gold).toBeLessThan(500);
   });
 
+  it("rehydrates the server snapshot after authoritative shop rewards that affect progression", async () => {
+    useGameStore.setState({ accountLinkMode: "linked" });
+    mockedPurchase.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      resources: { gold: 150, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+      requiresSnapshotRefresh: true,
+    });
+    vi.mocked(loadServerPlayerSnapshot).mockResolvedValueOnce({
+      ok: true,
+      authoritative: true,
+      result: {
+        profileId: "profile-1",
+        snapshot: {
+          account: { name: "Commander", level: 1, xp: 8 },
+          resources: { gold: 150, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+          heroes: [{ heroId: "bran", level: 1, stars: 1, shards: 0, xp: 70, skillLevel: 1 }],
+          frontlineCardUnlocks: {},
+          frontlineCardLevels: {},
+          frontlineLoadout: null,
+          frontlineFortress: null,
+          adventureProgress: {},
+          adventureMapClaims: {},
+          missionsProgress: {},
+          dailyLoginClaims: {},
+          shopPurchases: [],
+        },
+      },
+    });
+
+    const result = await useGameStore.getState().purchaseOfferOnlineFirst("daily_command_drill");
+
+    expect(result).toEqual({ ok: true, authoritative: true });
+    expect(loadServerPlayerSnapshot).toHaveBeenCalledTimes(1);
+    expect(useGameStore.getState().account.xp).toBe(8);
+    expect(useGameStore.getState().heroes.find((hero) => hero.heroId === "bran")?.xp).toBe(70);
+  });
+
   it("blocks linked account card upgrades when the session is missing", async () => {
     useGameStore.setState({
       accountLinkMode: "linked",

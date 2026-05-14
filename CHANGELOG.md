@@ -7,6 +7,31 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.0] - 2026-05-14
+
+### Added
+- Shop amplia el catalogo server-side `server_shop_offers` para recompensas de progresion: `accountXp`, XP de squad Frontline, shards de heroes y unlocks de cartas.
+- El catalogo autoritativo incluye bundles de progresion, entrenamiento y shard packs sin crear ramas nuevas por oferta.
+- La RPC `purchase_shop_offer` devuelve `requiresSnapshotRefresh` cuando una compra modifica cuenta, heroes o cartas.
+
+### Changed
+- El cliente rehidrata el snapshot server-side despues de compras autoritativas que afectan progresion, evitando calcular en local estados sensibles de cuenta/heroes/cartas.
+- Los smoke tests de Shop comparan recompensas y limites contra `server_shop_offers` en vez de fijar balances concretos en el test.
+- Actualizada la documentacion de operaciones autoritativas para reflejar el alcance data-driven actual del catalogo.
+
+### Security
+- Mantiene coste, recompensa, daily limit, one-time, prerequisitos e idempotencia bajo autoridad del servidor para ofertas de Shop.
+- Reduce el acoplamiento inseguro a valores de balance concretos: el servidor valida invariantes y el catalogo define cantidades modificables.
+- Evita fallback local en cuentas vinculadas cuando el servidor rechaza o no conoce una oferta.
+
+### Tested
+- `npx.cmd supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table`
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.31.0] - 2026-05-14
 
 ### Added

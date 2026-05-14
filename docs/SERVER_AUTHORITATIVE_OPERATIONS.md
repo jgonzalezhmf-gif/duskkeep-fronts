@@ -250,7 +250,7 @@ Compra una oferta de Shop.
 
 Implementacion SQL: `public.purchase_shop_offer(p_idempotency_key text, p_offer_id text, p_quantity int)`. La RPC lee coste, contenido, limite diario, one-time, ventana temporal y prerequisitos desde `public.server_shop_offers`. El cliente no decide coste ni recompensa.
 
-Alcance actual del catalogo: ofertas con costes/recompensas de recursos simples (`gold`, `dust`, `gems`, `arenaTickets`, `adventureKeys`). Las ofertas con `xp`, `accountXp`, shards o cartas quedan fuera del catalogo online hasta que la respuesta autoritativa actualice tambien cuenta/heroes/cartas en cliente o se fuerce una rehidratacion de snapshot.
+Alcance actual del catalogo: ofertas con costes de recursos simples (`gold`, `dust`, `gems`, `adventureKeys`) y recompensas de recursos, `accountXp`, XP de squad Frontline, shards y unlocks de cartas. Cuando una compra afecta cuenta, heroes o cartas, el cliente rehidrata snapshot server-side despues de aplicar la compra para no calcular progresion sensible en local.
 
 Payload:
 

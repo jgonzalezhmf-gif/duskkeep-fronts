@@ -899,6 +899,9 @@ export const useGameStore = create<GameState & GameActions>()(
           ...applyShopOfferPurchase(st, offerId),
           resources: authoritative.resources,
         }));
+        if (authoritative.requiresSnapshotRefresh) {
+          await get().loadServerSnapshotOnlineFirst();
+        }
         return { ok: true, authoritative: true };
       },
 
