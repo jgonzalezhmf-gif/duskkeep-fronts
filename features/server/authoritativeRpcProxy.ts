@@ -5,6 +5,7 @@ import {
   type ServerOperationPayload,
   type SupportedAuthoritativeApiOperation,
 } from "@/features/server/authoritativeOperations";
+import { getSupabasePublicConfig } from "@/features/server/supabasePublicConfig";
 
 export type SupportedAuthoritativeRpcOperation = SupportedAuthoritativeApiOperation;
 
@@ -59,9 +60,8 @@ export function prepareAuthoritativeRpcCall({
     return disabled("Server-authoritative API is disabled");
   }
 
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) {
+  const publicConfig = getSupabasePublicConfig(env);
+  if (!publicConfig.ok) {
     return failure(503, "invalid_state", "Supabase environment is not configured");
   }
 
@@ -99,8 +99,8 @@ export function prepareAuthoritativeRpcCall({
   return {
     ok: true,
     ...toRpcCall(operationType, parsed.request.idempotencyKey, parsed.request.payload),
-    supabaseUrl,
-    supabaseAnonKey,
+    supabaseUrl: publicConfig.config.url,
+    supabaseAnonKey: publicConfig.config.anonKey,
     authorization,
   };
 }

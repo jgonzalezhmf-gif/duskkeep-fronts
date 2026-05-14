@@ -47,6 +47,24 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("rejects unsafe Supabase public configuration before preparing RPC calls", () => {
+    expect(
+      prepareAuthoritativeRpcCall({
+        body: { operationType: "claimAdventureNodeReward", idempotencyKey: "node-claim-20260511", payload: { nodeId: "c1l3" } },
+        headers: headers("Bearer valid-token-value"),
+        env: {
+          SERVER_AUTHORITATIVE_API_ENABLED: "true",
+          NEXT_PUBLIC_SUPABASE_URL: "http://example.com",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+        },
+      }),
+    ).toMatchObject({
+      ok: false,
+      status: 503,
+      body: { code: "invalid_state" },
+    });
+  });
+
   it("maps Adventure node claims to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

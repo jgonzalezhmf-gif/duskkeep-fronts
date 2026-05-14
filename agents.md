@@ -107,6 +107,7 @@ Responsable de:
 
 ## Skills y mantenimiento del agente
 - Usar las skills locales de Duskkeep Fronts cuando una tarea toque su area: cohesion visual, auditoria de pantallas, assets, Duskkeep Fronts, Adventure, rewards, localizacion/i18n o validacion browser.
+- Usar `duskkeep-secure-backend` cuando una tarea toque backend, Supabase, Auth, RLS, RPCs, persistencia online, pagos, moneda premium, ladder u operaciones autoritativas.
 - Usar `impeccable` como skill auxiliar cuando la tarea trate motion, animacion de personajes/imagenes, microinteracciones, polish visual avanzado, critica de interfaz o iteracion visual en navegador. Para animacion usar especialmente su referencia `animate`, pero mantener siempre las reglas propias de Duskkeep Fronts sobre gameplay, assets, manifests, i18n y validacion.
 - Antes de aplicar `impeccable` en tareas de diseno/motion, ejecutar `node .agents/skills/impeccable/scripts/load-context.mjs`. Si faltan `PRODUCT.md` o `DESIGN.md`, no bloquear tareas pequenas: usar el contexto del repo y avisar de que conviene crear esos documentos antes de una pasada visual grande.
 - Revisar ocasionalmente si una tarea repetida, una regla fragil o una nueva area estable necesita una skill nueva o una actualizacion de una skill existente.

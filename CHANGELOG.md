@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.27.2] - 2026-05-14
+
+### Security
+- Aniadida skill `duskkeep-secure-backend` para guiar trabajo futuro de Supabase/Auth/RPCs con SSDLC, shift-left security, OWASP Top 10/ASVS y MITRE ATT&CK.
+- Centralizada la validacion de configuracion publica Supabase, rechazando URLs HTTP no locales y claves publicas que parezcan `service_role`/secret.
+- El proxy autoritativo ahora falla cerrado si la configuracion Supabase publica no es segura.
+- Ampliada la capa de sesion Supabase del cliente con snapshot sin tokens, sign-in/sign-up/sign-out centralizados y clasificacion segura de errores.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run test -- tests/supabasePublicConfig.test.ts tests/supabaseBrowserSession.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeClient.test.ts tests/server.authoritativeOperationDispatcher.test.ts`
+
 ## [0.27.1] - 2026-05-14
 
 ### Security
