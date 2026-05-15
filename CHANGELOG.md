@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.48] - 2026-05-15
+
+### Docs
+- Documentada una matriz de cobertura data-driven para operaciones server-authoritative.
+- Aclarado que las migraciones antiguas pueden conservar importes historicos, pero la funcion efectiva tras reset es la ultima `create or replace function`.
+- Separados los valores que deben vivir en catalogos de los limites defensivos y datos de setup que pueden permanecer como constantes por ahora.
+
+### Security
+- Registrados riesgos residuales del bloque backend: resultados de combate todavia cliente-MVP, rate limit en memoria, observabilidad y posible catalogo futuro de provisioning.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run build`
+
 ## [0.32.47] - 2026-05-15
 
 ### Security

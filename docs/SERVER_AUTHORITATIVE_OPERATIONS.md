@@ -70,7 +70,38 @@ Alcance actual:
 - Fortress raids ya usa `server_frontline_fortress_hero_scores` y `server_frontline_fortress_raid_profiles` para calcular defensa, ataque, outcome, cooldown y rewards.
 - Hero progression ya usa `server_upgradeable_heroes` y `server_hero_upgrade_costs` para heroes permitidos, limites y costes de level/star/skill.
 - Frontline card progression ya usa `server_upgradeable_frontline_cards` y `server_frontline_card_upgrade_costs` para cartas permitidas, nivel maximo y costes.
-- El siguiente paso natural es seguir reduciendo operaciones legacy restantes con catalogos server-side sin cambiar UI ni flujo local invitado.
+
+## Cobertura Data-Driven Actual
+
+Esta matriz resume que valores de balance se resuelven desde servidor y donde se valida que el cliente no decide cantidades finales. En migraciones SQL puede aparecer codigo antiguo con importes hardcodeados porque el historico mantiene versiones anteriores; tras `supabase db reset`, la funcion activa es la ultima `create or replace function` aplicada.
+
+| Operacion | Catalogo / fuente server-side | Smoke / cobertura actual | Riesgo residual |
+| --- | --- | --- | --- |
+| `purchaseShopOffer` | `server_shop_offers` + `grant_reward_bundle` | El smoke compara coste, contenido y limites contra catalogo. | Solo soporta los tipos de coste/reward definidos en el grant base. |
+| `claimDailyLogin` | `server_reward_definitions` con `daily_login_streak_*` | El smoke compara el reward concedido contra `server_reward_definitions`. | La secuencia de streak es fija; si cambia el modelo diario, ampliar catalogo antes de tocar RPC. |
+| `claimMission` | `server_mission_definitions` + `server_reward_definitions` | El smoke valida target, ciclo y reward desde catalogos. | Nuevas metricas deben nacer de eventos server-side antes de poder reclamar online. |
+| `claimAdventureNodeReward` | `server_adventure_node_rewards` + `server_reward_definitions` | El smoke valida prerequisitos, claim unica y reward por `reward_id`. | Nuevos tipos no-combate deben registrarse en catalogo antes de exponerse online. |
+| `openAdventureMapInteraction` | `server_adventure_map_interactions`, `server_adventure_map_loot_entries`, `server_reward_definitions` | El smoke valida coste, cooldown, loot ponderado y reward por catalogo. | La aleatoriedad es server-side, pero conviene ampliar observabilidad si el loot pasa a monetizacion. |
+| `claimAdventureBattleResult` | `server_adventure_battle_nodes` + `server_reward_definitions` | El smoke valida prerequisitos, first-clear/replay, unlocks y rewards desde catalogo. | El resultado de combate todavia se acepta como resumen cliente en MVP; ladder/competitivo requiere simulacion o log validado server-side. |
+| `recordArenaResult` | `server_arena_opponents` + `server_reward_definitions` | El smoke valida coste de ticket y reward win/draw/loss desde catalogo. | Igual que combate: antes de ranking real, validar resultado en servidor. |
+| `recordEventResult` | `server_event_definitions` + `server_reward_definitions` | El smoke valida unlock level y first-clear diario desde catalogo. | Nuevos eventos con reglas especiales deben evitar logica puntual dentro de RPC. |
+| `upgradeFrontlineFortress` | `server_frontline_fortress_buildings` | El smoke valida coste/nivel contra funcion y tabla server-side. | Si aparecen nuevos edificios, registrar curva en catalogo antes de UI. |
+| `resolveFrontlineFortressRaid` | `server_frontline_fortress_hero_scores` + `server_frontline_fortress_raid_profiles` | El smoke valida cooldown/outcome/rewards por perfil. | El modelo es formula server-side; si el balance se vuelve complejo, extraer mas columnas de perfil. |
+| `levelUpHero` / `starUpHero` / `skillUpHero` | `server_upgradeable_heroes` + `server_hero_upgrade_costs` | El smoke valida costes y limites desde catalogo. | El sistema esta preparado para cambiar curvas sin tocar UI, pero progresiones nuevas necesitan columnas/tabla nuevas. |
+| `upgradeFrontlineCard` | `server_upgradeable_frontline_cards` + `server_frontline_card_upgrade_costs` | El smoke valida coste/nivel contra catalogo. | Si se anaden evoluciones o rarezas con reglas propias, deben modelarse como datos, no como `case` por carta. |
+
+Valores que pueden seguir como constantes por ahora:
+
+- Limites defensivos de importacion de snapshot local. No son balance jugable; son caps de seguridad para evitar importes imposibles desde modo invitado.
+- Recursos iniciales de provisioning. Son seed de cuenta, no reward repetible; si se van a balancear a menudo, conviene moverlos a un catalogo `server_starter_profile`.
+- Numeros esperados en smoke tests que preparan estado. Solo deben comprobar transiciones de prueba, no convertirse en fuente de balance.
+
+Siguiente bloque recomendado antes de monetizacion o ranking:
+
+- Validacion server-side de resultados de combate, al menos para Arena/ladder y eventos competitivos.
+- Rate limit compartido fuera de memoria para despliegue distribuido.
+- Observabilidad de operaciones sensibles: compras, loot rolls, sync invitado, claims repetidos e idempotency conflicts.
+- Catalogo de provisioning si se prevé ajustar recursos iniciales con frecuencia.
 
 ## Formato Base
 
