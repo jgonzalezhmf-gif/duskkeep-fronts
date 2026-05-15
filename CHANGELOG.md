@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.56] - 2026-05-15
+
+### Security
+- Anhadida observabilidad estructurada y sanitizada para rechazos/fallos de `/api/server/authoritative`.
+- Los eventos registran etapa, estado, codigo, operacion sanitizada e identidad hasheada sin tokens, payloads, rewards ni resources.
+- Cubiertos rechazos de guards, rate limits, JSON invalido, validacion, RPC y futuros fallos de replay.
+
+### Docs
+- Documentado que falta conectar estos eventos a un backend de observabilidad con alertas y retencion.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeSecurityEvents.test.ts tests/server.authoritativeRateLimit.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.55] - 2026-05-15
 
 ### Security
