@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.69] - 2026-05-15
+
+### Docs
+- Anadido el documento de estado del proyecto y siguientes bloques para evitar iteraciones indefinidas.
+- Documentados bloques estables, backlog priorizado, gates por tipo de trabajo y regla operativa para interpretar "siguiente".
+- Actualizada la checklist de calidad/release con `audit:high`, smokes Supabase y auditorias de assets/rendimiento.
+- Limpiados huecos de documentacion ya cubiertos por las migraciones y contratos server-authoritative actuales.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.68] - 2026-05-15
 
 ### Docs

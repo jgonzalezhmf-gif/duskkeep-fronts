@@ -17,11 +17,30 @@ Ejecutar antes de una candidata a lanzamiento:
 
 ```powershell
 npm.cmd run check
-npm.cmd run test
+npm.cmd test
 npm.cmd run build
+$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run audit:high
 ```
 
 Si el entorno bloquea procesos hijos con `spawn EPERM`, repetir fuera del shell restringido y documentar la limitacion.
+
+Si la candidata toca auth, Supabase o economia autoritativa, ejecutar tambien:
+
+```powershell
+npm.cmd run smoke:supabase:guest
+npm.cmd run smoke:supabase:snapshot
+npm.cmd run smoke:supabase:guest-upgrade
+npm.cmd run smoke:authoritative-api
+```
+
+Si la candidata toca assets, rendimiento o fondos pesados, ejecutar tambien:
+
+```powershell
+npm.cmd run audit:assets
+npm.cmd run audit:asset-refs
+npm.cmd run audit:build
+npm.cmd run check:performance
+```
 
 ## Rutas de Validacion Rapida en Navegador
 
@@ -90,13 +109,17 @@ Validar al menos:
 
 ## Checklist de Seguridad
 
-El alpha actual es local/offline. Para cualquier release online:
+Para cualquier release online:
 
 - No confiar en balances de recursos del cliente.
 - No conceder moneda premium solo en cliente.
 - No aceptar claims de batalla/recompensa sin validacion de servidor.
 - No exponer service-role keys ni tokens privados al navegador.
 - Restringir persistencia por ownership de usuario autenticado.
+- Mantener errores de login/registro/recuperacion genericos para evitar enumeracion de cuentas.
+- Confirmar que rutas `/api/dev/*` siguen bloqueadas en produccion.
+- Confirmar que `NEXT_PUBLIC_*` no contiene secretos.
+- Documentar cualquier vulnerabilidad de dependencia aceptada y por que no se fuerza el fix.
 
 ## Notas de Lanzamiento
 

@@ -11,6 +11,7 @@ Leer primero estos documentos:
 - `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`: estado funcional actual, decisiones y notas de continuidad.
 - `docs/ARCHITECTURE.md`: capas del codigo, limites, flujo de datos y reglas de extension.
 - `docs/ENGINEERING_STANDARDS.md`: estandares de calidad, seguridad, rendimiento y desarrollo para futuros cambios.
+- `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: estado de bloques, siguientes prioridades y regla para no iterar indefinidamente.
 
 ## Por Area
 
@@ -93,6 +94,7 @@ Leer antes de:
 
 - `docs/PERFORMANCE_BASELINE.md`: presupuestos actuales, auditoria de assets y practicas de rendimiento.
 - `docs/QUALITY_AND_RELEASE.md`: checks de lanzamiento, rutas de validacion rapida y gates de calidad.
+- `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: matriz de bloques cerrados, backlog priorizado y gates por tipo de trabajo.
 
 Leer antes de:
 
@@ -106,9 +108,6 @@ Leer antes de:
 
 Estos son los siguientes puntos de documentacion que conviene mejorar:
 
-- Anadir un diseno de modelo de datos backend cuando empiece la pasada de persistencia.
-- Convertir el modelo objetivo de backend en migraciones SQL reales cuando se inicie la implementacion.
-- Convertir los contratos de operaciones autoritativas en endpoints/API o funciones de servidor.
 - Anadir una checklist UX pantalla por pantalla cuando la direccion visual actual este estabilizada.
 - Anadir una guia ligera de troubleshooting para desarrollo local, validacion en navegador y problemas de assets.
 - Traducir a espanol documentos historicos que todavia mantengan secciones en ingles.
