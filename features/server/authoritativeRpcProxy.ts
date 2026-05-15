@@ -14,6 +14,7 @@ import {
   type FrontlineBattleServerOperation,
 } from "@/features/server/authoritativeBattleReplayGuard";
 import { AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS } from "@/features/server/authoritativeRequestGuards";
+import { isPublicEnvironmentSafe } from "@/features/server/publicEnvironmentSafety";
 import { getSupabasePublicConfig } from "@/features/server/supabasePublicConfig";
 
 export type SupportedAuthoritativeRpcOperation = SupportedAuthoritativeApiOperation;
@@ -72,6 +73,10 @@ export function prepareAuthoritativeRpcCall({
 }): AuthoritativeRpcProxyFailure | AuthoritativeRpcProxySuccess {
   if (!isAuthoritativeServerApiEnabled(env)) {
     return disabled("Server-authoritative API is disabled");
+  }
+
+  if (!isPublicEnvironmentSafe(env)) {
+    return failure(503, "invalid_state", "Server environment is not configured");
   }
 
   const publicConfig = getSupabasePublicConfig(env);

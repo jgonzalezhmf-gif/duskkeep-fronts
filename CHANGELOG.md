@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.61] - 2026-05-15
+
+### Security
+- Anhadido guard transversal de entorno publico para detectar secretos expuestos en variables `NEXT_PUBLIC_*`.
+- El proxy autoritativo rechaza operaciones sensibles si detecta nombres o valores con pinta de service-role, private key, password o secreto.
+- La validacion sigue permitiendo la URL publica de Supabase, anon key y persistencia esperadas.
+
+### Docs
+- Documentado el riesgo de exponer secretos mediante `NEXT_PUBLIC_*` y el nuevo guard del proxy autoritativo.
+
+### Tested
+- `npm.cmd test -- tests/publicEnvironmentSafety.test.ts tests/supabasePublicConfig.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.60] - 2026-05-15
 
 ### Security

@@ -67,6 +67,27 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("rejects secret-looking NEXT_PUBLIC variables before preparing RPC calls", () => {
+    expect(
+      prepareAuthoritativeRpcCall({
+        body: { operationType: "purchaseShopOffer", idempotencyKey: "shop-buy-20260511", payload: { offerId: "adventure_key_ring" } },
+        headers: headers("Bearer valid-token-value"),
+        env: {
+          ...enabledEnv,
+          NEXT_PUBLIC_SERVICE_ROLE_KEY: "placeholder",
+        },
+      }),
+    ).toEqual({
+      ok: false,
+      status: 503,
+      body: {
+        ok: false,
+        code: "invalid_state",
+        reason: "Server environment is not configured",
+      },
+    });
+  });
+
   it("maps Adventure node claims to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

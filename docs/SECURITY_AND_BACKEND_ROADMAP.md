@@ -206,6 +206,7 @@ Requisitos operativos:
 - Omitir filtros de ownership en filas de jugador.
 - Permitir replay del mismo claim varias veces.
 - Guardar secretos en `.env.local` y commitearlos.
+- Exponer service-role keys, private keys, passwords o tokens secretos mediante variables `NEXT_PUBLIC_*`.
 
 ## Gestion de Dependencias y Auditoria
 
@@ -214,6 +215,7 @@ Requisitos operativos:
 - No ejecutar `npm audit fix --force` sin revisar el plan, porque puede aplicar downgrades o cambios incompatibles.
 - La vulnerabilidad moderada conocida en `next`/`postcss` debe revisarse cuando exista una version estable compatible que la corrija.
 - Mantener `package.json` con `"private": true` y no introducir dependencias nuevas para seguridad, pagos o backend sin revisar superficie de ataque y mantenimiento.
+- El proxy autoritativo valida que las variables `NEXT_PUBLIC_*` no tengan nombres o valores con pinta de secreto antes de preparar operaciones sensibles.
 
 ## Cabeceras HTTP de Seguridad
 
