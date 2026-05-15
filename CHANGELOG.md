@@ -7,6 +7,26 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.53] - 2026-05-15
+
+### Security
+- Anhadido replay determinista puro de Frontline a partir de `seed`, `loadout`, `preset` y `actionLog`.
+- El replay reutiliza el engine existente y devuelve errores controlados ante acciones imposibles o manipuladas.
+- Anhadida comparacion entre summary declarado y resultado reproducido para detectar divergencias.
+
+### Tests
+- Cubierto replay valido, acciones imposibles y mismatch de summary.
+
+### Docs
+- Documentado que la conexion a RPC queda pendiente hasta que el servidor resuelva loadout/preset desde ownership y catalogos.
+
+### Tested
+- `npm.cmd test -- tests/frontline.battleReplay.test.ts tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.52] - 2026-05-15
 
 ### Security

@@ -119,7 +119,9 @@ Alcance actual:
 - Rechaza victorias imposibles: por ejemplo `winner = 'ally'` con `enemyCoreHp > 0` antes del max round.
 - Permite victorias por limite de rondas cuando `turns >= 8` y el core declarado ganador tiene mas HP.
 
-Esto reduce abuso obvio y evita que rewards/misiones/ranking futuro se apoyen en un resultado contradictorio. No sustituye la simulacion server-side completa: Arena competitiva o ladder real siguen necesitando replay determinista o ejecucion de combate en servidor. El siguiente paso tecnico es usar este `actionLog` junto a `seed`, `loadout` y `preset` para reproducir o verificar la partida en servidor.
+Esto reduce abuso obvio y evita que rewards/misiones/ranking futuro se apoyen en un resultado contradictorio. No sustituye la simulacion server-side completa: Arena competitiva o ladder real siguen necesitando replay determinista o ejecucion de combate en servidor.
+
+La primera pieza de replay determinista vive en `features/frontline/battleReplay.ts`. Reutiliza el engine Frontline existente, no duplica reglas, y reproduce una partida desde `seed`, `loadout`, `preset` y `actionLog`. Tambien permite comparar el summary declarado con el resultado reproducido para detectar divergencias en core HP, winner, rondas, lanes o log. Todavia no esta conectada a RPC porque el servidor debe resolver `loadout`/`preset` desde ownership y catalogos antes de ejecutar el replay.
 
 ## Formato Base
 
