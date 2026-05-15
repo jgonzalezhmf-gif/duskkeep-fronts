@@ -98,6 +98,28 @@ const noopStorage = {
 const ADVENTURE_DRAW_REWARDS: Rewards = { gold: 20, dust: 2, gems: 0, accountXp: 1 };
 const ADVENTURE_DEFEAT_REWARDS: Rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
 
+type StoreSetPatch = (patch: Partial<GameState & GameActions>) => void;
+type StoreGetState = () => GameState & GameActions;
+
+function blockLocalAuthoritativeFallbackIfNeeded(
+  reason: string,
+  set: StoreSetPatch,
+  get: StoreGetState,
+) {
+  if (
+    !shouldBlockLocalAuthoritativeFallback({
+      accountLinkMode: get().accountLinkMode,
+      reason,
+    })
+  ) {
+    return false;
+  }
+
+  set({ accountLinkMode: "undecided" });
+  get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+  return true;
+}
+
 export const useGameStore = create<GameState & GameActions>()(
   persist(
     (set, get) => ({
@@ -143,14 +165,7 @@ export const useGameStore = create<GameState & GameActions>()(
       syncFrontlineLoadoutOnlineFirst: async () => {
         const authoritative = await saveFrontlineLoadoutAuthoritatively(get().frontlineLoadout);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return { ok: false, reason: authoritative.reason, authoritative: true };
           }
           return { ok: true, authoritative: false };
@@ -186,14 +201,7 @@ export const useGameStore = create<GameState & GameActions>()(
       upgradeFrontlineCardOnlineFirst: async (cardId) => {
         const authoritative = await upgradeFrontlineCardAuthoritatively(cardId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return { ok: false, reason: authoritative.reason, authoritative: true };
           }
           return { ok: get().upgradeFrontlineCard(cardId), authoritative: false };
@@ -244,14 +252,7 @@ export const useGameStore = create<GameState & GameActions>()(
       upgradeFrontlineFortressOnlineFirst: async (buildingId) => {
         const authoritative = await upgradeFrontlineFortressAuthoritatively(buildingId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return { ok: false, reason: authoritative.reason, authoritative: true };
           }
           return { ok: get().upgradeFrontlineFortress(buildingId), authoritative: false };
@@ -296,14 +297,7 @@ export const useGameStore = create<GameState & GameActions>()(
       resolveFrontlineFortressRaidOnlineFirst: async () => {
         const authoritative = await resolveFrontlineFortressRaidAuthoritatively();
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
           return get().resolveFrontlineFortressRaid();
@@ -356,14 +350,7 @@ export const useGameStore = create<GameState & GameActions>()(
       levelUpHeroOnlineFirst: async (heroId) => {
         const authoritative = await levelUpHeroAuthoritatively(heroId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return { ok: false, reason: authoritative.reason, authoritative: true };
           }
           return { ok: get().levelUpHero(heroId), authoritative: false };
@@ -393,14 +380,7 @@ export const useGameStore = create<GameState & GameActions>()(
       starUpHeroOnlineFirst: async (heroId) => {
         const authoritative = await starUpHeroAuthoritatively(heroId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return { ok: false, reason: authoritative.reason, authoritative: true };
           }
           return { ok: get().starUpHero(heroId), authoritative: false };
@@ -433,14 +413,7 @@ export const useGameStore = create<GameState & GameActions>()(
       skillUpHeroOnlineFirst: async (heroId) => {
         const authoritative = await skillUpHeroAuthoritatively(heroId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return { ok: false, reason: authoritative.reason, authoritative: true };
           }
           return { ok: get().skillUpHero(heroId), authoritative: false };
@@ -494,14 +467,7 @@ export const useGameStore = create<GameState & GameActions>()(
         });
 
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
 
@@ -555,14 +521,7 @@ export const useGameStore = create<GameState & GameActions>()(
         });
 
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
 
@@ -633,14 +592,7 @@ export const useGameStore = create<GameState & GameActions>()(
         });
 
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
           if (winner === "ally") {
@@ -700,14 +652,7 @@ export const useGameStore = create<GameState & GameActions>()(
       claimAdventureNodeOnlineFirst: async (levelId) => {
         const authoritative = await claimAdventureNodeRewardAuthoritatively(levelId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
           return get().claimAdventureNode(levelId);
@@ -755,14 +700,7 @@ export const useGameStore = create<GameState & GameActions>()(
       claimAdventureMapInteractionOnlineFirst: async (interactionId) => {
         const authoritative = await openAdventureMapInteractionAuthoritatively(interactionId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
           return get().claimAdventureMapInteraction(interactionId);
@@ -820,14 +758,7 @@ export const useGameStore = create<GameState & GameActions>()(
 
         const authoritative = await claimMissionAuthoritatively(missionId, plan.cycleKey);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
           return get().claimMission(missionId);
@@ -878,14 +809,7 @@ export const useGameStore = create<GameState & GameActions>()(
 
         const authoritative = await purchaseShopOfferAuthoritatively(offerId);
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return { ok: false, reason: authoritative.reason, authoritative: true };
           }
           return get().purchaseOffer(offerId);
@@ -942,14 +866,7 @@ export const useGameStore = create<GameState & GameActions>()(
       claimDailyLoginOnlineFirst: async () => {
         const authoritative = await claimDailyLoginAuthoritatively(localDayKey());
         if (authoritative.mode === "local") {
-          if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: authoritative.reason,
-            })
-          ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
             return null;
           }
           return get().claimDailyLogin();
@@ -1062,13 +979,12 @@ export const useGameStore = create<GameState & GameActions>()(
         const result = await loadServerPlayerSnapshot();
         if (!result.ok) {
           if (
-            shouldBlockLocalAuthoritativeFallback({
-              accountLinkMode: get().accountLinkMode,
-              reason: result.reason === "unauthenticated" ? "missing_session" : result.reason,
-            })
+            blockLocalAuthoritativeFallbackIfNeeded(
+              result.reason === "unauthenticated" ? "missing_session" : result.reason,
+              set,
+              get,
+            )
           ) {
-            set({ accountLinkMode: "undecided" });
-            get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
             return { ok: false, reason: result.reason, authoritative: true };
           }
           return { ok: false, reason: result.reason, authoritative: result.reason !== "unconfigured" };

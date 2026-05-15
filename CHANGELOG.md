@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.20] - 2026-05-15
+
+### Changed
+- Centralizado el bloqueo de fallback local autoritativo en `lib/store.ts` para que las operaciones online-first compartan la misma reaccion ante sesion ausente/API desactivada en cuentas vinculadas.
+- Reducida duplicacion en flujos online-first de loadout, upgrades, Fortress, Arena, Events, Adventure, Missions, Shop, Daily Login y snapshot server-side.
+
+### Security
+- Mantiene la politica de no permitir fallback local cuando una cuenta vinculada requiere validacion autoritativa.
+- No cambia payloads, RPCs, rewards, economia, progresion, reglas de combate ni catalogos server-side.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/storeAuthoritativeFallback.test.ts tests/sessionSecurity.test.ts tests/server.authoritativeOperationDispatcher.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.19] - 2026-05-15
 
 ### Changed
