@@ -9,13 +9,12 @@ import {
   signUpSupabaseWithPassword,
   subscribeToSupabaseSession,
   upgradeAnonymousSupabaseUserWithPassword,
-  type SupabaseAuthFailureReason,
   type SupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
 import {
+  getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
   shouldBlockGuestUpgradeForSession,
-  shouldUseGenericAccountRequestError,
 } from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
@@ -126,7 +125,7 @@ export function GameAuthGate({
 
     if (!result.ok) {
       setBusy(false);
-      setNotice(t(authFailureKey(result.reason, intent, activeMode)));
+      setNotice(t(getAuthFailureNoticeKey({ intent, mode: activeMode, reason: result.reason })));
       return;
     }
 
@@ -384,22 +383,6 @@ function AuthPathCard({ title, body, tone }: { title: string; body: string; tone
       <div className="mt-1 text-[12px] leading-5 text-white/54">{body}</div>
     </div>
   );
-}
-
-function authFailureKey(reason: SupabaseAuthFailureReason, intent: "entry" | "guestUpgrade" = "entry", mode: AuthMode = "signIn") {
-  if (shouldUseGenericAccountRequestError({ intent, mode, reason })) return "auth.accountRequestGeneric";
-
-  switch (reason) {
-    case "unconfigured":
-      return "auth.unconfigured";
-    case "invalid_credentials":
-      return "auth.invalidCredentials";
-    case "rate_limited":
-      return "auth.rateLimited";
-    case "auth_error":
-    default:
-      return "auth.providerError";
-  }
 }
 
 export default GameAuthGate;

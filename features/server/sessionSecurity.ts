@@ -6,6 +6,13 @@ export type AuthAccountLinkMode = "undecided" | "guest" | "linked";
 export type AuthSessionStatus = "unconfigured" | "anonymous" | "authenticated";
 export type AuthGateIntent = "entry" | "guestUpgrade";
 export type AuthGateMode = "signIn" | "signUp";
+export type AuthFailureReason = "unconfigured" | "invalid_credentials" | "rate_limited" | "auth_error";
+export type AuthFailureNoticeKey =
+  | "auth.accountRequestGeneric"
+  | "auth.unconfigured"
+  | "auth.invalidCredentials"
+  | "auth.rateLimited"
+  | "auth.providerError";
 
 export function reconcileAuthSessionState({
   accountLinkMode,
@@ -87,6 +94,30 @@ export function shouldUseGenericAccountRequestError({
 }) {
   if (reason === "unconfigured" || reason === "rate_limited") return false;
   return intent === "guestUpgrade" || mode === "signUp";
+}
+
+export function getAuthFailureNoticeKey({
+  intent,
+  mode,
+  reason,
+}: {
+  intent: AuthGateIntent;
+  mode: AuthGateMode;
+  reason: AuthFailureReason;
+}): AuthFailureNoticeKey {
+  if (shouldUseGenericAccountRequestError({ intent, mode, reason })) return "auth.accountRequestGeneric";
+
+  switch (reason) {
+    case "unconfigured":
+      return "auth.unconfigured";
+    case "invalid_credentials":
+      return "auth.invalidCredentials";
+    case "rate_limited":
+      return "auth.rateLimited";
+    case "auth_error":
+    default:
+      return "auth.providerError";
+  }
 }
 
 export function shouldShowEntryAuthGate({

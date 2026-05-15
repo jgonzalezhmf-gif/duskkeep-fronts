@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.41] - 2026-05-15
+
+### Security
+- Centralizada la resolucion de mensajes de error de autenticacion en `features/server/sessionSecurity.ts`.
+- Anhadida cobertura para garantizar que registro y upgrade de invitado usan mensajes genericos cuando el proveedor devuelve errores sensibles, evitando pistas sobre existencia de cuentas.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/sessionSecurity.test.ts tests/supabaseBrowserSession.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.40] - 2026-05-15
 
 ### Security

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
@@ -139,6 +140,17 @@ describe("auth session security helpers", () => {
     expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signUp", reason: "unconfigured" })).toBe(false);
     expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signUp", reason: "rate_limited" })).toBe(false);
     expect(shouldUseGenericAccountRequestError({ intent: "entry", mode: "signIn", reason: "invalid_credentials" })).toBe(false);
+  });
+
+  it("maps auth failures to user-safe notice keys", () => {
+    expect(getAuthFailureNoticeKey({ intent: "entry", mode: "signIn", reason: "invalid_credentials" })).toBe("auth.invalidCredentials");
+    expect(getAuthFailureNoticeKey({ intent: "entry", mode: "signIn", reason: "auth_error" })).toBe("auth.providerError");
+    expect(getAuthFailureNoticeKey({ intent: "entry", mode: "signUp", reason: "invalid_credentials" })).toBe("auth.accountRequestGeneric");
+    expect(getAuthFailureNoticeKey({ intent: "entry", mode: "signUp", reason: "auth_error" })).toBe("auth.accountRequestGeneric");
+    expect(getAuthFailureNoticeKey({ intent: "guestUpgrade", mode: "signUp", reason: "invalid_credentials" })).toBe("auth.accountRequestGeneric");
+    expect(getAuthFailureNoticeKey({ intent: "guestUpgrade", mode: "signUp", reason: "auth_error" })).toBe("auth.accountRequestGeneric");
+    expect(getAuthFailureNoticeKey({ intent: "guestUpgrade", mode: "signUp", reason: "unconfigured" })).toBe("auth.unconfigured");
+    expect(getAuthFailureNoticeKey({ intent: "entry", mode: "signUp", reason: "rate_limited" })).toBe("auth.rateLimited");
   });
 
   it("shows the entry auth gate for guests once per page load so they can choose login or continue guest", () => {
