@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  createPasswordRecoveryCleanPath,
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
   getPasswordUpdateFailureNoticeKey,
+  hasPasswordRecoveryUrlMarker,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
   shouldBlockLocalAuthoritativeFallback,
   shouldBlockGuestUpgradeForSession,
+  shouldStripPasswordRecoveryUrl,
   shouldUseGenericAccountRequestError,
   shouldRecordAuthActivity,
   shouldShowEntryAuthGate,
@@ -159,6 +162,21 @@ describe("auth session security helpers", () => {
     expect(getPasswordUpdateFailureNoticeKey("rate_limited")).toBe("auth.rateLimited");
     expect(getPasswordUpdateFailureNoticeKey("invalid_credentials")).toBe("auth.passwordRecoveryGenericError");
     expect(getPasswordUpdateFailureNoticeKey("auth_error")).toBe("auth.passwordRecoveryGenericError");
+  });
+
+  it("detects password recovery links and strips recovery tokens from the visible URL", () => {
+    expect(hasPasswordRecoveryUrlMarker({ search: "?type=recovery", hash: "" })).toBe(true);
+    expect(hasPasswordRecoveryUrlMarker({ search: "", hash: "#access_token=secret&type=recovery" })).toBe(true);
+    expect(hasPasswordRecoveryUrlMarker({ search: "?next=/home", hash: "" })).toBe(false);
+
+    expect(shouldStripPasswordRecoveryUrl({ search: "?type=recovery&next=/home", hash: "" })).toBe(true);
+    expect(shouldStripPasswordRecoveryUrl({ search: "?next=/home", hash: "#access_token=secret&refresh_token=secret" })).toBe(true);
+    expect(shouldStripPasswordRecoveryUrl({ search: "?next=/home", hash: "#safe=1" })).toBe(false);
+
+    expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?type=recovery&next=%2Fdeck", hash: "#access_token=secret" })).toBe(
+      "/home?next=%2Fdeck",
+    );
+    expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?type=recovery", hash: "#refresh_token=secret" })).toBe("/home");
   });
 
   it("shows the entry auth gate for guests once per page load so they can choose login or continue guest", () => {

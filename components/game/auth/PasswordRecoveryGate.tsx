@@ -2,7 +2,12 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { subscribeToSupabaseAuthEvents, updateSupabasePassword } from "@/features/server/supabaseBrowserSession";
-import { getPasswordUpdateFailureNoticeKey } from "@/features/server/sessionSecurity";
+import {
+  createPasswordRecoveryCleanPath,
+  getPasswordUpdateFailureNoticeKey,
+  hasPasswordRecoveryUrlMarker,
+  shouldStripPasswordRecoveryUrl,
+} from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -155,18 +160,17 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
 
 function hasRecoveryParams() {
   if (typeof window === "undefined") return false;
-  const marker = `${window.location.hash} ${window.location.search}`.toLowerCase();
-  return marker.includes("type=recovery");
+  return hasPasswordRecoveryUrlMarker({ hash: window.location.hash, search: window.location.search });
 }
 
 function stripRecoveryTokensFromUrl() {
   if (typeof window === "undefined") return;
-  const marker = `${window.location.hash} ${window.location.search}`.toLowerCase();
-  if (!marker.includes("access_token") && !marker.includes("refresh_token") && !marker.includes("type=recovery")) return;
-  const params = new URLSearchParams(window.location.search);
-  params.delete("type");
-  const cleanSearch = params.toString();
-  window.history.replaceState(null, "", `${window.location.pathname}${cleanSearch ? `?${cleanSearch}` : ""}`);
+  if (!shouldStripPasswordRecoveryUrl({ hash: window.location.hash, search: window.location.search })) return;
+  window.history.replaceState(
+    null,
+    "",
+    createPasswordRecoveryCleanPath({ pathname: window.location.pathname, search: window.location.search }),
+  );
 }
 
 export default PasswordRecoveryGate;

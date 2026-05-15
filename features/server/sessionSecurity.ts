@@ -14,6 +14,11 @@ export type AuthFailureNoticeKey =
   | "auth.rateLimited"
   | "auth.providerError";
 export type PasswordUpdateFailureNoticeKey = "auth.unconfigured" | "auth.rateLimited" | "auth.passwordRecoveryGenericError";
+export type AuthRecoveryUrlParts = {
+  pathname: string;
+  search?: string;
+  hash?: string;
+};
 
 export function reconcileAuthSessionState({
   accountLinkMode,
@@ -125,6 +130,22 @@ export function getPasswordUpdateFailureNoticeKey(reason: AuthFailureReason): Pa
   if (reason === "unconfigured") return "auth.unconfigured";
   if (reason === "rate_limited") return "auth.rateLimited";
   return "auth.passwordRecoveryGenericError";
+}
+
+export function hasPasswordRecoveryUrlMarker({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
+  return `${hash} ${search}`.toLowerCase().includes("type=recovery");
+}
+
+export function shouldStripPasswordRecoveryUrl({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
+  const marker = `${hash} ${search}`.toLowerCase();
+  return marker.includes("access_token") || marker.includes("refresh_token") || marker.includes("type=recovery");
+}
+
+export function createPasswordRecoveryCleanPath({ pathname, search = "" }: AuthRecoveryUrlParts) {
+  const params = new URLSearchParams(search);
+  params.delete("type");
+  const cleanSearch = params.toString();
+  return `${pathname}${cleanSearch ? `?${cleanSearch}` : ""}`;
 }
 
 export function shouldShowEntryAuthGate({
