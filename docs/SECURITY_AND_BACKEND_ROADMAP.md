@@ -108,6 +108,8 @@ Cada operacion debe:
 
 El bloque actual ya cubre la base necesaria para que economia, progreso y rewards principales no dependan de cantidades enviadas por el cliente. Las operaciones conectadas a servidor usan contratos estrictos, idempotencia, RLS/ownership y catalogos internos para precios/recompensas.
 
+La revision de cierre esta documentada en `docs/BACKEND_SECURITY_CLOSURE_REVIEW.md`. Ese documento marca el bloque como suficientemente solido para el alpha presentable, lista los riesgos mitigados y separa los gates obligatorios antes de monetizacion o ranking real.
+
 Cobertura cerrada para el MVP:
 
 - Shop, daily login, missions, Adventure rewards, Adventure battle rewards, key chests, Arena, Events, Fortress visible, progresion de heroes y progresion de cartas ya tienen operaciones server-authoritative documentadas.

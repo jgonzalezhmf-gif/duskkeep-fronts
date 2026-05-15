@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.66] - 2026-05-15
+
+### Docs
+- Anadida la revision de cierre del bloque de seguridad/backend server-authoritative.
+- Documentados alcance cerrado, riesgos mitigados, riesgos residuales aceptados para alpha y gates antes de monetizacion/ranking.
+- Enlazada la revision desde el roadmap de seguridad y el indice de documentacion.
+
+### Process
+- Marcado el bloque como suficientemente solido para alpha presentable y no candidato a mas micro-hardening salvo bug, smoke fallando o nuevo alcance sensible.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.65] - 2026-05-15
 
 ### Security
