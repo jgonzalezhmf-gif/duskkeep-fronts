@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.24] - 2026-05-15
+
+### Changed
+- Extraido el hook de resolucion de idioma de la intro a `components/game/intro/useIntroLocale.ts`.
+- `IntroStage` queda centrado en la escena cinematica y deja la deteccion de idioma del navegador en un hook dedicado.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/introMotion.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.23] - 2026-05-15
 
 ### Changed
