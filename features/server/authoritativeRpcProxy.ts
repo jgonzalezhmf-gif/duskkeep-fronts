@@ -5,10 +5,19 @@ import {
   type ServerOperationPayload,
   type SupportedAuthoritativeApiOperation,
 } from "@/features/server/authoritativeOperations";
+import {
+  isAuthoritativeBattleReplayValidationEnabled,
+  isFrontlineBattleOperation,
+  normalizeFrontlineReplayContext,
+  resolveFrontlineBattlePresetForOperation,
+  validateFrontlineBattleReplayPayload,
+  type FrontlineBattleServerOperation,
+} from "@/features/server/authoritativeBattleReplayGuard";
 import { AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS } from "@/features/server/authoritativeRequestGuards";
 import { getSupabasePublicConfig } from "@/features/server/supabasePublicConfig";
 
 export type SupportedAuthoritativeRpcOperation = SupportedAuthoritativeApiOperation;
+type AuthoritativeSupabaseClient = ReturnType<typeof createClient<Record<string, never>>>;
 
 type RuntimeEnv = Record<string, string | undefined>;
 
@@ -24,6 +33,8 @@ export type AuthoritativeRpcProxyFailure = {
 
 export type AuthoritativeRpcProxySuccess = {
   ok: true;
+  operationType: SupportedAuthoritativeRpcOperation;
+  payload: ServerOperationPayload<SupportedAuthoritativeRpcOperation>;
   rpcName: string;
   rpcArgs: Record<string, unknown>;
   supabaseUrl: string;
@@ -100,6 +111,8 @@ export function prepareAuthoritativeRpcCall({
 
   return {
     ok: true,
+    operationType,
+    payload: parsed.request.payload,
     ...toRpcCall(operationType, parsed.request.idempotencyKey, parsed.request.payload),
     supabaseUrl: publicConfig.config.url,
     supabaseAnonKey: publicConfig.config.anonKey,
@@ -107,7 +120,7 @@ export function prepareAuthoritativeRpcCall({
   };
 }
 
-export async function executeAuthoritativeRpcCall(call: AuthoritativeRpcProxySuccess) {
+export async function executeAuthoritativeRpcCall(call: AuthoritativeRpcProxySuccess, env: RuntimeEnv = process.env) {
   const supabase = createClient(call.supabaseUrl, call.supabaseAnonKey, {
     auth: {
       autoRefreshToken: false,
@@ -120,6 +133,16 @@ export async function executeAuthoritativeRpcCall(call: AuthoritativeRpcProxySuc
     },
   });
 
+  if (isAuthoritativeBattleReplayValidationEnabled(env) && isFrontlineBattleOperation(call.operationType)) {
+    const validation = await validateBattleReplayBeforeRpc(
+      supabase,
+      call as AuthoritativeRpcProxySuccess & { operationType: FrontlineBattleServerOperation },
+    );
+    if (!validation.ok) {
+      return failure(400, validation.code, validation.reason);
+    }
+  }
+
   const { data, error } = await supabase.rpc(call.rpcName, call.rpcArgs);
   if (error) {
     return createAuthoritativeRpcFailureResponse();
@@ -130,6 +153,35 @@ export async function executeAuthoritativeRpcCall(call: AuthoritativeRpcProxySuc
     status: 200,
     body: data,
   };
+}
+
+async function validateBattleReplayBeforeRpc(
+  supabase: AuthoritativeSupabaseClient,
+  call: AuthoritativeRpcProxySuccess & { operationType: FrontlineBattleServerOperation },
+) {
+  const payload = call.payload as ServerOperationPayload<typeof call.operationType>;
+  const enemyPreset = resolveFrontlineBattlePresetForOperation(call.operationType, payload);
+  const [loadout, heroes, cards] = await Promise.all([
+    supabase.from("frontline_loadouts").select("leader_id,squad,deck").maybeSingle(),
+    supabase.from("player_heroes").select("hero_id,level,stars,shards,xp,skill_level,unlocked").eq("unlocked", true),
+    supabase.from("player_frontline_cards").select("card_id,level,unlocked").eq("unlocked", true),
+  ]);
+
+  if (loadout.error || heroes.error || cards.error) {
+    return { ok: false as const, code: "invalid_state" as const, reason: "Battle replay context could not be loaded." };
+  }
+
+  const context = normalizeFrontlineReplayContext({
+    loadoutRow: loadout.data,
+    heroRows: heroes.data,
+    cardRows: cards.data,
+    enemyPreset,
+  });
+  if (!context) {
+    return { ok: false as const, code: "invalid_state" as const, reason: "Battle replay context is incomplete." };
+  }
+
+  return validateFrontlineBattleReplayPayload(call.operationType, payload, context);
 }
 
 export function createAuthoritativeRpcFailureResponse(): AuthoritativeRpcProxyFailure {

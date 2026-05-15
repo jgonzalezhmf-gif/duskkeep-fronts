@@ -7,6 +7,25 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.54] - 2026-05-15
+
+### Security
+- Preparado un gate opcional de replay para el proxy autoritativo con `SERVER_FRONTLINE_REPLAY_VALIDATION=true`.
+- El gate resuelve preset por catalogo interno, carga loadout/progresion mediante RLS y valida el summary contra replay antes de llamar a RPC.
+- Centralizados los mapeos de presets de Arena/Events para evitar divergencia entre UI y validacion server-side.
+
+### Tests
+- Cubierta normalizacion del contexto de replay, resolucion de presets y rechazo de summaries no replay-ready o divergentes.
+
+### Docs
+- Documentado el flag de activacion y por que permanece desactivado por defecto hasta cerrar sincronizacion completa de progresion server-side.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeBattleReplayGuard.test.ts tests/frontline.battleReplay.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.53] - 2026-05-15
 
 ### Security

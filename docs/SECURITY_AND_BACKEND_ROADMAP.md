@@ -125,7 +125,7 @@ Estos puntos son obligatorios antes de considerar segura una version con pagos, 
    - Arena/ladder no debe aceptar `winner` como verdad definitiva.
    - Opcion minima: validar seed, log/resumen y reglas deterministas.
    - Opcion robusta: ejecutar o reproducir la simulacion en servidor.
-   - Estado MVP actual: ya existe una capa defensiva que valida coherencia `winner`/core HP/turnos antes de persistir `battle_results`, y los clientes Frontline generan un summary canonico versionado con seed/lane/events/actionLog. Tambien existe un replay determinista puro en dominio para reproducir desde `seed`, `loadout`, `preset` y `actionLog`; falta conectarlo a RPC resolviendo esos datos desde servidor.
+   - Estado MVP actual: ya existe una capa defensiva que valida coherencia `winner`/core HP/turnos antes de persistir `battle_results`, y los clientes Frontline generan un summary canonico versionado con seed/lane/events/actionLog. Tambien existe un replay determinista puro en dominio y un gate opcional de proxy (`SERVER_FRONTLINE_REPLAY_VALIDATION=true`) que resuelve loadout/progresion por RLS y preset por catalogo antes de llamar a RPC. Permanece desactivado por defecto hasta cerrar sincronizacion completa de progresion server-side.
 
 2. Rate limit distribuido.
    - El rate limit actual en memoria sirve para MVP local/una instancia.

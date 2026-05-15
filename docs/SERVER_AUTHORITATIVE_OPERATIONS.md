@@ -121,7 +121,16 @@ Alcance actual:
 
 Esto reduce abuso obvio y evita que rewards/misiones/ranking futuro se apoyen en un resultado contradictorio. No sustituye la simulacion server-side completa: Arena competitiva o ladder real siguen necesitando replay determinista o ejecucion de combate en servidor.
 
-La primera pieza de replay determinista vive en `features/frontline/battleReplay.ts`. Reutiliza el engine Frontline existente, no duplica reglas, y reproduce una partida desde `seed`, `loadout`, `preset` y `actionLog`. Tambien permite comparar el summary declarado con el resultado reproducido para detectar divergencias en core HP, winner, rondas, lanes o log. Todavia no esta conectada a RPC porque el servidor debe resolver `loadout`/`preset` desde ownership y catalogos antes de ejecutar el replay.
+La primera pieza de replay determinista vive en `features/frontline/battleReplay.ts`. Reutiliza el engine Frontline existente, no duplica reglas, y reproduce una partida desde `seed`, `loadout`, `preset` y `actionLog`. Tambien permite comparar el summary declarado con el resultado reproducido para detectar divergencias en core HP, winner, rondas, lanes o log.
+
+El gate de proxy vive en `features/server/authoritativeBattleReplayGuard.ts` y se activa solo con `SERVER_FRONTLINE_REPLAY_VALIDATION=true`. Cuando esta activo:
+
+- Resuelve el preset por operacion (`nodeId`, `opponentId` o `eventId`) desde catalogos internos del servidor.
+- Lee `frontline_loadouts`, `player_heroes` y `player_frontline_cards` mediante anon key + JWT del usuario y RLS.
+- Exige `actionLog` y reproduce el combate antes de llamar a la RPC.
+- Rechaza summaries cuyo resultado no coincide con el replay.
+
+Permanece desactivado por defecto para no bloquear entornos donde la progresion server-side todavia no este completamente sincronizada con el cliente.
 
 ## Formato Base
 

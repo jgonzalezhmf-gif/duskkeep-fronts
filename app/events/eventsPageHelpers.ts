@@ -3,6 +3,7 @@ import type { ModeIconName } from "@/components/game/shared/ModeIcon";
 import { EVENTS } from "@/data/events";
 import { TD_EVENTS } from "@/data/towerDefense";
 import { eventUnlockLevel } from "@/data/unlocks";
+import { FRONTLINE_EVENT_PRESET_BY_EVENT_ID } from "@/features/frontline/encounterPresets";
 import type { Rewards } from "@/lib/types";
 
 export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
@@ -21,11 +22,6 @@ export type FrontlineEventOperation = {
   signature: string;
   mutator: string;
   threat: "common" | "rare" | "epic";
-};
-
-const EVENT_PRESETS: Record<string, string> = {
-  gold_rush: "bonewood_raiders",
-  arcane_surge: "plague_pack",
 };
 
 const EVENT_TONES: Record<string, { tone: GameIconTone; icon: FrontlineEventOperation["icon"] }> = {
@@ -64,7 +60,7 @@ export function eventOperations(t: TranslateFn): FrontlineEventOperation[] {
       name: eventOperationText(t, event.id, "name", event.name),
       eyebrow: t("eventsScreen.operation.rotatingEyebrow"),
       description: eventOperationText(t, event.id, "description", event.description),
-      presetId: EVENT_PRESETS[event.id] ?? (index === 0 ? "bonewood_raiders" : "plague_pack"),
+      presetId: FRONTLINE_EVENT_PRESET_BY_EVENT_ID[event.id] ?? (index === 0 ? "bonewood_raiders" : "plague_pack"),
       rewards: event.rewards,
       unlockLevel: eventUnlockLevel(event.id) ?? 1,
       tone: meta.tone,
@@ -80,7 +76,7 @@ export function eventOperations(t: TranslateFn): FrontlineEventOperation[] {
     name: eventOperationText(t, event.id, "name", event.name),
     eyebrow: t("eventsScreen.operation.siegeEyebrow"),
     description: eventOperationText(t, event.id, "description", event.description),
-    presetId: "ember_court",
+    presetId: FRONTLINE_EVENT_PRESET_BY_EVENT_ID[event.id] ?? "ember_court",
     rewards: event.rewards,
     firstClearRewards: event.firstClearRewards,
     unlockLevel: event.unlockAccountLevel,
