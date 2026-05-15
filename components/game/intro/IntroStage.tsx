@@ -3,6 +3,7 @@
 import { INTRO_ASSETS } from "@/lib/introAssets";
 import { useI18n, translate } from "@/lib/i18n/useI18n";
 import { activeIntroScene } from "./introScenes";
+import { IntroBoss } from "./IntroBoss";
 import { IntroCrows } from "./IntroCrows";
 import { IntroLayer } from "./IntroLayer";
 import { useIntroLocale } from "./useIntroLocale";
@@ -174,33 +175,7 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           aria-hidden="true"
         />
 
-        {/* Boss + eye pulse share the same transform wrapper so the glow
-            stays locked to the silhouette as it scales and translates.
-            Earlier the eyes lived on a separate fixed overlay, which made
-            them drift relative to the boss whenever the boss moved. */}
-        <div
-          className="intro-stage__boss-wrapper"
-          style={{
-            opacity: bossOpacity,
-            // translateX(-50%) is required because the wrapper is anchored
-            // with left: 50%; inline transform would otherwise override
-            // the CSS translateX and shift the boss off-centre to the right.
-            transform: `translate3d(calc(-50% + 0px), ${reducedMotion ? 0 : (1 - Math.min(1, bossOpacity / 0.75)) * 12}px, 0) scale(${bossScale.toFixed(4)})`,
-            transformOrigin: "50% 95%",
-          }}
-        >
-          <IntroLayer
-            src={INTRO_ASSETS.bossShadow.src}
-            className="intro-stage__layer--boss-img"
-            fallbackColor="rgba(0, 0, 0, 0)"
-            position="center bottom"
-            size="contain"
-          />
-          {/* Eye-glow overlay removed: aligning two CSS dots with the
-              painted eyes proved fragile across viewport aspect ratios.
-              The PNG already includes lit eyes; we let those carry the
-              effect instead of stacking a second pair on top. */}
-        </div>
+        <IntroBoss opacity={bossOpacity} reducedMotion={reducedMotion} scale={bossScale} />
 
         <IntroLayer
           src={INTRO_ASSETS.lightningBolt.src}

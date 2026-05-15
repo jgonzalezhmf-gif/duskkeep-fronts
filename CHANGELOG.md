@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.27] - 2026-05-15
+
+### Changed
+- Extraida la capa del boss de la intro a `components/game/intro/IntroBoss.tsx`.
+- `IntroStage` conserva los mismos assets, clases CSS y transform del boss, pero delega su render en un componente dedicado.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/introMotion.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.26] - 2026-05-15
 
 ### Changed
