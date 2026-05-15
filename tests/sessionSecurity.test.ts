@@ -3,6 +3,7 @@ import {
   createPasswordRecoveryCleanPath,
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
+  getPasswordRecoveryRequestNoticeKey,
   getPasswordUpdateFailureNoticeKey,
   hasPasswordRecoveryUrlMarker,
   hasAuthIdleSessionExpired,
@@ -162,6 +163,12 @@ describe("auth session security helpers", () => {
     expect(getPasswordUpdateFailureNoticeKey("rate_limited")).toBe("auth.rateLimited");
     expect(getPasswordUpdateFailureNoticeKey("invalid_credentials")).toBe("auth.passwordRecoveryGenericError");
     expect(getPasswordUpdateFailureNoticeKey("auth_error")).toBe("auth.passwordRecoveryGenericError");
+  });
+
+  it("maps password recovery request failures without exposing account existence", () => {
+    expect(getPasswordRecoveryRequestNoticeKey("unconfigured")).toBe("auth.unconfigured");
+    expect(getPasswordRecoveryRequestNoticeKey("rate_limited")).toBe("auth.rateLimited");
+    expect(getPasswordRecoveryRequestNoticeKey("auth_error")).toBe("auth.recoveryGeneric");
   });
 
   it("detects password recovery links and strips recovery tokens from the visible URL", () => {

@@ -14,6 +14,8 @@ export type AuthFailureNoticeKey =
   | "auth.rateLimited"
   | "auth.providerError";
 export type PasswordUpdateFailureNoticeKey = "auth.unconfigured" | "auth.rateLimited" | "auth.passwordRecoveryGenericError";
+export type PasswordRecoveryRequestFailureReason = "unconfigured" | "rate_limited" | "auth_error";
+export type PasswordRecoveryRequestNoticeKey = "auth.unconfigured" | "auth.rateLimited" | "auth.recoveryGeneric";
 export type AuthRecoveryUrlParts = {
   pathname: string;
   search?: string;
@@ -130,6 +132,12 @@ export function getPasswordUpdateFailureNoticeKey(reason: AuthFailureReason): Pa
   if (reason === "unconfigured") return "auth.unconfigured";
   if (reason === "rate_limited") return "auth.rateLimited";
   return "auth.passwordRecoveryGenericError";
+}
+
+export function getPasswordRecoveryRequestNoticeKey(reason: PasswordRecoveryRequestFailureReason): PasswordRecoveryRequestNoticeKey {
+  if (reason === "unconfigured") return "auth.unconfigured";
+  if (reason === "rate_limited") return "auth.rateLimited";
+  return "auth.recoveryGeneric";
 }
 
 export function hasPasswordRecoveryUrlMarker({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {

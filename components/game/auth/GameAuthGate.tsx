@@ -14,6 +14,7 @@ import {
 import {
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
+  getPasswordRecoveryRequestNoticeKey,
   shouldBlockGuestUpgradeForSession,
 } from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
@@ -169,7 +170,7 @@ export function GameAuthGate({
     setBusy(false);
 
     if (!result.ok) {
-      setNotice(t(result.reason === "unconfigured" ? "auth.unconfigured" : result.reason === "rate_limited" ? "auth.rateLimited" : "auth.recoveryGeneric"));
+      setNotice(t(getPasswordRecoveryRequestNoticeKey(result.reason)));
       return;
     }
 
