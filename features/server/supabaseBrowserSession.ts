@@ -3,6 +3,9 @@ import { getSupabasePublicConfig } from "@/features/server/supabasePublicConfig"
 
 let browserClient: SupabaseClient | null = null;
 
+export const SUPABASE_AUTH_EMAIL_MAX_LENGTH = 254;
+export const SUPABASE_AUTH_PASSWORD_MAX_LENGTH = 1_024;
+
 export type SupabaseSessionSnapshot =
   | { status: "unconfigured" }
   | { status: "anonymous" }
@@ -24,6 +27,11 @@ export type SupabasePasswordRecoveryResult = { ok: true } | { ok: false; reason:
 export type SupabasePasswordUpdateResult = { ok: true; session: SupabaseSessionSnapshot } | { ok: false; reason: SupabaseAuthFailureReason };
 
 export type SupabasePasswordCredentials = {
+  email: string;
+  password: string;
+};
+
+export type PreparedSupabasePasswordCredentials = {
   email: string;
   password: string;
 };
@@ -71,10 +79,12 @@ export async function signInSupabaseWithPassword({
 }: SupabasePasswordCredentials): Promise<SupabaseAuthResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
+  const credentials = prepareSupabasePasswordCredentials({ email, password });
+  if (!credentials) return { ok: false, reason: "invalid_credentials" };
 
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: email.trim(),
-    password,
+    email: credentials.email,
+    password: credentials.password,
   });
   if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
 
@@ -90,10 +100,12 @@ export async function signUpSupabaseWithPassword({
 }: SupabasePasswordCredentials): Promise<SupabaseAuthResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
+  const credentials = prepareSupabasePasswordCredentials({ email, password });
+  if (!credentials) return { ok: false, reason: "auth_error" };
 
   const { data, error } = await supabase.auth.signUp({
-    email: email.trim(),
-    password,
+    email: credentials.email,
+    password: credentials.password,
   });
   if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
 
@@ -127,6 +139,8 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
 }: SupabasePasswordCredentials): Promise<SupabaseAuthResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
+  const credentials = prepareSupabasePasswordCredentials({ email, password });
+  if (!credentials) return { ok: false, reason: "auth_error" };
 
   const currentSession = await supabase.auth.getSession();
   let session = currentSession.data.session;
@@ -141,8 +155,8 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
   }
 
   const { error } = await supabase.auth.updateUser({
-    email: email.trim(),
-    password,
+    email: credentials.email,
+    password: credentials.password,
   });
   if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
 
@@ -170,8 +184,10 @@ export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<Sup
 export async function requestSupabasePasswordRecovery(email: string, redirectTo?: string): Promise<SupabasePasswordRecoveryResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
+  const normalizedEmail = normalizeSupabaseAuthEmail(email);
+  if (!normalizedEmail) return { ok: true };
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+  const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
     redirectTo,
   });
   if (error) {
@@ -185,6 +201,7 @@ export async function requestSupabasePasswordRecovery(email: string, redirectTo?
 export async function updateSupabasePassword(password: string): Promise<SupabasePasswordUpdateResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
+  if (!isSupabaseAuthPasswordWithinBounds(password)) return { ok: false, reason: "auth_error" };
 
   const { data, error } = await supabase.auth.updateUser({ password });
   if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
@@ -242,6 +259,25 @@ export function toSupabaseSessionSnapshot(session: Session | null): SupabaseSess
 
 export function shouldAllowAnonymousUserUpgrade(session: SupabaseSessionSnapshot) {
   return session.status === "authenticated" && session.isAnonymous;
+}
+
+export function normalizeSupabaseAuthEmail(email: string) {
+  const normalized = email.trim();
+  if (!normalized || normalized.length > SUPABASE_AUTH_EMAIL_MAX_LENGTH) return null;
+  return normalized;
+}
+
+export function isSupabaseAuthPasswordWithinBounds(password: string) {
+  return password.length > 0 && password.length <= SUPABASE_AUTH_PASSWORD_MAX_LENGTH;
+}
+
+export function prepareSupabasePasswordCredentials({
+  email,
+  password,
+}: SupabasePasswordCredentials): PreparedSupabasePasswordCredentials | null {
+  const normalizedEmail = normalizeSupabaseAuthEmail(email);
+  if (!normalizedEmail || !isSupabaseAuthPasswordWithinBounds(password)) return null;
+  return { email: normalizedEmail, password };
 }
 
 export function classifySupabaseAuthError(message: string): SupabaseAuthFailureReason {

@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.44] - 2026-05-15
+
+### Security
+- Anhadida normalizacion y limites defensivos para credenciales email/password antes de llamar al SDK de Supabase.
+- El flujo de recovery evita enviar emails vacios o excesivos al proveedor y responde de forma neutra para no generar senhales de enumeracion.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/supabaseBrowserSession.test.ts tests/sessionSecurity.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.43] - 2026-05-15
 
 ### Security

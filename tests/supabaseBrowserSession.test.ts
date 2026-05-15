@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   classifySupabaseAuthError,
+  isSupabaseAuthPasswordWithinBounds,
+  normalizeSupabaseAuthEmail,
+  prepareSupabasePasswordCredentials,
+  SUPABASE_AUTH_EMAIL_MAX_LENGTH,
+  SUPABASE_AUTH_PASSWORD_MAX_LENGTH,
   shouldAllowAnonymousUserUpgrade,
   toSupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
@@ -93,5 +98,22 @@ describe("Supabase browser session helpers", () => {
     expect(classifySupabaseAuthError("Invalid login credentials")).toBe("invalid_credentials");
     expect(classifySupabaseAuthError("Too many requests")).toBe("rate_limited");
     expect(classifySupabaseAuthError("Unexpected provider error")).toBe("auth_error");
+  });
+
+  it("normalizes and bounds password credentials before Supabase calls", () => {
+    expect(normalizeSupabaseAuthEmail("  player@example.com  ")).toBe("player@example.com");
+    expect(normalizeSupabaseAuthEmail("")).toBeNull();
+    expect(normalizeSupabaseAuthEmail("a".repeat(SUPABASE_AUTH_EMAIL_MAX_LENGTH + 1))).toBeNull();
+
+    expect(isSupabaseAuthPasswordWithinBounds("password")).toBe(true);
+    expect(isSupabaseAuthPasswordWithinBounds("")).toBe(false);
+    expect(isSupabaseAuthPasswordWithinBounds("x".repeat(SUPABASE_AUTH_PASSWORD_MAX_LENGTH + 1))).toBe(false);
+
+    expect(prepareSupabasePasswordCredentials({ email: "  player@example.com  ", password: "password" })).toEqual({
+      email: "player@example.com",
+      password: "password",
+    });
+    expect(prepareSupabasePasswordCredentials({ email: "", password: "password" })).toBeNull();
+    expect(prepareSupabasePasswordCredentials({ email: "player@example.com", password: "" })).toBeNull();
   });
 });
