@@ -72,10 +72,7 @@ import {
   upgradeFrontlineCardAuthoritatively,
   upgradeFrontlineFortressAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
-import {
-  AUTH_SESSION_EXPIRED_NOTICE,
-  shouldBlockLocalAuthoritativeFallback,
-} from "@/features/server/sessionSecurity";
+import { createLocalAuthoritativeFallbackDecision } from "@/lib/storeAuthoritativeFallback";
 import { loadServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
 import { createServerPlayerSnapshotPatch } from "@/lib/serverPlayerSnapshotState";
 import {
@@ -100,17 +97,16 @@ function blockLocalAuthoritativeFallbackIfNeeded(
   set: StoreSetPatch,
   get: StoreGetState,
 ) {
-  if (
-    !shouldBlockLocalAuthoritativeFallback({
-      accountLinkMode: get().accountLinkMode,
-      reason,
-    })
-  ) {
+  const decision = createLocalAuthoritativeFallbackDecision({
+    accountLinkMode: get().accountLinkMode,
+    reason,
+  });
+  if (!decision.blocked) {
     return false;
   }
 
-  set({ accountLinkMode: "undecided" });
-  get().pushNotification("info", AUTH_SESSION_EXPIRED_NOTICE);
+  set({ accountLinkMode: decision.accountLinkMode });
+  get().pushNotification(decision.notification.kind, decision.notification.message);
   return true;
 }
 

@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.22] - 2026-05-15
+
+### Changed
+- Extraida la decision de bloqueo de fallback local autoritativo a `lib/storeAuthoritativeFallback.ts`.
+- `lib/store.ts` aplica la decision de fallback sin conocer directamente el mensaje ni la politica de seguridad de sesion.
+- Anadidos tests unitarios para el caso vinculado sin sesion, invitado offline y rechazo autoritativo real.
+
+### Security
+- La politica sigue bloqueando fallback local para cuentas vinculadas sin sesion/API y evita convertir rechazos del servidor en exito local.
+- No cambia payloads, RPCs, rewards, economia, progresion, audio ni reglas de gameplay.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/storeAuthoritativeFallbackDecision.test.ts tests/storeAuthoritativeFallback.test.ts tests/sessionSecurity.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.21] - 2026-05-15
 
 ### Changed
