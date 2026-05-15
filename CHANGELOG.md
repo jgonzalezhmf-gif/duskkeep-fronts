@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.29] - 2026-05-15
+
+### Changed
+- Extraido el mundo visual de la intro a `components/game/intro/IntroWorld.tsx`.
+- `IntroStage` delega fondo, niebla, cuervos, glow del castillo, boss, relampago, flash, vignette y omen veil sin cambiar timings ni clases CSS.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/introMotion.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.28] - 2026-05-15
 
 ### Changed
