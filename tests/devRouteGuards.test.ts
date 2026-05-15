@@ -33,14 +33,14 @@ describe("dev route guards", () => {
     expect(
       getDevSaveRouteRejectedResponse({
         featureName: "Home effects",
-        headers: headers({ "sec-fetch-site": "same-origin" }),
+        headers: headers({ "sec-fetch-site": "same-origin", "content-type": "application/json" }),
         nodeEnv: "development",
       }),
     ).toBeNull();
     expect(
       getDevSaveRouteRejectedResponse({
         featureName: "Home effects",
-        headers: headers({}),
+        headers: headers({ "content-type": "application/json" }),
         nodeEnv: "development",
       }),
     ).toBeNull();
@@ -57,6 +57,34 @@ describe("dev route guards", () => {
     await expect(response?.json()).resolves.toEqual({
       ok: false,
       message: "Cross-site dev save requests are not allowed.",
+    });
+  });
+
+  it("requires JSON content type for dev save requests", async () => {
+    const response = getDevSaveRouteRejectedResponse({
+      featureName: "Home effects",
+      headers: headers({ "content-type": "text/plain" }),
+      nodeEnv: "development",
+    });
+
+    expect(response?.status).toBe(415);
+    await expect(response?.json()).resolves.toEqual({
+      ok: false,
+      message: "Dev save requests must use application/json.",
+    });
+  });
+
+  it("blocks oversized dev save requests before parsing JSON", async () => {
+    const response = getDevSaveRouteRejectedResponse({
+      featureName: "Adventure map layout",
+      headers: headers({ "content-type": "application/json", "content-length": String(512 * 1024 + 1) }),
+      nodeEnv: "development",
+    });
+
+    expect(response?.status).toBe(413);
+    await expect(response?.json()).resolves.toEqual({
+      ok: false,
+      message: "Dev save request body is too large.",
     });
   });
 });

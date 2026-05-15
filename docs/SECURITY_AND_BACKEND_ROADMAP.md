@@ -218,7 +218,7 @@ Requisitos operativos:
 - La vulnerabilidad moderada conocida en `next`/`postcss` debe revisarse cuando exista una version estable compatible que la corrija.
 - Mantener `package.json` con `"private": true` y no introducir dependencias nuevas para seguridad, pagos o backend sin revisar superficie de ataque y mantenimiento.
 - El proxy autoritativo valida que las variables `NEXT_PUBLIC_*` no tengan nombres o valores con pinta de secreto antes de preparar operaciones sensibles.
-- Las rutas `/api/dev/*` de guardado QA estan bloqueadas en produccion y rechazan requests browser `cross-site`; siguen permitiendo same-origin y tooling local sin `Sec-Fetch-Site`.
+- Las rutas `/api/dev/*` de guardado QA estan bloqueadas en produccion, rechazan requests browser `cross-site`, exigen JSON y limitan el tamano del body antes de parsearlo; siguen permitiendo same-origin y tooling local sin `Sec-Fetch-Site`.
 
 ## Cabeceras HTTP de Seguridad
 

@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.65] - 2026-05-15
+
+### Security
+- Endurecidas las rutas dev-only de guardado QA para exigir `application/json`.
+- Anadido limite de body de 512 KiB antes de parsear JSON en `/api/dev/home-effects` y `/api/dev/adventure-map-layout`.
+- Conservado el bloqueo de produccion y cross-site sin romper editores QA same-origin.
+
+### Docs
+- Documentado el nuevo limite de Content-Type/body para rutas dev-only.
+
+### Tested
+- `npm.cmd test -- tests/devRouteGuards.test.ts tests/devRouteUtils.test.ts tests/server.authoritativeRequestGuards.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.64] - 2026-05-15
 
 ### Security
