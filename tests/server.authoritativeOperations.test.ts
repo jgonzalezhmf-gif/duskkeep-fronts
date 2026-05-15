@@ -8,6 +8,7 @@ import {
   parseServerActionRequest,
   serverOperationTypes,
   supportedAuthoritativeApiOperations,
+  type ServerOperationType,
 } from "@/features/server/authoritativeOperations";
 
 describe("server authoritative operation contracts", () => {
@@ -63,6 +64,34 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("resolveFrontlineFortressRaid")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordArenaResult")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordEventResult")).toBe(true);
+  });
+
+  it("rejects client-supplied economy fields from all authoritative action payloads", () => {
+    const forbiddenClientEconomyFields = {
+      cost: { gold: 1 },
+      costPaid: { gold: 1 },
+      rewards: { gems: 999 },
+      rewardsGranted: { gems: 999 },
+      resources: { gold: 999999 },
+      rewardId: "client_selected_reward",
+    };
+
+    for (const [operationType, payload] of Object.entries(validPayloadsByOperation) as Array<
+      [ServerOperationType, Record<string, unknown>]
+    >) {
+      const parsed = parseServerActionRequest(operationType, {
+        idempotencyKey: `strict-${operationType}-20260515`,
+        payload: {
+          ...payload,
+          ...forbiddenClientEconomyFields,
+        },
+      });
+
+      expect(parsed, operationType).toMatchObject({
+        ok: false,
+        code: "invalid_request",
+      });
+    }
   });
 
   it("accepts a capped local snapshot sync payload", () => {
@@ -329,3 +358,78 @@ function numberedRecord<TValue>(count: number, value: TValue) {
     Array.from({ length: count }, (_, index) => [`entry_${index}`, value]),
   );
 }
+
+const validPayloadsByOperation: Record<ServerOperationType, Record<string, unknown>> = {
+  syncLocalSnapshot: {
+    localVersion: "1",
+    snapshot: { resources: { gold: 500 } },
+  },
+  saveLoadout: {
+    leaderId: "leader_aurora",
+    squad: ["bran", "kara", "mira"],
+    deck: [
+      "order_guard_wall",
+      "order_twin_slash",
+      "order_focus_fire",
+      "tactic_battle_hymn",
+      "tactic_sanctuary",
+      "tactic_smokescreen",
+      "summon_wolf",
+      "summon_barrier",
+    ],
+  },
+  claimAdventureBattleResult: {
+    nodeId: "c1l2",
+    battleSeed: 123,
+    winner: "ally",
+    turns: 7,
+    battleSummary: { lanes: [] },
+  },
+  openAdventureMapInteraction: {
+    interactionId: "c1-lower-cache",
+  },
+  claimAdventureNodeReward: {
+    nodeId: "c1l3",
+  },
+  purchaseShopOffer: {
+    offerId: "adventure_key_ring",
+    quantity: 1,
+  },
+  claimMission: {
+    missionId: "d_battles_3",
+    cycleKey: "daily:2026-05-15",
+  },
+  claimDailyLogin: {
+    localDayKey: "2026-05-15",
+  },
+  levelUpHero: {
+    heroId: "bran",
+  },
+  starUpHero: {
+    heroId: "bran",
+  },
+  skillUpHero: {
+    heroId: "bran",
+  },
+  upgradeFrontlineCard: {
+    cardId: "order_guard_wall",
+  },
+  upgradeFrontlineFortress: {
+    buildingId: "keep",
+  },
+  resolveFrontlineFortressRaid: {},
+  recordArenaResult: {
+    opponentId: "arena_bonewood",
+    battleSeed: 123,
+    winner: "ally",
+    turns: 7,
+    battleSummary: { lanes: [] },
+  },
+  recordEventResult: {
+    eventId: "gold_rush",
+    battleSeed: 123,
+    winner: "ally",
+    turns: 7,
+    battleSummary: { lanes: [] },
+  },
+};

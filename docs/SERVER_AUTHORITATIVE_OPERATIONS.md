@@ -24,6 +24,7 @@ El smoke HTTP local vive en `scripts/smoke-authoritative-api.mjs` y se ejecuta c
 - Toda operacion aplica cambios en una transaccion atomica.
 - Toda operacion devuelve un snapshot parcial autoritativo.
 - El cliente nunca envia el reward final como verdad; como maximo envia la accion solicitada.
+- Los schemas de payload de operaciones sensibles son estrictos: campos como `cost`, `costPaid`, `rewards`, `rewardsGranted`, `resources` o `rewardId` enviados por cliente deben rechazarse salvo que una operacion concreta los defina explicitamente como input seguro.
 
 ## Rewards Server-Side
 
@@ -777,6 +778,8 @@ El cliente no puede decidir:
 - unlocks definitivos
 - estado de ladder
 - exito de compra premium
+
+Ademas, los contratos TypeScript rechazan campos economicos no declarados en todos los payloads autoritativos. Esto evita que una futura UI o integracion empiece a enviar cantidades concretas aunque el servidor siga calculandolas desde catalogos.
 
 ## Criterios de Aceptacion
 

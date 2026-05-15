@@ -156,54 +156,80 @@ const syncLocalSnapshotSchema = z
   .strict();
 
 export const serverOperationPayloadSchemas = {
-  syncLocalSnapshot: z.object({
-    localVersion: z.string().trim().min(1).max(32),
-    snapshot: syncLocalSnapshotSchema,
-  }),
-  saveLoadout: z.object({
-    leaderId: idSchema,
-    squad: z.array(nullableIdSchema).length(SERVER_FRONTLINE_SQUAD_SIZE),
-    deck: z.array(nullableIdSchema).length(DECK_SIZE),
-  }),
-  claimAdventureBattleResult: z.object({
-    nodeId: idSchema,
-    battleSeed: z.number().int().safe(),
-    winner: z.enum(["ally", "enemy"]),
-    turns: z.number().int().nonnegative().max(500),
-    battleSummary: z.unknown(),
-  }),
-  openAdventureMapInteraction: z.object({
-    interactionId: idSchema,
-  }),
-  claimAdventureNodeReward: z.object({
-    nodeId: idSchema,
-  }),
-  purchaseShopOffer: z.object({
-    offerId: idSchema,
-    quantity: z.number().int().positive().max(99).default(1),
-  }),
-  claimMission: z.object({
-    missionId: idSchema,
-    cycleKey: idSchema,
-  }),
-  claimDailyLogin: z.object({
-    localDayKey: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
-  }),
-  levelUpHero: z.object({
-    heroId: idSchema,
-  }),
-  starUpHero: z.object({
-    heroId: idSchema,
-  }),
-  skillUpHero: z.object({
-    heroId: idSchema,
-  }),
-  upgradeFrontlineCard: z.object({
-    cardId: idSchema,
-  }),
-  upgradeFrontlineFortress: z.object({
-    buildingId: z.enum(["keep", "treasury", "barracks"]),
-  }),
+  syncLocalSnapshot: z
+    .object({
+      localVersion: z.string().trim().min(1).max(32),
+      snapshot: syncLocalSnapshotSchema,
+    })
+    .strict(),
+  saveLoadout: z
+    .object({
+      leaderId: idSchema,
+      squad: z.array(nullableIdSchema).length(SERVER_FRONTLINE_SQUAD_SIZE),
+      deck: z.array(nullableIdSchema).length(DECK_SIZE),
+    })
+    .strict(),
+  claimAdventureBattleResult: z
+    .object({
+      nodeId: idSchema,
+      battleSeed: z.number().int().safe(),
+      winner: z.enum(["ally", "enemy"]),
+      turns: z.number().int().nonnegative().max(500),
+      battleSummary: z.unknown(),
+    })
+    .strict(),
+  openAdventureMapInteraction: z
+    .object({
+      interactionId: idSchema,
+    })
+    .strict(),
+  claimAdventureNodeReward: z
+    .object({
+      nodeId: idSchema,
+    })
+    .strict(),
+  purchaseShopOffer: z
+    .object({
+      offerId: idSchema,
+      quantity: z.number().int().positive().max(99).default(1),
+    })
+    .strict(),
+  claimMission: z
+    .object({
+      missionId: idSchema,
+      cycleKey: idSchema,
+    })
+    .strict(),
+  claimDailyLogin: z
+    .object({
+      localDayKey: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+    })
+    .strict(),
+  levelUpHero: z
+    .object({
+      heroId: idSchema,
+    })
+    .strict(),
+  starUpHero: z
+    .object({
+      heroId: idSchema,
+    })
+    .strict(),
+  skillUpHero: z
+    .object({
+      heroId: idSchema,
+    })
+    .strict(),
+  upgradeFrontlineCard: z
+    .object({
+      cardId: idSchema,
+    })
+    .strict(),
+  upgradeFrontlineFortress: z
+    .object({
+      buildingId: z.enum(["keep", "treasury", "barracks"]),
+    })
+    .strict(),
   resolveFrontlineFortressRaid: z.object({}).strict(),
   recordArenaResult: z
     .object({
