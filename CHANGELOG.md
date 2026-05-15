@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.38] - 2026-05-15
+
+### Changed
+- Extraidas las operaciones autoritativas de progresion de heroes a `features/server/authoritativeHeroOperations.ts`.
+- `authoritativeOperationDispatcher` reexporta las mismas funciones publicas, pero deja de mezclar wrappers de heroes con el resto de operaciones server-side.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts tests/progressionAuthoritativePolicy.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.37] - 2026-05-15
 
 ### Changed

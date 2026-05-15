@@ -14,9 +14,6 @@ import {
   extractFrontlineCardUpgradeResult,
   extractFrontlineFortressRaidResult,
   extractFrontlineFortressUpgradeResult,
-  extractHeroLevelUpResult,
-  extractHeroSkillUpResult,
-  extractHeroStarUpResult,
   extractLoadoutSaveResult,
   extractLocalSnapshotSyncResult,
   extractMapInteractionOpenResult,
@@ -35,9 +32,6 @@ import type {
   AuthoritativeFrontlineCardUpgradeResult,
   AuthoritativeFrontlineFortressRaidResult,
   AuthoritativeFrontlineFortressUpgradeResult,
-  AuthoritativeHeroLevelUpResult,
-  AuthoritativeHeroSkillUpResult,
-  AuthoritativeHeroStarUpResult,
   AuthoritativeLoadoutSaveResult,
   AuthoritativeLocalSnapshotSyncResult,
   AuthoritativeMapInteractionResult,
@@ -49,7 +43,6 @@ import type {
   ClaimAdventureNodeRewardAuthoritativelyOptions,
   ClaimDailyLoginAuthoritativelyOptions,
   ClaimMissionAuthoritativelyOptions,
-  LevelUpHeroAuthoritativelyOptions,
   LocalSyncSnapshot,
   OpenAdventureMapInteractionAuthoritativelyOptions,
   PurchaseShopOfferAuthoritativelyOptions,
@@ -59,8 +52,6 @@ import type {
   RecordEventResultInput,
   ResolveFrontlineFortressRaidAuthoritativelyOptions,
   SaveFrontlineLoadoutAuthoritativelyOptions,
-  SkillUpHeroAuthoritativelyOptions,
-  StarUpHeroAuthoritativelyOptions,
   SyncLocalSnapshotAuthoritativelyOptions,
   UpgradeFrontlineCardAuthoritativelyOptions,
   UpgradeFrontlineFortressAuthoritativelyOptions,
@@ -68,6 +59,11 @@ import type {
 import type { FrontlineFortressBuildingId, FrontlineLoadout } from "@/lib/types";
 
 export type * from "@/features/server/authoritativeOperationTypes";
+export {
+  levelUpHeroAuthoritatively,
+  skillUpHeroAuthoritatively,
+  starUpHeroAuthoritatively,
+} from "@/features/server/authoritativeHeroOperations";
 
 export async function syncLocalSnapshotAuthoritatively(
   localVersion: string,
@@ -88,96 +84,6 @@ export async function syncLocalSnapshotAuthoritatively(
   const parsed = extractLocalSnapshotSyncResult<LocalSyncSnapshot>(response.result);
   if (!parsed) {
     return invalidAuthoritativeServerResponse();
-  }
-
-  return {
-    ok: true,
-    mode: "authoritative",
-    ...parsed,
-  };
-}
-
-export async function skillUpHeroAuthoritatively(
-  heroId: string,
-  options: SkillUpHeroAuthoritativelyOptions = {},
-): Promise<AuthoritativeHeroSkillUpResult> {
-  const response = await callOperationWithSession(
-    "skillUpHero",
-    {
-      idempotencyKey: createIdempotencyKey("hero-skill", heroId),
-      payload: { heroId },
-    },
-    options,
-  );
-
-  if (!response.ok) return response;
-
-  const parsed = extractHeroSkillUpResult(response.result);
-  if (!parsed) {
-    return invalidAuthoritativeServerResponse();
-  }
-  if (parsed.heroId !== heroId) {
-    return authoritativeResponseMismatch("hero");
-  }
-
-  return {
-    ok: true,
-    mode: "authoritative",
-    ...parsed,
-  };
-}
-
-export async function starUpHeroAuthoritatively(
-  heroId: string,
-  options: StarUpHeroAuthoritativelyOptions = {},
-): Promise<AuthoritativeHeroStarUpResult> {
-  const response = await callOperationWithSession(
-    "starUpHero",
-    {
-      idempotencyKey: createIdempotencyKey("hero-star", heroId),
-      payload: { heroId },
-    },
-    options,
-  );
-
-  if (!response.ok) return response;
-
-  const parsed = extractHeroStarUpResult(response.result);
-  if (!parsed) {
-    return invalidAuthoritativeServerResponse();
-  }
-  if (parsed.heroId !== heroId) {
-    return authoritativeResponseMismatch("hero");
-  }
-
-  return {
-    ok: true,
-    mode: "authoritative",
-    ...parsed,
-  };
-}
-
-export async function levelUpHeroAuthoritatively(
-  heroId: string,
-  options: LevelUpHeroAuthoritativelyOptions = {},
-): Promise<AuthoritativeHeroLevelUpResult> {
-  const response = await callOperationWithSession(
-    "levelUpHero",
-    {
-      idempotencyKey: createIdempotencyKey("hero", heroId),
-      payload: { heroId },
-    },
-    options,
-  );
-
-  if (!response.ok) return response;
-
-  const parsed = extractHeroLevelUpResult(response.result);
-  if (!parsed) {
-    return invalidAuthoritativeServerResponse();
-  }
-  if (parsed.heroId !== heroId) {
-    return authoritativeResponseMismatch("hero");
   }
 
   return {
