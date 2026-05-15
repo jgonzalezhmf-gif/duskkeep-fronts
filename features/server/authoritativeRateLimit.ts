@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 export const AUTHORITATIVE_RATE_LIMIT_WINDOW_MS = 60_000;
 export const AUTHORITATIVE_RATE_LIMIT_MAX_REQUESTS = 90;
 export const AUTHORITATIVE_RATE_LIMIT_MAX_KEYS = 5_000;
+export const AUTHORITATIVE_OPERATION_RATE_LIMIT_WINDOW_MS = 60_000;
+export const AUTHORITATIVE_OPERATION_RATE_LIMIT_MAX_KEYS = 10_000;
 export const AUTHORITATIVE_RATE_LIMIT_REASON = "Too many requests";
 
 type RateLimitEntry = {
@@ -36,6 +38,22 @@ export function createAuthoritativeRateLimitKey(headers: Pick<Headers, "get">) {
   }
 
   return `ip:${hashRateLimitIdentity(getForwardedClientIp(headers))}`;
+}
+
+export function createAuthoritativeOperationRateLimitKey(identityKey: string, operationType: string) {
+  return `op:${sanitizeIdentity(operationType)}:${identityKey}`;
+}
+
+export function getAuthoritativeOperationRateLimitMaxRequests(operationType: string) {
+  if (operationType === "syncLocalSnapshot") return 6;
+  if (operationType === "purchaseShopOffer") return 20;
+  if (operationType === "openAdventureMapInteraction") return 20;
+  if (operationType === "claimDailyLogin") return 10;
+  if (operationType === "claimMission") return 30;
+  if (operationType === "saveLoadout") return 30;
+  if (operationType.startsWith("upgrade") || operationType.endsWith("Hero")) return 30;
+  if (operationType.includes("Battle") || operationType.includes("Result") || operationType.includes("Raid")) return 45;
+  return 60;
 }
 
 export function checkAuthoritativeRateLimit({

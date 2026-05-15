@@ -6,7 +6,7 @@ Los contratos TypeScript y esquemas de validacion base viven en `features/server
 
 La primera ruta proxy vive en `/api/server/authoritative`, permanece oculta salvo `SERVER_AUTHORITATIVE_API_ENABLED=true` y requiere `Authorization: Bearer <supabase-user-jwt>`. La ruta solo llama RPCs ya existentes y no usa service role.
 
-La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una clave derivada de hash del bearer token o, si no hay token valido, de la IP reenviada. Este limite reduce abuso accidental o automatizado en el MVP, pero para despliegue distribuido debe sustituirse por un limitador compartido externo.
+La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una clave derivada de hash del bearer token o, si no hay token valido, de la IP reenviada. Ademas aplica un segundo limite por operacion ya parseada, con cuotas mas estrictas para `syncLocalSnapshot`, compras, cofres, claims, upgrades y resultados de combate. Estos limites reducen abuso accidental o automatizado en el MVP, pero para despliegue distribuido deben sustituirse por un limitador compartido externo.
 
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 

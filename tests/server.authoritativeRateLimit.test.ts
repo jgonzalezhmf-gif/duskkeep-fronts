@@ -4,6 +4,8 @@ import {
   checkAuthoritativeRateLimit,
   createAuthoritativeRateLimitFailure,
   createAuthoritativeRateLimitKey,
+  createAuthoritativeOperationRateLimitKey,
+  getAuthoritativeOperationRateLimitMaxRequests,
   type AuthoritativeRateLimitStore,
 } from "@/features/server/authoritativeRateLimit";
 
@@ -66,5 +68,25 @@ describe("authoritative API rate limiting", () => {
       headers: { "Retry-After": "1" },
       body: { ok: false, code: "rate_limited", reason: AUTHORITATIVE_RATE_LIMIT_REASON },
     });
+  });
+
+  it("derives operation-specific keys from the hashed identity key", () => {
+    const identityKey = createAuthoritativeRateLimitKey(headers({ authorization: "Bearer sensitive-token-value-12345" }));
+    const operationKey = createAuthoritativeOperationRateLimitKey(identityKey, "purchaseShopOffer");
+
+    expect(operationKey).toBe(`op:purchaseShopOffer:${identityKey}`);
+    expect(operationKey).not.toContain("sensitive-token");
+  });
+
+  it("uses stricter limits for sensitive operations than for generic operations", () => {
+    expect(getAuthoritativeOperationRateLimitMaxRequests("syncLocalSnapshot")).toBeLessThan(
+      getAuthoritativeOperationRateLimitMaxRequests("unknownFutureOperation"),
+    );
+    expect(getAuthoritativeOperationRateLimitMaxRequests("purchaseShopOffer")).toBeLessThan(
+      getAuthoritativeOperationRateLimitMaxRequests("unknownFutureOperation"),
+    );
+    expect(getAuthoritativeOperationRateLimitMaxRequests("recordArenaResult")).toBeLessThanOrEqual(
+      getAuthoritativeOperationRateLimitMaxRequests("unknownFutureOperation"),
+    );
   });
 });

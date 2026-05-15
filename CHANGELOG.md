@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.55] - 2026-05-15
+
+### Security
+- Anhadido un segundo rate limit por operacion sensible en `/api/server/authoritative`.
+- Las cuotas por operacion son mas estrictas para sync, compras, cofres, claims, upgrades y resultados de combate.
+- Las claves siguen derivandose de identidades hasheadas, sin almacenar bearer tokens ni IPs en claro.
+
+### Docs
+- Documentado que el rate limit actual sigue siendo por proceso y que produccion distribuida requiere almacenamiento compartido o servicio dedicado.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeRateLimit.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.54] - 2026-05-15
 
 ### Security

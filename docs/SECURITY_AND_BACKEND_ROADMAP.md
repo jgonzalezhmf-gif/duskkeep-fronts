@@ -129,6 +129,7 @@ Estos puntos son obligatorios antes de considerar segura una version con pagos, 
 
 2. Rate limit distribuido.
    - El rate limit actual en memoria sirve para MVP local/una instancia.
+   - Existe tambien un limite por operacion sensible en `/api/server/authoritative`, pero sigue siendo por proceso.
    - En despliegue distribuido debe moverse a almacenamiento compartido o servicio dedicado.
 
 3. Observabilidad y auditoria operativa.
