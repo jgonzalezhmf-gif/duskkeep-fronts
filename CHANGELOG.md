@@ -7,6 +7,26 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.51] - 2026-05-15
+
+### Security
+- Centralizado el summary canonico de resultados Frontline para Adventure, Arena y Events.
+- El contrato autoritativo ahora acepta summaries versionados con engine, seed, maxRounds, lanes y eventos recientes.
+- Anhadida validacion de mismatch entre `battleSeed` y `battleSummary.seed`.
+
+### Architecture
+- Extraido `createFrontlineBattleSummary` para evitar que cada pantalla envie summaries parciales distintos.
+
+### Docs
+- Documentado que este summary canonico es preparacion para una futura reproduccion determinista server-side.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.50] - 2026-05-15
 
 ### Security

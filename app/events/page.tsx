@@ -16,6 +16,7 @@ import {
   ScreenScaffold,
 } from "@/components/game/screens/ScreenChrome";
 import { mergeRewards } from "@/features/battle/rewards";
+import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import { translate, useI18n } from "@/lib/i18n/useI18n";
 import { hasRewardEntries } from "@/lib/rewardVisibility";
 import { useGameStore } from "@/lib/store";
@@ -94,10 +95,7 @@ export default function EventsPage() {
       battleSeed: seed,
       winner,
       turns: battleState.round,
-      battleSummary: {
-        allyCoreHp: battleState.allyCoreHp,
-        enemyCoreHp: battleState.enemyCoreHp,
-      },
+      battleSummary: createFrontlineBattleSummary(battleState),
       rewards: previewRewards,
       source: activeOperation.name,
     });

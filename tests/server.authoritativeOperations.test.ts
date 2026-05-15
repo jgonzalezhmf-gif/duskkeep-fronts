@@ -296,6 +296,32 @@ describe("server authoritative operation contracts", () => {
     expect(parsed.ok).toBe(false);
   });
 
+  it("rejects Frontline summaries whose seed does not match the operation seed", () => {
+    const parsed = parseServerActionRequest("recordArenaResult", {
+      idempotencyKey: "arena-result-seed-mismatch-20260515",
+      payload: {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 6,
+        battleSummary: {
+          schemaVersion: 1,
+          engineVersion: "frontline-v1",
+          seed: 999,
+          round: 6,
+          maxRounds: 8,
+          winner: "ally",
+          allyCoreHp: 12,
+          enemyCoreHp: 0,
+          lanes: [],
+          recentEvents: [],
+        },
+      },
+    });
+
+    expect(parsed.ok).toBe(false);
+  });
+
   it("accepts Event results without client-supplied rewards", () => {
     const parsed = parseServerActionRequest("recordEventResult", {
       idempotencyKey: "event-result-20260515-0001",

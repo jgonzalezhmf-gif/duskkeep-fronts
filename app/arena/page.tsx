@@ -18,6 +18,7 @@ import {
 } from "@/components/game/screens/ScreenChrome";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
+import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
 import { ArenaMetric, ArenaRankPlate, GateLine, ResultMetric, RewardChips } from "./ArenaPrimitives";
@@ -97,10 +98,7 @@ export default function ArenaPage() {
       battleSeed: seed,
       winner,
       turns: battleState.round,
-      battleSummary: {
-        allyCoreHp: battleState.allyCoreHp,
-        enemyCoreHp: battleState.enemyCoreHp,
-      },
+      battleSummary: createFrontlineBattleSummary(battleState),
       rewards,
       source: rewardSource,
       ticketAlreadySpent: ticketSpentLocally,

@@ -86,12 +86,18 @@ const frontlineBattleRecentEventSchema = z
     lane: z.enum(["left", "center", "right"]).optional(),
     amount: z.number().int().min(-999).max(999).optional(),
     emphasis: z.enum(["low", "mid", "high"]).optional(),
+    signature: z.enum(["charge", "cast", "exhaust", "synergy"]).optional(),
+    signatureId: z.string().trim().min(1).max(96).optional(),
   })
   .strict();
 
 const frontlineBattleSummarySchema = z
   .object({
+    schemaVersion: z.number().int().positive().max(10).optional(),
+    engineVersion: z.string().trim().min(1).max(48).optional(),
+    seed: z.number().int().safe().optional(),
     round: z.number().int().nonnegative().max(500).optional(),
+    maxRounds: z.number().int().positive().max(100).optional(),
     winner: frontlineWinnerSchema.optional(),
     allyCoreHp: frontlineCoreHpSchema,
     enemyCoreHp: frontlineCoreHpSchema,
@@ -119,12 +125,21 @@ function frontlineSummaryMatchesWinner(input: {
 
 function refineFrontlineBattlePayload(
   payload: {
+    battleSeed: number;
     winner: "ally" | "enemy" | "draw";
     turns: number;
     battleSummary: z.infer<typeof frontlineBattleSummarySchema>;
   },
   ctx: z.RefinementCtx,
 ) {
+  if (payload.battleSummary.seed !== undefined && payload.battleSummary.seed !== payload.battleSeed) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["battleSummary", "seed"],
+      message: "battle summary seed must match battleSeed",
+    });
+  }
+
   if (payload.battleSummary.round !== undefined && payload.battleSummary.round !== payload.turns) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

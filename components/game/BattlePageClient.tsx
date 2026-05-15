@@ -15,14 +15,14 @@ import { FRONTLINE_PRESETS } from "@/features/frontline/data";
 import {
   getFrontlineAdventureRewardPreview,
 } from "@/features/frontline/adventure";
+import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import { summarizeBattleStats } from "@/lib/frontlineBattleStats";
 import { audio } from "@/lib/audio";
 import { frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState } from "@/features/frontline/types";
-import type { FrontlineBattleSummaryPayload } from "@/features/server/authoritativeOperations";
-import type { FrontlineLane, Rewards } from "@/lib/types";
+import type { Rewards } from "@/lib/types";
 import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   accountProgressPercent,
@@ -150,7 +150,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
         battleSeed: battleState.seed,
         winner,
         turns: battleState.round,
-        battleSummary: createAdventureBattleSummary(battleState),
+        battleSummary: createFrontlineBattleSummary(battleState),
       });
       if (claim) {
         rewards = claim.rewards;
@@ -294,29 +294,4 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       }
     />
   );
-}
-
-function createAdventureBattleSummary(battleState: FrontlineBattleState): FrontlineBattleSummaryPayload {
-  const lanes = (Object.entries(battleState.lanes) as Array<[FrontlineLane, FrontlineBattleState["lanes"][FrontlineLane]]>).map(([lane, state]) => ({
-    lane,
-    allyHp: state.allyHero?.hp ?? 0,
-    enemyHp: state.enemyHero?.hp ?? 0,
-    allyAlive: Boolean(state.allyHero?.alive),
-    enemyAlive: Boolean(state.enemyHero?.alive),
-  }));
-
-  return {
-    round: battleState.round,
-    ...(battleState.winner ? { winner: battleState.winner } : {}),
-    allyCoreHp: battleState.allyCoreHp,
-    enemyCoreHp: battleState.enemyCoreHp,
-    lanes,
-    recentEvents: battleState.events.slice(-12).map((event) => ({
-      kind: event.kind,
-      side: event.side,
-      lane: event.lane,
-      amount: event.amount,
-      emphasis: event.emphasis,
-    })),
-  };
 }

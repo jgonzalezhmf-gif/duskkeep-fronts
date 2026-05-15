@@ -125,7 +125,7 @@ Estos puntos son obligatorios antes de considerar segura una version con pagos, 
    - Arena/ladder no debe aceptar `winner` como verdad definitiva.
    - Opcion minima: validar seed, log/resumen y reglas deterministas.
    - Opcion robusta: ejecutar o reproducir la simulacion en servidor.
-   - Estado MVP actual: ya existe una capa defensiva que valida coherencia `winner`/core HP/turnos antes de persistir `battle_results`, pero no reproduce el combate completo.
+   - Estado MVP actual: ya existe una capa defensiva que valida coherencia `winner`/core HP/turnos antes de persistir `battle_results`, y los clientes Frontline generan un summary canonico versionado con seed/lane/events. Todavia no reproduce el combate completo.
 
 2. Rate limit distribuido.
    - El rate limit actual en memoria sirve para MVP local/una instancia.

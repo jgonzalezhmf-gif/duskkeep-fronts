@@ -111,11 +111,13 @@ Alcance actual:
 
 - Aplica a inserts/updates de `battle_results` con `source` `adventure`, `arena` o `event`.
 - Exige que `summary` incluya `allyCoreHp` y `enemyCoreHp`.
+- Los clientes Frontline construyen el summary con `createFrontlineBattleSummary`, que incluye `schemaVersion`, `engineVersion`, `seed`, `round`, `maxRounds`, lanes y eventos recientes.
+- El contrato TypeScript rechaza summaries cuyo `seed`, `round` o `winner` no coincidan con la operacion enviada.
 - Si el summary incluye `winner` o `round`, deben coincidir con los campos persistidos.
 - Rechaza victorias imposibles: por ejemplo `winner = 'ally'` con `enemyCoreHp > 0` antes del max round.
 - Permite victorias por limite de rondas cuando `turns >= 8` y el core declarado ganador tiene mas HP.
 
-Esto reduce abuso obvio y evita que rewards/misiones/ranking futuro se apoyen en un resultado contradictorio. No sustituye la simulacion server-side completa: Arena competitiva o ladder real siguen necesitando replay determinista o ejecucion de combate en servidor.
+Esto reduce abuso obvio y evita que rewards/misiones/ranking futuro se apoyen en un resultado contradictorio. No sustituye la simulacion server-side completa: Arena competitiva o ladder real siguen necesitando replay determinista o ejecucion de combate en servidor. El siguiente paso tecnico seria persistir/validar un log canonico de acciones del jugador para reproducir la partida desde `seed`, `loadout` y `preset`.
 
 ## Formato Base
 
