@@ -103,6 +103,20 @@ Siguiente bloque recomendado antes de monetizacion o ranking:
 - Observabilidad de operaciones sensibles: compras, loot rolls, sync invitado, claims repetidos e idempotency conflicts.
 - Catalogo de provisioning si se prevé ajustar recursos iniciales con frecuencia.
 
+## Validacion Defensiva de Resultados Frontline
+
+La primera capa de validacion server-side de combate vive en `public.frontline_battle_summary_is_consistent(...)` y en el trigger `battle_results_validate_frontline_summary`.
+
+Alcance actual:
+
+- Aplica a inserts/updates de `battle_results` con `source` `adventure`, `arena` o `event`.
+- Exige que `summary` incluya `allyCoreHp` y `enemyCoreHp`.
+- Si el summary incluye `winner` o `round`, deben coincidir con los campos persistidos.
+- Rechaza victorias imposibles: por ejemplo `winner = 'ally'` con `enemyCoreHp > 0` antes del max round.
+- Permite victorias por limite de rondas cuando `turns >= 8` y el core declarado ganador tiene mas HP.
+
+Esto reduce abuso obvio y evita que rewards/misiones/ranking futuro se apoyen en un resultado contradictorio. No sustituye la simulacion server-side completa: Arena competitiva o ladder real siguen necesitando replay determinista o ejecucion de combate en servidor.
+
 ## Formato Base
 
 Request comun:

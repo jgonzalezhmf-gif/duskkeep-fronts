@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.50] - 2026-05-15
+
+### Security
+- Anhadida validacion defensiva server-side para resultados Frontline persistidos en `battle_results`.
+- Los resultados de Adventure, Arena y Events ahora exigen coherencia entre `winner`, turnos y core HP antes de quedar persistidos.
+- Endurecido el contrato TypeScript de `battleSummary` para evitar summaries vacios o contradictorios en operaciones autoritativas.
+
+### Docs
+- Documentado el alcance del nuevo gate anti-forjado y aclarado que no sustituye la simulacion server-side completa para ladder/ranking real.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts tests/server.authoritativeOperationDispatcher.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.49] - 2026-05-15
 
 ### Docs

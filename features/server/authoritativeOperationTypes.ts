@@ -1,5 +1,9 @@
 import type { AuthoritativeClientFetch } from "@/features/server/authoritativeClient";
-import type { ServerOperationInputPayload, SupportedAuthoritativeApiOperation } from "@/features/server/authoritativeOperations";
+import type {
+  FrontlineBattleSummaryPayload,
+  ServerOperationInputPayload,
+  SupportedAuthoritativeApiOperation,
+} from "@/features/server/authoritativeOperations";
 import type { AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
 import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, Resources, Rewards } from "@/lib/types";
 
@@ -176,7 +180,7 @@ export type ClaimAdventureBattleResultInput = {
   battleSeed: number;
   winner: AuthoritativeAdventureBattleWinner;
   turns: number;
-  battleSummary: unknown;
+  battleSummary: FrontlineBattleSummaryPayload;
 };
 
 export type AuthoritativeAdventureBattleResultSuccess = {
@@ -216,7 +220,7 @@ export type RecordArenaResultInput = {
   battleSeed: number;
   winner: AuthoritativeArenaWinner;
   turns: number;
-  battleSummary: unknown;
+  battleSummary: FrontlineBattleSummaryPayload;
 };
 
 export type AuthoritativeArenaResultSuccess = {
@@ -254,7 +258,7 @@ export type RecordEventResultInput = {
   battleSeed: number;
   winner: AuthoritativeArenaWinner;
   turns: number;
-  battleSummary: unknown;
+  battleSummary: FrontlineBattleSummaryPayload;
 };
 
 export type AuthoritativeEventResultSuccess = {

@@ -275,10 +275,25 @@ describe("server authoritative operation contracts", () => {
           winner: "ally",
           turns: 9,
           rewards: { gems: 999 },
-          battleSummary: {},
+          battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
         },
       }).ok,
     ).toBe(false);
+  });
+
+  it("rejects Arena results whose summary does not support the declared winner", () => {
+    const parsed = parseServerActionRequest("recordArenaResult", {
+      idempotencyKey: "arena-result-invalid-summary-20260515",
+      payload: {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 3,
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 8 },
+      },
+    });
+
+    expect(parsed.ok).toBe(false);
   });
 
   it("accepts Event results without client-supplied rewards", () => {
@@ -304,7 +319,7 @@ describe("server authoritative operation contracts", () => {
           winner: "ally",
           turns: 7,
           rewards: { gems: 999 },
-          battleSummary: {},
+          battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
         },
       }).ok,
     ).toBe(false);
@@ -383,7 +398,7 @@ const validPayloadsByOperation: Record<ServerOperationType, Record<string, unkno
     battleSeed: 123,
     winner: "ally",
     turns: 7,
-    battleSummary: { lanes: [] },
+    battleSummary: { round: 7, winner: "ally", allyCoreHp: 12, enemyCoreHp: 0, lanes: [] },
   },
   openAdventureMapInteraction: {
     interactionId: "c1-lower-cache",
@@ -423,13 +438,13 @@ const validPayloadsByOperation: Record<ServerOperationType, Record<string, unkno
     battleSeed: 123,
     winner: "ally",
     turns: 7,
-    battleSummary: { lanes: [] },
+    battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
   },
   recordEventResult: {
     eventId: "gold_rush",
     battleSeed: 123,
     winner: "ally",
     turns: 7,
-    battleSummary: { lanes: [] },
+    battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
   },
 };

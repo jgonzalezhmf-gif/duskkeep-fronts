@@ -21,7 +21,8 @@ import { frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState } from "@/features/frontline/types";
-import type { Rewards } from "@/lib/types";
+import type { FrontlineBattleSummaryPayload } from "@/features/server/authoritativeOperations";
+import type { FrontlineLane, Rewards } from "@/lib/types";
 import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   accountProgressPercent,
@@ -295,8 +296,8 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   );
 }
 
-function createAdventureBattleSummary(battleState: FrontlineBattleState) {
-  const lanes = Object.entries(battleState.lanes).map(([lane, state]) => ({
+function createAdventureBattleSummary(battleState: FrontlineBattleState): FrontlineBattleSummaryPayload {
+  const lanes = (Object.entries(battleState.lanes) as Array<[FrontlineLane, FrontlineBattleState["lanes"][FrontlineLane]]>).map(([lane, state]) => ({
     lane,
     allyHp: state.allyHero?.hp ?? 0,
     enemyHp: state.enemyHero?.hp ?? 0,
@@ -306,7 +307,7 @@ function createAdventureBattleSummary(battleState: FrontlineBattleState) {
 
   return {
     round: battleState.round,
-    winner: battleState.winner,
+    ...(battleState.winner ? { winner: battleState.winner } : {}),
     allyCoreHp: battleState.allyCoreHp,
     enemyCoreHp: battleState.enemyCoreHp,
     lanes,

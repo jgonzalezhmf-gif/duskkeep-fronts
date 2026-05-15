@@ -179,7 +179,7 @@ describe("authoritative operation dispatcher", () => {
         battleSeed: 123,
         winner: "ally",
         turns: 6,
-        battleSummary: {},
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
       },
       {
         tokenProvider: async () => null,
@@ -196,7 +196,7 @@ describe("authoritative operation dispatcher", () => {
         battleSeed: 123,
         winner: "ally",
         turns: 7,
-        battleSummary: {},
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
       },
       {
         tokenProvider: async () => null,
@@ -764,7 +764,7 @@ describe("authoritative operation dispatcher", () => {
         battleSeed: 123,
         winner: "ally",
         turns: 6,
-        battleSummary: {},
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
       },
       {
         tokenProvider: async () => "valid-token-value",
@@ -846,7 +846,7 @@ describe("authoritative operation dispatcher", () => {
         battleSeed: 123,
         winner: "ally",
         turns: 7,
-        battleSummary: {},
+        battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
       },
       {
         tokenProvider: async () => "valid-token-value",

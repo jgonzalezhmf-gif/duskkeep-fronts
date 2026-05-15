@@ -530,6 +530,13 @@ begin
     raise exception 'resolve_frontline_fortress_raid is not idempotent: % <> %', v_fortress_raid_replay, v_fortress_raid_result;
   end if;
 
+  if public.frontline_battle_summary_is_consistent('ally', 3, '{"allyCoreHp":12,"enemyCoreHp":8}'::jsonb) then
+    raise exception 'Expected forged Frontline summary to be rejected';
+  end if;
+  if public.frontline_battle_summary_is_consistent('ally', 6, '{"allyCoreHp":12,"enemyCoreHp":0}'::jsonb) is not true then
+    raise exception 'Expected valid Frontline summary to be accepted';
+  end if;
+
   v_fortress_raid_second_attempt := public.resolve_frontline_fortress_raid(
     'smoke-frontline-fortress-raid-20260515-0002'
   );
@@ -637,7 +644,7 @@ begin
     22346,
     'ally',
     6,
-    '{}'::jsonb
+    '{"allyCoreHp":12,"enemyCoreHp":0}'::jsonb
   );
   if coalesce((v_event_second_attempt ->> 'ok')::boolean, false) is not true then
     raise exception 'Second record_event_result attempt should return ok with no reward: %', v_event_second_attempt;
@@ -761,7 +768,7 @@ begin
     12345,
     'ally',
     6,
-    '{"lanes":[]}'::jsonb
+    '{"round":6,"winner":"ally","allyCoreHp":12,"enemyCoreHp":0,"lanes":[]}'::jsonb
   );
   if coalesce((v_battle_result ->> 'ok')::boolean, false) is not true then
     raise exception 'claim_adventure_battle_result failed: %', v_battle_result;
@@ -786,7 +793,7 @@ begin
     12345,
     'ally',
     6,
-    '{"lanes":[]}'::jsonb
+    '{"round":6,"winner":"ally","allyCoreHp":12,"enemyCoreHp":0,"lanes":[]}'::jsonb
   );
   if v_battle_replay <> v_battle_result then
     raise exception 'claim_adventure_battle_result is not idempotent: % <> %', v_battle_replay, v_battle_result;
@@ -798,7 +805,7 @@ begin
     12346,
     'ally',
     5,
-    '{"lanes":[]}'::jsonb
+    '{"round":5,"winner":"ally","allyCoreHp":12,"enemyCoreHp":0,"lanes":[]}'::jsonb
   );
   if coalesce((v_battle_second_clear #>> '{result,firstClear}')::boolean, true) is not false then
     raise exception 'Expected replay to avoid first-clear rewards: %', v_battle_second_clear;

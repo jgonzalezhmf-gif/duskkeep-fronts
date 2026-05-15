@@ -1,4 +1,5 @@
 import type { AdventureMapInteractionClaim, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
+import type { FrontlineBattleSummaryPayload } from "@/features/server/authoritativeOperations";
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
 import type { FrontlineCardLevels, FrontlineCardUnlocks } from "@/features/frontline/cardProgression";
 import type { TacticalState } from "@/features/tactical/types";
@@ -115,7 +116,7 @@ export type GameActions = {
     battleSeed: number;
     winner: "ally" | "enemy" | "draw";
     turns: number;
-    battleSummary: unknown;
+    battleSummary: FrontlineBattleSummaryPayload;
     rewards: Rewards;
     source: string;
     ticketAlreadySpent: boolean;
@@ -125,7 +126,7 @@ export type GameActions = {
     battleSeed: number;
     winner: "ally" | "enemy" | "draw";
     turns: number;
-    battleSummary: unknown;
+    battleSummary: FrontlineBattleSummaryPayload;
     rewards: Rewards;
     source: string;
   }) => Promise<{ rewards: Rewards; firstClear: boolean; authoritative?: boolean; resources?: Resources } | null>;
@@ -135,7 +136,7 @@ export type GameActions = {
     battleSeed: number;
     winner: AdventureBattleWinner;
     turns: number;
-    battleSummary: unknown;
+    battleSummary: FrontlineBattleSummaryPayload;
   }) => Promise<AdventureBattleResultClaim | null>;
   claimAdventureNode: (levelId: string) => Rewards | null;
   claimAdventureNodeOnlineFirst: (levelId: string) => Promise<Rewards | null>;

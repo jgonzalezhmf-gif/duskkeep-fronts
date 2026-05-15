@@ -3,6 +3,7 @@ import { DECK_SIZE } from "@/lib/constants";
 import type { Rewards } from "@/lib/types";
 
 export const SERVER_FRONTLINE_SQUAD_SIZE = 3;
+export const SERVER_FRONTLINE_MAX_ROUNDS = 8;
 export const MAX_SYNC_FRONTLINE_CARD_RECORDS = 256;
 export const MAX_SYNC_ADVENTURE_PROGRESS_RECORDS = 128;
 export const MAX_SYNC_ADVENTURE_CLAIM_RECORDS = 64;
@@ -44,6 +45,8 @@ const idSchema = z
   .regex(/^[a-zA-Z0-9][a-zA-Z0-9:_./_-]*$/, "invalid id format");
 
 const nullableIdSchema = idSchema.nullable();
+const frontlineWinnerSchema = z.enum(["ally", "enemy", "draw"]);
+const frontlineCoreHpSchema = z.number().int().min(0).max(999);
 
 export const idempotencyKeySchema = z
   .string()
@@ -65,6 +68,87 @@ const rewardsSchema: z.ZodType<Rewards> = z
     frontlineCards: z.array(z.object({ cardId: idSchema })).optional(),
   })
   .strict();
+
+const frontlineBattleLaneSummarySchema = z
+  .object({
+    lane: z.enum(["left", "center", "right"]),
+    allyHp: z.number().int().min(-999).max(999).optional(),
+    enemyHp: z.number().int().min(-999).max(999).optional(),
+    allyAlive: z.boolean().optional(),
+    enemyAlive: z.boolean().optional(),
+  })
+  .strict();
+
+const frontlineBattleRecentEventSchema = z
+  .object({
+    kind: z.string().trim().min(1).max(48),
+    side: z.enum(["ally", "enemy"]).optional(),
+    lane: z.enum(["left", "center", "right"]).optional(),
+    amount: z.number().int().min(-999).max(999).optional(),
+    emphasis: z.enum(["low", "mid", "high"]).optional(),
+  })
+  .strict();
+
+const frontlineBattleSummarySchema = z
+  .object({
+    round: z.number().int().nonnegative().max(500).optional(),
+    winner: frontlineWinnerSchema.optional(),
+    allyCoreHp: frontlineCoreHpSchema,
+    enemyCoreHp: frontlineCoreHpSchema,
+    lanes: z.array(frontlineBattleLaneSummarySchema).max(3).optional(),
+    recentEvents: z.array(frontlineBattleRecentEventSchema).max(16).optional(),
+  })
+  .strict();
+
+export type FrontlineBattleSummaryPayload = z.input<typeof frontlineBattleSummarySchema>;
+
+function frontlineSummaryMatchesWinner(input: {
+  winner: "ally" | "enemy" | "draw";
+  turns: number;
+  battleSummary: z.infer<typeof frontlineBattleSummarySchema>;
+}) {
+  const { allyCoreHp, enemyCoreHp } = input.battleSummary;
+  if (input.winner === "ally") {
+    return enemyCoreHp <= 0 || (input.turns >= SERVER_FRONTLINE_MAX_ROUNDS && allyCoreHp > enemyCoreHp);
+  }
+  if (input.winner === "enemy") {
+    return allyCoreHp <= 0 || (input.turns >= SERVER_FRONTLINE_MAX_ROUNDS && enemyCoreHp > allyCoreHp);
+  }
+  return (allyCoreHp <= 0 && enemyCoreHp <= 0) || (input.turns >= SERVER_FRONTLINE_MAX_ROUNDS && allyCoreHp === enemyCoreHp);
+}
+
+function refineFrontlineBattlePayload(
+  payload: {
+    winner: "ally" | "enemy" | "draw";
+    turns: number;
+    battleSummary: z.infer<typeof frontlineBattleSummarySchema>;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (payload.battleSummary.round !== undefined && payload.battleSummary.round !== payload.turns) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["battleSummary", "round"],
+      message: "battle summary round must match turns",
+    });
+  }
+
+  if (payload.battleSummary.winner !== undefined && payload.battleSummary.winner !== payload.winner) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["battleSummary", "winner"],
+      message: "battle summary winner must match winner",
+    });
+  }
+
+  if (!frontlineSummaryMatchesWinner(payload)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["battleSummary"],
+      message: "battle summary core HP is not consistent with winner",
+    });
+  }
+}
 
 const syncResourcesSchema = z
   .object({
@@ -175,9 +259,10 @@ export const serverOperationPayloadSchemas = {
       battleSeed: z.number().int().safe(),
       winner: z.enum(["ally", "enemy"]),
       turns: z.number().int().nonnegative().max(500),
-      battleSummary: z.unknown(),
+      battleSummary: frontlineBattleSummarySchema,
     })
-    .strict(),
+    .strict()
+    .superRefine(refineFrontlineBattlePayload),
   openAdventureMapInteraction: z
     .object({
       interactionId: idSchema,
@@ -237,18 +322,20 @@ export const serverOperationPayloadSchemas = {
       battleSeed: z.number().int().safe(),
       winner: z.enum(["ally", "enemy", "draw"]),
       turns: z.number().int().nonnegative().max(500),
-      battleSummary: z.unknown(),
+      battleSummary: frontlineBattleSummarySchema,
     })
-    .strict(),
+    .strict()
+    .superRefine(refineFrontlineBattlePayload),
   recordEventResult: z
     .object({
       eventId: idSchema,
       battleSeed: z.number().int().safe(),
       winner: z.enum(["ally", "enemy", "draw"]),
       turns: z.number().int().nonnegative().max(500),
-      battleSummary: z.unknown(),
+      battleSummary: frontlineBattleSummarySchema,
     })
-    .strict(),
+    .strict()
+    .superRefine(refineFrontlineBattlePayload),
 } as const;
 
 export type ServerOperationType = keyof typeof serverOperationPayloadSchemas;

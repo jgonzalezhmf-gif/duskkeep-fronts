@@ -250,7 +250,7 @@ describe("store authoritative fallback policy", () => {
       battleSeed: 123,
       winner: "ally",
       turns: 6,
-      battleSummary: {},
+      battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
       rewards: { gold: 120, gems: 3, accountXp: 8 },
       source: "Arena",
       ticketAlreadySpent: false,
@@ -271,7 +271,7 @@ describe("store authoritative fallback policy", () => {
       battleSeed: 123,
       winner: "draw",
       turns: 12,
-      battleSummary: {},
+      battleSummary: { allyCoreHp: 5, enemyCoreHp: 5 },
     });
 
     expect(result).toEqual({ rewards: { gold: 0, dust: 0, gems: 0, accountXp: 0 }, firstClear: false });
@@ -288,7 +288,7 @@ describe("store authoritative fallback policy", () => {
       battleSeed: 123,
       winner: "draw",
       turns: 12,
-      battleSummary: {},
+      battleSummary: { allyCoreHp: 5, enemyCoreHp: 5 },
     });
 
     expect(result).toEqual({ rewards: { gold: 20, dust: 2, gems: 0, accountXp: 1 }, firstClear: false });
@@ -306,7 +306,7 @@ describe("store authoritative fallback policy", () => {
       battleSeed: 123,
       winner: "ally",
       turns: 7,
-      battleSummary: {},
+      battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
       rewards: { gold: 400, xp: 60, accountXp: 12 },
       source: "Gold Rush",
     });
