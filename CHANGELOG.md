@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.34] - 2026-05-15
+
+### Security
+- Anhadido limite de longitud para el header `Authorization` del endpoint autoritativo antes del rate limit y del proxy RPC.
+- El extractor Bearer tambien rechaza tokens excesivamente largos para evitar procesar cabeceras anormales.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeRequestGuards.test.ts tests/server.authoritativeRpcProxy.test.ts tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.33] - 2026-05-15
 
 ### Security

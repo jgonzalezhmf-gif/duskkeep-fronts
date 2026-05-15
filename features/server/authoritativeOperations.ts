@@ -21,6 +21,7 @@ export const serverActionErrorCodes = [
   "idempotency_conflict",
   "rate_limited",
   "request_too_large",
+  "request_header_fields_too_large",
   "unsupported_media_type",
 ] as const;
 

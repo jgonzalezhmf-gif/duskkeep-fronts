@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON,
   AUTHORITATIVE_BODY_TOO_LARGE_REASON,
   AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
+  checkAuthoritativeAuthorizationHeaderSize,
   checkAuthoritativeBodySize,
   checkAuthoritativeContentType,
 } from "@/features/server/authoritativeRequestGuards";
@@ -9,13 +11,16 @@ import {
 function headers({
   contentLength,
   contentType,
+  authorization,
 }: {
   contentLength?: string;
   contentType?: string;
+  authorization?: string;
 } = {}) {
   return {
     get(name: string) {
       const normalized = name.toLowerCase();
+      if (normalized === "authorization") return authorization ?? null;
       if (normalized === "content-length") return contentLength ?? null;
       if (normalized === "content-type") return contentType ?? null;
       return null;
@@ -71,6 +76,23 @@ describe("authoritative request guards", () => {
         ok: false,
         code: "unsupported_media_type",
         reason: AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
+      },
+    });
+  });
+
+  it("allows missing or bounded authorization headers", () => {
+    expect(checkAuthoritativeAuthorizationHeaderSize({ headers: headers(), maxChars: 12 })).toEqual({ ok: true });
+    expect(checkAuthoritativeAuthorizationHeaderSize({ headers: headers({ authorization: "Bearer abcdef" }), maxChars: 13 })).toEqual({ ok: true });
+  });
+
+  it("rejects oversized authorization headers before rate limiting or proxy preparation", () => {
+    expect(checkAuthoritativeAuthorizationHeaderSize({ headers: headers({ authorization: "Bearer abcdef" }), maxChars: 12 })).toEqual({
+      ok: false,
+      status: 431,
+      body: {
+        ok: false,
+        code: "request_header_fields_too_large",
+        reason: AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON,
       },
     });
   });

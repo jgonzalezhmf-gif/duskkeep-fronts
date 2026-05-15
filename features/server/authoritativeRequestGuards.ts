@@ -1,5 +1,7 @@
 export const AUTHORITATIVE_MAX_BODY_BYTES = 256 * 1024;
+export const AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS = 4096;
 export const AUTHORITATIVE_BODY_TOO_LARGE_REASON = "Request body is too large";
+export const AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON = "Authorization header is too large";
 export const AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON = "Content-Type must be application/json";
 
 export type AuthoritativeRequestGuardFailure =
@@ -10,6 +12,15 @@ export type AuthoritativeRequestGuardFailure =
         ok: false;
         code: "request_too_large";
         reason: typeof AUTHORITATIVE_BODY_TOO_LARGE_REASON;
+      };
+    }
+  | {
+      ok: false;
+      status: 431;
+      body: {
+        ok: false;
+        code: "request_header_fields_too_large";
+        reason: typeof AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON;
       };
     }
   | {
@@ -43,6 +54,27 @@ export function checkAuthoritativeBodySize({
       ok: false,
       code: "request_too_large",
       reason: AUTHORITATIVE_BODY_TOO_LARGE_REASON,
+    },
+  };
+}
+
+export function checkAuthoritativeAuthorizationHeaderSize({
+  headers,
+  maxChars = AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS,
+}: {
+  headers: Pick<Headers, "get">;
+  maxChars?: number;
+}): { ok: true } | AuthoritativeRequestGuardFailure {
+  const authorization = headers.get("authorization");
+  if (!authorization || authorization.length <= maxChars) return { ok: true };
+
+  return {
+    ok: false,
+    status: 431,
+    body: {
+      ok: false,
+      code: "request_header_fields_too_large",
+      reason: AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON,
     },
   };
 }

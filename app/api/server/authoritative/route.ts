@@ -5,6 +5,7 @@ import {
   type AuthoritativeRateLimitStore,
 } from "@/features/server/authoritativeRateLimit";
 import {
+  checkAuthoritativeAuthorizationHeaderSize,
   checkAuthoritativeBodySize,
   checkAuthoritativeContentType,
 } from "@/features/server/authoritativeRequestGuards";
@@ -19,6 +20,11 @@ export const runtime = "nodejs";
 const rateLimitStore: AuthoritativeRateLimitStore = new Map();
 
 export async function POST(request: NextRequest) {
+  const authorizationHeader = checkAuthoritativeAuthorizationHeaderSize({ headers: request.headers });
+  if (!authorizationHeader.ok) {
+    return NextResponse.json(authorizationHeader.body, { status: authorizationHeader.status });
+  }
+
   const rateLimit = checkAuthoritativeRateLimit({
     key: createAuthoritativeRateLimitKey(request.headers),
     store: rateLimitStore,

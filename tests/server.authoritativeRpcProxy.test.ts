@@ -436,6 +436,10 @@ describe("authoritative RPC proxy", () => {
     expect(getBearerAuthorization(headers("Basic value"))).toBeNull();
   });
 
+  it("rejects oversized bearer authorization values", () => {
+    expect(getBearerAuthorization(headers(`Bearer ${"x".repeat(5000)}`))).toBeNull();
+  });
+
   it("returns generic RPC failure responses without leaking database details", () => {
     const response = createAuthoritativeRpcFailureResponse();
 

@@ -5,6 +5,7 @@ import {
   type ServerOperationPayload,
   type SupportedAuthoritativeApiOperation,
 } from "@/features/server/authoritativeOperations";
+import { AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS } from "@/features/server/authoritativeRequestGuards";
 import { getSupabasePublicConfig } from "@/features/server/supabasePublicConfig";
 
 export type SupportedAuthoritativeRpcOperation = SupportedAuthoritativeApiOperation;
@@ -45,6 +46,7 @@ export function isSupportedAuthoritativeRpcOperation(
 export function getBearerAuthorization(headers: Pick<Headers, "get">) {
   const value = headers.get("authorization");
   if (!value?.startsWith("Bearer ") || value.length <= "Bearer ".length + 12) return null;
+  if (value.length > AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS) return null;
   return value;
 }
 
