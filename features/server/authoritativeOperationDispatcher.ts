@@ -1,10 +1,25 @@
 import { callAuthoritativeOperation, type AuthoritativeClientFetch } from "@/features/server/authoritativeClient";
-import { parseRewardPayload } from "@/features/server/authoritativeOperations";
+import {
+  parseRewardPayload,
+  type ServerOperationInputPayload,
+  type SupportedAuthoritativeApiOperation,
+} from "@/features/server/authoritativeOperations";
 import { getSupabaseAccessToken } from "@/features/server/supabaseBrowserSession";
 import type { AdventureMapInteractionLootTier, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
 import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, Resources, Rewards } from "@/lib/types";
 
 export type AuthoritativeDispatcherMode = "authoritative" | "local";
+
+type AuthoritativeDispatcherOptions = {
+  endpoint?: string;
+  fetcher?: AuthoritativeClientFetch;
+  tokenProvider?: () => Promise<string | null>;
+};
+
+type AuthoritativeOperationCallResult =
+  | { ok: true; result: unknown }
+  | { ok: false; mode: "local"; reason: "missing_session" | "api_disabled" }
+  | { ok: false; mode: "authoritative"; reason: string };
 
 export type AuthoritativePurchaseSuccess = {
   ok: true;
@@ -601,32 +616,18 @@ export async function syncLocalSnapshotAuthoritatively(
   snapshot: LocalSyncSnapshot,
   options: SyncLocalSnapshotAuthoritativelyOptions = {},
 ): Promise<AuthoritativeLocalSnapshotSyncResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "syncLocalSnapshot",
     {
       idempotencyKey: createIdempotencyKey("sync", localVersion),
       payload: { localVersion, snapshot },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractLocalSnapshotSyncResult(response.body.result);
+  const parsed = extractLocalSnapshotSyncResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -642,32 +643,18 @@ export async function skillUpHeroAuthoritatively(
   heroId: string,
   options: SkillUpHeroAuthoritativelyOptions = {},
 ): Promise<AuthoritativeHeroSkillUpResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "skillUpHero",
     {
       idempotencyKey: createIdempotencyKey("hero-skill", heroId),
       payload: { heroId },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractHeroSkillUpResult(response.body.result);
+  const parsed = extractHeroSkillUpResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -686,32 +673,18 @@ export async function starUpHeroAuthoritatively(
   heroId: string,
   options: StarUpHeroAuthoritativelyOptions = {},
 ): Promise<AuthoritativeHeroStarUpResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "starUpHero",
     {
       idempotencyKey: createIdempotencyKey("hero-star", heroId),
       payload: { heroId },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractHeroStarUpResult(response.body.result);
+  const parsed = extractHeroStarUpResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -730,32 +703,18 @@ export async function levelUpHeroAuthoritatively(
   heroId: string,
   options: LevelUpHeroAuthoritativelyOptions = {},
 ): Promise<AuthoritativeHeroLevelUpResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "levelUpHero",
     {
       idempotencyKey: createIdempotencyKey("hero", heroId),
       payload: { heroId },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractHeroLevelUpResult(response.body.result);
+  const parsed = extractHeroLevelUpResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -774,32 +733,18 @@ export async function upgradeFrontlineCardAuthoritatively(
   cardId: string,
   options: UpgradeFrontlineCardAuthoritativelyOptions = {},
 ): Promise<AuthoritativeFrontlineCardUpgradeResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "upgradeFrontlineCard",
     {
       idempotencyKey: createIdempotencyKey("card", cardId),
       payload: { cardId },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractFrontlineCardUpgradeResult(response.body.result);
+  const parsed = extractFrontlineCardUpgradeResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -818,32 +763,18 @@ export async function upgradeFrontlineFortressAuthoritatively(
   buildingId: FrontlineFortressBuildingId,
   options: UpgradeFrontlineFortressAuthoritativelyOptions = {},
 ): Promise<AuthoritativeFrontlineFortressUpgradeResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "upgradeFrontlineFortress",
     {
       idempotencyKey: createIdempotencyKey("frontline-fortress", buildingId),
       payload: { buildingId },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractFrontlineFortressUpgradeResult(response.body.result);
+  const parsed = extractFrontlineFortressUpgradeResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -861,32 +792,18 @@ export async function upgradeFrontlineFortressAuthoritatively(
 export async function resolveFrontlineFortressRaidAuthoritatively(
   options: ResolveFrontlineFortressRaidAuthoritativelyOptions = {},
 ): Promise<AuthoritativeFrontlineFortressRaidResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "resolveFrontlineFortressRaid",
     {
       idempotencyKey: createIdempotencyKey("frontline-fortress-raid", "resolve"),
       payload: {},
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractFrontlineFortressRaidResult(response.body.result);
+  const parsed = extractFrontlineFortressRaidResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -902,32 +819,18 @@ export async function purchaseShopOfferAuthoritatively(
   offerId: string,
   options: PurchaseShopOfferAuthoritativelyOptions = {},
 ): Promise<AuthoritativePurchaseResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "purchaseShopOffer",
     {
       idempotencyKey: createIdempotencyKey("shop", offerId),
       payload: { offerId, quantity: 1 },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const resources = extractResources(response.body.result);
+  const resources = extractResources(response.result);
   if (!resources) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -936,9 +839,7 @@ export async function purchaseShopOfferAuthoritatively(
     ok: true,
     mode: "authoritative",
     resources,
-    requiresSnapshotRefresh: isRecord(response.body.result)
-      ? parseBoolean(response.body.result.requiresSnapshotRefresh) ?? false
-      : false,
+    requiresSnapshotRefresh: isRecord(response.result) ? parseBoolean(response.result.requiresSnapshotRefresh) ?? false : false,
   };
 }
 
@@ -947,32 +848,18 @@ export async function claimMissionAuthoritatively(
   cycleKey: string,
   options: ClaimMissionAuthoritativelyOptions = {},
 ): Promise<AuthoritativeMissionClaimResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "claimMission",
     {
       idempotencyKey: createIdempotencyKey("mission", `${missionId}:${cycleKey}`),
       payload: { missionId, cycleKey },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractMissionClaimResult(response.body.result);
+  const parsed = extractMissionClaimResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -991,32 +878,18 @@ export async function claimDailyLoginAuthoritatively(
   localDayKey: string,
   options: ClaimDailyLoginAuthoritativelyOptions = {},
 ): Promise<AuthoritativeDailyLoginResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "claimDailyLogin",
     {
       idempotencyKey: createIdempotencyKey("daily", localDayKey),
       payload: { localDayKey },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractDailyLoginResult(response.body.result);
+  const parsed = extractDailyLoginResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -1032,32 +905,18 @@ export async function saveFrontlineLoadoutAuthoritatively(
   loadout: FrontlineLoadout,
   options: SaveFrontlineLoadoutAuthoritativelyOptions = {},
 ): Promise<AuthoritativeLoadoutSaveResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "saveLoadout",
     {
       idempotencyKey: createIdempotencyKey("loadout", loadout.leaderId),
       payload: loadout,
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractLoadoutSaveResult(response.body.result);
+  const parsed = extractLoadoutSaveResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -1073,32 +932,18 @@ export async function openAdventureMapInteractionAuthoritatively(
   interactionId: string,
   options: OpenAdventureMapInteractionAuthoritativelyOptions = {},
 ): Promise<AuthoritativeMapInteractionResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "openAdventureMapInteraction",
     {
       idempotencyKey: createIdempotencyKey("map", interactionId),
       payload: { interactionId },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractMapInteractionOpenResult(response.body.result);
+  const parsed = extractMapInteractionOpenResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -1114,32 +959,18 @@ export async function claimAdventureNodeRewardAuthoritatively(
   nodeId: string,
   options: ClaimAdventureNodeRewardAuthoritativelyOptions = {},
 ): Promise<AuthoritativeNodeRewardResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "claimAdventureNodeReward",
     {
       idempotencyKey: createIdempotencyKey("node", nodeId),
       payload: { nodeId },
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractNodeRewardResult(response.body.result);
+  const parsed = extractNodeRewardResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -1158,32 +989,18 @@ export async function claimAdventureBattleResultAuthoritatively(
   input: ClaimAdventureBattleResultInput,
   options: ClaimAdventureBattleResultAuthoritativelyOptions = {},
 ): Promise<AuthoritativeAdventureBattleResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "claimAdventureBattleResult",
     {
       idempotencyKey: createIdempotencyKey("battle", `${input.nodeId}:${input.battleSeed}:${input.winner}`),
       payload: input,
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractAdventureBattleResult(response.body.result);
+  const parsed = extractAdventureBattleResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -1205,32 +1022,18 @@ export async function recordArenaResultAuthoritatively(
   input: RecordArenaResultInput,
   options: RecordArenaResultAuthoritativelyOptions = {},
 ): Promise<AuthoritativeArenaResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "recordArenaResult",
     {
       idempotencyKey: createIdempotencyKey("arena", `${input.opponentId}:${input.battleSeed}:${input.winner}`),
       payload: input,
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractArenaResult(response.body.result);
+  const parsed = extractArenaResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -1252,32 +1055,18 @@ export async function recordEventResultAuthoritatively(
   input: RecordEventResultInput,
   options: RecordEventResultAuthoritativelyOptions = {},
 ): Promise<AuthoritativeEventResult> {
-  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
-  if (!token) {
-    return { ok: false, mode: "local", reason: "missing_session" };
-  }
-
-  const response = await callAuthoritativeOperation(
+  const response = await callOperationWithSession(
     "recordEventResult",
     {
       idempotencyKey: createIdempotencyKey("event", `${input.eventId}:${input.battleSeed}:${input.winner}`),
       payload: input,
     },
-    {
-      endpoint: options.endpoint,
-      fetcher: options.fetcher,
-      token,
-    },
+    options,
   );
 
-  if (!response.body.ok) {
-    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
-      return { ok: false, mode: "local", reason: "api_disabled" };
-    }
-    return { ok: false, mode: "authoritative", reason: response.body.reason };
-  }
+  if (!response.ok) return response;
 
-  const parsed = extractEventResult(response.body.result);
+  const parsed = extractEventResult(response.result);
   if (!parsed) {
     return { ok: false, mode: "authoritative", reason: "Invalid server response" };
   }
@@ -1298,6 +1087,36 @@ export async function recordEventResultAuthoritatively(
 function createIdempotencyKey(scope: string, id: string) {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
   return `${scope}:${id}:${Date.now()}:${suffix}`;
+}
+
+async function callOperationWithSession<TType extends SupportedAuthoritativeApiOperation>(
+  operationType: TType,
+  request: {
+    idempotencyKey: string;
+    payload: ServerOperationInputPayload<TType>;
+  },
+  options: AuthoritativeDispatcherOptions,
+): Promise<AuthoritativeOperationCallResult> {
+  const token = await (options.tokenProvider ?? getSupabaseAccessToken)();
+  if (!token) {
+    return { ok: false, mode: "local", reason: "missing_session" };
+  }
+
+  const response = await callAuthoritativeOperation(operationType, request, {
+    endpoint: options.endpoint,
+    fetcher: options.fetcher,
+    token,
+  });
+
+  if (!response.body.ok) {
+    if (response.status === 404 && response.body.code === "not_found" && response.body.reason.includes("disabled")) {
+      return { ok: false, mode: "local", reason: "api_disabled" };
+    }
+
+    return { ok: false, mode: "authoritative", reason: response.body.reason };
+  }
+
+  return { ok: true, result: response.body.result };
 }
 
 function extractResources(result: unknown): Resources | null {

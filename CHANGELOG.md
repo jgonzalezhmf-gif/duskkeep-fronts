@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.17] - 2026-05-15
+
+### Changed
+- `authoritativeOperationDispatcher` centraliza el patron comun de token Supabase, llamada al proxy autoritativo y fallback `missing_session`/`api_disabled` en `callOperationWithSession`.
+- Todas las operaciones autoritativas del dispatcher usan el mismo flujo de error/fallback, reduciendo duplicacion y riesgo de divergencias entre Shop, Missions, Daily Login, Adventure, Arena, Events, Deck, Heroes y Fortress.
+
+### Security
+- Mantiene la regla de no hacer fallback local cuando un servidor conectado rechaza una operacion; solo conserva fallback local para sesion ausente o API desactivada.
+- No cambia payloads, idempotency keys, RPCs, rewards ni reglas de gameplay.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/progressionAuthoritativePolicy.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.16] - 2026-05-15
 
 ### Fixed
