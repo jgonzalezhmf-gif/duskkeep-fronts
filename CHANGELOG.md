@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.19] - 2026-05-15
+
+### Changed
+- Extraidos los contratos publicos del dispatcher autoritativo a `features/server/authoritativeOperationTypes.ts`.
+- `authoritativeOperationDispatcher` conserva los re-exports publicos, pero queda centrado en ejecutar operaciones, validar respuestas parseadas y mantener idempotencia/fallback.
+- `localSyncSnapshot` depende directamente del modulo de tipos para reducir acoplamiento con la implementacion del dispatcher.
+
+### Security
+- No cambia payloads, RPCs, idempotency keys, recursos, rewards, progresion ni reglas de gameplay.
+- Se mantiene la frontera segura: fallback local solo para sesion ausente o API desactivada, no para rechazos autoritativos.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/localSyncSnapshot.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.18] - 2026-05-15
 
 ### Changed

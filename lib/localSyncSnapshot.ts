@@ -1,4 +1,4 @@
-import type { LocalSyncSnapshot } from "@/features/server/authoritativeOperationDispatcher";
+import type { LocalSyncSnapshot } from "@/features/server/authoritativeOperationTypes";
 import type { GameState } from "@/lib/storeTypes";
 
 export const LOCAL_SYNC_SNAPSHOT_VERSION = "1";
