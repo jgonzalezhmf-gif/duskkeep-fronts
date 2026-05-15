@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.68] - 2026-05-15
+
+### Docs
+- Documentada la validacion Supabase local del flujo invitado anonimo -> cuenta nueva.
+- Dejadas como evidencia operativa las garantias validadas: provisioning invitado, snapshot autoritativo, `user_id` preservado, `profileId` preservado y sync de progreso local permitido tras conversion.
+
+### Tested
+- `npm.cmd run smoke:supabase:guest`
+- `npm.cmd run smoke:supabase:snapshot`
+- `npm.cmd run smoke:supabase:guest-upgrade`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.67] - 2026-05-15
 
 ### Docs

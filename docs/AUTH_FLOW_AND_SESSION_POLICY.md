@@ -95,6 +95,26 @@ Cobertura minima por tests:
 - Los errores de registro y upgrade invitado usan mensajes genericos.
 - Los links de recuperacion limpian tokens de la URL visible.
 
+## Validacion Supabase Local
+
+El flujo invitado -> cuenta nueva se valida con estos smokes:
+
+```powershell
+npm.cmd run smoke:supabase:guest
+npm.cmd run smoke:supabase:snapshot
+npm.cmd run smoke:supabase:guest-upgrade
+```
+
+Cobertura validada:
+
+- Un usuario anonimo provisiona perfil, recursos, heroes starter, cartas starter y loadout inicial.
+- `get_player_snapshot` devuelve un snapshot autoritativo del usuario autenticado.
+- La conversion de usuario anonimo a cuenta nueva conserva el mismo `user_id`.
+- La conversion conserva el mismo `profileId` de servidor.
+- Tras convertir, `sync_local_snapshot` puede importar el progreso local permitido sin cambiar ownership.
+
+Esto confirma el comportamiento que se quiere en producto: si un invitado decide crear una cuenta nueva, su progreso se guarda sobre la misma identidad anonima convertida, no mediante merge con una cuenta existente.
+
 ## Pendiente Antes de Produccion
 
 - Validacion browser end-to-end con Supabase remoto.
