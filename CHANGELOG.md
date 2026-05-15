@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.42] - 2026-05-15
+
+### Security
+- Centralizada la resolucion de errores de actualizacion de password en `sessionSecurity`.
+- Anhadida cobertura para mantener genericos los fallos sensibles del flujo de recuperacion de password.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/sessionSecurity.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.41] - 2026-05-15
 
 ### Security

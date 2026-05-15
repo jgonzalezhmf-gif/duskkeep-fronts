@@ -13,6 +13,7 @@ export type AuthFailureNoticeKey =
   | "auth.invalidCredentials"
   | "auth.rateLimited"
   | "auth.providerError";
+export type PasswordUpdateFailureNoticeKey = "auth.unconfigured" | "auth.rateLimited" | "auth.passwordRecoveryGenericError";
 
 export function reconcileAuthSessionState({
   accountLinkMode,
@@ -118,6 +119,12 @@ export function getAuthFailureNoticeKey({
     default:
       return "auth.providerError";
   }
+}
+
+export function getPasswordUpdateFailureNoticeKey(reason: AuthFailureReason): PasswordUpdateFailureNoticeKey {
+  if (reason === "unconfigured") return "auth.unconfigured";
+  if (reason === "rate_limited") return "auth.rateLimited";
+  return "auth.passwordRecoveryGenericError";
 }
 
 export function shouldShowEntryAuthGate({

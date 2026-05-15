@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
+  getPasswordUpdateFailureNoticeKey,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
   shouldBlockLocalAuthoritativeFallback,
@@ -151,6 +152,13 @@ describe("auth session security helpers", () => {
     expect(getAuthFailureNoticeKey({ intent: "guestUpgrade", mode: "signUp", reason: "auth_error" })).toBe("auth.accountRequestGeneric");
     expect(getAuthFailureNoticeKey({ intent: "guestUpgrade", mode: "signUp", reason: "unconfigured" })).toBe("auth.unconfigured");
     expect(getAuthFailureNoticeKey({ intent: "entry", mode: "signUp", reason: "rate_limited" })).toBe("auth.rateLimited");
+  });
+
+  it("maps password update failures without exposing recovery token details", () => {
+    expect(getPasswordUpdateFailureNoticeKey("unconfigured")).toBe("auth.unconfigured");
+    expect(getPasswordUpdateFailureNoticeKey("rate_limited")).toBe("auth.rateLimited");
+    expect(getPasswordUpdateFailureNoticeKey("invalid_credentials")).toBe("auth.passwordRecoveryGenericError");
+    expect(getPasswordUpdateFailureNoticeKey("auth_error")).toBe("auth.passwordRecoveryGenericError");
   });
 
   it("shows the entry auth gate for guests once per page load so they can choose login or continue guest", () => {

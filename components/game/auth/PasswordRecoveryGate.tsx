@@ -1,11 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import {
-  subscribeToSupabaseAuthEvents,
-  updateSupabasePassword,
-  type SupabaseAuthFailureReason,
-} from "@/features/server/supabaseBrowserSession";
+import { subscribeToSupabaseAuthEvents, updateSupabasePassword } from "@/features/server/supabaseBrowserSession";
+import { getPasswordUpdateFailureNoticeKey } from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -62,7 +59,7 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
     setBusy(false);
 
     if (!result.ok) {
-      setNotice(t(passwordUpdateFailureKey(result.reason)));
+      setNotice(t(getPasswordUpdateFailureNoticeKey(result.reason)));
       return;
     }
 
@@ -170,12 +167,6 @@ function stripRecoveryTokensFromUrl() {
   params.delete("type");
   const cleanSearch = params.toString();
   window.history.replaceState(null, "", `${window.location.pathname}${cleanSearch ? `?${cleanSearch}` : ""}`);
-}
-
-function passwordUpdateFailureKey(reason: SupabaseAuthFailureReason) {
-  if (reason === "unconfigured") return "auth.unconfigured";
-  if (reason === "rate_limited") return "auth.rateLimited";
-  return "auth.passwordRecoveryGenericError";
 }
 
 export default PasswordRecoveryGate;
