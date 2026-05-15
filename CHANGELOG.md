@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.31] - 2026-05-15
+
+### Security
+- Endurecido el proxy `/api/server/authoritative` para no devolver detalles internos de validacion (`issues`) en respuestas publicas de payload invalido.
+- Anhadida cobertura para confirmar que los errores sanitizados no exponen nombres de campos ni mensajes internos de schema.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.30] - 2026-05-15
 
 ### Changed

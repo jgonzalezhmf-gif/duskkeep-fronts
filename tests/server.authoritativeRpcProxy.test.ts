@@ -178,6 +178,31 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("returns sanitized validation failures without exposing schema details", () => {
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "purchaseShopOffer",
+        idempotencyKey: "shop-buy-20260511",
+        payload: { offerId: "", quantity: 1000 },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toEqual({
+      ok: false,
+      status: 400,
+      body: {
+        ok: false,
+        code: "invalid_request",
+        reason: "Invalid server action request",
+      },
+    });
+    expect(JSON.stringify(prepared)).not.toContain("offerId");
+    expect(JSON.stringify(prepared)).not.toContain("quantity");
+    expect(JSON.stringify(prepared)).not.toContain("invalid id format");
+  });
+
   it("maps daily login claims to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {

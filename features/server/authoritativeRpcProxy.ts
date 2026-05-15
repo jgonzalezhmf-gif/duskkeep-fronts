@@ -18,7 +18,6 @@ export type AuthoritativeRpcProxyFailure = {
     ok: false;
     code: string;
     reason: string;
-    issues?: string[];
   };
 };
 
@@ -93,7 +92,6 @@ export function prepareAuthoritativeRpcCall({
         ok: false,
         code: parsed.code,
         reason: parsed.reason,
-        issues: parsed.issues,
       },
     };
   }
