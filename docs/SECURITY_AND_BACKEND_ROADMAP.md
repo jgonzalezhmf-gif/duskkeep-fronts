@@ -179,6 +179,8 @@ No exponer service-role keys en cliente. Usar anon keys solo con RLS, y enrutar 
 
 ## Invitado Respaldado por Servidor
 
+La politica funcional de entrada, login, invitado, conversion a cuenta y expiracion de sesion esta documentada en `docs/AUTH_FLOW_AND_SESSION_POLICY.md`.
+
 El flujo objetivo no debe ser `localStorage -> subir progreso -> cuenta`, sino `perfil invitado servidor -> vincular cuenta`.
 
 1. En la pantalla inicial, el usuario puede iniciar sesion con una cuenta existente, crear una cuenta nueva o jugar como invitado.

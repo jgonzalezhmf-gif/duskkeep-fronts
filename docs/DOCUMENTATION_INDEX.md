@@ -73,6 +73,7 @@ Leer antes de:
 
 ### Seguridad y Servidor
 
+- `docs/AUTH_FLOW_AND_SESSION_POLICY.md`: flujo de intro, login, invitado, conversion de invitado a cuenta nueva y expiracion de sesion.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: fases objetivo de backend, operaciones sensibles y direccion Supabase.
 - `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para cuenta, recursos, progreso, compras, claims, combate y ledger.
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`: contratos de operaciones sensibles que deben ejecutarse en servidor.

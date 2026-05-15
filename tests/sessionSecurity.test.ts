@@ -207,6 +207,27 @@ describe("auth session security helpers", () => {
     ).toBe(false);
   });
 
+  it("shows the entry auth gate for undecided players after intro and keeps linked players inside the game", () => {
+    expect(
+      shouldShowEntryAuthGate({
+        hydrated: true,
+        introEligible: true,
+        showIntro: false,
+        accountLinkMode: "undecided",
+        guestChoiceResolvedThisPageLoad: false,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowEntryAuthGate({
+        hydrated: true,
+        introEligible: true,
+        showIntro: false,
+        accountLinkMode: "linked",
+        guestChoiceResolvedThisPageLoad: false,
+      }),
+    ).toBe(false);
+  });
+
   it("only shows the entry auth gate after hydration and after the intro is no longer active", () => {
     expect(
       shouldShowEntryAuthGate({

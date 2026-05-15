@@ -7,6 +7,22 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.67] - 2026-05-15
+
+### Docs
+- Documentada la politica de entrada, intro, login, invitado, conversion de invitado a cuenta nueva y expiracion de sesion.
+- Enlazado el flujo Auth desde el indice de documentacion y el roadmap de seguridad/backend.
+
+### Tests
+- Anadida cobertura para confirmar que el auth gate aparece para jugadores `undecided`, reaparece para invitados en una nueva carga y no aparece para cuentas vinculadas salvo expiracion.
+
+### Tested
+- `npm.cmd test -- tests/sessionSecurity.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.66] - 2026-05-15
 
 ### Docs
