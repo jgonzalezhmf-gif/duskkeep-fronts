@@ -11,7 +11,7 @@ import { createDefaultFrontlineFortress } from "@/features/frontline/fortress";
 import { DEFAULT_LOCALE, isLocaleCode } from "@/lib/i18n/locales";
 import { DECK_SIZE } from "./constants";
 import { defaultFortress, defaultInitial, freshStarterDeck } from "./defaultGameState";
-import type { AccountLinkMode, GameState } from "./store";
+import type { AccountLinkMode, GameState } from "./storeTypes";
 import type { FrontlineFortressState, FrontlineLoadout, PlayerHero } from "./types";
 
 function isAccountLinkMode(value: unknown): value is AccountLinkMode {

@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.21] - 2026-05-15
+
+### Changed
+- Extraida la configuracion de persistencia de Zustand a `lib/storePersistence.ts`.
+- `lib/store.ts` deja de conocer directamente `createJSONStorage`, `noopStorage`, nombre/version de storage y `mergePersistedGameState`.
+- `persistedGameState` importa sus tipos desde `storeTypes` para reducir dependencia con el wrapper runtime del store.
+
+### Security
+- No cambia la migracion/merge del estado persistido ni la clave/version de localStorage.
+- No cambia economia, rewards, progresion, acciones online-first, audio ni reglas de gameplay.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/persistedGameState.test.ts tests/localSyncSnapshot.test.ts tests/storeAuthoritativeFallback.test.ts tests/sessionSecurity.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.20] - 2026-05-15
 
 ### Changed

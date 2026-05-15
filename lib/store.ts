@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { ALL_MISSIONS } from "@/data/missions";
 import { SHOP_OFFERS, SHOP_OFFERS_BY_ID } from "@/data/shop";
 import { DAILY_LOGIN } from "@/data/dailyLogin";
@@ -25,13 +25,13 @@ import {
 import { claimDailyLoginReward, claimMilestoneReward, claimRoadmapReward } from "@/lib/metaRewardClaims";
 import { applyMissionMetricProgress, claimMissionProgress, ensureMissionProgress, getMissionResetAt } from "@/lib/missionProgress";
 import { getMissionAuthoritativeClaimPlan } from "@/lib/missionAuthoritativeClaims";
-import { mergePersistedGameState } from "@/lib/persistedGameState";
 import { applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
 import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
+import { gameStorePersistOptions } from "@/lib/storePersistence";
 import {
   createFortressBuildingUpgradeCommand,
   createFrontlineCardUpgradeCommand,
@@ -88,12 +88,6 @@ import type { Rewards } from "@/lib/types";
 
 export type { AccountLinkMode, GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressState";
-
-const noopStorage = {
-  getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {},
-} as unknown as Storage;
 
 const ADVENTURE_DRAW_REWARDS: Rewards = { gold: 20, dust: 2, gems: 0, accountXp: 1 };
 const ADVENTURE_DEFEAT_REWARDS: Rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
@@ -1014,22 +1008,7 @@ export const useGameStore = create<GameState & GameActions>()(
         if (missionsProgress) set({ missionsProgress });
       },
     }),
-    {
-      name: "duskkeep-fronts:player:v1",
-      storage: createJSONStorage(() =>
-        typeof window !== "undefined" ? window.localStorage : noopStorage,
-      ),
-      partialize: (s) => {
-        const { notifications, hydrated, ...rest } = s;
-        return rest;
-      },
-      onRehydrateStorage: () => (state) => {
-        state?.hydrate();
-      },
-      // Merge persisted data on top of defaults so new fields appear automatically on upgrade without wiping.
-      merge: mergePersistedGameState,
-      version: 5,
-    },
+    gameStorePersistOptions,
   ),
 );
 
