@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.32] - 2026-05-15
+
+### Security
+- Anhadido un guard de tamano para `/api/server/authoritative` que rechaza bodies superiores a 256 KiB antes de parsear JSON.
+- Cubierto el guard con tests para solicitudes permitidas, bloqueadas y cabeceras `Content-Length` ausentes o malformadas.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeRequestGuards.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.31] - 2026-05-15
 
 ### Security

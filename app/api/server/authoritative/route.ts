@@ -4,6 +4,7 @@ import {
   createAuthoritativeRateLimitKey,
   type AuthoritativeRateLimitStore,
 } from "@/features/server/authoritativeRateLimit";
+import { checkAuthoritativeBodySize } from "@/features/server/authoritativeRequestGuards";
 import {
   executeAuthoritativeRpcCall,
   prepareAuthoritativeRpcCall,
@@ -25,6 +26,11 @@ export async function POST(request: NextRequest) {
       status: rateLimit.status,
       headers: rateLimit.headers,
     });
+  }
+
+  const bodySize = checkAuthoritativeBodySize({ headers: request.headers });
+  if (!bodySize.ok) {
+    return NextResponse.json(bodySize.body, { status: bodySize.status });
   }
 
   let body: unknown;
