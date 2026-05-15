@@ -186,7 +186,7 @@ export function GameAuthGate({
   }
 
   return (
-    <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-[#030407]/84 px-3 py-8 backdrop-blur-md">
+    <div className="fixed inset-0 z-[90] grid items-start justify-items-center overflow-hidden bg-[#030407]/84 px-3 py-3 backdrop-blur-md sm:place-items-center sm:overflow-y-auto sm:py-8">
       {onClose ? (
         <button type="button" aria-label={t("auth.close")} className="absolute inset-0 cursor-default" onClick={onClose} />
       ) : null}
@@ -194,11 +194,11 @@ export function GameAuthGate({
         role="dialog"
         aria-modal="true"
         aria-labelledby="game-auth-title"
-        className="frontline-motion-reveal relative w-full max-w-[58rem] overflow-hidden rounded-[36px] border border-[#f5c451]/20 bg-[linear-gradient(135deg,rgba(34,26,18,0.97),rgba(7,10,17,0.99)_54%,rgba(16,23,36,0.98))] shadow-[0_36px_120px_rgba(0,0,0,0.62)]"
+        className="frontline-motion-reveal relative max-h-[calc(100dvh-1.5rem)] w-full max-w-[58rem] overflow-y-auto rounded-[30px] border border-[#f5c451]/20 bg-[linear-gradient(135deg,rgba(34,26,18,0.97),rgba(7,10,17,0.99)_54%,rgba(16,23,36,0.98))] shadow-[0_36px_120px_rgba(0,0,0,0.62)] sm:rounded-[36px] md:overflow-hidden"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_16%,rgba(245,196,81,0.2),transparent_28%),radial-gradient(circle_at_82%_18%,rgba(100,151,255,0.13),transparent_26%),linear-gradient(180deg,rgba(255,255,255,0.05),transparent_34%)]" />
         <div className="relative grid gap-0 md:grid-cols-[0.9fr_1.1fr]">
-          <div className="border-b border-white/10 p-6 md:border-b-0 md:border-r md:p-8">
+          <div className="border-b border-white/10 p-4 sm:p-6 md:border-b-0 md:border-r md:p-8">
             <div className="text-[10px] font-black uppercase tracking-[0.28em] text-[#f5d498]">{t("auth.eyebrow")}</div>
             <h2 id="game-auth-title" className="mt-3 text-3xl font-black leading-none text-white sm:text-4xl">
               {t(guestUpgrade ? "auth.guestUpgradeTitle" : "auth.title")}
@@ -221,7 +221,7 @@ export function GameAuthGate({
             </p>
           </div>
 
-          <div className="p-6 md:p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {authenticatedSessionBlocked ? (
               <div className="rounded-[26px] border border-amber-200/18 bg-amber-300/10 p-5">
                 <div className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100">{t("auth.createAccount")}</div>
@@ -268,6 +268,16 @@ export function GameAuthGate({
                     ))}
                   </div>
                 )}
+
+                {allowGuest && !guestUpgrade ? (
+                  <button
+                    type="button"
+                    onClick={continueAsGuest}
+                    className="frontline-motion-action mt-3 w-full rounded-[20px] border border-white/12 bg-white/[0.055] px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white/72 transition hover:border-white/22 hover:text-white md:hidden"
+                  >
+                    {t("auth.playGuest")}
+                  </button>
+                ) : null}
 
                 <form onSubmit={handleSubmit} className="mt-5 grid gap-3">
                   <label className="block">
@@ -358,7 +368,7 @@ export function GameAuthGate({
                   <button
                     type="button"
                     onClick={continueAsGuest}
-                    className="frontline-motion-action mt-3 w-full rounded-[20px] border border-white/10 bg-black/24 px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white/62 transition hover:border-white/20 hover:text-white"
+                    className="frontline-motion-action mt-3 hidden w-full rounded-[20px] border border-white/10 bg-black/24 px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white/62 transition hover:border-white/20 hover:text-white md:block"
                   >
                     {t("auth.playGuest")}
                   </button>

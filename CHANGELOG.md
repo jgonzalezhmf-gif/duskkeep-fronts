@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.74] - 2026-05-15
+
+### Fixed
+- Corregido el Auth Gate en movil para que el CTA de invitado sea visible y accionable sin depender de llegar al final del formulario.
+- El modal de Auth usa scroll interno real en pantallas pequenas sin cambiar la logica de login, registro, invitado ni seguridad.
+
+### QA
+- Validacion browser release-candidate de intro, Auth, invitado, Home y rutas principales.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.73] - 2026-05-15
 
 ### Docs
