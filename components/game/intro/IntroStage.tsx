@@ -1,29 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
 import { INTRO_ASSETS, INTRO_SPRITE_ASSETS } from "@/lib/introAssets";
 import { useI18n, translate } from "@/lib/i18n/useI18n";
 import { activeIntroScene } from "./introScenes";
 import { IntroLayer } from "./IntroLayer";
-import {
-  introBossOpacity,
-  introBossScale,
-  introCameraDriftX,
-  introCameraDriftY,
-  introCameraOrigin,
-  introCameraScale,
-  introCrestOpacity,
-  introCrestScale,
-  introCrowOpacity,
-  introCrowProgress,
-  introFogOpacity,
-  introGoldShineOpacity,
-  introKeepGlow,
-  introLightningOpacity,
-  introShake,
-} from "./introMotion";
 import { IntroSpriteEffect } from "./IntroSpriteEffect";
 import { useIntroLocale } from "./useIntroLocale";
+import { useIntroMotion } from "./useIntroMotion";
 
 type IntroStageProps = {
   elapsedMs: number;
@@ -45,6 +28,26 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   const t = (key: string) => translate(introLocale, key);
   const scene = activeIntroScene(elapsedMs);
   const finished = elapsedMs >= totalMs;
+  const {
+    bossOpacity,
+    bossScale,
+    cameraDriftX,
+    cameraDriftY,
+    cameraOrigin,
+    cameraScale,
+    crestOpacity,
+    crestScale,
+    crowLeadVw,
+    crowOpacity,
+    crowTrailVw,
+    fogOpacity,
+    fogShiftA,
+    fogShiftB,
+    goldShineOpacity,
+    keepGlow,
+    lightningOpacity,
+    shake,
+  } = useIntroMotion(elapsedMs, reducedMotion);
 
   // Stage fade-in and the omen darkening are driven by CSS animations
   // (introStageFadeIn / introOmenLift) rather than the RAF-driven
@@ -59,9 +62,6 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   //   keep     1.12 → 1.28   strong push toward the fortress
   //   shadow   1.28 → 0.98   sharp pull-back so the boss looms
   //   gather   0.98 → 1.00   settle for the title reveal
-  const cameraScale = useMemo(() => {
-    return introCameraScale(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
 
   // Transform-origin shifts per beat so each push/pull zooms on a
   // different focal point of the same background:
@@ -70,63 +70,29 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   //   keep    → right (the fortress silhouette in the sky bg)
   //   shadow  → centre-bottom (boss rises from the bottom)
   //   crest   → centre
-  const cameraOrigin = useMemo(() => {
-    return introCameraOrigin(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
 
   // Lateral pan. Roads beat now sweeps a noticeable arc to the right and
   // the keep beat keeps the framing slightly off-centre toward the keep
   // (right side of the sky). Larger amplitudes so the move reads.
-  const cameraDriftX = useMemo(() => {
-    return introCameraDriftX(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
 
   // Vertical tilt — start looking up at the sky, drift down to the valley,
   // then lock for the boss rise. Bigger range so the tilt actually reads.
-  const cameraDriftY = useMemo(() => {
-    return introCameraDriftY(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
 
   // 4 lightning beats spread along the cinematic — one distant in the omen
   // (1.6s, faint), one mid-roads (8.6s), and the boss-reveal pair (15.4s,
   // 16.4s). Reduced motion strips the strikes entirely so nothing flashes.
-  const lightningOpacity = useMemo(() => {
-    if (reducedMotion) return 0;
-    return introLightningOpacity(elapsedMs);
-  }, [elapsedMs, reducedMotion]);
 
   // Fog stays ambient — 0.10 alpha so it reads as atmospheric weather, not
   // a grey band pasted on the sky. Drops further as the crest takes over.
-  const fogOpacity = useMemo(() => {
-    return introFogOpacity(elapsedMs);
-  }, [elapsedMs]);
 
   // Two fog layers, both confined to the lower half of the sky.
   // Layer A drifts right at ~7 px/s; layer B drifts left at ~4 px/s. The
   // contrasting directions give parallax depth without piling up on the
   // top band of the viewport.
-  const fogShiftA = useMemo(() => (reducedMotion ? 0 : (elapsedMs / 1000) * 7), [elapsedMs, reducedMotion]);
-  const fogShiftB = useMemo(
-    () => (reducedMotion ? 0 : (elapsedMs / 1000) * 4 * -1),
-    [elapsedMs, reducedMotion],
-  );
 
   // Crows fly during the eclipse beat (4.0s–7.5s).
-  const crowOpacity = useMemo(() => {
-    return introCrowOpacity(elapsedMs);
-  }, [elapsedMs]);
-
-  const crowProgress = useMemo(() => {
-    return introCrowProgress(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
-
-  const crowLeadVw = 110 - crowProgress * 140;
-  const crowTrailVw = 105 - crowProgress * 130;
 
   // Keep glow during the keep beat (11s–15s). Held briefly, then released.
-  const keepGlow = useMemo(() => {
-    return introKeepGlow(elapsedMs);
-  }, [elapsedMs]);
 
   // (The intro_fortress_layer PNG ships with a near-white background, so
   // mix-blend-mode multiply works for the crow loop but not for the dark
@@ -138,35 +104,16 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   // decay so the silhouette emerges from the fog rather than flicker in.
   // Peak opacity capped at 0.6 per the polish brief — the boss is a
   // shadow, not a hero portrait.
-  const bossOpacity = useMemo(() => {
-    return introBossOpacity(elapsedMs);
-  }, [elapsedMs]);
 
   // Boss scale: very slow advance from 1.05 to 1.0 across the window so
   // the silhouette feels like it sets into place. Big scale ranges (the
   // 0.78→1.08 of the previous pass) read as gimmicky.
-  const bossScale = useMemo(() => {
-    return introBossScale(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
 
   // Small shake aligned with the boss lightning hits.
-  const shake = useMemo(() => {
-    return introShake(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
 
   // Crest enters during the gather beat tail (21s+), holds through crest.
-  const crestOpacity = useMemo(() => {
-    return introCrestOpacity(elapsedMs);
-  }, [elapsedMs]);
-
-  const crestScale = useMemo(() => {
-    return introCrestScale(elapsedMs, reducedMotion);
-  }, [elapsedMs, reducedMotion]);
 
   // Gold spectral glow behind the crest — pulses gently once the crest is in.
-  const goldShineOpacity = useMemo(() => {
-    return introGoldShineOpacity(elapsedMs);
-  }, [elapsedMs]);
 
   const sceneText = scene?.id === "crest" || !scene?.textKey ? "" : t(scene.textKey);
   const crestText = t("intro.title");

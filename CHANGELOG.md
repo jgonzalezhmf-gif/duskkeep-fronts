@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.25] - 2026-05-15
+
+### Changed
+- Extraido el hook `useIntroMotion` para agrupar los valores derivados de motion de la intro.
+- `IntroStage` consume un unico objeto de motion y deja de coordinar directamente cada `useMemo` de camara, niebla, cuervos, boss, crest y lightning.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/introMotion.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.24] - 2026-05-15
 
 ### Changed
