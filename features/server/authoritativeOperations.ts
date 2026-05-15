@@ -20,6 +20,8 @@ export const serverActionErrorCodes = [
   "invalid_state",
   "idempotency_conflict",
   "rate_limited",
+  "request_too_large",
+  "unsupported_media_type",
 ] as const;
 
 export type ServerActionErrorCode = (typeof serverActionErrorCodes)[number];

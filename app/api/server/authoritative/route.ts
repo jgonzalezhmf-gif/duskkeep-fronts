@@ -4,7 +4,10 @@ import {
   createAuthoritativeRateLimitKey,
   type AuthoritativeRateLimitStore,
 } from "@/features/server/authoritativeRateLimit";
-import { checkAuthoritativeBodySize } from "@/features/server/authoritativeRequestGuards";
+import {
+  checkAuthoritativeBodySize,
+  checkAuthoritativeContentType,
+} from "@/features/server/authoritativeRequestGuards";
 import {
   executeAuthoritativeRpcCall,
   prepareAuthoritativeRpcCall,
@@ -31,6 +34,11 @@ export async function POST(request: NextRequest) {
   const bodySize = checkAuthoritativeBodySize({ headers: request.headers });
   if (!bodySize.ok) {
     return NextResponse.json(bodySize.body, { status: bodySize.status });
+  }
+
+  const contentType = checkAuthoritativeContentType({ headers: request.headers });
+  if (!contentType.ok) {
+    return NextResponse.json(contentType.body, { status: contentType.status });
   }
 
   let body: unknown;

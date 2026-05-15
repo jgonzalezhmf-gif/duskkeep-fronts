@@ -1,15 +1,26 @@
 export const AUTHORITATIVE_MAX_BODY_BYTES = 256 * 1024;
 export const AUTHORITATIVE_BODY_TOO_LARGE_REASON = "Request body is too large";
+export const AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON = "Content-Type must be application/json";
 
-export type AuthoritativeRequestGuardFailure = {
-  ok: false;
-  status: 413;
-  body: {
-    ok: false;
-    code: "request_too_large";
-    reason: typeof AUTHORITATIVE_BODY_TOO_LARGE_REASON;
-  };
-};
+export type AuthoritativeRequestGuardFailure =
+  | {
+      ok: false;
+      status: 413;
+      body: {
+        ok: false;
+        code: "request_too_large";
+        reason: typeof AUTHORITATIVE_BODY_TOO_LARGE_REASON;
+      };
+    }
+  | {
+      ok: false;
+      status: 415;
+      body: {
+        ok: false;
+        code: "unsupported_media_type";
+        reason: typeof AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON;
+      };
+    };
 
 export function checkAuthoritativeBodySize({
   headers,
@@ -32,6 +43,25 @@ export function checkAuthoritativeBodySize({
       ok: false,
       code: "request_too_large",
       reason: AUTHORITATIVE_BODY_TOO_LARGE_REASON,
+    },
+  };
+}
+
+export function checkAuthoritativeContentType({
+  headers,
+}: {
+  headers: Pick<Headers, "get">;
+}): { ok: true } | AuthoritativeRequestGuardFailure {
+  const contentType = headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
+  if (contentType === "application/json" || contentType?.endsWith("+json")) return { ok: true };
+
+  return {
+    ok: false,
+    status: 415,
+    body: {
+      ok: false,
+      code: "unsupported_media_type",
+      reason: AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
     },
   };
 }

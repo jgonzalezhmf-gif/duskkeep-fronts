@@ -1,13 +1,24 @@
 import { describe, expect, it } from "vitest";
 import {
   AUTHORITATIVE_BODY_TOO_LARGE_REASON,
+  AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
   checkAuthoritativeBodySize,
+  checkAuthoritativeContentType,
 } from "@/features/server/authoritativeRequestGuards";
 
-function headers(contentLength?: string) {
+function headers({
+  contentLength,
+  contentType,
+}: {
+  contentLength?: string;
+  contentType?: string;
+} = {}) {
   return {
     get(name: string) {
-      return name.toLowerCase() === "content-length" ? contentLength ?? null : null;
+      const normalized = name.toLowerCase();
+      if (normalized === "content-length") return contentLength ?? null;
+      if (normalized === "content-type") return contentType ?? null;
+      return null;
     },
   };
 }
@@ -18,11 +29,11 @@ describe("authoritative request guards", () => {
   });
 
   it("allows bodies at the configured limit", () => {
-    expect(checkAuthoritativeBodySize({ headers: headers("1024"), maxBytes: 1024 })).toEqual({ ok: true });
+    expect(checkAuthoritativeBodySize({ headers: headers({ contentLength: "1024" }), maxBytes: 1024 })).toEqual({ ok: true });
   });
 
   it("rejects bodies above the configured limit before JSON parsing", () => {
-    expect(checkAuthoritativeBodySize({ headers: headers("1025"), maxBytes: 1024 })).toEqual({
+    expect(checkAuthoritativeBodySize({ headers: headers({ contentLength: "1025" }), maxBytes: 1024 })).toEqual({
       ok: false,
       status: 413,
       body: {
@@ -34,6 +45,33 @@ describe("authoritative request guards", () => {
   });
 
   it("does not expose parser details for malformed content-length headers", () => {
-    expect(checkAuthoritativeBodySize({ headers: headers("not-a-number"), maxBytes: 1024 })).toEqual({ ok: true });
+    expect(checkAuthoritativeBodySize({ headers: headers({ contentLength: "not-a-number" }), maxBytes: 1024 })).toEqual({ ok: true });
+  });
+
+  it("allows JSON content types including charset parameters and vendor JSON", () => {
+    expect(checkAuthoritativeContentType({ headers: headers({ contentType: "application/json; charset=utf-8" }) })).toEqual({ ok: true });
+    expect(checkAuthoritativeContentType({ headers: headers({ contentType: "application/vnd.duskkeep+json" }) })).toEqual({ ok: true });
+  });
+
+  it("rejects missing or non-JSON content types before body parsing", () => {
+    expect(checkAuthoritativeContentType({ headers: headers() })).toEqual({
+      ok: false,
+      status: 415,
+      body: {
+        ok: false,
+        code: "unsupported_media_type",
+        reason: AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
+      },
+    });
+
+    expect(checkAuthoritativeContentType({ headers: headers({ contentType: "text/plain" }) })).toEqual({
+      ok: false,
+      status: 415,
+      body: {
+        ok: false,
+        code: "unsupported_media_type",
+        reason: AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
+      },
+    });
   });
 });
