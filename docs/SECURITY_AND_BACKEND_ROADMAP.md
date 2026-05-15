@@ -104,6 +104,60 @@ Cada operacion debe:
 - Aplicar cambios de forma atomica.
 - Devolver el snapshot autoritativo actualizado.
 
+## Estado de Cierre del Bloque Server-Authoritative
+
+El bloque actual ya cubre la base necesaria para que economia, progreso y rewards principales no dependan de cantidades enviadas por el cliente. Las operaciones conectadas a servidor usan contratos estrictos, idempotencia, RLS/ownership y catalogos internos para precios/recompensas.
+
+Cobertura cerrada para el MVP:
+
+- Shop, daily login, missions, Adventure rewards, Adventure battle rewards, key chests, Arena, Events, Fortress visible, progresion de heroes y progresion de cartas ya tienen operaciones server-authoritative documentadas.
+- Los payloads sensibles del cliente aceptan ids/acciones, no `cost`, `rewards`, `resources`, `rewardId` ni balances finales.
+- Los importes variables viven en catalogos SQL o funciones server-side documentadas, no en JSX ni en servicios de UI.
+- El modo invitado respaldado por servidor es la direccion objetivo; `localStorage` queda como fallback alpha/cache, no como fuente de verdad para economia online.
+
+No conviene seguir micro-refactorizando este bloque salvo que aparezca un bug real. A partir de aqui, los cambios de balance deberian hacerse modificando catalogos/seed server-side y actualizando smoke tests de comportamiento, no reescribiendo cada servicio.
+
+## Gates Antes de Monetizacion o Ranking Real
+
+Estos puntos son obligatorios antes de considerar segura una version con pagos, premium currency real o ladder competitivo:
+
+1. Validacion server-side de combate competitivo.
+   - Arena/ladder no debe aceptar `winner` como verdad definitiva.
+   - Opcion minima: validar seed, log/resumen y reglas deterministas.
+   - Opcion robusta: ejecutar o reproducir la simulacion en servidor.
+
+2. Rate limit distribuido.
+   - El rate limit actual en memoria sirve para MVP local/una instancia.
+   - En despliegue distribuido debe moverse a almacenamiento compartido o servicio dedicado.
+
+3. Observabilidad y auditoria operativa.
+   - Alertar sobre idempotency conflicts, claims repetidos, compras rechazadas, loot rolls anomalos y syncs invitado recortados.
+   - Mantener logs sin tokens, JWTs, auth headers, datos de pago completos ni secretos.
+
+4. Webhooks de pago backend-only.
+   - La concesion de premium currency debe depender exclusivamente de confirmacion firmada del proveedor en servidor.
+   - El cliente nunca debe poder confirmar una compra por si mismo.
+
+5. Catalogo de provisioning si se balancea con frecuencia.
+   - Los recursos iniciales pueden seguir como seed por ahora.
+   - Si se van a ajustar como parte del balance vivo, moverlos a `server_starter_profile` o equivalente.
+
+6. Politica de migracion de invitado final.
+   - La importacion de snapshot local es puente alpha.
+   - El flujo final debe crear progreso en servidor desde el inicio y convertir invitado a cuenta nueva conservando `user_id`.
+
+## Backlog Tecnico Priorizado
+
+Orden recomendado para los siguientes bloques:
+
+1. Combat server validation para Arena/ladder.
+2. Rate limiting compartido y hardening operativo del proxy autoritativo.
+3. Observabilidad de economia y operaciones sensibles.
+4. Catalogos de provisioning y configuracion viva si el balance empieza a cambiar con frecuencia.
+5. Preparacion de pagos: modelo de transacciones, webhooks, ledger premium y entorno de pruebas.
+
+Este backlog debe tratarse por bloques cerrables, no por oferta o recompensa individual. La regla practica es: si un valor puede cambiar por balance, debe estar en catalogo; si una accion puede conceder o gastar recursos, debe pasar por RPC/operacion autoritativa.
+
 ## Guia Supabase
 
 Supabase puede usarse para:
