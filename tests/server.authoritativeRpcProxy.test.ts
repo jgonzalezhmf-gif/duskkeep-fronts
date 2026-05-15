@@ -3,6 +3,7 @@ import {
   AUTHORITATIVE_RPC_FAILURE_REASON,
   createAuthoritativeRpcFailureResponse,
   getBearerAuthorization,
+  isSafeBearerTokenValue,
   prepareAuthoritativeRpcCall,
 } from "@/features/server/authoritativeRpcProxy";
 
@@ -455,6 +456,13 @@ describe("authoritative RPC proxy", () => {
   it("extracts only valid bearer authorization", () => {
     expect(getBearerAuthorization(headers("Bearer valid-token-value"))).toBe("Bearer valid-token-value");
     expect(getBearerAuthorization(headers("Basic value"))).toBeNull();
+  });
+
+  it("rejects bearer tokens with whitespace or control characters", () => {
+    expect(isSafeBearerTokenValue("valid-token.value_123")).toBe(true);
+    expect(getBearerAuthorization(headers("Bearer token with spaces"))).toBeNull();
+    expect(getBearerAuthorization(headers("Bearer token\nwith-control"))).toBeNull();
+    expect(getBearerAuthorization(headers("Bearer token\"with-quote"))).toBeNull();
   });
 
   it("rejects oversized bearer authorization values", () => {

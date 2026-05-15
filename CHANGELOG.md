@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.62] - 2026-05-15
+
+### Security
+- Endurecida la extraccion del header `Authorization` en el proxy autoritativo.
+- Los tokens Bearer con espacios internos, caracteres de control o caracteres no seguros se rechazan antes de preparar el cliente Supabase.
+- Supabase sigue siendo la autoridad de autenticacion real; el guard solo filtra cabeceras anormales antes del RPC.
+
+### Docs
+- Documentado el limite defensivo de formato para `Authorization: Bearer`.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.61] - 2026-05-15
 
 ### Security

@@ -59,7 +59,13 @@ export function getBearerAuthorization(headers: Pick<Headers, "get">) {
   const value = headers.get("authorization");
   if (!value?.startsWith("Bearer ") || value.length <= "Bearer ".length + 12) return null;
   if (value.length > AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS) return null;
+  const token = value.slice("Bearer ".length);
+  if (!isSafeBearerTokenValue(token)) return null;
   return value;
+}
+
+export function isSafeBearerTokenValue(token: string) {
+  return /^[A-Za-z0-9._~+/=-]+$/.test(token);
 }
 
 export function prepareAuthoritativeRpcCall({
