@@ -14,6 +14,7 @@ export type AuthoritativeSecurityEvent = {
   code: string;
   operationType?: string;
   identityKey?: string;
+  requestId?: string;
   at: string;
 };
 
@@ -23,6 +24,7 @@ type AuthoritativeSecurityEventInput = {
   code: AuthoritativeSecurityEvent["code"];
   operationType?: unknown;
   identityKey?: string;
+  requestId?: string;
   now?: Date;
 };
 
@@ -60,6 +62,7 @@ export function createAuthoritativeSecurityEvent({
   code,
   operationType,
   identityKey,
+  requestId,
   now = new Date(),
 }: AuthoritativeSecurityEventInput): AuthoritativeSecurityEvent {
   return {
@@ -69,6 +72,7 @@ export function createAuthoritativeSecurityEvent({
     code: sanitizeEventCode(code),
     ...(typeof operationType === "string" ? { operationType: sanitizeOperationType(operationType) } : {}),
     ...(identityKey ? { identityKey: sanitizeIdentityKey(identityKey) } : {}),
+    ...(requestId ? { requestId: sanitizeRequestId(requestId) } : {}),
     at: now.toISOString(),
   };
 }
@@ -177,6 +181,10 @@ function sanitizeEventCode(code: string) {
 
 function sanitizeIdentityKey(identityKey: string) {
   return identityKey.trim().slice(0, 96).replace(/[^a-zA-Z0-9:._-]/g, "_");
+}
+
+function sanitizeRequestId(requestId: string) {
+  return requestId.trim().slice(0, 96).replace(/[^a-zA-Z0-9:._-]/g, "_");
 }
 
 function resolveSafeWebhookUrl(rawUrl: string | undefined, nodeEnv: string | undefined) {

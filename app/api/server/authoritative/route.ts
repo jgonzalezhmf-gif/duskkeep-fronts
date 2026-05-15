@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  createAuthoritativeRateLimitKey,
-} from "@/features/server/authoritativeRateLimit";
+import { createAuthoritativeRateLimitKey } from "@/features/server/authoritativeRateLimit";
 import { createAuthoritativeRateLimiter } from "@/features/server/authoritativeRateLimiter";
+import { createAuthoritativeRequestId } from "@/features/server/authoritativeRequestId";
 import {
   checkAuthoritativeAuthorizationHeaderSize,
   checkAuthoritativeBodySize,
@@ -25,14 +24,17 @@ const rateLimiter = createAuthoritativeRateLimiter();
 
 export async function POST(request: NextRequest) {
   const now = Date.now();
+  const requestId = createAuthoritativeRequestId(now);
+  const respond = (body: unknown, init: ResponseInit = {}) => authoritativeJson(body, init, requestId);
   const authorizationHeader = checkAuthoritativeAuthorizationHeaderSize({ headers: request.headers });
   if (!authorizationHeader.ok) {
     await maybeLogAuthoritativeSecurityEvent({
       stage: "request_guard",
       status: authorizationHeader.status,
       code: authorizationHeader.body.code,
+      requestId,
     });
-    return authoritativeJson(authorizationHeader.body, { status: authorizationHeader.status });
+    return respond(authorizationHeader.body, { status: authorizationHeader.status });
   }
 
   const rateLimitKey = createAuthoritativeRateLimitKey(request.headers);
@@ -43,8 +45,9 @@ export async function POST(request: NextRequest) {
       status: rateLimit.status,
       code: rateLimit.body.code,
       identityKey: rateLimitKey,
+      requestId,
     });
-    return authoritativeJson(rateLimit.body, {
+    return respond(rateLimit.body, {
       status: rateLimit.status,
       headers: rateLimit.headers,
     });
@@ -57,8 +60,9 @@ export async function POST(request: NextRequest) {
       status: bodySize.status,
       code: bodySize.body.code,
       identityKey: rateLimitKey,
+      requestId,
     });
-    return authoritativeJson(bodySize.body, { status: bodySize.status });
+    return respond(bodySize.body, { status: bodySize.status });
   }
 
   const contentType = checkAuthoritativeContentType({ headers: request.headers });
@@ -68,8 +72,9 @@ export async function POST(request: NextRequest) {
       status: contentType.status,
       code: contentType.body.code,
       identityKey: rateLimitKey,
+      requestId,
     });
-    return authoritativeJson(contentType.body, { status: contentType.status });
+    return respond(contentType.body, { status: contentType.status });
   }
 
   let body: unknown;
@@ -81,8 +86,9 @@ export async function POST(request: NextRequest) {
       status: 400,
       code: "invalid_json",
       identityKey: rateLimitKey,
+      requestId,
     });
-    return authoritativeJson({ ok: false, code: "invalid_request", reason: "Invalid JSON body" }, { status: 400 });
+    return respond({ ok: false, code: "invalid_request", reason: "Invalid JSON body" }, { status: 400 });
   }
 
   const prepared = prepareAuthoritativeRpcCall({
@@ -96,8 +102,9 @@ export async function POST(request: NextRequest) {
       code: prepared.body.code,
       operationType: getSafeOperationType(body),
       identityKey: rateLimitKey,
+      requestId,
     });
-    return authoritativeJson(prepared.body, { status: prepared.status });
+    return respond(prepared.body, { status: prepared.status });
   }
 
   const operationRateLimit = await rateLimiter.checkOperation({
@@ -112,8 +119,9 @@ export async function POST(request: NextRequest) {
       code: operationRateLimit.body.code,
       operationType: prepared.operationType,
       identityKey: rateLimitKey,
+      requestId,
     });
-    return authoritativeJson(operationRateLimit.body, {
+    return respond(operationRateLimit.body, {
       status: operationRateLimit.status,
       headers: operationRateLimit.headers,
     });
@@ -127,15 +135,16 @@ export async function POST(request: NextRequest) {
       code: isAuthoritativeFailureBody(result.body) ? result.body.code : "invalid_state",
       operationType: prepared.operationType,
       identityKey: rateLimitKey,
+      requestId,
     });
   }
-  return authoritativeJson(result.body, { status: result.status });
+  return respond(result.body, { status: result.status });
 }
 
-function authoritativeJson(body: unknown, init: ResponseInit = {}) {
+function authoritativeJson(body: unknown, init: ResponseInit = {}, requestId?: string) {
   return NextResponse.json(body, {
     ...init,
-    headers: mergeAuthoritativeResponseHeaders(init.headers),
+    headers: mergeAuthoritativeResponseHeaders(init.headers, { requestId }),
   });
 }
 

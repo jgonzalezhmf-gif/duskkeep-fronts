@@ -14,6 +14,7 @@ describe("authoritative security events", () => {
       code: "invalid_request",
       operationType: "purchaseShopOffer<script>",
       identityKey: "auth:abcdef1234567890",
+      requestId: "authreq:test\n<script>",
       now: new Date("2026-05-15T10:00:00.000Z"),
     });
 
@@ -24,6 +25,7 @@ describe("authoritative security events", () => {
       code: "invalid_request",
       operationType: "purchaseShopOffer_script_",
       identityKey: "auth:abcdef1234567890",
+      requestId: "authreq:test__script_",
       at: "2026-05-15T10:00:00.000Z",
     });
 
@@ -32,6 +34,7 @@ describe("authoritative security events", () => {
     expect(serialized).not.toContain("payload");
     expect(serialized).not.toContain("rewards");
     expect(serialized).not.toContain("resources");
+    expect(serialized).not.toContain("<script>");
   });
 
   it("extracts only a safe operation type from unknown request bodies", () => {

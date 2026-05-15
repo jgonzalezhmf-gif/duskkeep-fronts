@@ -20,6 +20,8 @@ El sink de observabilidad se configura por entorno:
 
 Los fallos del sink no cambian la respuesta al jugador y se registran como eventos tecnicos de sink sin incluir la URL ni el payload original.
 
+Cada request del proxy genera un `requestId` opaco y no sensible. Ese id se devuelve en la cabecera `X-Request-Id` y se incluye en los eventos sanitizados para poder correlacionar una respuesta rechazada con el log operacional sin exponer tokens, payloads ni datos de economia.
+
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
 El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` contra el catalogo server-side `server_shop_offers`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `recordArenaResult` para resultados de Arena, `recordEventResult` para resultados de Events, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de operaciones server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.
