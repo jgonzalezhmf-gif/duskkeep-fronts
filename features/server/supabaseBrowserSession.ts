@@ -129,9 +129,15 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
   const currentSession = await supabase.auth.getSession();
-  if (!currentSession.data.session) {
+  let session = currentSession.data.session;
+  if (!session) {
     const anonymous = await supabase.auth.signInAnonymously();
     if (anonymous.error) return { ok: false, reason: classifySupabaseAuthError(anonymous.error.message) };
+    session = anonymous.data.session;
+  }
+
+  if (!shouldAllowAnonymousUserUpgrade(toSupabaseSessionSnapshot(session))) {
+    return { ok: false, reason: "auth_error" };
   }
 
   const { error } = await supabase.auth.updateUser({
@@ -232,6 +238,10 @@ export function toSupabaseSessionSnapshot(session: Session | null): SupabaseSess
     expiresAt: session.expires_at ?? null,
     isAnonymous: session.user.is_anonymous === true,
   };
+}
+
+export function shouldAllowAnonymousUserUpgrade(session: SupabaseSessionSnapshot) {
+  return session.status === "authenticated" && session.isAnonymous;
 }
 
 export function classifySupabaseAuthError(message: string): SupabaseAuthFailureReason {

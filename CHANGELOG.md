@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.40] - 2026-05-15
+
+### Security
+- Endurecido `upgradeAnonymousSupabaseUserWithPassword` para convertir solo sesiones autenticadas anonimas.
+- Anhadido helper testeado que bloquea conversiones guest-upgrade desde sesiones vinculadas o sin sesion, evitando depender solo del bloqueo visual de la UI.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/supabaseBrowserSession.test.ts tests/sessionSecurity.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.39] - 2026-05-15
 
 ### Changed

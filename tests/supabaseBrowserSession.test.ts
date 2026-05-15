@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   classifySupabaseAuthError,
+  shouldAllowAnonymousUserUpgrade,
   toSupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
 
@@ -61,6 +62,31 @@ describe("Supabase browser session helpers", () => {
 
   it("normalizes anonymous sessions", () => {
     expect(toSupabaseSessionSnapshot(null)).toEqual({ status: "anonymous" });
+  });
+
+  it("allows guest upgrade only for authenticated anonymous sessions", () => {
+    expect(
+      shouldAllowAnonymousUserUpgrade({
+        status: "authenticated",
+        userId: "guest-1",
+        email: null,
+        expiresAt: 1810000000,
+        isAnonymous: true,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldAllowAnonymousUserUpgrade({
+        status: "authenticated",
+        userId: "linked-1",
+        email: "player@example.com",
+        expiresAt: 1810000000,
+        isAnonymous: false,
+      }),
+    ).toBe(false);
+
+    expect(shouldAllowAnonymousUserUpgrade({ status: "anonymous" })).toBe(false);
+    expect(shouldAllowAnonymousUserUpgrade({ status: "unconfigured" })).toBe(false);
   });
 
   it("classifies common auth errors without leaking raw messages", () => {
