@@ -208,6 +208,7 @@ Requisitos operativos:
 - Permitir replay del mismo claim varias veces.
 - Guardar secretos en `.env.local` y commitearlos.
 - Exponer service-role keys, private keys, passwords o tokens secretos mediante variables `NEXT_PUBLIC_*`.
+- Dejar rutas dev-only de guardado accesibles en produccion o desde requests browser cross-site.
 
 ## Gestion de Dependencias y Auditoria
 
@@ -217,6 +218,7 @@ Requisitos operativos:
 - La vulnerabilidad moderada conocida en `next`/`postcss` debe revisarse cuando exista una version estable compatible que la corrija.
 - Mantener `package.json` con `"private": true` y no introducir dependencias nuevas para seguridad, pagos o backend sin revisar superficie de ataque y mantenimiento.
 - El proxy autoritativo valida que las variables `NEXT_PUBLIC_*` no tengan nombres o valores con pinta de secreto antes de preparar operaciones sensibles.
+- Las rutas `/api/dev/*` de guardado QA estan bloqueadas en produccion y rechazan requests browser `cross-site`; siguen permitiendo same-origin y tooling local sin `Sec-Fetch-Site`.
 
 ## Cabeceras HTTP de Seguridad
 

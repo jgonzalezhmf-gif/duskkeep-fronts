@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 
 import { NextResponse, type NextRequest } from "next/server";
 
-import { getDevSaveRouteDisabledResponse } from "../devRouteGuards";
+import { getDevSaveRouteRejectedResponse } from "../devRouteGuards";
 import {
   normalizeHomeEffect,
   renderHomeEffectLayout,
@@ -14,8 +14,11 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const disabledResponse = getDevSaveRouteDisabledResponse("Home effects");
-  if (disabledResponse) return disabledResponse;
+  const rejectedResponse = getDevSaveRouteRejectedResponse({
+    featureName: "Home effects",
+    headers: request.headers,
+  });
+  if (rejectedResponse) return rejectedResponse;
 
   const payload = (await request.json()) as { effects?: unknown };
   if (!Array.isArray(payload.effects)) {
