@@ -6,6 +6,23 @@ import { useI18n, translate } from "@/lib/i18n/useI18n";
 import { DEFAULT_LOCALE, isLocaleCode, type LocaleCode } from "@/lib/i18n/locales";
 import { activeIntroScene } from "./introScenes";
 import { IntroLayer } from "./IntroLayer";
+import {
+  introBossOpacity,
+  introBossScale,
+  introCameraDriftX,
+  introCameraDriftY,
+  introCameraOrigin,
+  introCameraScale,
+  introCrestOpacity,
+  introCrestScale,
+  introCrowOpacity,
+  introCrowProgress,
+  introFogOpacity,
+  introGoldShineOpacity,
+  introKeepGlow,
+  introLightningOpacity,
+  introShake,
+} from "./introMotion";
 import { IntroSpriteEffect } from "./IntroSpriteEffect";
 
 /**
@@ -64,15 +81,7 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   //   shadow   1.28 → 0.98   sharp pull-back so the boss looms
   //   gather   0.98 → 1.00   settle for the title reveal
   const cameraScale = useMemo(() => {
-    if (reducedMotion) return 1;
-    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
-    if (elapsedMs < 3000) return lerp(1.4, 1.18, elapsedMs / 3000);
-    if (elapsedMs < 7000) return lerp(1.18, 1.05, (elapsedMs - 3000) / 4000);
-    if (elapsedMs < 11000) return lerp(1.05, 1.12, (elapsedMs - 7000) / 4000);
-    if (elapsedMs < 15000) return lerp(1.12, 1.28, (elapsedMs - 11000) / 4000);
-    if (elapsedMs < 19000) return lerp(1.28, 0.98, (elapsedMs - 15000) / 4000);
-    if (elapsedMs < 22000) return lerp(0.98, 1.0, (elapsedMs - 19000) / 3000);
-    return 1;
+    return introCameraScale(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   // Transform-origin shifts per beat so each push/pull zooms on a
@@ -83,45 +92,20 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   //   shadow  → centre-bottom (boss rises from the bottom)
   //   crest   → centre
   const cameraOrigin = useMemo(() => {
-    if (reducedMotion) return { x: 50, y: 55 };
-    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
-    const interp = (
-      from: { x: number; y: number },
-      to: { x: number; y: number },
-      t: number,
-    ) => ({ x: lerp(from.x, to.x, t), y: lerp(from.y, to.y, t) });
-    if (elapsedMs < 3000) return { x: 30, y: 30 };
-    if (elapsedMs < 7000) return interp({ x: 30, y: 30 }, { x: 25, y: 28 }, (elapsedMs - 3000) / 4000);
-    if (elapsedMs < 11000) return interp({ x: 25, y: 28 }, { x: 50, y: 68 }, (elapsedMs - 7000) / 4000);
-    if (elapsedMs < 15000) return interp({ x: 50, y: 68 }, { x: 78, y: 56 }, (elapsedMs - 11000) / 4000);
-    if (elapsedMs < 19000) return interp({ x: 78, y: 56 }, { x: 50, y: 78 }, (elapsedMs - 15000) / 4000);
-    return interp({ x: 50, y: 78 }, { x: 50, y: 55 }, Math.min(1, (elapsedMs - 19000) / 3000));
+    return introCameraOrigin(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   // Lateral pan. Roads beat now sweeps a noticeable arc to the right and
   // the keep beat keeps the framing slightly off-centre toward the keep
   // (right side of the sky). Larger amplitudes so the move reads.
   const cameraDriftX = useMemo(() => {
-    if (reducedMotion) return 0;
-    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
-    if (elapsedMs < 3000) return -20;
-    if (elapsedMs < 7000) return lerp(-20, -36, (elapsedMs - 3000) / 4000);
-    if (elapsedMs < 11000) return lerp(-36, 48, (elapsedMs - 7000) / 4000);
-    if (elapsedMs < 15000) return lerp(48, 30, (elapsedMs - 11000) / 4000);
-    if (elapsedMs < 19000) return lerp(30, 0, (elapsedMs - 15000) / 4000);
-    return 0;
+    return introCameraDriftX(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   // Vertical tilt — start looking up at the sky, drift down to the valley,
   // then lock for the boss rise. Bigger range so the tilt actually reads.
   const cameraDriftY = useMemo(() => {
-    if (reducedMotion) return 0;
-    const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
-    if (elapsedMs < 3000) return -28;
-    if (elapsedMs < 7000) return lerp(-28, -8, (elapsedMs - 3000) / 4000);
-    if (elapsedMs < 11000) return lerp(-8, 18, (elapsedMs - 7000) / 4000);
-    if (elapsedMs < 15000) return lerp(18, 4, (elapsedMs - 11000) / 4000);
-    return 0;
+    return introCameraDriftY(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   // 4 lightning beats spread along the cinematic — one distant in the omen
@@ -129,15 +113,13 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   // 16.4s). Reduced motion strips the strikes entirely so nothing flashes.
   const lightningOpacity = useMemo(() => {
     if (reducedMotion) return 0;
-    return lightningAt(elapsedMs);
+    return introLightningOpacity(elapsedMs);
   }, [elapsedMs, reducedMotion]);
 
   // Fog stays ambient — 0.10 alpha so it reads as atmospheric weather, not
   // a grey band pasted on the sky. Drops further as the crest takes over.
   const fogOpacity = useMemo(() => {
-    if (elapsedMs < 1500) return Math.max(0, (elapsedMs - 500) / 1000) * 0.1;
-    if (elapsedMs > 21500) return Math.max(0, 0.1 * (1 - (elapsedMs - 21500) / 1500));
-    return 0.1;
+    return introFogOpacity(elapsedMs);
   }, [elapsedMs]);
 
   // Two fog layers, both confined to the lower half of the sky.
@@ -152,16 +134,11 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
 
   // Crows fly during the eclipse beat (4.0s–7.5s).
   const crowOpacity = useMemo(() => {
-    if (elapsedMs < 4000 || elapsedMs > 7500) return 0;
-    const local = (elapsedMs - 4000) / 3500;
-    return 0.85 * Math.sin(Math.PI * Math.min(1, local));
+    return introCrowOpacity(elapsedMs);
   }, [elapsedMs]);
 
   const crowProgress = useMemo(() => {
-    if (reducedMotion) return 0.5;
-    if (elapsedMs < 4000) return 0;
-    if (elapsedMs > 7500) return 1;
-    return (elapsedMs - 4000) / 3500;
+    return introCrowProgress(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   const crowLeadVw = 110 - crowProgress * 140;
@@ -169,10 +146,7 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
 
   // Keep glow during the keep beat (11s–15s). Held briefly, then released.
   const keepGlow = useMemo(() => {
-    if (elapsedMs < 11000) return 0;
-    if (elapsedMs > 15500) return Math.max(0, 1 - (elapsedMs - 15500) / 800);
-    if (elapsedMs > 13500) return 1;
-    return (elapsedMs - 11000) / 2500;
+    return introKeepGlow(elapsedMs);
   }, [elapsedMs]);
 
   // (The intro_fortress_layer PNG ships with a near-white background, so
@@ -186,66 +160,33 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   // Peak opacity capped at 0.6 per the polish brief — the boss is a
   // shadow, not a hero portrait.
   const bossOpacity = useMemo(() => {
-    if (elapsedMs < 15000 || elapsedMs > 19000) return 0;
-    const local = (elapsedMs - 15000) / 4000;
-    // Peak 0.75: low enough to read as "shadow", high enough that the
-    // multiply blend doesn't dim the silhouette into the sky completely.
-    if (local < 0.25) return (local / 0.25) * 0.75;
-    if (local < 0.7) return 0.75;
-    return Math.max(0, 0.75 * (1 - (local - 0.7) / 0.3));
+    return introBossOpacity(elapsedMs);
   }, [elapsedMs]);
 
   // Boss scale: very slow advance from 1.05 to 1.0 across the window so
   // the silhouette feels like it sets into place. Big scale ranges (the
   // 0.78→1.08 of the previous pass) read as gimmicky.
   const bossScale = useMemo(() => {
-    if (reducedMotion) return 1;
-    if (elapsedMs < 15000 || elapsedMs > 19000) return 1.05;
-    const local = (elapsedMs - 15000) / 4000;
-    return 1.05 - 0.05 * Math.min(1, local);
+    return introBossScale(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   // Small shake aligned with the boss lightning hits.
   const shake = useMemo(() => {
-    if (reducedMotion) return { x: 0, y: 0 };
-    const hits = [
-      { peakMs: 15400, decayMs: 360 },
-      { peakMs: 16400, decayMs: 320 },
-    ];
-    let amp = 0;
-    for (const hit of hits) {
-      if (elapsedMs < hit.peakMs || elapsedMs > hit.peakMs + hit.decayMs) continue;
-      const local = (elapsedMs - hit.peakMs) / hit.decayMs;
-      amp = Math.max(amp, 1 - local);
-    }
-    if (amp <= 0) return { x: 0, y: 0 };
-    return {
-      x: Math.sin(elapsedMs / 24) * 2 * amp,
-      y: Math.cos(elapsedMs / 31) * 1.5 * amp,
-    };
+    return introShake(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   // Crest enters during the gather beat tail (21s+), holds through crest.
   const crestOpacity = useMemo(() => {
-    if (elapsedMs < 21000) return 0;
-    return Math.min(1, (elapsedMs - 21000) / 800);
+    return introCrestOpacity(elapsedMs);
   }, [elapsedMs]);
 
   const crestScale = useMemo(() => {
-    if (reducedMotion) return 1;
-    if (elapsedMs < 21000) return 1.18;
-    const local = elapsedMs - 21000;
-    if (local >= 700) return 1;
-    return 1.18 - 0.18 * (local / 700);
+    return introCrestScale(elapsedMs, reducedMotion);
   }, [elapsedMs, reducedMotion]);
 
   // Gold spectral glow behind the crest — pulses gently once the crest is in.
   const goldShineOpacity = useMemo(() => {
-    if (elapsedMs < 21000) return 0;
-    const local = elapsedMs - 21000;
-    const ramp = Math.min(1, local / 800);
-    const pulse = 0.82 + 0.18 * Math.sin(local / 360);
-    return ramp * pulse;
+    return introGoldShineOpacity(elapsedMs);
   }, [elapsedMs]);
 
   const sceneText = scene?.id === "crest" || !scene?.textKey ? "" : t(scene.textKey);
@@ -926,19 +867,3 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
  *  - 9500 ms: mid-roads strike, low intensity.
  *  - 16200 ms: revealing strike on the boss, short but bright.
  */
-function lightningAt(ms: number): number {
-  const flashes = [
-    { peakMs: 2200, attackMs: 70, decayMs: 200, scale: 0.4 },
-    { peakMs: 9500, attackMs: 60, decayMs: 220, scale: 0.6 },
-    { peakMs: 16200, attackMs: 60, decayMs: 220, scale: 0.85 },
-  ];
-  let opacity = 0;
-  for (const flash of flashes) {
-    if (ms < flash.peakMs - flash.attackMs) continue;
-    if (ms > flash.peakMs + flash.decayMs) continue;
-    const local = ms - flash.peakMs;
-    const value = local <= 0 ? 1 + local / flash.attackMs : 1 - local / flash.decayMs;
-    opacity = Math.max(opacity, Math.max(0, Math.min(1, value)) * flash.scale);
-  }
-  return opacity;
-}

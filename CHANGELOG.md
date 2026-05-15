@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.23] - 2026-05-15
+
+### Changed
+- Extraidas las curvas puras de movimiento de la intro a `components/game/intro/introMotion.ts`.
+- `IntroStage` delega camera scale/origin/drift, fog, crows, keep glow, boss reveal, shake, crest y lightning en helpers testeables.
+- Reducido el tamano de `IntroStage.tsx` sin mover CSS, assets ni flujo de entrada/login.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/introMotion.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.22] - 2026-05-15
 
 ### Changed
