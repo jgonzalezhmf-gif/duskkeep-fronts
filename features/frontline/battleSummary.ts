@@ -1,8 +1,13 @@
-import type { FrontlineBattleState, FrontlineEvent } from "@/features/frontline/types";
+import type {
+  FrontlineBattleState,
+  FrontlineEvent,
+  FrontlinePlayerActionLogEntry,
+} from "@/features/frontline/types";
 import type { FrontlineLane } from "@/lib/types";
 
 export const FRONTLINE_BATTLE_SUMMARY_VERSION = 1;
 export const FRONTLINE_ENGINE_VERSION = "frontline-v1";
+export const MAX_FRONTLINE_ACTION_LOG_ENTRIES = 256;
 const MAX_RECENT_EVENTS = 12;
 
 export type FrontlineBattleLaneSummary = {
@@ -34,6 +39,7 @@ export type FrontlineBattleSummary = {
   enemyCoreHp: number;
   lanes: FrontlineBattleLaneSummary[];
   recentEvents: FrontlineBattleRecentEventSummary[];
+  actionLog: FrontlinePlayerActionLogEntry[];
 };
 
 export function createFrontlineBattleSummary(state: FrontlineBattleState): FrontlineBattleSummary {
@@ -58,7 +64,24 @@ export function createFrontlineBattleSummary(state: FrontlineBattleState): Front
     enemyCoreHp: state.enemyCoreHp,
     lanes,
     recentEvents: state.events.slice(0, MAX_RECENT_EVENTS).map(toRecentEventSummary),
+    actionLog: sanitizeFrontlineActionLog(state.actionLog ?? []),
   };
+}
+
+export function appendFrontlineActionLogEntry(
+  currentLog: FrontlinePlayerActionLogEntry[],
+  state: FrontlineBattleState,
+  action: Omit<FrontlinePlayerActionLogEntry, "seq" | "round" | "side">,
+): FrontlinePlayerActionLogEntry[] {
+  const lastEntry = currentLog.length > 0 ? currentLog[currentLog.length - 1] : null;
+  const nextEntry: FrontlinePlayerActionLogEntry = {
+    ...action,
+    seq: (lastEntry?.seq ?? 0) + 1,
+    round: state.round,
+    side: "ally",
+  };
+
+  return sanitizeFrontlineActionLog([...currentLog, nextEntry]);
 }
 
 function toRecentEventSummary(event: FrontlineEvent): FrontlineBattleRecentEventSummary {
@@ -71,4 +94,15 @@ function toRecentEventSummary(event: FrontlineEvent): FrontlineBattleRecentEvent
     ...(event.signature ? { signature: event.signature } : {}),
     ...(event.signatureId ? { signatureId: event.signatureId } : {}),
   };
+}
+
+function sanitizeFrontlineActionLog(log: FrontlinePlayerActionLogEntry[]): FrontlinePlayerActionLogEntry[] {
+  return log.slice(-MAX_FRONTLINE_ACTION_LOG_ENTRIES).map((entry) => ({
+    seq: entry.seq,
+    round: entry.round,
+    side: "ally",
+    action: entry.action,
+    ...(entry.cardId ? { cardId: entry.cardId } : {}),
+    ...(entry.lane ? { lane: entry.lane } : {}),
+  }));
 }

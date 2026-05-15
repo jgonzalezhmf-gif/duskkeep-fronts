@@ -322,6 +322,58 @@ describe("server authoritative operation contracts", () => {
     expect(parsed.ok).toBe(false);
   });
 
+  it("accepts canonical Frontline action logs in battle summaries", () => {
+    const parsed = parseServerActionRequest("recordArenaResult", {
+      idempotencyKey: "arena-result-action-log-20260515",
+      payload: {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: {
+          schemaVersion: 1,
+          engineVersion: "frontline-v1",
+          seed: 123,
+          round: 7,
+          winner: "ally",
+          allyCoreHp: 12,
+          enemyCoreHp: 0,
+          lanes: [],
+          recentEvents: [],
+          actionLog: [
+            { seq: 1, round: 1, side: "ally", action: "play_card", cardId: "order_guard_wall", lane: "left" },
+            { seq: 2, round: 1, side: "ally", action: "leader_power", lane: "center" },
+            { seq: 3, round: 1, side: "ally", action: "resolve_turn" },
+          ],
+        },
+      },
+    });
+
+    expect(parsed.ok).toBe(true);
+  });
+
+  it("rejects malformed Frontline action logs before reaching server logic", () => {
+    const parsed = parseServerActionRequest("recordArenaResult", {
+      idempotencyKey: "arena-result-bad-action-log-20260515",
+      payload: {
+        opponentId: "arena_bonewood",
+        battleSeed: 123,
+        winner: "ally",
+        turns: 7,
+        battleSummary: {
+          allyCoreHp: 12,
+          enemyCoreHp: 0,
+          actionLog: [
+            { seq: 1, round: 1, side: "ally", action: "play_card" },
+            { seq: 1, round: 8, side: "ally", action: "resolve_turn", lane: "left" },
+          ],
+        },
+      },
+    });
+
+    expect(parsed.ok).toBe(false);
+  });
+
   it("accepts Event results without client-supplied rewards", () => {
     const parsed = parseServerActionRequest("recordEventResult", {
       idempotencyKey: "event-result-20260515-0001",

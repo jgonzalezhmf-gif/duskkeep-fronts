@@ -185,6 +185,17 @@ export type FrontlineEvent = {
   trait?: Exclude<FrontlineHeroTrait["type"], "none">;
 };
 
+export type FrontlinePlayerActionKind = "play_card" | "leader_power" | "resolve_turn";
+
+export type FrontlinePlayerActionLogEntry = {
+  seq: number;
+  round: number;
+  side: Extract<FrontlineSide, "ally">;
+  action: FrontlinePlayerActionKind;
+  cardId?: string;
+  lane?: FrontlineLane;
+};
+
 export type FrontlineBattleModifiers = {
   enemyCoreBonus?: number;
   enemyStartingCommandBonus?: number;
@@ -248,6 +259,7 @@ export type FrontlineBattleState = {
   bossState: FrontlineBossState | null;
   playerCardCostMod: number;
   playerCardCostModTurnsLeft: number;
+  actionLog?: FrontlinePlayerActionLogEntry[];
   /** When set during a traced run, every visible event also pushes a deep-copy snapshot of the state at that point. UI uses these to keep the rendered board in sync with the animation playback. Internal — never persisted. */
   _trace?: FrontlineSnapshot[];
 };

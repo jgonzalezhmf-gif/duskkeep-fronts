@@ -7,6 +7,7 @@ export const SERVER_FRONTLINE_MAX_ROUNDS = 8;
 export const MAX_SYNC_FRONTLINE_CARD_RECORDS = 256;
 export const MAX_SYNC_ADVENTURE_PROGRESS_RECORDS = 128;
 export const MAX_SYNC_ADVENTURE_CLAIM_RECORDS = 64;
+export const MAX_FRONTLINE_ACTION_LOG_RECORDS = 256;
 
 export const serverActionErrorCodes = [
   "unauthenticated",
@@ -91,6 +92,50 @@ const frontlineBattleRecentEventSchema = z
   })
   .strict();
 
+const frontlineBattleActionLogEntrySchema = z
+  .object({
+    seq: z.number().int().positive().max(10000),
+    round: z.number().int().nonnegative().max(500),
+    side: z.enum(["ally"]),
+    action: z.enum(["play_card", "leader_power", "resolve_turn"]),
+    cardId: idSchema.optional(),
+    lane: z.enum(["left", "center", "right"]).optional(),
+  })
+  .strict()
+  .superRefine((entry, ctx) => {
+    if (entry.action === "play_card" && !entry.cardId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["cardId"],
+        message: "play_card actions require cardId",
+      });
+    }
+
+    if (entry.action !== "play_card" && entry.cardId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["cardId"],
+        message: "only play_card actions can include cardId",
+      });
+    }
+
+    if (entry.action === "leader_power" && !entry.lane) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["lane"],
+        message: "leader_power actions require lane",
+      });
+    }
+
+    if (entry.action === "resolve_turn" && entry.lane) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["lane"],
+        message: "resolve_turn actions cannot include lane",
+      });
+    }
+  });
+
 const frontlineBattleSummarySchema = z
   .object({
     schemaVersion: z.number().int().positive().max(10).optional(),
@@ -103,6 +148,7 @@ const frontlineBattleSummarySchema = z
     enemyCoreHp: frontlineCoreHpSchema,
     lanes: z.array(frontlineBattleLaneSummarySchema).max(3).optional(),
     recentEvents: z.array(frontlineBattleRecentEventSchema).max(16).optional(),
+    actionLog: z.array(frontlineBattleActionLogEntrySchema).max(MAX_FRONTLINE_ACTION_LOG_RECORDS).optional(),
   })
   .strict();
 
@@ -162,6 +208,36 @@ function refineFrontlineBattlePayload(
       path: ["battleSummary"],
       message: "battle summary core HP is not consistent with winner",
     });
+  }
+
+  validateFrontlineActionLog(payload.battleSummary.actionLog, payload.turns, ctx);
+}
+
+function validateFrontlineActionLog(
+  actionLog: z.infer<typeof frontlineBattleActionLogEntrySchema>[] | undefined,
+  turns: number,
+  ctx: z.RefinementCtx,
+) {
+  if (!actionLog) return;
+
+  let previousSeq = 0;
+  for (const [index, entry] of actionLog.entries()) {
+    if (entry.seq <= previousSeq) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["battleSummary", "actionLog", index, "seq"],
+        message: "action log sequence must be strictly increasing",
+      });
+    }
+    previousSeq = entry.seq;
+
+    if (entry.round > turns) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["battleSummary", "actionLog", index, "round"],
+        message: "action log round cannot exceed battle turns",
+      });
+    }
   }
 }
 

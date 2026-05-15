@@ -8,11 +8,13 @@ import {
   resolveTurnTraced,
   validLeaderPowerTargets,
 } from "@/features/frontline/engine";
+import { appendFrontlineActionLogEntry } from "@/features/frontline/battleSummary";
 import type {
   FrontlineBattleModifiers,
   FrontlineBattleState,
   FrontlineCardProfileMap,
   FrontlineEvent,
+  FrontlinePlayerActionLogEntry,
   FrontlineSupportProfileMap,
 } from "@/features/frontline/types";
 import type { FrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
@@ -111,6 +113,7 @@ function FrontlineBattleInner({
   const prevCoreRef = useRef({ ally: 0, enemy: 0 });
   const coreShockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const coreShockIdRef = useRef(0);
+  const actionLogRef = useRef<FrontlinePlayerActionLogEntry[]>([]);
   const backdrop = useMemo(() => battleBackgroundSrc ?? getBattleBackdrop(seed), [battleBackgroundSrc, seed]);
 
   useEffect(() => {
@@ -123,6 +126,7 @@ function FrontlineBattleInner({
     setCardPlayFx(null);
     setFinishFx(null);
     setDeathGhosts([]);
+    actionLogRef.current = [];
     clearFrontlineTimer(finishOverlayTimerRef);
     clearFrontlineTimer(finishDoneTimerRef);
     setState(
@@ -269,6 +273,15 @@ function FrontlineBattleInner({
     setFocusedLane(nextFocusedLane ?? null);
   }
 
+  function appendActionLog(
+    stateForAction: FrontlineBattleState,
+    action: Omit<FrontlinePlayerActionLogEntry, "seq" | "round" | "side">,
+  ) {
+    const nextLog = appendFrontlineActionLogEntry(actionLogRef.current, stateForAction, action);
+    actionLogRef.current = nextLog;
+    return nextLog;
+  }
+
   function showCardPlayFx(
     cardId: string,
     lane: FrontlineLane | null,
@@ -286,11 +299,13 @@ function FrontlineBattleInner({
   function playInstantCard(cardId: string) {
     if (actionsLocked) return;
     const next = playCard(state, "ally", cardId);
+    if (next === state) return;
+    const nextActionLog = appendActionLog(state, { action: "play_card", cardId });
     const card = getFrontlineCard(cardId, state.allyCardProfiles);
     const newEvents = collectNewEvents(state, next);
     setDeathGhosts(collectDeathGhosts(state, newEvents));
     showCardPlayFx(cardId, null, visualTargetSideForCard(card), visualToneFromCard(card), newEvents);
-    resetSelection(next, focusedLane);
+    resetSelection({ ...next, actionLog: nextActionLog }, focusedLane);
   }
 
   function handleCardClick(cardId: string) {
@@ -313,10 +328,12 @@ function FrontlineBattleInner({
       const lane = validLeaderPowerTargets(state, "ally")[0];
       if (lane) {
         const next = activateLeaderPower(state, "ally", lane);
+        if (next === state) return;
+        const nextActionLog = appendActionLog(state, { action: "leader_power", lane });
         const newEvents = collectNewEvents(state, next);
         setDeathGhosts(collectDeathGhosts(state, newEvents));
         showCardPlayFx(`leader:${allyLeader.id}`, lane, "ally", "power", newEvents);
-        resetSelection(next, lane);
+        resetSelection({ ...next, actionLog: nextActionLog }, lane);
       }
       return;
     }
@@ -338,18 +355,22 @@ function FrontlineBattleInner({
         return;
       }
       const next = activateLeaderPower(state, "ally", lane);
+      if (next === state) return;
+      const nextActionLog = appendActionLog(state, { action: "leader_power", lane });
       const newEvents = collectNewEvents(state, next);
       setDeathGhosts(collectDeathGhosts(state, newEvents));
       showCardPlayFx(`leader:${allyLeader.id}`, lane, visualTargetSideForLeader(allyLeader.power.effect.type), "power", newEvents);
-      resetSelection(next, lane);
+      resetSelection({ ...next, actionLog: nextActionLog }, lane);
       return;
     }
     if (selectedCard && targetableLanes.includes(lane)) {
       const next = playCard(state, "ally", selectedCard.id, lane);
+      if (next === state) return;
+      const nextActionLog = appendActionLog(state, { action: "play_card", cardId: selectedCard.id, lane });
       const newEvents = collectNewEvents(state, next);
       setDeathGhosts(collectDeathGhosts(state, newEvents));
       showCardPlayFx(selectedCard.id, lane, visualTargetSideForCard(selectedCard), visualToneFromCard(selectedCard), newEvents);
-      resetSelection(next, lane);
+      resetSelection({ ...next, actionLog: nextActionLog }, lane);
       return;
     }
     setFocusedLane((current) => (current === lane ? null : lane));
@@ -359,12 +380,14 @@ function FrontlineBattleInner({
     if (actionsLocked) return;
     sfx.resolveClash();
     setCardPlayFx(null);
+    const nextActionLog = appendActionLog(state, { action: "resolve_turn" });
     const { final, snapshots } = resolveTurnTraced(state);
+    const finalWithActionLog = { ...final, actionLog: nextActionLog };
     const truncated = truncateAtWinner(final, snapshots);
     const newEvents = collectNewEvents(state, final).filter((event) => truncated.allowedEventIds.has(event.id));
     setDeathGhosts(collectDeathGhosts(state, newEvents));
     finishDelayRef.current = final.winner ? 900 : 1800;
-    setPendingResolution({ finalState: final, snapshots: truncated.snapshots });
+    setPendingResolution({ finalState: finalWithActionLog, snapshots: truncated.snapshots });
     showResolutionFx(newEvents);
     if (!final.winner && final.turn === "ally") {
       window.setTimeout(() => sfx.turnStart(), Math.max(380, resolutionSequenceDuration(newEvents) - 420));

@@ -7,6 +7,25 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.52] - 2026-05-15
+
+### Security
+- Anhadido `actionLog` canonico a los summaries Frontline para registrar cartas jugadas, poderes de lider y resoluciones de turno.
+- El contrato autoritativo valida shape, secuencia y rondas del `actionLog` antes de aceptar resultados de Adventure, Arena o Events.
+
+### Combat
+- Frontline genera el log automaticamente desde acciones reales del jugador sin cambiar reglas del motor ni recompensas.
+
+### Docs
+- Actualizada la documentacion de operaciones autoritativas y roadmap de seguridad para reflejar el nuevo paso hacia replay/validacion server-side.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeOperations.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.51] - 2026-05-15
 
 ### Security
