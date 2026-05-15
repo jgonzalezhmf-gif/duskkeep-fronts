@@ -1,13 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  checkAuthoritativeRateLimit,
   createAuthoritativeRateLimitKey,
-  createAuthoritativeOperationRateLimitKey,
-  getAuthoritativeOperationRateLimitMaxRequests,
-  AUTHORITATIVE_OPERATION_RATE_LIMIT_MAX_KEYS,
-  AUTHORITATIVE_OPERATION_RATE_LIMIT_WINDOW_MS,
-  type AuthoritativeRateLimitStore,
 } from "@/features/server/authoritativeRateLimit";
+import { createAuthoritativeRateLimiter } from "@/features/server/authoritativeRateLimiter";
 import {
   checkAuthoritativeAuthorizationHeaderSize,
   checkAuthoritativeBodySize,
@@ -26,8 +21,7 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const rateLimitStore: AuthoritativeRateLimitStore = new Map();
-const operationRateLimitStore: AuthoritativeRateLimitStore = new Map();
+const rateLimiter = createAuthoritativeRateLimiter();
 
 export async function POST(request: NextRequest) {
   const now = Date.now();
@@ -42,11 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   const rateLimitKey = createAuthoritativeRateLimitKey(request.headers);
-  const rateLimit = checkAuthoritativeRateLimit({
-    key: rateLimitKey,
-    store: rateLimitStore,
-    now,
-  });
+  const rateLimit = await rateLimiter.checkGlobal({ identityKey: rateLimitKey, now });
   if (!rateLimit.ok) {
     await maybeLogAuthoritativeSecurityEvent({
       stage: "global_rate_limit",
@@ -110,13 +100,10 @@ export async function POST(request: NextRequest) {
     return authoritativeJson(prepared.body, { status: prepared.status });
   }
 
-  const operationRateLimit = checkAuthoritativeRateLimit({
-    key: createAuthoritativeOperationRateLimitKey(rateLimitKey, prepared.operationType),
-    store: operationRateLimitStore,
+  const operationRateLimit = await rateLimiter.checkOperation({
+    identityKey: rateLimitKey,
+    operationType: prepared.operationType,
     now,
-    maxRequests: getAuthoritativeOperationRateLimitMaxRequests(prepared.operationType),
-    windowMs: AUTHORITATIVE_OPERATION_RATE_LIMIT_WINDOW_MS,
-    maxKeys: AUTHORITATIVE_OPERATION_RATE_LIMIT_MAX_KEYS,
   });
   if (!operationRateLimit.ok) {
     await maybeLogAuthoritativeSecurityEvent({

@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.59] - 2026-05-15
+
+### Security
+- Extraido el rate limit del proxy autoritativo a un adaptador `AuthoritativeRateLimiter`.
+- El endpoint `/api/server/authoritative` deja de depender directamente de `Map` y queda preparado para sustituir `memory` por un backend compartido futuro.
+- `AUTHORITATIVE_RATE_LIMIT_BACKEND` acepta solo `memory`; cualquier valor no soportado falla en arranque para evitar una falsa proteccion distribuida.
+
+### Docs
+- Documentado el backend actual de rate limit y la necesidad de cambiarlo por almacenamiento compartido antes de trafico publico sensible multi-instancia.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeRateLimiter.test.ts tests/server.authoritativeRateLimit.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.58] - 2026-05-15
 
 ### Security
