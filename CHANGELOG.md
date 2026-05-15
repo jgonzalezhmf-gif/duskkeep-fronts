@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.36] - 2026-05-15
+
+### Changed
+- Extraida la infraestructura comun de llamadas autoritativas a `features/server/authoritativeOperationCaller.ts`.
+- `authoritativeOperationDispatcher` mantiene los mismos wrappers y parsers, pero delega token, llamada HTTP, idempotencia y fallback comun en un helper dedicado.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.35] - 2026-05-15
 
 ### Security
