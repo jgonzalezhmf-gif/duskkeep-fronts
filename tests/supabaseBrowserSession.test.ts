@@ -3,6 +3,7 @@ import {
   classifySupabaseAuthError,
   isSupabaseAuthPasswordWithinBounds,
   normalizeSupabaseAuthEmail,
+  normalizeSupabaseAuthRedirectTo,
   prepareSupabasePasswordCredentials,
   SUPABASE_AUTH_EMAIL_MAX_LENGTH,
   SUPABASE_AUTH_PASSWORD_MAX_LENGTH,
@@ -115,5 +116,18 @@ describe("Supabase browser session helpers", () => {
     });
     expect(prepareSupabasePasswordCredentials({ email: "", password: "password" })).toBeNull();
     expect(prepareSupabasePasswordCredentials({ email: "player@example.com", password: "" })).toBeNull();
+  });
+
+  it("keeps auth redirects on the current origin", () => {
+    const origin = "https://game.example.test";
+
+    expect(normalizeSupabaseAuthRedirectTo("https://game.example.test", origin)).toBe("https://game.example.test/");
+    expect(normalizeSupabaseAuthRedirectTo("https://game.example.test/deck?from=auth", origin)).toBe(
+      "https://game.example.test/deck?from=auth",
+    );
+    expect(normalizeSupabaseAuthRedirectTo("/adventure", origin)).toBe("https://game.example.test/adventure");
+    expect(normalizeSupabaseAuthRedirectTo("https://evil.example.test/phish", origin)).toBeUndefined();
+    expect(normalizeSupabaseAuthRedirectTo("javascript:alert(1)", origin)).toBeUndefined();
+    expect(normalizeSupabaseAuthRedirectTo("https://game.example.test", undefined)).toBeUndefined();
   });
 });

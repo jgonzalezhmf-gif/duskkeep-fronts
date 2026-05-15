@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.46] - 2026-05-15
+
+### Security
+- Acotadas las redirecciones de OAuth y recuperacion de password al mismo origen de la aplicacion.
+- Anhadida cobertura para descartar dominios externos y esquemas peligrosos en `redirectTo`.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/supabaseBrowserSession.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.45] - 2026-05-15
 
 ### Security

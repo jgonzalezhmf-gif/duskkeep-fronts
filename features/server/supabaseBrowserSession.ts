@@ -171,10 +171,11 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
 export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<SupabaseOAuthResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
+  const safeRedirectTo = normalizeSupabaseAuthRedirectTo(redirectTo);
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: redirectTo ? { redirectTo } : undefined,
+    options: safeRedirectTo ? { redirectTo: safeRedirectTo } : undefined,
   });
   if (error) return { ok: false, reason: "auth_error" };
 
@@ -186,9 +187,10 @@ export async function requestSupabasePasswordRecovery(email: string, redirectTo?
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const normalizedEmail = normalizeSupabaseAuthEmail(email);
   if (!normalizedEmail) return { ok: true };
+  const safeRedirectTo = normalizeSupabaseAuthRedirectTo(redirectTo);
 
   const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-    redirectTo,
+    redirectTo: safeRedirectTo,
   });
   if (error) {
     const reason = classifySupabaseAuthError(error.message);
@@ -280,9 +282,28 @@ export function prepareSupabasePasswordCredentials({
   return { email: normalizedEmail, password };
 }
 
+export function normalizeSupabaseAuthRedirectTo(redirectTo?: string, allowedOrigin = getCurrentBrowserOrigin()) {
+  if (!redirectTo || !allowedOrigin) return undefined;
+
+  try {
+    const allowed = new URL(allowedOrigin);
+    const target = new URL(redirectTo, allowed.origin);
+    const safeProtocol = target.protocol === "http:" || target.protocol === "https:";
+    if (!safeProtocol || target.origin !== allowed.origin) return undefined;
+    return target.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 export function classifySupabaseAuthError(message: string): SupabaseAuthFailureReason {
   const normalized = message.toLowerCase();
   if (normalized.includes("invalid") || normalized.includes("credentials")) return "invalid_credentials";
   if (normalized.includes("rate") || normalized.includes("too many")) return "rate_limited";
   return "auth_error";
+}
+
+function getCurrentBrowserOrigin() {
+  if (typeof window === "undefined") return undefined;
+  return window.location.origin;
 }
