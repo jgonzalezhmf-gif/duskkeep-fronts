@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.63] - 2026-05-15
+
+### Security
+- Anhadido guard de Fetch Metadata al proxy autoritativo.
+- Requests de navegador con `Sec-Fetch-Site: cross-site` se rechazan antes del rate limit y antes de parsear el body.
+- Las llamadas sin `Sec-Fetch-Site` siguen permitidas para smokes, tooling y clientes no navegador.
+
+### Docs
+- Documentada la defensa Fetch Metadata en los contratos autoritativos y roadmap de seguridad.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeRequestGuards.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.62] - 2026-05-15
 
 ### Security

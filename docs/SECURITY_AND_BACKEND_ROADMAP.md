@@ -138,6 +138,7 @@ Estos puntos son obligatorios antes de considerar segura una version con pagos, 
    - Mantener logs sin tokens, JWTs, auth headers, datos de pago completos ni secretos.
    - Estado MVP actual: el proxy autoritativo emite eventos estructurados sanitizados para rechazos/fallos de request, rate limit, validacion, replay y RPC. El sink es configurable por entorno (`console`, `disabled`, `webhook`) y el webhook exige HTTPS en produccion. Faltan alertas/retencion reales del proveedor que se elija.
    - Cada respuesta del proxy incluye `X-Request-Id` y el mismo id aparece en eventos sanitizados para correlacionar incidentes sin registrar datos sensibles.
+   - El proxy rechaza requests browser `cross-site` mediante Fetch Metadata antes de parsear body o consumir cuotas de rate limit.
 
 4. Webhooks de pago backend-only.
    - La concesion de premium currency debe depender exclusivamente de confirmacion firmada del proveedor en servidor.

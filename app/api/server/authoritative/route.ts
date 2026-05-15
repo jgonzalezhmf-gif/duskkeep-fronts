@@ -6,6 +6,7 @@ import {
   checkAuthoritativeAuthorizationHeaderSize,
   checkAuthoritativeBodySize,
   checkAuthoritativeContentType,
+  checkAuthoritativeFetchSite,
 } from "@/features/server/authoritativeRequestGuards";
 import { mergeAuthoritativeResponseHeaders } from "@/features/server/authoritativeResponseHeaders";
 import {
@@ -35,6 +36,17 @@ export async function POST(request: NextRequest) {
       requestId,
     });
     return respond(authorizationHeader.body, { status: authorizationHeader.status });
+  }
+
+  const fetchSite = checkAuthoritativeFetchSite({ headers: request.headers });
+  if (!fetchSite.ok) {
+    await maybeLogAuthoritativeSecurityEvent({
+      stage: "request_guard",
+      status: fetchSite.status,
+      code: fetchSite.body.code,
+      requestId,
+    });
+    return respond(fetchSite.body, { status: fetchSite.status });
   }
 
   const rateLimitKey = createAuthoritativeRateLimitKey(request.headers);

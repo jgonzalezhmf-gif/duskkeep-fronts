@@ -2,20 +2,24 @@ import { describe, expect, it } from "vitest";
 import {
   AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON,
   AUTHORITATIVE_BODY_TOO_LARGE_REASON,
+  AUTHORITATIVE_CROSS_SITE_REASON,
   AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
   checkAuthoritativeAuthorizationHeaderSize,
   checkAuthoritativeBodySize,
   checkAuthoritativeContentType,
+  checkAuthoritativeFetchSite,
 } from "@/features/server/authoritativeRequestGuards";
 
 function headers({
   contentLength,
   contentType,
   authorization,
+  fetchSite,
 }: {
   contentLength?: string;
   contentType?: string;
   authorization?: string;
+  fetchSite?: string;
 } = {}) {
   return {
     get(name: string) {
@@ -23,6 +27,7 @@ function headers({
       if (normalized === "authorization") return authorization ?? null;
       if (normalized === "content-length") return contentLength ?? null;
       if (normalized === "content-type") return contentType ?? null;
+      if (normalized === "sec-fetch-site") return fetchSite ?? null;
       return null;
     },
   };
@@ -93,6 +98,25 @@ describe("authoritative request guards", () => {
         ok: false,
         code: "request_header_fields_too_large",
         reason: AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON,
+      },
+    });
+  });
+
+  it("allows same-origin, same-site and non-browser requests by fetch metadata", () => {
+    expect(checkAuthoritativeFetchSite({ headers: headers() })).toEqual({ ok: true });
+    expect(checkAuthoritativeFetchSite({ headers: headers({ fetchSite: "same-origin" }) })).toEqual({ ok: true });
+    expect(checkAuthoritativeFetchSite({ headers: headers({ fetchSite: "same-site" }) })).toEqual({ ok: true });
+    expect(checkAuthoritativeFetchSite({ headers: headers({ fetchSite: "none" }) })).toEqual({ ok: true });
+  });
+
+  it("rejects browser cross-site requests before rate limiting or body parsing", () => {
+    expect(checkAuthoritativeFetchSite({ headers: headers({ fetchSite: "cross-site" }) })).toEqual({
+      ok: false,
+      status: 403,
+      body: {
+        ok: false,
+        code: "forbidden",
+        reason: AUTHORITATIVE_CROSS_SITE_REASON,
       },
     });
   });

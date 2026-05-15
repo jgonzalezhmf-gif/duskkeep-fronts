@@ -10,6 +10,8 @@ Antes de preparar una operacion sensible, el proxy valida que la configuracion p
 
 El header `Authorization` se limita en tamano y solo acepta un token Bearer con caracteres seguros de token. Supabase sigue siendo la autoridad de autenticacion real; esta validacion solo evita cabeceras anormales antes de crear el cliente RPC.
 
+La ruta usa Fetch Metadata como defensa adicional: requests de navegador con `Sec-Fetch-Site: cross-site` se rechazan antes del rate limit y antes de parsear el body. Las llamadas sin ese header siguen permitidas para smokes, herramientas y clientes no navegador.
+
 La ruta aplica un rate limit basico mediante el adaptador `AuthoritativeRateLimiter`. El backend actual es `memory`, configurado con `AUTHORITATIVE_RATE_LIMIT_BACKEND=memory`, y usa una clave derivada de hash del bearer token o, si no hay token valido, de la IP reenviada. Cualquier backend no soportado falla durante el arranque para evitar creer que hay proteccion distribuida cuando no existe. Ademas aplica un segundo limite por operacion ya parseada, con cuotas mas estrictas para `syncLocalSnapshot`, compras, cofres, claims, upgrades y resultados de combate. Estos limites reducen abuso accidental o automatizado en el MVP, pero para despliegue distribuido deben sustituirse por un adaptador compartido externo sin tocar la ruta ni los contratos.
 
 La ruta emite eventos de seguridad estructurados solo para rechazos/fallos. Estos eventos registran etapa, codigo, estado HTTP, operacion sanitizada e identidad hasheada cuando existe. No registran bearer tokens, headers completos, payloads, rewards, resources ni datos de pago. Sirven para detectar rate limits, payloads invalidos, fallos RPC y futuros rechazos de replay sin exponer informacion sensible.

@@ -3,6 +3,7 @@ export const AUTHORITATIVE_MAX_AUTHORIZATION_HEADER_CHARS = 4096;
 export const AUTHORITATIVE_BODY_TOO_LARGE_REASON = "Request body is too large";
 export const AUTHORITATIVE_AUTHORIZATION_TOO_LARGE_REASON = "Authorization header is too large";
 export const AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON = "Content-Type must be application/json";
+export const AUTHORITATIVE_CROSS_SITE_REASON = "Cross-site requests are not allowed";
 
 export type AuthoritativeRequestGuardFailure =
   | {
@@ -30,6 +31,15 @@ export type AuthoritativeRequestGuardFailure =
         ok: false;
         code: "unsupported_media_type";
         reason: typeof AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON;
+      };
+    }
+  | {
+      ok: false;
+      status: 403;
+      body: {
+        ok: false;
+        code: "forbidden";
+        reason: typeof AUTHORITATIVE_CROSS_SITE_REASON;
       };
     };
 
@@ -94,6 +104,27 @@ export function checkAuthoritativeContentType({
       ok: false,
       code: "unsupported_media_type",
       reason: AUTHORITATIVE_UNSUPPORTED_MEDIA_TYPE_REASON,
+    },
+  };
+}
+
+export function checkAuthoritativeFetchSite({
+  headers,
+}: {
+  headers: Pick<Headers, "get">;
+}): { ok: true } | AuthoritativeRequestGuardFailure {
+  const fetchSite = headers.get("sec-fetch-site")?.trim().toLowerCase();
+  if (!fetchSite || fetchSite === "same-origin" || fetchSite === "same-site" || fetchSite === "none") {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    status: 403,
+    body: {
+      ok: false,
+      code: "forbidden",
+      reason: AUTHORITATIVE_CROSS_SITE_REASON,
     },
   };
 }
