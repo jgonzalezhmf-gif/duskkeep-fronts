@@ -4,6 +4,7 @@ import { INTRO_ASSETS } from "@/lib/introAssets";
 import { useI18n, translate } from "@/lib/i18n/useI18n";
 import { activeIntroScene } from "./introScenes";
 import { IntroBoss } from "./IntroBoss";
+import { IntroCrest } from "./IntroCrest";
 import { IntroCrows } from "./IntroCrows";
 import { IntroLayer } from "./IntroLayer";
 import { useIntroLocale } from "./useIntroLocale";
@@ -201,30 +202,12 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
       <div
         className={`intro-stage__center ${scene?.id === "shadow" ? "intro-stage__center--lower" : ""}`}
       >
-        <div
-          className="intro-stage__crest"
-          style={{
-            opacity: crestOpacity,
-            transform: `scale(${crestScale.toFixed(4)})`,
-          }}
-        >
-          <div
-            className="intro-stage__crest-glow"
-            style={{ opacity: goldShineOpacity }}
-            aria-hidden="true"
-          />
-          <div
-            className="intro-stage__crest-rays"
-            style={{ opacity: goldShineOpacity * 0.6 }}
-            aria-hidden="true"
-          />
-          <IntroLayer
-            src={INTRO_ASSETS.titleCrest.src}
-            className="intro-stage__crest-img"
-            fallbackColor="rgba(0,0,0,0)"
-          />
-          <div className="intro-stage__crest-text">{crestText}</div>
-        </div>
+        <IntroCrest
+          opacity={crestOpacity}
+          scale={crestScale}
+          shineOpacity={goldShineOpacity}
+          title={crestText}
+        />
         <div
           className={`intro-stage__text ${scene?.id === "shadow" ? "intro-stage__text--delayed" : ""}`}
           key={scene?.id ?? "none"}
