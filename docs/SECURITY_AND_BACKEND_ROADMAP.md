@@ -213,6 +213,22 @@ Requisitos operativos:
 - La vulnerabilidad moderada conocida en `next`/`postcss` debe revisarse cuando exista una version estable compatible que la corrija.
 - Mantener `package.json` con `"private": true` y no introducir dependencias nuevas para seguridad, pagos o backend sin revisar superficie de ataque y mantenimiento.
 
+## Cabeceras HTTP de Seguridad
+
+La aplicacion configura cabeceras globales desde `next.config.mjs` mediante `features/server/securityHeaders.mjs`.
+
+Cobertura actual:
+
+- `Content-Security-Policy` con `default-src 'self'`, bloqueo de `object-src`, `base-uri` y `frame-ancestors`.
+- `connect-src` permite el propio origen, el origen Supabase configurado y su canal `wss`; en desarrollo permite localhost/ws para tooling.
+- `script-src` no permite `unsafe-eval` en produccion. En desarrollo se permite solo para compatibilidad con herramientas de Next.
+- `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` y `Permissions-Policy` restrictiva.
+
+Riesgo residual aceptado para el alpha:
+
+- `unsafe-inline` permanece en `script-src` y `style-src` por compatibilidad con el runtime/hidratacion de Next y estilos actuales. Antes de endurecer monetizacion o despliegue publico amplio, conviene evaluar CSP con nonces/hashes y reducir inline scripts/styles sin romper el cliente.
+- No se activa todavia `Cross-Origin-Opener-Policy` porque puede afectar flujos de autenticacion/OAuth; debe validarse junto al login final.
+
 ## Limite de Lanzamiento
 
 Para el alpha presentable actual:
