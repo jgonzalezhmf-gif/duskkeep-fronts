@@ -2,7 +2,7 @@
 
 import { useI18n, translate } from "@/lib/i18n/useI18n";
 import { activeIntroScene } from "./introScenes";
-import { IntroCrest } from "./IntroCrest";
+import { IntroOverlay } from "./IntroOverlay";
 import { IntroWorld } from "./IntroWorld";
 import { useIntroLocale } from "./useIntroLocale";
 import { useIntroMotion } from "./useIntroMotion";
@@ -116,6 +116,8 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
 
   const sceneText = scene?.id === "crest" || !scene?.textKey ? "" : t(scene.textKey);
   const crestText = t("intro.title");
+  const skipLabel = t("intro.skip");
+  const enterLabel = t("intro.enter");
   // CTA fades in once the crest beat opens; doesn't wait for end-of-timeline.
   const showCta = elapsedMs >= 22500 || finished;
 
@@ -144,37 +146,20 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
         reducedMotion={reducedMotion}
         shake={shake}
       />
-      <div
-        className={`intro-stage__center ${scene?.id === "shadow" ? "intro-stage__center--lower" : ""}`}
-      >
-        <IntroCrest
-          opacity={crestOpacity}
-          scale={crestScale}
-          shineOpacity={goldShineOpacity}
-          title={crestText}
-        />
-        <div
-          className={`intro-stage__text ${scene?.id === "shadow" ? "intro-stage__text--delayed" : ""}`}
-          key={scene?.id ?? "none"}
-        >
-          {sceneText}
-        </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={onSkip}
-        className="intro-stage__skip"
-        aria-label={t("intro.skip")}
-      >
-        {t("intro.skip")}
-      </button>
-
-      {showCta ? (
-        <button type="button" onClick={onEnter} className="intro-stage__cta">
-          {t("intro.enter")}
-        </button>
-      ) : null}
+      <IntroOverlay
+        crestOpacity={crestOpacity}
+        crestScale={crestScale}
+        crestText={crestText}
+        goldShineOpacity={goldShineOpacity}
+        isShadowScene={scene?.id === "shadow"}
+        onEnter={onEnter}
+        onSkip={onSkip}
+        sceneId={scene?.id}
+        sceneText={sceneText}
+        showCta={showCta}
+        skipLabel={skipLabel}
+        enterLabel={enterLabel}
+      />
 
       <style jsx global>{`
         .intro-stage {

@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.30] - 2026-05-15
+
+### Changed
+- Extraido el overlay de texto y controles de la intro a `components/game/intro/IntroOverlay.tsx`.
+- `IntroStage` conserva la orquestacion de motion y estilos globales, delegando el texto central, skip y CTA final en un componente dedicado.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/introMotion.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.29] - 2026-05-15
 
 ### Changed
