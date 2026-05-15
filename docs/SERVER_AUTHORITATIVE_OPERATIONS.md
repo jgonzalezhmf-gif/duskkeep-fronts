@@ -10,6 +10,16 @@ La ruta aplica un rate limit basico en memoria antes de parsear el JSON. Usa una
 
 La ruta emite eventos de seguridad estructurados solo para rechazos/fallos. Estos eventos registran etapa, codigo, estado HTTP, operacion sanitizada e identidad hasheada cuando existe. No registran bearer tokens, headers completos, payloads, rewards, resources ni datos de pago. Sirven para detectar rate limits, payloads invalidos, fallos RPC y futuros rechazos de replay sin exponer informacion sensible.
 
+El sink de observabilidad se configura por entorno:
+
+- `AUTHORITATIVE_SECURITY_EVENT_SINK=console` escribe JSON sanitizado por consola. Es el valor por defecto.
+- `AUTHORITATIVE_SECURITY_EVENT_SINK=disabled` desactiva la emision.
+- `AUTHORITATIVE_SECURITY_EVENT_SINK=webhook` envia el evento por `POST` a `AUTHORITATIVE_SECURITY_EVENT_WEBHOOK_URL`.
+- En produccion, el webhook debe ser `https://`. En desarrollo se permite `http://localhost` para pruebas locales.
+- `AUTHORITATIVE_SECURITY_EVENT_WEBHOOK_TIMEOUT_MS` limita el tiempo de envio y se acota entre 250 ms y 5000 ms.
+
+Los fallos del sink no cambian la respuesta al jugador y se registran como eventos tecnicos de sink sin incluir la URL ni el payload original.
+
 El cliente interno vive en `features/server/authoritativeClient.ts`. Centraliza el POST a `/api/server/authoritative`, exige token explicito, valida el payload con los mismos contratos locales y limita llamadas a las operaciones que ya tienen RPC.
 
 El dispatcher progresivo vive en `features/server/authoritativeOperationDispatcher.ts`. Sus primeras integraciones conectadas a UI cubren `syncLocalSnapshot` para importacion explicita de progreso invitado, `purchaseShopOffer` contra el catalogo server-side `server_shop_offers`, `openAdventureMapInteraction` para cofres de mapa, `claimAdventureNodeReward` para nodos no-combate `c1l3`/`c1l7`, `claimAdventureBattleResult` para resultados de combate Adventure, `recordArenaResult` para resultados de Arena, `recordEventResult` para resultados de Events, `saveLoadout` desde Deck, `upgradeFrontlineCard` desde Deck, `upgradeFrontlineFortress` desde Fortress, `claimDailyLogin` desde Home y `claimMission` para metricas cuyo progreso ya nace de operaciones server-side. Si hay sesion Supabase usan el proxy autoritativo; si no hay sesion o la API esta desactivada, conservan el flujo local. Si el servidor conectado rechaza la operacion, no se hace fallback local para evitar bypass de reglas autoritativas.

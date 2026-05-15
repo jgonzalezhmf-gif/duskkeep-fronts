@@ -3,6 +3,7 @@ import {
   createAuthoritativeSecurityEvent,
   getSafeOperationType,
   logAuthoritativeSecurityEvent,
+  resolveAuthoritativeSecurityEventSink,
 } from "@/features/server/authoritativeSecurityEvents";
 
 describe("authoritative security events", () => {
@@ -40,7 +41,7 @@ describe("authoritative security events", () => {
     expect(getSafeOperationType(null)).toBeUndefined();
   });
 
-  it("logs structured JSON only through the provided logger", () => {
+  it("logs structured JSON only through the provided logger", async () => {
     const warn = vi.fn();
     const event = createAuthoritativeSecurityEvent({
       stage: "global_rate_limit",
@@ -50,8 +51,80 @@ describe("authoritative security events", () => {
       now: new Date("2026-05-15T10:00:00.000Z"),
     });
 
-    logAuthoritativeSecurityEvent(event, { warn });
+    await logAuthoritativeSecurityEvent(event, { logger: { warn } });
 
     expect(warn).toHaveBeenCalledWith(JSON.stringify(event));
+  });
+
+  it("can disable the security event sink by environment", async () => {
+    const warn = vi.fn();
+    const fetchImpl = vi.fn();
+    const event = createAuthoritativeSecurityEvent({
+      stage: "request_guard",
+      status: 415,
+      code: "unsupported_media_type",
+      now: new Date("2026-05-15T10:00:00.000Z"),
+    });
+
+    await logAuthoritativeSecurityEvent(event, {
+      env: { AUTHORITATIVE_SECURITY_EVENT_SINK: "disabled", NODE_ENV: "production" },
+      logger: { warn },
+      fetchImpl,
+    });
+
+    expect(warn).not.toHaveBeenCalled();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("posts sanitized events to a configured HTTPS webhook", async () => {
+    const warn = vi.fn();
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 202 });
+    const event = createAuthoritativeSecurityEvent({
+      stage: "rpc",
+      status: 409,
+      code: "idempotency_conflict",
+      operationType: "purchaseShopOffer",
+      identityKey: "auth:abcdef",
+      now: new Date("2026-05-15T10:00:00.000Z"),
+    });
+
+    await logAuthoritativeSecurityEvent(event, {
+      env: {
+        AUTHORITATIVE_SECURITY_EVENT_SINK: "webhook",
+        AUTHORITATIVE_SECURITY_EVENT_WEBHOOK_URL: "https://observability.example/events",
+        AUTHORITATIVE_SECURITY_EVENT_WEBHOOK_TIMEOUT_MS: "500",
+        NODE_ENV: "production",
+      },
+      logger: { warn },
+      fetchImpl,
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://observability.example/events",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(event),
+      }),
+    );
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("falls back to console when webhook URL is not production-safe", () => {
+    expect(
+      resolveAuthoritativeSecurityEventSink({
+        AUTHORITATIVE_SECURITY_EVENT_SINK: "webhook",
+        AUTHORITATIVE_SECURITY_EVENT_WEBHOOK_URL: "http://attacker.example/events",
+        NODE_ENV: "production",
+      }),
+    ).toEqual({ mode: "console" });
+
+    expect(
+      resolveAuthoritativeSecurityEventSink({
+        AUTHORITATIVE_SECURITY_EVENT_SINK: "webhook",
+        AUTHORITATIVE_SECURITY_EVENT_WEBHOOK_URL: "http://localhost:4000/events",
+        NODE_ENV: "development",
+      }),
+    ).toEqual({ mode: "webhook", url: "http://localhost:4000/events", timeoutMs: 1500 });
   });
 });

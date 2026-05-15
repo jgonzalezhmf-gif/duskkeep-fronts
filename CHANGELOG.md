@@ -7,6 +7,24 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.58] - 2026-05-15
+
+### Security
+- Anhadido sink configurable para eventos sanitizados de `/api/server/authoritative`.
+- Soportados los modos `console`, `disabled` y `webhook` mediante variables de entorno de servidor.
+- El webhook exige HTTPS en produccion, permite solo localhost HTTP en desarrollo, usa timeout acotado y no expone URL, tokens, payloads, rewards ni resources en fallos.
+
+### Docs
+- Documentada la configuracion de observabilidad autoritativa en `.env.example`, roadmap de seguridad y contratos autoritativos.
+
+### Tested
+- `npm.cmd test -- tests/server.authoritativeSecurityEvents.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run typecheck`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.57] - 2026-05-15
 
 ### Security

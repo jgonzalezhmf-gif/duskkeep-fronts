@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   const now = Date.now();
   const authorizationHeader = checkAuthoritativeAuthorizationHeaderSize({ headers: request.headers });
   if (!authorizationHeader.ok) {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "request_guard",
       status: authorizationHeader.status,
       code: authorizationHeader.body.code,
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     now,
   });
   if (!rateLimit.ok) {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "global_rate_limit",
       status: rateLimit.status,
       code: rateLimit.body.code,
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
   const bodySize = checkAuthoritativeBodySize({ headers: request.headers });
   if (!bodySize.ok) {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "request_guard",
       status: bodySize.status,
       code: bodySize.body.code,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
   const contentType = checkAuthoritativeContentType({ headers: request.headers });
   if (!contentType.ok) {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "request_guard",
       status: contentType.status,
       code: contentType.body.code,
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "json_parse",
       status: 400,
       code: "invalid_json",
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     headers: request.headers,
   });
   if (!prepared.ok) {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "request_validation",
       status: prepared.status,
       code: prepared.body.code,
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     maxKeys: AUTHORITATIVE_OPERATION_RATE_LIMIT_MAX_KEYS,
   });
   if (!operationRateLimit.ok) {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "operation_rate_limit",
       status: operationRateLimit.status,
       code: operationRateLimit.body.code,
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
 
   const result = await executeAuthoritativeRpcCall(prepared);
   if (result.status >= 400 || isAuthoritativeFailureBody(result.body)) {
-    maybeLogAuthoritativeSecurityEvent({
+    await maybeLogAuthoritativeSecurityEvent({
       stage: "rpc",
       status: result.status,
       code: isAuthoritativeFailureBody(result.body) ? result.body.code : "invalid_state",
