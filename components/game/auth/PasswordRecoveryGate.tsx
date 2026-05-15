@@ -5,7 +5,7 @@ import { subscribeToSupabaseAuthEvents, updateSupabasePassword } from "@/feature
 import {
   createPasswordRecoveryCleanPath,
   getPasswordUpdateFailureNoticeKey,
-  hasPasswordRecoveryUrlMarker,
+  hasPasswordSetupUrlMarker,
   shouldStripPasswordRecoveryUrl,
 } from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
@@ -160,7 +160,7 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
 
 function hasRecoveryParams() {
   if (typeof window === "undefined") return false;
-  return hasPasswordRecoveryUrlMarker({ hash: window.location.hash, search: window.location.search });
+  return hasPasswordSetupUrlMarker({ hash: window.location.hash, search: window.location.search });
 }
 
 function stripRecoveryTokensFromUrl() {

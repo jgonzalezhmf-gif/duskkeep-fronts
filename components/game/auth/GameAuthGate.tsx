@@ -3,12 +3,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import {
   getSupabaseSessionSnapshot,
+  requestAnonymousSupabaseEmailLink,
   requestSupabasePasswordRecovery,
   signInSupabaseWithGoogle,
   signInSupabaseWithPassword,
   signUpSupabaseWithPassword,
   subscribeToSupabaseSession,
-  upgradeAnonymousSupabaseUserWithPassword,
   type SupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
 import {
@@ -89,19 +89,18 @@ export function GameAuthGate({
   const configured = session.status !== "unconfigured";
   const emailReady = email.trim().length > 3 && email.includes("@");
   const passwordReady = password.length >= MIN_PASSWORD_LENGTH;
-  const canSubmit = configured && emailReady && passwordReady && !busy;
+  const canSubmit = configured && emailReady && (guestUpgrade || passwordReady) && !busy;
   const authCta = activeMode === "signIn" ? t("auth.signInCta") : t("auth.createAccountCta");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit) {
-      setNotice(t("auth.validationHint"));
+      setNotice(t(guestUpgrade ? "auth.recoveryEmailHint" : "auth.validationHint"));
       return;
     }
 
     setBusy(true);
     setNotice(null);
-    const credentials = { email, password };
     const currentSession = guestUpgrade ? await getSupabaseSessionSnapshot() : session;
     if (guestUpgrade) {
       setSession(currentSession);
@@ -117,12 +116,11 @@ export function GameAuthGate({
       setNotice(t("auth.guestUpgradeExistingSession"));
       return;
     }
-    const result =
-      activeMode === "signIn"
-        ? await signInSupabaseWithPassword(credentials)
-        : guestUpgrade
-          ? await upgradeAnonymousSupabaseUserWithPassword(credentials)
-          : await signUpSupabaseWithPassword(credentials);
+    const result = guestUpgrade
+      ? await requestAnonymousSupabaseEmailLink(email, typeof window !== "undefined" ? window.location.origin : undefined)
+      : activeMode === "signIn"
+        ? await signInSupabaseWithPassword({ email, password })
+        : await signUpSupabaseWithPassword({ email, password });
 
     if (!result.ok) {
       setBusy(false);
@@ -131,7 +129,7 @@ export function GameAuthGate({
     }
 
     setSession(result.session);
-    if (result.session.status === "authenticated" && !result.session.isAnonymous) {
+    if (!guestUpgrade && result.session.status === "authenticated" && !result.session.isAnonymous) {
       sfx.unlock();
       await onLinked();
       setBusy(false);
@@ -292,18 +290,20 @@ export function GameAuthGate({
                       placeholder="commander@example.com"
                     />
                   </label>
-                  <label className="block">
-                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/48">{t("auth.password")}</span>
-                    <input
-                      type="password"
-                      autoComplete={activeMode === "signIn" ? "current-password" : "new-password"}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      disabled={busy}
-                      className="mt-2 w-full rounded-[18px] border border-white/10 bg-black/28 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-white/24 focus:border-[#f5c451]/42"
-                      placeholder={t("auth.passwordHint")}
-                    />
-                  </label>
+                  {!guestUpgrade ? (
+                    <label className="block">
+                      <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/48">{t("auth.password")}</span>
+                      <input
+                        type="password"
+                        autoComplete={activeMode === "signIn" ? "current-password" : "new-password"}
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        disabled={busy}
+                        className="mt-2 w-full rounded-[18px] border border-white/10 bg-black/28 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-white/24 focus:border-[#f5c451]/42"
+                        placeholder={t("auth.passwordHint")}
+                      />
+                    </label>
+                  ) : null}
 
                   {!configured ? (
                     <div className="rounded-[18px] border border-amber-200/16 bg-amber-300/10 px-4 py-3 text-[12px] leading-5 text-amber-100/80">

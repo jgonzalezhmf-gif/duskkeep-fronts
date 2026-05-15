@@ -37,26 +37,45 @@ const firstSnapshot = await loadPlayerSnapshot("anonymous snapshot");
 const firstProfileId = firstSnapshot.result.profileId;
 assertStarterSnapshot(firstSnapshot, "anonymous snapshot");
 
-const upgrade = await supabase.auth.updateUser({ email, password });
+const upgrade = await supabase.auth.updateUser(
+  { email },
+  {
+    emailRedirectTo: "http://127.0.0.1:3000/?guestUpgrade=confirm",
+  },
+);
 if (upgrade.error) {
-  fail(`Anonymous upgrade failed: ${classifySafeAuthError(upgrade.error.message)}`);
+  fail(`Anonymous guest email verification request failed: ${classifySafeAuthError(upgrade.error.message)}`);
 }
 
 const upgradedSession = await supabase.auth.getSession();
 if (upgradedSession.error || !upgradedSession.data.session) {
-  fail("Could not read upgraded session.");
+  fail("Could not read session after guest upgrade request.");
 }
 
 const upgradedUser = upgradedSession.data.session.user;
 if (upgradedUser.id !== anonymousUserId) {
-  fail("Anonymous upgrade changed the user id.");
+  fail("Guest upgrade request changed the user id.");
 }
 
 const secondSnapshot = await loadPlayerSnapshot("upgraded snapshot");
 assertStarterSnapshot(secondSnapshot, "upgraded snapshot");
 
 if (secondSnapshot.result.profileId !== firstProfileId) {
-  fail("Anonymous upgrade did not preserve the server profile id.");
+  fail("Guest upgrade request did not preserve the server profile id.");
+}
+
+if (upgradedUser.is_anonymous === true) {
+  console.log("Anonymous guest email verification smoke passed.");
+  console.log(`User id preserved: ${anonymousUserId}`);
+  console.log(`Profile id preserved: ${firstProfileId}`);
+  console.log("Email verification is pending; complete the email link before setting a password.");
+  console.log(`Email used: ${email}`);
+  process.exit(0);
+}
+
+const passwordUpdate = await supabase.auth.updateUser({ password });
+if (passwordUpdate.error) {
+  fail(`Post-verification password setup failed: ${classifySafeAuthError(passwordUpdate.error.message)}`);
 }
 
 const syncResult = await supabase.rpc("sync_local_snapshot", {

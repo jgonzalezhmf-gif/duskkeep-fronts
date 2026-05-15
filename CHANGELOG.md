@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.76] - 2026-05-15
+
+### Auth
+- Cambiado el flujo invitado -> cuenta nueva a dos fases: vincular/verificar email primero y definir password despues.
+- El flujo conserva el usuario anonimo y evita intentar fijar password antes de que Supabase verifique el email.
+- El enlace de verificacion `guestUpgrade=confirm` abre el modal de definicion de password y luego sincroniza el snapshot local validado.
+
+### Backend
+- Actualizado `smoke:supabase:guest-upgrade` para aceptar el estado remoto seguro de verificacion de email pendiente.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test -- tests/sessionSecurity.test.ts`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.75] - 2026-05-15
 
 ### Backend

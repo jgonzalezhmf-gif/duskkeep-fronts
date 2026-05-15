@@ -93,7 +93,9 @@ npm.cmd run smoke:supabase:guest-upgrade
 
 Notas:
 
-- `smoke:supabase:guest-upgrade` crea un usuario anonimo real y luego lo convierte a email/password de prueba.
+- `smoke:supabase:guest-upgrade` crea un usuario anonimo real y solicita vincular un email al invitado.
+- En proyectos remotos con confirmacion de email activada, el smoke termina correctamente cuando la solicitud de verificacion queda pendiente y confirma que `user_id` y `profileId` siguen preservados.
+- Tras pulsar el enlace de verificacion del email, la app abre el flujo de definicion de password y sincroniza el snapshot local validado.
 - En remoto puede requerir ajustar politica de confirmacion de email para entorno de prueba.
 - No debe ejecutarse contra produccion publica con emails reales sin una estrategia de limpieza.
 

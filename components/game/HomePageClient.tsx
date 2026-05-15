@@ -39,6 +39,7 @@ export default function HomePageClient({
   const markIntroSeen = useGameStore((state) => state.markIntroSeen);
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
+  const syncLocalSnapshotOnlineFirst = useGameStore((state) => state.syncLocalSnapshotOnlineFirst);
   const [introDismissed, setIntroDismissed] = useState(false);
   const [introSeenThisPageLoad, setIntroSeenThisPageLoad] = useState(() => introSeenInPageRuntime);
   const [guestChoiceResolvedThisPageLoad, setGuestChoiceResolvedThisPageLoad] = useState(() => guestChoiceResolvedInPageRuntime);
@@ -169,7 +170,12 @@ export default function HomePageClient({
           setAccountLinkMode("linked");
         }}
       />
-      <PasswordRecoveryGate onRecovered={() => setAccountLinkMode("linked")} />
+      <PasswordRecoveryGate
+        onRecovered={async () => {
+          setAccountLinkMode("linked");
+          await syncLocalSnapshotOnlineFirst();
+        }}
+      />
     </>
   );
 }

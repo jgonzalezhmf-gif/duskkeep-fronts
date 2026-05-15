@@ -25,6 +25,9 @@ export type SupabaseAuthFailureReason = "unconfigured" | "invalid_credentials" |
 export type SupabaseOAuthResult = { ok: true } | { ok: false; reason: "unconfigured" | "auth_error" };
 export type SupabasePasswordRecoveryResult = { ok: true } | { ok: false; reason: "unconfigured" | "rate_limited" | "auth_error" };
 export type SupabasePasswordUpdateResult = { ok: true; session: SupabaseSessionSnapshot } | { ok: false; reason: SupabaseAuthFailureReason };
+export type SupabaseGuestUpgradeEmailResult =
+  | { ok: true; session: SupabaseSessionSnapshot }
+  | { ok: false; reason: SupabaseAuthFailureReason };
 
 export type SupabasePasswordCredentials = {
   email: string;
@@ -168,6 +171,37 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
   };
 }
 
+export async function requestAnonymousSupabaseEmailLink(email: string, redirectTo?: string): Promise<SupabaseGuestUpgradeEmailResult> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { ok: false, reason: "unconfigured" };
+  const normalizedEmail = normalizeSupabaseAuthEmail(email);
+  if (!normalizedEmail) return { ok: false, reason: "auth_error" };
+
+  const currentSession = await supabase.auth.getSession();
+  let session = currentSession.data.session;
+  if (!session) {
+    const anonymous = await supabase.auth.signInAnonymously();
+    if (anonymous.error) return { ok: false, reason: classifySupabaseAuthError(anonymous.error.message) };
+    session = anonymous.data.session;
+  }
+
+  if (!shouldAllowAnonymousUserUpgrade(toSupabaseSessionSnapshot(session))) {
+    return { ok: false, reason: "auth_error" };
+  }
+
+  const safeRedirectTo = normalizeSupabaseAuthRedirectTo(createGuestUpgradeEmailRedirectTo(redirectTo));
+  const { error } = await supabase.auth.updateUser(
+    { email: normalizedEmail },
+    safeRedirectTo ? { emailRedirectTo: safeRedirectTo } : undefined,
+  );
+  if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+
+  return {
+    ok: true,
+    session: await getSupabaseSessionSnapshot(),
+  };
+}
+
 export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<SupabaseOAuthResult> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
@@ -291,6 +325,17 @@ export function normalizeSupabaseAuthRedirectTo(redirectTo?: string, allowedOrig
     const safeProtocol = target.protocol === "http:" || target.protocol === "https:";
     if (!safeProtocol || target.origin !== allowed.origin) return undefined;
     return target.toString();
+  } catch {
+    return undefined;
+  }
+}
+
+export function createGuestUpgradeEmailRedirectTo(origin?: string) {
+  if (!origin) return undefined;
+  try {
+    const url = new URL(origin);
+    url.searchParams.set("guestUpgrade", "confirm");
+    return url.toString();
   } catch {
     return undefined;
   }

@@ -5,7 +5,9 @@ import {
   getAuthGateModeForIntent,
   getPasswordRecoveryRequestNoticeKey,
   getPasswordUpdateFailureNoticeKey,
+  hasGuestUpgradePasswordSetupUrlMarker,
   hasPasswordRecoveryUrlMarker,
+  hasPasswordSetupUrlMarker,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
   shouldBlockLocalAuthoritativeFallback,
@@ -175,14 +177,19 @@ describe("auth session security helpers", () => {
     expect(hasPasswordRecoveryUrlMarker({ search: "?type=recovery", hash: "" })).toBe(true);
     expect(hasPasswordRecoveryUrlMarker({ search: "", hash: "#access_token=secret&type=recovery" })).toBe(true);
     expect(hasPasswordRecoveryUrlMarker({ search: "?next=/home", hash: "" })).toBe(false);
+    expect(hasGuestUpgradePasswordSetupUrlMarker({ search: "?guestUpgrade=confirm", hash: "" })).toBe(true);
+    expect(hasGuestUpgradePasswordSetupUrlMarker({ search: "", hash: "#access_token=secret&type=email_change" })).toBe(true);
+    expect(hasPasswordSetupUrlMarker({ search: "?guestUpgrade=confirm", hash: "" })).toBe(true);
 
     expect(shouldStripPasswordRecoveryUrl({ search: "?type=recovery&next=/home", hash: "" })).toBe(true);
     expect(shouldStripPasswordRecoveryUrl({ search: "?next=/home", hash: "#access_token=secret&refresh_token=secret" })).toBe(true);
+    expect(shouldStripPasswordRecoveryUrl({ search: "?guestUpgrade=confirm", hash: "#type=email_change&access_token=secret" })).toBe(true);
     expect(shouldStripPasswordRecoveryUrl({ search: "?next=/home", hash: "#safe=1" })).toBe(false);
 
     expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?type=recovery&next=%2Fdeck", hash: "#access_token=secret" })).toBe(
       "/home?next=%2Fdeck",
     );
+    expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?guestUpgrade=confirm", hash: "#type=email_change" })).toBe("/home");
     expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?type=recovery", hash: "#refresh_token=secret" })).toBe("/home");
   });
 

@@ -144,14 +144,29 @@ export function hasPasswordRecoveryUrlMarker({ search = "", hash = "" }: Pick<Au
   return `${hash} ${search}`.toLowerCase().includes("type=recovery");
 }
 
+export function hasGuestUpgradePasswordSetupUrlMarker({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
+  const marker = `${hash} ${search}`.toLowerCase();
+  return marker.includes("guestupgrade=confirm") || marker.includes("type=email_change");
+}
+
+export function hasPasswordSetupUrlMarker(parts: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
+  return hasPasswordRecoveryUrlMarker(parts) || hasGuestUpgradePasswordSetupUrlMarker(parts);
+}
+
 export function shouldStripPasswordRecoveryUrl({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
   const marker = `${hash} ${search}`.toLowerCase();
-  return marker.includes("access_token") || marker.includes("refresh_token") || marker.includes("type=recovery");
+  return (
+    marker.includes("access_token") ||
+    marker.includes("refresh_token") ||
+    marker.includes("type=recovery") ||
+    marker.includes("type=email_change")
+  );
 }
 
 export function createPasswordRecoveryCleanPath({ pathname, search = "" }: AuthRecoveryUrlParts) {
   const params = new URLSearchParams(search);
   params.delete("type");
+  params.delete("guestUpgrade");
   const cleanSearch = params.toString();
   return `${pathname}${cleanSearch ? `?${cleanSearch}` : ""}`;
 }
