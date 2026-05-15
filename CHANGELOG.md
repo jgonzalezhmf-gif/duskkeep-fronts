@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.18] - 2026-05-15
+
+### Changed
+- Extraidos los parsers de respuestas autoritativas a `features/server/authoritativeOperationParsers.ts`.
+- `authoritativeOperationDispatcher` queda centrado en orquestar operaciones, idempotencia, llamadas al proxy y comprobaciones de mismatch, reduciendo su tamano de 1565 a 1139 lineas.
+
+### Security
+- La validacion de respuestas `unknown` sigue siendo allowlist/shape-safe antes de aplicar recursos, rewards, progreso, loadout o Fortress en cliente.
+- No cambia contratos, RPCs, fallback autoritativo, rewards ni reglas de gameplay.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeOperationDispatcher.test.ts tests/server.authoritativeOperations.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.17] - 2026-05-15
 
 ### Changed
