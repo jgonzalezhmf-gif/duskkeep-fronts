@@ -18,7 +18,7 @@ export type SupabasePublicConfigEnv = Record<string, string | undefined>;
 
 const LOCAL_SUPABASE_HOSTS = new Set(["127.0.0.1", "localhost"]);
 
-export function getSupabasePublicConfig(env: SupabasePublicConfigEnv = process.env): SupabasePublicConfigResult {
+export function getSupabasePublicConfig(env: SupabasePublicConfigEnv = getDefaultSupabasePublicEnv()): SupabasePublicConfigResult {
   const url = env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const anonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
@@ -36,6 +36,14 @@ export function getSupabasePublicConfig(env: SupabasePublicConfigEnv = process.e
       url: parsedUrl.toString().replace(/\/$/, ""),
       anonKey,
     },
+  };
+}
+
+function getDefaultSupabasePublicEnv(): SupabasePublicConfigEnv {
+  return {
+    // Keep static property reads so Next can inline public env values in client bundles.
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   };
 }
 

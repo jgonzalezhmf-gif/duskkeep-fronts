@@ -128,11 +128,19 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
+  const currentSession = await supabase.auth.getSession();
+  if (!currentSession.data.session) {
+    const anonymous = await supabase.auth.signInAnonymously();
+    if (anonymous.error) return { ok: false, reason: classifySupabaseAuthError(anonymous.error.message) };
+  }
+
   const { error } = await supabase.auth.updateUser({
     email: email.trim(),
     password,
   });
   if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+
+  await supabase.auth.refreshSession();
 
   return {
     ok: true,

@@ -71,7 +71,7 @@ export default function GameOptionsButton({ className }: { className?: string })
 
       {open && typeof document !== "undefined"
         ? createPortal(
-        <div className="fixed inset-0 z-[80] grid place-items-center px-3 py-6">
+        <div className="fixed inset-0 z-[80] grid place-items-center overflow-y-auto px-3 py-6">
           <button
             type="button"
             aria-label={t("options.close")}
@@ -82,7 +82,7 @@ export default function GameOptionsButton({ className }: { className?: string })
             role="dialog"
             aria-modal="true"
             aria-labelledby="game-options-title"
-            className="frontline-motion-reveal relative z-[1] w-full max-w-[36rem] overflow-hidden rounded-[34px] border border-[#f5c451]/18 bg-[linear-gradient(180deg,rgba(37,28,20,0.96),rgba(8,10,16,0.98))] p-5 shadow-[0_34px_90px_rgba(0,0,0,0.5)]"
+            className="frontline-motion-reveal relative z-[1] my-auto max-h-[calc(100dvh-3rem)] w-full max-w-[36rem] overflow-y-auto overflow-x-hidden rounded-[34px] border border-[#f5c451]/18 bg-[linear-gradient(180deg,rgba(37,28,20,0.96),rgba(8,10,16,0.98))] p-5 shadow-[0_34px_90px_rgba(0,0,0,0.5)]"
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgba(245,196,81,0.2),transparent_28%),radial-gradient(circle_at_88%_22%,rgba(122,162,255,0.12),transparent_24%)]" />
             <div className="relative z-[1]">

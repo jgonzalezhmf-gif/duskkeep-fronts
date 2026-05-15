@@ -7,6 +7,21 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.16] - 2026-05-15
+
+### Fixed
+- El modal de Opciones permite scroll vertical en viewports bajos para que la seccion de cuenta y el boton `Crear cuenta y guardar progreso` sigan siendo accesibles.
+- El cliente Supabase lee `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` mediante referencias estaticas para que Next las inyecte correctamente en bundles cliente.
+- `next.config.mjs` declara explicitamente las variables publicas de Supabase para asegurar que el cliente Auth queda configurado en builds locales/produccion.
+- El flujo `guest -> cuenta nueva` usa un snapshot fresco al enviar el formulario y llama siempre al helper de conversion anonima para evitar que una carrera de estado dispare `signUp` en vez de convertir la sesion invitada.
+
+### Tested
+- `npm.cmd test -- tests/supabasePublicConfig.test.ts tests/supabaseBrowserSession.test.ts tests/sessionSecurity.test.ts tests/storeAuthoritativeFallback.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `agent-browser`: `/` en produccion local, intro, login gate, entrada como invitado, Opciones y apertura del modal `Crear cuenta y guardar progreso`.
+
 ## [0.32.15] - 2026-05-15
 
 ### Changed

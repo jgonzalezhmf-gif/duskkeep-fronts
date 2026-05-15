@@ -102,10 +102,25 @@ export function GameAuthGate({
     setBusy(true);
     setNotice(null);
     const credentials = { email, password };
+    const currentSession = guestUpgrade ? await getSupabaseSessionSnapshot() : session;
+    if (guestUpgrade) {
+      setSession(currentSession);
+    }
+    if (
+      shouldBlockGuestUpgradeForSession({
+        intent,
+        sessionStatus: currentSession.status,
+        sessionIsAnonymous: currentSession.status === "authenticated" ? currentSession.isAnonymous : false,
+      })
+    ) {
+      setBusy(false);
+      setNotice(t("auth.guestUpgradeExistingSession"));
+      return;
+    }
     const result =
       activeMode === "signIn"
         ? await signInSupabaseWithPassword(credentials)
-        : guestUpgrade && session.status === "authenticated" && session.isAnonymous
+        : guestUpgrade
           ? await upgradeAnonymousSupabaseUserWithPassword(credentials)
           : await signUpSupabaseWithPassword(credentials);
 
