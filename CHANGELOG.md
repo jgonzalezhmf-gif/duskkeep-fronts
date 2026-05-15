@@ -7,6 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.73] - 2026-05-15
+
+### Docs
+- Cerrada documentalmente la tanda reciente de pulido no-combat tras Team, Arena y Events.
+- Aclarado que Backend/Auth/Data-driven esta cerrado como MVP estable y no debe reabrirse salvo bug, remoto, monetizacion o ladder real.
+- Actualizado el handoff funcional con el estado reciente de Events, Arena y Team.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.72] - 2026-05-15
 
 ### UI

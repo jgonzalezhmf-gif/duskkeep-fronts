@@ -74,6 +74,23 @@ No seguir salvo:
 - Documento en ingles pendiente de traduccion.
 - Documento obsoleto o contradictorio con el codigo.
 
+### Pulido no-combat reciente
+
+Estado: tanda cerrada para alpha presentable.
+
+Evidencia:
+
+- Team usa el icono `team` registrado en el chrome superior.
+- Arena muestra la placa de rango/progreso tambien en layouts no grandes.
+- Events refuerza la identidad de cada operacion con firma, mutador y tono visual propio.
+- Versiones cerradas: `0.32.70`, `0.32.71`, `0.32.72`.
+
+No seguir salvo:
+
+- Bug visual concreto reportado por el usuario.
+- Pantalla rota por una integracion posterior.
+- Pasada de release candidate con navegador que detecte overflow, 404 o error de consola.
+
 ## Bloques Pendientes Priorizados
 
 ### 1. Validacion browser de release candidate
@@ -93,7 +110,26 @@ Validar:
 - Rutas principales sin 404, overflow ni errores consola.
 - Reward/Shop/Adventure/Combat smoke visual.
 
-### 2. Pulido de pantallas no-combat
+### 2. Supabase remoto y entorno operativo
+
+Objetivo: preparar una instancia remota segura sin activar todavia monetizacion.
+
+Cuándo hacerlo:
+
+- Cuando se quiera validar persistencia online fuera del entorno local.
+- Antes de una demo que dependa de login real o sincronizacion entre dispositivos.
+- Antes de activar OAuth real.
+
+Tareas:
+
+- Revisar variables de entorno.
+- Confirmar Anonymous Sign-Ins.
+- Ejecutar migraciones.
+- Ejecutar smokes equivalentes contra remoto si se prepara script seguro.
+- Revisar RLS y permisos.
+- Documentar pasos de rollback/reset seguros.
+
+### 3. Pulido de pantallas no-combat bajo demanda
 
 Objetivo: mejorar pantallas todavia menos fuertes sin tocar Combat.
 
@@ -113,19 +149,6 @@ Regla:
 - Hacer una iteracion acotada.
 - Validar.
 - Cerrar o pasar a la siguiente.
-
-### 3. Supabase remoto y entorno operativo
-
-Objetivo: preparar una instancia remota segura sin activar todavia monetizacion.
-
-Tareas:
-
-- Revisar variables de entorno.
-- Confirmar Anonymous Sign-Ins.
-- Ejecutar migraciones.
-- Ejecutar smokes equivalentes contra remoto si se prepara script seguro.
-- Revisar RLS y permisos.
-- Documentar pasos de rollback/reset seguros.
 
 ### 4. Ladder/Arena competitiva
 
@@ -172,6 +195,12 @@ Cuando se pida "siguiente":
 4. Ejecutar una iteracion acotada con objetivo verificable.
 5. Actualizar changelog/version si se cierra la iteracion.
 6. Reportar que queda y si conviene seguir o cambiar de bloque.
+
+Aplicacion al estado actual:
+
+- Backend/Auth/Data-driven: cerrado como MVP estable; no reabrir salvo bug, remoto, monetizacion o ladder real.
+- Pulido no-combat: tanda cerrada tras Team, Arena y Events; no seguir pantalla por pantalla sin una incidencia concreta.
+- Siguiente recomendado: validacion browser de release candidate o preparacion de Supabase remoto, segun si se prioriza demo local o persistencia online real.
 
 ## Gates Generales Antes de Release Presentable
 

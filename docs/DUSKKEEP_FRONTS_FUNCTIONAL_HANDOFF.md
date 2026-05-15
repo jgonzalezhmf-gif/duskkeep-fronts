@@ -1,6 +1,6 @@
 # Duskkeep Fronts Functional Handoff
 
-Fecha de corte: 2026-04-28
+Fecha de corte: 2026-05-15
 
 Este documento resume el estado funcional y visual del juego para que una futura sesion de Codex u otra IA pueda continuar sin depender del historial conversacional.
 
@@ -256,14 +256,17 @@ Missions/Quests:
 
 Events:
 - Migrado en MVP a Frontline.
-- Pendiente: mutadores reales, identidad de evento, reward reveal propio.
+- Identidad visual reforzada en tarjetas de operacion con firma, mutador y tono propio.
+- Pendiente: mutadores reales y reward reveal propio.
 
 Arena:
 - Migrada en MVP a Frontline.
+- La placa de rango/progreso ya es visible tambien fuera de layouts grandes.
 - Pendiente: ranks, ladder, streaks, rivales por tier y reward reveal propio.
 
 Team:
 - Existe como pantalla auxiliar.
+- Usa el icono `team` registrado en el chrome superior.
 - Pendiente: decidir si se mantiene, se fusiona con Deck/Roster o se archiva.
 
 ## Localizacion
@@ -313,14 +316,16 @@ Regla:
 ## Backlog Prioritario
 
 Prioridad inmediata sugerida:
-1. Reward feedback reutilizable en Battle Result, Fortress raid, Events y Arena.
-2. Precombat visual: enemigos, rewards, camino hacia Combat.
-3. Adventure map polish: camino real, iconos de fase, side panel limpio.
-4. Deck visual: squad stage y cartas mas parecidas a Combat.
-5. Fortress scene pass: landmark mas vivo, upgrade/raid sequence.
-6. Roster tiers: definicion de datos y visual por tier.
-7. Shop content: packs Frontline, shards, bundles, claim diario.
-8. Localization migration continua.
+1. Validacion browser de release candidate: intro, auth, invitado, Home y rutas principales.
+2. Supabase remoto y entorno operativo si se prioriza persistencia online real.
+3. Reward feedback reutilizable en Events y Arena si se retoma pulido visual.
+4. Precombat visual: enemigos, rewards, camino hacia Combat.
+5. Adventure map polish bajo demanda: camino real, iconos de fase, side panel limpio.
+6. Deck visual: squad stage y cartas mas parecidas a Combat.
+7. Fortress scene pass: landmark mas vivo, upgrade/raid sequence.
+8. Roster tiers: definicion de datos y visual por tier.
+9. Shop content: packs Frontline, shards, bundles, claim diario.
+10. Localization migration continua.
 
 Backlog tecnico:
 - Obligatorio antes de monetizacion: crear un `GameFixedStage` global para renderizar el juego dentro de una resolucion logica fija y migrar Home, Adventure, Combat y pantallas clave a ese shell.
