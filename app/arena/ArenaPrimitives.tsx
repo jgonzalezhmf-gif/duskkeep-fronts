@@ -25,7 +25,7 @@ export function ArenaRankPlate({
 }) {
   const progress = Math.min(100, Math.max(8, winRate || wins * 12));
   return (
-    <div className="hidden min-w-[18rem] rounded-[20px] border border-[#f5c451]/16 bg-[linear-gradient(180deg,rgba(55,35,18,0.34),rgba(8,10,16,0.78))] px-3 py-2.5 shadow-[0_14px_30px_rgba(0,0,0,0.22)] lg:block">
+    <div className="w-full rounded-[20px] border border-[#f5c451]/16 bg-[linear-gradient(180deg,rgba(55,35,18,0.34),rgba(8,10,16,0.78))] px-3 py-2.5 shadow-[0_14px_30px_rgba(0,0,0,0.22)] sm:min-w-[18rem] lg:w-auto">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-[9px] font-black uppercase tracking-[0.18em] text-[#f5d498]/70">{t("arenaScreen.floor.eyebrow")}</div>

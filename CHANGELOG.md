@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.71] - 2026-05-15
+
+### UI
+- Arena muestra ahora la placa de rango/progreso tambien fuera de layouts grandes.
+- Reforzada la identidad de Arena como modo ladder sin tocar rivales, tickets, rewards, Combat ni reglas.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.70] - 2026-05-15
 
 ### UI
