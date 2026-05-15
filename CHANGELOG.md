@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.70] - 2026-05-15
+
+### UI
+- Corregido el chrome superior de Team para usar el icono `team` registrado en vez del icono de Fortress.
+- Mantenida la iteracion de pulido no-combat acotada a un ajuste seguro tras auditoria rapida de Missions, Arena, Events, Fortress, Team, Roster, Deck y Shop.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.69] - 2026-05-15
 
 ### Docs
