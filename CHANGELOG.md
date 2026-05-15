@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.72] - 2026-05-15
+
+### UI
+- Events refuerza la identidad visual de cada operacion con una banda compacta de firma y mutador.
+- La tarjeta destacada usa ahora el tono propio de la operacion sin cambiar presets, rewards, economia ni reglas.
+
+### Tested
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.71] - 2026-05-15
 
 ### UI
