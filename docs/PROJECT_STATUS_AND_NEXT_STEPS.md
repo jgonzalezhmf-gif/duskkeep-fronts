@@ -129,6 +129,11 @@ Tareas:
 - Revisar RLS y permisos.
 - Documentar pasos de rollback/reset seguros.
 
+Estado operativo:
+
+- Existe `docs/SUPABASE_REMOTE_OPERATIONS.md` como guia de preparacion y validacion remota.
+- Existe `npm.cmd run check:supabase:remote` para comprobar variables publicas, URL remota, anon key, persistencia, proxy autoritativo, rate limit y observabilidad sin imprimir secretos.
+
 ### 3. Pulido de pantallas no-combat bajo demanda
 
 Objetivo: mejorar pantallas todavia menos fuertes sin tocar Combat.

@@ -5,6 +5,7 @@ El juego funciona **sin conexion** usando `localStorage` por defecto. Supabase e
 Antes de convertir Supabase en servidor autoritativo, leer:
 
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`
+- `docs/SUPABASE_REMOTE_OPERATIONS.md`
 - `docs/BACKEND_DATA_MODEL.md`
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`
 
@@ -96,6 +97,16 @@ npm.cmd run smoke:supabase:guest-upgrade
 ```
 
 El script crea un invitado anonimo real con Supabase Auth, lee su snapshot server-side, actualiza ese mismo usuario con email/password y comprueba que conserva el mismo `user_id`, `profileId` y starter state. Usa solo `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+## Chequeo Remoto
+
+Antes de apuntar la app a una instancia remota, validar la configuracion publica y operativa:
+
+```bash
+npm.cmd run check:supabase:remote
+```
+
+El chequeo falla si la URL remota no usa HTTPS, si apunta a localhost, si falta la anon key, si la anon key parece service-role o si alguna variable `NEXT_PUBLIC_*` parece contener secretos. Ver `docs/SUPABASE_REMOTE_OPERATIONS.md` para los pasos completos de migracion, smokes y riesgos residuales.
 
 Para validar el proxy HTTP con JWT real de Supabase Auth local:
 

@@ -7,6 +7,23 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.75] - 2026-05-15
+
+### Backend
+- Anadido `check:supabase:remote` para validar preparacion de Supabase remoto sin imprimir secretos.
+- El chequeo valida URL HTTPS remota, anon key publica, variables `NEXT_PUBLIC_*`, persistencia, proxy autoritativo, rate limit y sink de eventos.
+
+### Docs
+- Anadida la guia `docs/SUPABASE_REMOTE_OPERATIONS.md` con pasos de migracion, smokes, variables y riesgos residuales.
+- Enlazada la operativa remota desde el indice, estado del proyecto y README de Supabase.
+
+### Tested
+- `npm.cmd run check:supabase:remote` con variables temporales seguras.
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+- `$env:NODE_OPTIONS='--use-system-ca'; npm.cmd run audit:high`
+
 ## [0.32.74] - 2026-05-15
 
 ### Fixed

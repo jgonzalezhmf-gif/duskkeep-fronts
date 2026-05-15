@@ -76,6 +76,7 @@ Leer antes de:
 
 - `docs/AUTH_FLOW_AND_SESSION_POLICY.md`: flujo de intro, login, invitado, conversion de invitado a cuenta nueva y expiracion de sesion.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: fases objetivo de backend, operaciones sensibles y direccion Supabase.
+- `docs/SUPABASE_REMOTE_OPERATIONS.md`: pasos operativos para preparar y validar Supabase remoto sin commitear secretos.
 - `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para cuenta, recursos, progreso, compras, claims, combate y ledger.
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`: contratos de operaciones sensibles que deben ejecutarse en servidor.
 - `docs/BACKEND_SECURITY_CLOSURE_REVIEW.md`: cierre del bloque server-authoritative, riesgos mitigados, riesgos residuales y gates antes de monetizacion/ranking.
@@ -85,6 +86,7 @@ Leer antes de:
 
 - anadir autenticacion
 - mover persistencia fuera de localStorage
+- validar Supabase remoto
 - anadir flujos de pago o premium
 - anadir ladder online o almacenamiento de cuenta
 - aceptar resultados de economia o batalla enviados por el cliente
