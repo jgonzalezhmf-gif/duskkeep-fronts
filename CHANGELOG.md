@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.35] - 2026-05-15
+
+### Security
+- Las respuestas de `/api/server/authoritative` ahora fuerzan `Cache-Control: private, no-store, max-age=0` y `Pragma: no-cache`.
+- Anhadido helper testeable para preservar headers operativos como `Retry-After` sin permitir cache de respuestas sensibles.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeResponseHeaders.test.ts tests/server.authoritativeRequestGuards.test.ts tests/server.authoritativeRpcProxy.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.34] - 2026-05-15
 
 ### Security

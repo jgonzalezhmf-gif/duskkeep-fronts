@@ -9,6 +9,7 @@ import {
   checkAuthoritativeBodySize,
   checkAuthoritativeContentType,
 } from "@/features/server/authoritativeRequestGuards";
+import { mergeAuthoritativeResponseHeaders } from "@/features/server/authoritativeResponseHeaders";
 import {
   executeAuthoritativeRpcCall,
   prepareAuthoritativeRpcCall,
@@ -22,7 +23,7 @@ const rateLimitStore: AuthoritativeRateLimitStore = new Map();
 export async function POST(request: NextRequest) {
   const authorizationHeader = checkAuthoritativeAuthorizationHeaderSize({ headers: request.headers });
   if (!authorizationHeader.ok) {
-    return NextResponse.json(authorizationHeader.body, { status: authorizationHeader.status });
+    return authoritativeJson(authorizationHeader.body, { status: authorizationHeader.status });
   }
 
   const rateLimit = checkAuthoritativeRateLimit({
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     now: Date.now(),
   });
   if (!rateLimit.ok) {
-    return NextResponse.json(rateLimit.body, {
+    return authoritativeJson(rateLimit.body, {
       status: rateLimit.status,
       headers: rateLimit.headers,
     });
@@ -39,19 +40,19 @@ export async function POST(request: NextRequest) {
 
   const bodySize = checkAuthoritativeBodySize({ headers: request.headers });
   if (!bodySize.ok) {
-    return NextResponse.json(bodySize.body, { status: bodySize.status });
+    return authoritativeJson(bodySize.body, { status: bodySize.status });
   }
 
   const contentType = checkAuthoritativeContentType({ headers: request.headers });
   if (!contentType.ok) {
-    return NextResponse.json(contentType.body, { status: contentType.status });
+    return authoritativeJson(contentType.body, { status: contentType.status });
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ ok: false, code: "invalid_request", reason: "Invalid JSON body" }, { status: 400 });
+    return authoritativeJson({ ok: false, code: "invalid_request", reason: "Invalid JSON body" }, { status: 400 });
   }
 
   const prepared = prepareAuthoritativeRpcCall({
@@ -59,9 +60,16 @@ export async function POST(request: NextRequest) {
     headers: request.headers,
   });
   if (!prepared.ok) {
-    return NextResponse.json(prepared.body, { status: prepared.status });
+    return authoritativeJson(prepared.body, { status: prepared.status });
   }
 
   const result = await executeAuthoritativeRpcCall(prepared);
-  return NextResponse.json(result.body, { status: result.status });
+  return authoritativeJson(result.body, { status: result.status });
+}
+
+function authoritativeJson(body: unknown, init: ResponseInit = {}) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: mergeAuthoritativeResponseHeaders(init.headers),
+  });
 }
