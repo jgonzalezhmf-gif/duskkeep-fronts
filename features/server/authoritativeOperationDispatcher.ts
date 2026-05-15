@@ -3,6 +3,10 @@ import {
   createIdempotencyKey,
 } from "@/features/server/authoritativeOperationCaller";
 import {
+  authoritativeResponseMismatch,
+  invalidAuthoritativeServerResponse,
+} from "@/features/server/authoritativeDispatcherErrors";
+import {
   extractAdventureBattleResult,
   extractArenaResult,
   extractDailyLoginResult,
@@ -83,7 +87,7 @@ export async function syncLocalSnapshotAuthoritatively(
 
   const parsed = extractLocalSnapshotSyncResult<LocalSyncSnapshot>(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
 
   return {
@@ -110,10 +114,10 @@ export async function skillUpHeroAuthoritatively(
 
   const parsed = extractHeroSkillUpResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.heroId !== heroId) {
-    return { ok: false, mode: "authoritative", reason: "Server response hero mismatch" };
+    return authoritativeResponseMismatch("hero");
   }
 
   return {
@@ -140,10 +144,10 @@ export async function starUpHeroAuthoritatively(
 
   const parsed = extractHeroStarUpResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.heroId !== heroId) {
-    return { ok: false, mode: "authoritative", reason: "Server response hero mismatch" };
+    return authoritativeResponseMismatch("hero");
   }
 
   return {
@@ -170,10 +174,10 @@ export async function levelUpHeroAuthoritatively(
 
   const parsed = extractHeroLevelUpResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.heroId !== heroId) {
-    return { ok: false, mode: "authoritative", reason: "Server response hero mismatch" };
+    return authoritativeResponseMismatch("hero");
   }
 
   return {
@@ -200,10 +204,10 @@ export async function upgradeFrontlineCardAuthoritatively(
 
   const parsed = extractFrontlineCardUpgradeResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.cardId !== cardId) {
-    return { ok: false, mode: "authoritative", reason: "Server response card mismatch" };
+    return authoritativeResponseMismatch("card");
   }
 
   return {
@@ -230,10 +234,10 @@ export async function upgradeFrontlineFortressAuthoritatively(
 
   const parsed = extractFrontlineFortressUpgradeResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.buildingId !== buildingId) {
-    return { ok: false, mode: "authoritative", reason: "Server response building mismatch" };
+    return authoritativeResponseMismatch("building");
   }
 
   return {
@@ -259,7 +263,7 @@ export async function resolveFrontlineFortressRaidAuthoritatively(
 
   const parsed = extractFrontlineFortressRaidResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
 
   return {
@@ -286,7 +290,7 @@ export async function purchaseShopOfferAuthoritatively(
 
   const resources = extractResources(response.result);
   if (!resources) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
 
   return {
@@ -315,10 +319,10 @@ export async function claimMissionAuthoritatively(
 
   const parsed = extractMissionClaimResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.missionId !== missionId || parsed.cycleKey !== cycleKey) {
-    return { ok: false, mode: "authoritative", reason: "Server response mission mismatch" };
+    return authoritativeResponseMismatch("mission");
   }
 
   return {
@@ -345,7 +349,7 @@ export async function claimDailyLoginAuthoritatively(
 
   const parsed = extractDailyLoginResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
 
   return {
@@ -372,7 +376,7 @@ export async function saveFrontlineLoadoutAuthoritatively(
 
   const parsed = extractLoadoutSaveResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
 
   return {
@@ -399,7 +403,7 @@ export async function openAdventureMapInteractionAuthoritatively(
 
   const parsed = extractMapInteractionOpenResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
 
   return {
@@ -426,10 +430,10 @@ export async function claimAdventureNodeRewardAuthoritatively(
 
   const parsed = extractNodeRewardResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.nodeId !== nodeId) {
-    return { ok: false, mode: "authoritative", reason: "Server response node mismatch" };
+    return authoritativeResponseMismatch("node");
   }
 
   return {
@@ -456,13 +460,13 @@ export async function claimAdventureBattleResultAuthoritatively(
 
   const parsed = extractAdventureBattleResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.nodeId !== input.nodeId) {
-    return { ok: false, mode: "authoritative", reason: "Server response node mismatch" };
+    return authoritativeResponseMismatch("node");
   }
   if (parsed.winner !== input.winner) {
-    return { ok: false, mode: "authoritative", reason: "Server response winner mismatch" };
+    return authoritativeResponseMismatch("winner");
   }
 
   return {
@@ -489,13 +493,13 @@ export async function recordArenaResultAuthoritatively(
 
   const parsed = extractArenaResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.opponentId !== input.opponentId) {
-    return { ok: false, mode: "authoritative", reason: "Server response opponent mismatch" };
+    return authoritativeResponseMismatch("opponent");
   }
   if (parsed.winner !== input.winner) {
-    return { ok: false, mode: "authoritative", reason: "Server response winner mismatch" };
+    return authoritativeResponseMismatch("winner");
   }
 
   return {
@@ -522,13 +526,13 @@ export async function recordEventResultAuthoritatively(
 
   const parsed = extractEventResult(response.result);
   if (!parsed) {
-    return { ok: false, mode: "authoritative", reason: "Invalid server response" };
+    return invalidAuthoritativeServerResponse();
   }
   if (parsed.eventId !== input.eventId) {
-    return { ok: false, mode: "authoritative", reason: "Server response event mismatch" };
+    return authoritativeResponseMismatch("event");
   }
   if (parsed.winner !== input.winner) {
-    return { ok: false, mode: "authoritative", reason: "Server response winner mismatch" };
+    return authoritativeResponseMismatch("winner");
   }
 
   return {

@@ -7,6 +7,19 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.32.37] - 2026-05-15
+
+### Changed
+- Centralizados los errores genericos del dispatcher autoritativo en `features/server/authoritativeDispatcherErrors.ts`.
+- `authoritativeOperationDispatcher` mantiene los mismos mensajes seguros, pero evita duplicar strings de respuesta invalida y mismatch.
+
+### Tested
+- `npm.cmd run typecheck`
+- `npm.cmd test -- tests/server.authoritativeDispatcherErrors.test.ts tests/server.authoritativeOperationDispatcher.test.ts`
+- `npm.cmd run check`
+- `npm.cmd test`
+- `npm.cmd run build`
+
 ## [0.32.36] - 2026-05-15
 
 ### Changed
