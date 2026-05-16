@@ -7,6 +7,142 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.9] - 2026-05-16
+
+### Docs
+- Documentado el smoke local de `get_player_snapshot` como gate previo a migraciones remotas server-authoritative.
+
+### Tests
+- Ampliado `smoke:supabase:snapshot` para validar `battleStats`, `eventsPlayed` y `eventCompletions` derivados de `battle_results`.
+
+## [0.33.8] - 2026-05-16
+
+### Fixed
+- Corregido el aviso erroneo tras victoria de Adventure en modo Supabase: la batalla ya no intenta registrar contadores locales cuando el claim autoritativo ya persistio el resultado.
+- Separada la politica de mostrar resultado/recompensas de la politica de mutar contadores locales de batalla.
+
+### Tests
+- Cubierta la nueva politica `shouldRecordLocalBattleOutcome` para modo Supabase y modo local.
+
+## [0.33.7] - 2026-05-16
+
+### Backend
+- Anadida migracion para ampliar `get_player_snapshot` con agregados server-owned derivados de `battle_results`: `battleStats`, `eventsPlayed` y `eventCompletions`.
+- El cliente parsea y aplica `battlesWon`, `arenaWins`, `arenaLosses`, eventos jugados y completados desde snapshot servidor, manteniendo compatibilidad con snapshots antiguos.
+
+### Tests
+- Cubierto el parseo y aplicacion de contadores de batalla/eventos desde snapshot.
+
+## [0.33.6] - 2026-05-16
+
+### Fixed
+- El patch de `get_player_snapshot` aplica ahora tambien misiones, login diario y compras de tienda desde el servidor.
+- Las misiones servidor se normalizan de claves `missionId:cycleKey` al shape local por `missionId`, escogiendo el ciclo mas reciente.
+- `dailyLoginClaims` actualiza `dailyLogin.streak/lastClaim` y `shopPurchases` se agrega por oferta para que la UI refleje limites del servidor tras refrescar snapshot.
+
+### Tests
+- Cubierta la normalizacion de misiones, daily login y compras desde snapshot servidor.
+
+## [0.33.5] - 2026-05-16
+
+### Fixed
+- Las mutaciones autoritativas principales refrescan ahora el snapshot servidor para cuentas vinculadas e invitados server-backed, evitando cache local desincronizada tras recompensas, claims, upgrades, Arena, Events, Adventure, Shop, Daily Login y Fortress.
+- La compra de tienda fuerza snapshot cuando la respuesta lo requiere o cuando la sesion usa persistencia servidor.
+
+### Tests
+- Cubierto el refresco de snapshot tras recompensas diarias de cuenta vinculada y claims de mision de invitado Supabase.
+
+## [0.33.4] - 2026-05-16
+
+### Security
+- Anadido `check:store-boundaries` para bloquear regresiones donde `app/` o `components/` muten el store directamente o seleccionen acciones locales sensibles con alternativa `OnlineFirst`.
+- Integrado el check de boundaries en `npm run check`.
+
+### Docs
+- Documentada la nueva barrera automatica en la matriz de propiedad server-authoritative.
+
+### Tests
+- Verificado que las pantallas actuales no usan `useGameStore.setState` ni acciones locales sensibles prohibidas.
+
+## [0.33.3] - 2026-05-16
+
+### Security
+- Eliminado el bypass de Arena que descontaba tickets con `useGameStore.setState` desde la pantalla.
+- `spend` soporta ahora `arenaTickets`, de forma que el descuento local pasa por el guard server-authoritative existente.
+- En modo Supabase, los tickets de Arena quedan en manos de la operacion autoritativa del servidor; en modo local/offline se mantiene el gasto local explicito.
+
+### Tests
+- Cubierto el bloqueo de gasto local de tickets de Arena en modo Supabase y su funcionamiento en modo local.
+- Verificado que no quedan llamadas directas a `useGameStore.setState` en `app/` ni `components/`.
+
+## [0.33.2] - 2026-05-16
+
+### Security
+- Anadido un guard central para bloquear mutaciones locales sensibles cuando la app corre con persistencia Supabase.
+- Las acciones directas locales de rewards, gasto, tienda, cofres/nodos, misiones, login diario, progreso de combate, upgrades y fortress ya no pueden escribir recursos/progreso client-side en sesiones guest/linked server-backed.
+
+### Tests
+- Cubiertos los bloqueos de rewards, gasto, tienda y contadores locales en modo Supabase, manteniendo disponible el modo local explicito.
+
+## [0.33.1] - 2026-05-16
+
+### Fixed
+- En modo Supabase, los invitados sin sesion server-side ya no pueden caer a fallback local para claims/rewards sensibles.
+- El combate standalone `/battle` ya no persiste recompensas locales cuando la app esta configurada con persistencia Supabase.
+
+### Tests
+- Cubierta la politica de fallback para invitados server-backed y recompensas standalone en modo Supabase.
+
+## [0.33.0] - 2026-05-16
+
+### Arquitectura
+- Fijada la direccion server-authoritative como regla core: con `NEXT_PUBLIC_PERSISTENCE=supabase`, `localStorage` ya no rehidrata recursos, progreso, heroes, cartas, loadout, cofres ni otros datos sensibles como autoridad.
+- Zustand persiste solo estado client-only en modo Supabase: audio, idioma, opciones visuales, intro/onboarding y modo de cuenta.
+- Anadida la matriz `server-owned` / `client-cache` / `client-only` para guiar futuras funcionalidades.
+- Actualizados `AGENTS.md` y `duskkeep-secure-backend` para impedir nuevas mutaciones sensibles client-authoritative.
+
+### Tests
+- Cubierta la persistencia server-authoritative para asegurar que datos sensibles antiguos de navegador se ignoran en modo Supabase y que solo se guardan preferencias/UI.
+
+## [0.32.79] - 2026-05-16
+
+### Fixed
+- Abrir un cofre interactuable de Adventure con cuenta vinculada fuerza ahora una recarga inmediata del snapshot servidor, preservando recursos, loot, claims y recompensas no monetarias tras recargar la pagina.
+
+### Tested
+- `npm.cmd test -- tests/storeAuthoritativeFallback.test.ts`
+
+## [0.32.78] - 2026-05-16
+
+### Fixed
+- Las cuentas vinculadas ya no hacen fallback local cuando `/api/server/authoritative` esta desactivado, evitando recompensas/progreso visibles que luego desaparecen al recargar el snapshot servidor.
+- Anadido `dev:supabase` para arrancar Next en modo Supabase con `SERVER_AUTHORITATIVE_API_ENABLED=true`.
+- `check:supabase:remote` falla ahora si `NEXT_PUBLIC_PERSISTENCE=supabase` pero la API autoritativa no esta habilitada.
+
+### Docs
+- Documentado el arranque correcto de desarrollo con Supabase remoto y el diagnostico del error `request_validation/not_found`.
+
+## [0.32.77] - 2026-05-16
+
+### Auth
+- Corregido el flujo de confirmacion invitado -> cuenta para intercambiar explicitamente el `code`/sesion de Supabase antes de permitir definir password.
+- La limpieza de la URL elimina tambien `code` y `token_hash` despues de procesar el redirect, evitando dejar tokens visibles o romper el intercambio.
+
+### Backend
+- El smoke remoto `smoke:supabase:guest-upgrade` exige ahora `--email` real cuando apunta a Supabase remoto, evitando pruebas no verificables con emails sinteticos.
+
+### Docs
+- Actualizada la operativa remota con el comando correcto del smoke de upgrade invitado usando una bandeja real.
+
+### Validated
+- Validado manualmente el flujo remoto invitado -> cuenta nueva con email real, redirect local y definicion de password tras configurar SMTP externo.
+
+### Fixed
+- El login normal de cuenta vinculada fuerza ahora una carga inmediata del snapshot servidor para evitar mezclar progreso local obsoleto con operaciones autoritativas.
+- El modal de heroe bloquea mejoras mientras una operacion de nivel/estrellas esta pendiente, evitando multiples clicks antes de recibir el coste actualizado del servidor.
+- Alineado el grafo de desbloqueo de Adventure entre cliente y servidor: `c1l4` requiere reclamar `c1l3` y `c1l8` requiere reclamar `c1l7`, evitando entrar a combates que el backend rechaza como bloqueados.
+- La ruta directa `/adventure/[levelId]` valida ahora el desbloqueo local antes de montar el combate, devolviendo al mapa si el nodo esta sellado.
+
 ## [0.32.76] - 2026-05-15
 
 ### Auth

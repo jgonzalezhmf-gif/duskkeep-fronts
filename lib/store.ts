@@ -31,6 +31,7 @@ import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchas
 import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
+import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
 import {
   createFortressBuildingUpgradeCommand,
@@ -72,7 +73,10 @@ import {
   upgradeFrontlineCardAuthoritatively,
   upgradeFrontlineFortressAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
-import { createLocalAuthoritativeFallbackDecision } from "@/lib/storeAuthoritativeFallback";
+import {
+  createClientSensitiveMutationDecision,
+  createLocalAuthoritativeFallbackDecision,
+} from "@/lib/storeAuthoritativeFallback";
 import { loadServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
 import { createServerPlayerSnapshotPatch } from "@/lib/serverPlayerSnapshotState";
 import {
@@ -108,6 +112,26 @@ function blockLocalAuthoritativeFallbackIfNeeded(
   set({ accountLinkMode: decision.accountLinkMode });
   get().pushNotification(decision.notification.kind, decision.notification.message);
   return true;
+}
+
+function blockClientSensitiveMutationIfNeeded(get: StoreGetState) {
+  const decision = createClientSensitiveMutationDecision({
+    accountLinkMode: get().accountLinkMode,
+  });
+  if (!decision.blocked) return false;
+
+  get().pushNotification(decision.notification.kind, decision.notification.message);
+  return true;
+}
+
+function shouldRefreshServerSnapshotAfterMutation(get: StoreGetState) {
+  const accountLinkMode = get().accountLinkMode;
+  return accountLinkMode === "linked" || (accountLinkMode === "guest" && isServerAuthoritativePersistenceEnabled());
+}
+
+async function refreshServerSnapshotAfterAuthoritativeMutation(get: StoreGetState) {
+  if (!shouldRefreshServerSnapshotAfterMutation(get)) return;
+  await get().loadServerSnapshotOnlineFirst();
 }
 
 export const useGameStore = create<GameState & GameActions>()(
@@ -171,6 +195,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       unlockFrontlineCard: (cardId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         const plan = planFrontlineCardUnlock(get().frontlineCardUnlocks, cardId);
         if (!plan.ok) return false;
         set({ frontlineCardUnlocks: plan.frontlineCardUnlocks });
@@ -179,6 +204,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       upgradeFrontlineCard: (cardId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         const command = createFrontlineCardUpgradeCommand({
           unlocks: get().frontlineCardUnlocks,
           levels: get().frontlineCardLevels,
@@ -209,17 +235,21 @@ export const useGameStore = create<GameState & GameActions>()(
             [authoritative.cardId]: authoritative.level,
           },
         }));
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().pushNotification("success", "Frontline card upgraded");
         return { ok: true, authoritative: true };
       },
 
-      addHero: (heroId) =>
+      addHero: (heroId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return;
         set((s) => {
           if (s.heroes.some((h) => h.heroId === heroId)) return {};
           return { heroes: [...s.heroes, { heroId, level: 1, stars: 1, shards: 0, xp: 0, skillLevel: 1 }] };
-        }),
+        });
+      },
 
       collectFortressIncome: () => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         const rewards = getFortressIncomeRewards(get().fortress);
         if (!rewards) return null;
         set((st) => ({
@@ -230,11 +260,13 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       upgradeFortressBuilding: (buildingId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         const command = createFortressBuildingUpgradeCommand(get().fortress, get().resources, buildingId);
         return applyProgressionCommandResultToStore(command, set, get);
       },
 
       upgradeFrontlineFortress: (buildingId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         const command = createFrontlineFortressUpgradeCommand(get().frontlineFortress, get().resources, buildingId);
         return applyProgressionCommandResultToStore(command, set, get);
       },
@@ -257,6 +289,7 @@ export const useGameStore = create<GameState & GameActions>()(
           resources: authoritative.resources,
           frontlineFortress: authoritative.frontlineFortress,
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().pushNotification("success", "Fortress upgraded");
         return { ok: true, authoritative: true };
       },
@@ -267,6 +300,7 @@ export const useGameStore = create<GameState & GameActions>()(
         })),
 
       resolveFrontlineFortressRaid: () => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         const s = get();
         if (!frontlineFortressRaidReady(s.frontlineFortress)) return null;
         const heroProfiles = createFrontlineHeroProfileMap(s.heroes);
@@ -302,6 +336,7 @@ export const useGameStore = create<GameState & GameActions>()(
           resources: authoritative.resources,
           frontlineFortress: authoritative.frontlineFortress,
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().pushNotification(
           authoritative.report.outcome === "breach" ? "error" : "success",
           authoritative.report.outcome === "full_repel"
@@ -314,6 +349,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       awardRewards: (r, source) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return;
         const newlyUnlockedFrontlineCards = getNewlyUnlockedFrontlineCardRewards(get().frontlineCardUnlocks, r.frontlineCards);
 
         set((s) => applyRewardsToGameState(s, r));
@@ -324,6 +360,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       spend: (cost) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         const s = get();
         if (!canAfford(s.resources, cost)) return false;
         set((st) => ({
@@ -333,6 +370,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       levelUpHero: (heroId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         const s = get();
         return applyProgressionCommandResultToStore(createHeroLevelUpCommand(s.heroes, s.resources, heroId), set, get);
       },
@@ -358,12 +396,14 @@ export const useGameStore = create<GameState & GameActions>()(
           ),
           heroesUpgraded: s.heroesUpgraded + 1,
         }));
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().updateMissionProgress("heroes_upgraded", 1);
         get().pushNotification("success", "Hero leveled up");
         return { ok: true, authoritative: true };
       },
 
       starUpHero: (heroId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         return applyProgressionCommandResultToStore(createHeroStarUpCommand(get().heroes, heroId), set, get);
       },
 
@@ -390,12 +430,14 @@ export const useGameStore = create<GameState & GameActions>()(
           ),
           heroesUpgraded: s.heroesUpgraded + 1,
         }));
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().updateMissionProgress("heroes_upgraded", 1);
         get().pushNotification("success", "Hero starred up");
         return { ok: true, authoritative: true };
       },
 
       skillUpHero: (heroId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return false;
         const s = get();
         return applyProgressionCommandResultToStore(createHeroSkillUpCommand(s.heroes, s.resources, heroId), set, get);
       },
@@ -421,12 +463,14 @@ export const useGameStore = create<GameState & GameActions>()(
           ),
           heroesUpgraded: s.heroesUpgraded + 1,
         }));
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().updateMissionProgress("heroes_upgraded", 1);
         get().pushNotification("success", `Skill enhanced to level ${authoritative.skillLevel}!`);
         return { ok: true, authoritative: true };
       },
 
       recordBattleResult: (won, source) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return;
         if (won) {
           set((s) => ({ battlesWon: s.battlesWon + 1 }));
           get().updateMissionProgress("battles_won", 1);
@@ -467,9 +511,10 @@ export const useGameStore = create<GameState & GameActions>()(
               get().pushNotification("error", "Arena ticket required");
               return null;
             }
-            set((state) => ({
-              resources: { ...state.resources, arenaTickets: Math.max(0, state.resources.arenaTickets - 1) },
-            }));
+            if (!get().spend({ arenaTickets: 1 })) {
+              get().pushNotification("error", "Arena ticket required");
+              return null;
+            }
           }
 
           get().recordBattleResult(winner === "ally", "arena");
@@ -492,6 +537,7 @@ export const useGameStore = create<GameState & GameActions>()(
             battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
           };
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         if (authoritative.winner === "ally") get().updateMissionProgress("battles_won", 1);
         get().updateMissionProgress("arena_battles", 1);
         return {
@@ -539,6 +585,7 @@ export const useGameStore = create<GameState & GameActions>()(
             battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
           };
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         if (authoritative.winner === "ally") get().updateMissionProgress("battles_won", 1);
         get().updateMissionProgress("events_played", 1);
         if (authoritative.firstClear) get().markEventCompleted(authoritative.eventId);
@@ -551,6 +598,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       markAdventureCleared: (levelId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return { firstClear: false };
         const plan = planAdventureLevelClear(get().adventureProgress, levelId, localDayKey());
         set({ adventureProgress: plan.adventureProgress });
         if (plan.firstClear) get().updateMissionProgress("adventure_levels_cleared", 1);
@@ -616,6 +664,7 @@ export const useGameStore = create<GameState & GameActions>()(
                 : st.adventureProgress,
           };
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         if (authoritative.winner === "ally" && authoritative.firstClear) {
           get().updateMissionProgress("adventure_levels_cleared", 1);
         }
@@ -628,6 +677,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       claimAdventureNode: (levelId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         const plan = planAdventureNodeClaim(get().adventureProgress, levelId, localDayKey());
         if (!plan.ok) {
           if (plan.notification) get().pushNotification(plan.notification.kind, plan.notification.message);
@@ -661,11 +711,13 @@ export const useGameStore = create<GameState & GameActions>()(
             adventureProgress: markAdventureNodeClaimed(st.adventureProgress, authoritative.nodeId, localDayKey()),
           };
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().updateMissionProgress("adventure_levels_cleared", 1);
         return authoritative.rewards;
       },
 
       claimAdventureMapInteraction: (interactionId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         const s = get();
         const plan = createAdventureMapInteractionClaimPlan({
           interactionId,
@@ -720,10 +772,12 @@ export const useGameStore = create<GameState & GameActions>()(
             },
           };
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         return authoritative.result;
       },
 
       claimMission: (missionId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         get().ensureMissionsInitialized();
         const result = claimMissionProgress(get().missionsProgress, ALL_MISSIONS, missionId);
         if (!result) return null;
@@ -775,11 +829,13 @@ export const useGameStore = create<GameState & GameActions>()(
             },
           };
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().pushNotification("success", `Rewards from mission ${mission.name}`);
         return authoritative.rewards;
       },
 
       purchaseOffer: (offerId) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return { ok: false, reason: "Server validation required" };
         get().refreshShopIfNeeded();
         const s = get();
         const offer = SHOP_OFFERS_BY_ID[offerId];
@@ -813,7 +869,7 @@ export const useGameStore = create<GameState & GameActions>()(
           ...applyShopOfferPurchase(st, offerId),
           resources: authoritative.resources,
         }));
-        if (authoritative.requiresSnapshotRefresh) {
+        if (authoritative.requiresSnapshotRefresh || shouldRefreshServerSnapshotAfterMutation(get)) {
           await get().loadServerSnapshotOnlineFirst();
         }
         return { ok: true, authoritative: true };
@@ -846,6 +902,7 @@ export const useGameStore = create<GameState & GameActions>()(
       clearSavedBattle: () => set({ savedBattle: null }),
 
       claimDailyLogin: () => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         const result = claimDailyLoginReward(get().dailyLogin, DAILY_LOGIN);
         if (!result) return null;
         set(result.patch);
@@ -878,11 +935,13 @@ export const useGameStore = create<GameState & GameActions>()(
             },
           };
         });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().pushNotification("success", "Daily reward claimed");
         return authoritative.rewards;
       },
 
       claimRoadmapStep: (id) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         if (get().accountLinkMode === "linked") {
           get().pushNotification("error", "Roadmap rewards require server validation");
           return null;
@@ -897,6 +956,7 @@ export const useGameStore = create<GameState & GameActions>()(
       },
 
       claimMilestone: (level) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
         if (get().accountLinkMode === "linked") {
           get().pushNotification("error", "Milestone rewards require server validation");
           return null;
@@ -993,6 +1053,7 @@ export const useGameStore = create<GameState & GameActions>()(
       ackPendingUnlock: () => set({ pendingUnlockLevel: null }),
 
       refreshArenaTicketsIfNeeded: () => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return;
         const s = get();
         const today = todayYMD();
         const patch = refreshArenaTicketsState({ arenaTicketsRefreshedAt: s.arenaTicketsRefreshedAt, resources: s.resources, today, dailyArenaTickets: DAILY_ARENA_TICKETS });

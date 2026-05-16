@@ -1,15 +1,33 @@
 import type { AdventureMapInteractionClaim } from "@/features/adventure/mapInteractions";
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
 import type { ServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
+import { ALL_MISSIONS } from "@/data/missions";
+import { defaultInitial } from "@/lib/defaultGameState";
+import { getMissionResetAt } from "@/lib/missionProgress";
+import { localDayKey } from "@/lib/rewardVisibility";
 import type { GameState } from "@/lib/storeTypes";
-import type { FrontlineLoadout, PlayerHero, Resources, Rewards } from "@/lib/types";
+import type { FrontlineLoadout, MissionProgress, PlayerHero, Resources, Rewards } from "@/lib/types";
 
 type ServerSnapshotPatch = Pick<GameState, "account" | "resources"> &
   Partial<
     Pick<
       GameState,
-      "heroes" | "frontlineCardUnlocks" | "frontlineCardLevels" | "frontlineLoadout" | "adventureProgress" | "adventureMapClaims"
+      | "heroes"
+      | "frontlineCardUnlocks"
+      | "frontlineCardLevels"
+      | "frontlineLoadout"
+      | "adventureProgress"
+      | "adventureMapClaims"
       | "frontlineFortress"
+      | "missionsProgress"
+      | "dailyLogin"
+      | "shopPurchases"
+      | "dailyShopPurchases"
+      | "battlesWon"
+      | "arenaWins"
+      | "arenaLosses"
+      | "eventsPlayed"
+      | "eventCompletions"
     >
   >;
 
@@ -19,6 +37,8 @@ export function createServerPlayerSnapshotPatch(state: GameState, serverSnapshot
   const frontlineLoadout = normalizeFrontlineLoadout(snapshot.frontlineLoadout);
   const adventureProgress = normalizeAdventureProgress(snapshot.adventureProgress);
   const adventureMapClaims = normalizeAdventureMapClaims(snapshot.adventureMapClaims);
+  const shopPurchases = normalizeShopPurchases(snapshot.shopPurchases);
+  const battleStats = snapshot.battleStats ?? { battlesWon: 0, arenaWins: 0, arenaLosses: 0 };
 
   return {
     account: {
@@ -34,8 +54,17 @@ export function createServerPlayerSnapshotPatch(state: GameState, serverSnapshot
     ...(Object.keys(snapshot.frontlineCardLevels).length > 0 ? { frontlineCardLevels: snapshot.frontlineCardLevels } : {}),
     ...(frontlineLoadout ? { frontlineLoadout } : {}),
     ...(snapshot.frontlineFortress ? { frontlineFortress: snapshot.frontlineFortress } : {}),
-    ...(Object.keys(adventureProgress).length > 0 ? { adventureProgress } : {}),
-    ...(Object.keys(adventureMapClaims).length > 0 ? { adventureMapClaims } : {}),
+    adventureProgress,
+    adventureMapClaims,
+    missionsProgress: normalizeMissionsProgress(state.missionsProgress, snapshot.missionsProgress),
+    dailyLogin: normalizeDailyLogin(snapshot.dailyLoginClaims),
+    shopPurchases: shopPurchases.total,
+    dailyShopPurchases: shopPurchases.today,
+    battlesWon: battleStats.battlesWon,
+    arenaWins: battleStats.arenaWins,
+    arenaLosses: battleStats.arenaLosses,
+    eventsPlayed: normalizeEventsPlayed(snapshot.eventsPlayed ?? {}),
+    eventCompletions: normalizeEventCompletions(snapshot.eventCompletions ?? {}),
   };
 }
 
@@ -117,6 +146,107 @@ function normalizeAdventureMapClaims(claims: Record<string, Record<string, unkno
       };
       return [[interactionId, normalized]];
     }),
+  );
+}
+
+function normalizeMissionsProgress(
+  current: GameState["missionsProgress"],
+  progress: Record<string, Record<string, unknown>>,
+): Record<string, MissionProgress> {
+  const byMission = new Map<string, { cycleKey: string; updatedAt: string; progress: MissionProgress }>();
+
+  for (const entry of Object.values(progress)) {
+    const missionId = typeof entry.missionId === "string" ? entry.missionId : null;
+    if (!missionId) continue;
+
+    const mission = ALL_MISSIONS.find((item) => item.id === missionId);
+    if (!mission) continue;
+
+    const progressValue = isFiniteNumber(entry.progress) ? Math.max(0, Math.min(mission.goal, entry.progress)) : null;
+    const claimed = entry.claimed;
+    if (progressValue === null || typeof claimed !== "boolean") continue;
+
+    const cycleKey = typeof entry.cycleKey === "string" ? entry.cycleKey : "";
+    const normalized: MissionProgress = {
+      progress: progressValue,
+      claimed,
+      resetAt: getMissionResetAtFromCycle(cycleKey, mission.kind) ?? current[missionId]?.resetAt ?? getMissionResetAt(mission.kind),
+    };
+    const updatedAt = typeof entry.updatedAt === "string" ? entry.updatedAt : typeof entry.claimedAt === "string" ? entry.claimedAt : "";
+    const previous = byMission.get(missionId);
+    if (!previous || isNewerMissionEntry({ cycleKey, updatedAt }, previous)) {
+      byMission.set(missionId, { cycleKey, updatedAt, progress: normalized });
+    }
+  }
+
+  return Object.fromEntries(Array.from(byMission.entries()).map(([missionId, entry]) => [missionId, entry.progress]));
+}
+
+function isNewerMissionEntry(
+  candidate: { cycleKey: string; updatedAt: string },
+  current: { cycleKey: string; updatedAt: string },
+) {
+  if (candidate.cycleKey !== current.cycleKey) return candidate.cycleKey > current.cycleKey;
+  return candidate.updatedAt > current.updatedAt;
+}
+
+function getMissionResetAtFromCycle(cycleKey: string, kind: "daily" | "weekly") {
+  const [, rawDate] = cycleKey.split(":");
+  if (!rawDate) return null;
+
+  if (kind === "daily" && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+    const reset = new Date(`${rawDate}T00:00:00.000Z`);
+    if (!Number.isFinite(reset.getTime())) return null;
+    reset.setUTCDate(reset.getUTCDate() + 1);
+    return reset.toISOString();
+  }
+
+  return null;
+}
+
+function normalizeDailyLogin(claims: Record<string, Record<string, unknown>>): GameState["dailyLogin"] {
+  const latest = Object.values(claims).reduce<{ dayKey: string; streak: number } | null>((best, claim) => {
+    const dayKey = typeof claim.dayKey === "string" ? claim.dayKey : null;
+    const streak = isFiniteNumber(claim.streak) ? claim.streak : null;
+    if (!dayKey || streak === null) return best;
+    if (!best || dayKey > best.dayKey) return { dayKey, streak };
+    return best;
+  }, null);
+
+  return latest ? { streak: latest.streak, lastClaim: latest.dayKey } : { ...defaultInitial().dailyLogin };
+}
+
+function normalizeShopPurchases(purchases: Array<Record<string, unknown>>): {
+  total: GameState["shopPurchases"];
+  today: GameState["dailyShopPurchases"];
+} {
+  const total: GameState["shopPurchases"] = {};
+  const today: GameState["dailyShopPurchases"] = {};
+  const currentDay = localDayKey();
+
+  for (const purchase of purchases) {
+    const offerId = typeof purchase.offerId === "string" ? purchase.offerId : null;
+    const quantity = isFiniteNumber(purchase.quantity) ? Math.max(0, Math.floor(purchase.quantity)) : null;
+    if (!offerId || quantity === null) continue;
+
+    total[offerId] = (total[offerId] ?? 0) + quantity;
+    if (purchase.purchaseDay === currentDay) {
+      today[offerId] = (today[offerId] ?? 0) + quantity;
+    }
+  }
+
+  return { total, today };
+}
+
+function normalizeEventsPlayed(eventsPlayed: Record<string, number>): GameState["eventsPlayed"] {
+  return Object.fromEntries(
+    Object.entries(eventsPlayed).filter((entry): entry is [string, number] => typeof entry[0] === "string" && isFiniteNumber(entry[1])),
+  );
+}
+
+function normalizeEventCompletions(eventCompletions: Record<string, string>): GameState["eventCompletions"] {
+  return Object.fromEntries(
+    Object.entries(eventCompletions).filter((entry): entry is [string, string] => typeof entry[0] === "string" && typeof entry[1] === "string"),
   );
 }
 

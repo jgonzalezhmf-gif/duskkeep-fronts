@@ -12,7 +12,8 @@ Use this skill for any backend, Supabase, Auth, persistence, economy, payments, 
 Treat the browser as untrusted:
 - Never accept client-side resources, rewards, loot rolls, premium currency, ladder scores, battle results, or ownership as truth.
 - Sensitive mutations must go through server-side validation, RLS, idempotency and atomic persistence.
-- Keep offline-first local flows only as alpha fallback, not as security proof.
+- In Supabase persistence mode, client state is a cache/UI projection. It must not rehydrate resources, progression, inventory, purchases, claims or rewards from `localStorage` as authority.
+- Keep offline/local flows only as explicit development fallback, not as security proof or account progression.
 - Never expose service-role keys, database passwords, webhook secrets or payment secrets to client code or `NEXT_PUBLIC_*`.
 
 Primary references to consider:
@@ -32,6 +33,7 @@ Hard rules:
 - No service-role key in client code.
 - No `NEXT_PUBLIC_*` variable may contain server secrets.
 - No direct client mutation for resources, premium currency, purchases, claims, loot rolls or ladder.
+- Do not persist sensitive online state in Zustand/localStorage. Allowed persisted client fields are preferences and UI-only state such as audio, language, intro/onboarding and account gate mode.
 - Server routes must authenticate, validate payload shape, validate ownership and return safe error codes.
 - RPCs must use RLS/`auth.uid()`, explicit grants, constrained `search_path`, idempotency and ledger where resources change.
 - Do not add broad fallback from authoritative failure to local success; fallback is allowed only when no session/API is configured.
@@ -50,6 +52,7 @@ During implementation:
 - Validate input with existing contracts in `features/server/authoritativeOperations.ts` or add typed validators.
 - Keep idempotency keys mandatory for sensitive mutations.
 - Use allowlists for operation names, offer ids, node ids and command kinds.
+- For linked or Supabase-anonymous accounts, operations that can change resources/progression must use the BFF/RPC path and apply the server result or refresh `get_player_snapshot`.
 - Return generic user-safe errors; keep detailed diagnostics out of client responses.
 - Keep security-sensitive helpers pure and tested.
 

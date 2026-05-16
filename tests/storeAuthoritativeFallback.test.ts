@@ -1,5 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AUTH_SESSION_EXPIRED_NOTICE } from "@/features/server/sessionSecurity";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  AUTH_ONLINE_PERSISTENCE_UNAVAILABLE_NOTICE,
+  AUTH_SESSION_EXPIRED_NOTICE,
+} from "@/features/server/sessionSecurity";
 import {
   claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
@@ -58,7 +61,10 @@ const mockedHeroStarUp = vi.mocked(starUpHeroAuthoritatively);
 const mockedHeroSkillUp = vi.mocked(skillUpHeroAuthoritatively);
 
 describe("store authoritative fallback policy", () => {
+  const originalPersistence = process.env.NEXT_PUBLIC_PERSISTENCE;
+
   beforeEach(() => {
+    process.env.NEXT_PUBLIC_PERSISTENCE = "local";
     vi.clearAllMocks();
     useGameStore.getState().resetAll();
     useGameStore.setState({ notifications: [] });
@@ -80,6 +86,14 @@ describe("store authoritative fallback policy", () => {
     mockedHeroStarUp.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedHeroSkillUp.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(loadServerPlayerSnapshot).mockResolvedValue({ ok: false, reason: "unconfigured" });
+  });
+
+  afterEach(() => {
+    if (originalPersistence === undefined) {
+      delete process.env.NEXT_PUBLIC_PERSISTENCE;
+      return;
+    }
+    process.env.NEXT_PUBLIC_PERSISTENCE = originalPersistence;
   });
 
   it("blocks local reward fallback for linked accounts when the Supabase session is missing", async () => {
@@ -141,6 +155,22 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().resources.gold).toBeGreaterThanOrEqual(beforeGold);
   });
 
+  it("blocks guest local fallback when Supabase persistence expects server-backed guests", async () => {
+    process.env.NEXT_PUBLIC_PERSISTENCE = "supabase";
+    useGameStore.setState({ accountLinkMode: "guest" });
+    mockedDailyLogin.mockResolvedValueOnce({ ok: false, mode: "local", reason: "missing_session" });
+    const beforeResources = useGameStore.getState().resources;
+
+    const result = await useGameStore.getState().claimDailyLoginOnlineFirst();
+
+    expect(result).toBeNull();
+    expect(useGameStore.getState().resources).toEqual(beforeResources);
+    expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+    expect(useGameStore.getState().notifications).toContainEqual(
+      expect.objectContaining({ kind: "info", message: AUTH_SESSION_EXPIRED_NOTICE }),
+    );
+  });
+
   it("keeps local shop purchases available for guest accounts without a Supabase session", async () => {
     useGameStore.setState({
       accountLinkMode: "guest",
@@ -191,6 +221,78 @@ describe("store authoritative fallback policy", () => {
     expect(loadServerPlayerSnapshot).toHaveBeenCalledTimes(1);
     expect(useGameStore.getState().account.xp).toBe(8);
     expect(useGameStore.getState().heroes.find((hero) => hero.heroId === "bran")?.xp).toBe(70);
+  });
+
+  it("rehydrates the server snapshot after opening an authoritative adventure map chest", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      resources: { gold: 100, dust: 10, gems: 5, arenaTickets: 5, adventureKeys: 1 },
+      adventureProgress: { c1l2: { cleared: true, firstClearTaken: true } },
+    });
+    vi.mocked(openAdventureMapInteractionAuthoritatively).mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      result: {
+        interactionId: "c1-lower-cache",
+        lootId: "road-cache-rare-gem-purse",
+        lootTier: "rare",
+        lootTitle: "Gem-Sealed Purse",
+        rewards: { gems: 18, accountXp: 10 },
+      },
+      resources: { gold: 100, dust: 10, gems: 23, arenaTickets: 5, adventureKeys: 0 },
+      resetAvailableAt: "2026-05-16T18:00:00.000Z",
+    });
+    vi.mocked(loadServerPlayerSnapshot).mockResolvedValueOnce({
+      ok: true,
+      authoritative: true,
+      result: {
+        profileId: "profile-1",
+        snapshot: {
+          account: { name: "Commander", level: 1, xp: 10 },
+          resources: { gold: 100, dust: 10, gems: 23, arenaTickets: 5, adventureKeys: 0 },
+          heroes: [],
+          frontlineCardUnlocks: {},
+          frontlineCardLevels: {},
+          frontlineLoadout: null,
+          frontlineFortress: null,
+          adventureProgress: { c1l2: { cleared: true, firstClearTaken: true } },
+          adventureMapClaims: {
+            "c1-lower-cache": {
+              claimed: true,
+              claimedAt: "2026-05-16T10:00:00.000Z",
+              resetAvailableAt: "2026-05-16T18:00:00.000Z",
+              lootId: "road-cache-rare-gem-purse",
+              lootTier: "rare",
+              lootTitle: "Gem-Sealed Purse",
+              rewards: { gems: 18, accountXp: 10 },
+            },
+          },
+          missionsProgress: {},
+          dailyLoginClaims: {},
+          shopPurchases: [],
+        },
+      },
+    });
+
+    const result = await useGameStore.getState().claimAdventureMapInteractionOnlineFirst("c1-lower-cache");
+
+    expect(result).toEqual({
+      interactionId: "c1-lower-cache",
+      lootId: "road-cache-rare-gem-purse",
+      lootTier: "rare",
+      lootTitle: "Gem-Sealed Purse",
+      rewards: { gems: 18, accountXp: 10 },
+    });
+    expect(loadServerPlayerSnapshot).toHaveBeenCalledTimes(1);
+    expect(useGameStore.getState().resources).toEqual({ gold: 100, dust: 10, gems: 23, arenaTickets: 5, adventureKeys: 0 });
+    expect(useGameStore.getState().adventureMapClaims["c1-lower-cache"]).toEqual(
+      expect.objectContaining({
+        claimed: true,
+        lootTier: "rare",
+        rewards: { gems: 18, accountXp: 10 },
+        resetAvailableAt: "2026-05-16T18:00:00.000Z",
+      }),
+    );
   });
 
   it("blocks linked account card upgrades when the session is missing", async () => {
@@ -343,6 +445,96 @@ describe("store authoritative fallback policy", () => {
     expect(result).toEqual({ gold: 80, dust: 15 });
     expect(useGameStore.getState().resources).toEqual({ gold: 580, dust: 65, gems: 50, arenaTickets: 5, adventureKeys: 0 });
     expect(useGameStore.getState().missionsProgress.d_upgrade_1.claimed).toBe(true);
+  });
+
+  it("refreshes the server snapshot after authoritative daily rewards for linked accounts", async () => {
+    useGameStore.setState({ accountLinkMode: "linked" });
+    mockedDailyLogin.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      dayKey: "2026-05-16",
+      streak: 2,
+      rewards: { gold: 100, accountXp: 10 },
+      resources: { gold: 600, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+    vi.mocked(loadServerPlayerSnapshot).mockResolvedValueOnce({
+      ok: true,
+      authoritative: true,
+      result: {
+        profileId: "profile-1",
+        snapshot: {
+          account: { name: "Commander", level: 2, xp: 15 },
+          resources: { gold: 600, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+          heroes: [],
+          frontlineCardUnlocks: {},
+          frontlineCardLevels: {},
+          frontlineLoadout: null,
+          frontlineFortress: null,
+          adventureProgress: {},
+          adventureMapClaims: {},
+          missionsProgress: {},
+          dailyLoginClaims: {},
+          shopPurchases: [],
+        },
+      },
+    });
+
+    const result = await useGameStore.getState().claimDailyLoginOnlineFirst();
+
+    expect(result).toEqual({ gold: 100, accountXp: 10 });
+    expect(loadServerPlayerSnapshot).toHaveBeenCalledTimes(1);
+    expect(useGameStore.getState().account.level).toBe(2);
+    expect(useGameStore.getState().account.xp).toBe(15);
+    expect(useGameStore.getState().resources.gold).toBe(600);
+  });
+
+  it("refreshes the server snapshot after authoritative mission claims for server-backed guests", async () => {
+    process.env.NEXT_PUBLIC_PERSISTENCE = "supabase";
+    useGameStore.setState({
+      accountLinkMode: "guest",
+      missionsProgress: {
+        d_upgrade_1: {
+          progress: 1,
+          claimed: false,
+          resetAt: "2026-05-16T00:00:00.000Z",
+        },
+      },
+    });
+    mockedMission.mockResolvedValueOnce({
+      ok: true,
+      mode: "authoritative",
+      missionId: "d_upgrade_1",
+      cycleKey: "daily:2026-05-16",
+      rewards: { gold: 80, dust: 15 },
+      resources: { gold: 580, dust: 65, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+    });
+    vi.mocked(loadServerPlayerSnapshot).mockResolvedValueOnce({
+      ok: true,
+      authoritative: true,
+      result: {
+        profileId: "profile-guest",
+        snapshot: {
+          account: { name: "Guest Commander", level: 1, xp: 0 },
+          resources: { gold: 580, dust: 65, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+          heroes: [],
+          frontlineCardUnlocks: {},
+          frontlineCardLevels: {},
+          frontlineLoadout: null,
+          frontlineFortress: null,
+          adventureProgress: {},
+          adventureMapClaims: {},
+          missionsProgress: {},
+          dailyLoginClaims: {},
+          shopPurchases: [],
+        },
+      },
+    });
+
+    const result = await useGameStore.getState().claimMissionOnlineFirst("d_upgrade_1");
+
+    expect(result).toEqual({ gold: 80, dust: 15 });
+    expect(loadServerPlayerSnapshot).toHaveBeenCalledTimes(1);
+    expect(useGameStore.getState().resources).toEqual({ gold: 580, dust: 65, gems: 50, arenaTickets: 5, adventureKeys: 0 });
   });
 
   it("blocks linked account mission claims when the session is missing", async () => {
@@ -668,18 +860,27 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().eventCompletions.gold_rush).toBeTruthy();
   });
 
-  it("keeps local fallback available for linked accounts when the API is disabled", async () => {
+  it("blocks linked account local fallback when the server-authoritative API is disabled", async () => {
     useGameStore.setState({ accountLinkMode: "linked" });
     mockedAdventureNode.mockResolvedValueOnce({ ok: false, mode: "local", reason: "api_disabled" });
+    const beforeProgress = useGameStore.getState().adventureProgress;
 
     const result = await useGameStore.getState().claimAdventureNodeOnlineFirst("c1l3");
 
     expect(useGameStore.getState().accountLinkMode).toBe("linked");
-    expect(result === null || typeof result === "object").toBe(true);
+    expect(result).toBeNull();
+    expect(useGameStore.getState().adventureProgress).toEqual(beforeProgress);
+    expect(useGameStore.getState().notifications).toContainEqual(
+      expect.objectContaining({ kind: "error", message: AUTH_ONLINE_PERSISTENCE_UNAVAILABLE_NOTICE }),
+    );
   });
 
   it("applies server snapshots without using local data as authority", async () => {
-    useGameStore.setState({ accountLinkMode: "guest", resources: { gold: 1, dust: 1, gems: 1, arenaTickets: 1, adventureKeys: 0 } });
+    useGameStore.setState({
+      accountLinkMode: "guest",
+      resources: { gold: 1, dust: 1, gems: 1, arenaTickets: 1, adventureKeys: 0 },
+      adventureProgress: { c1l4: { cleared: true, firstClearTaken: true } },
+    });
     vi.mocked(loadServerPlayerSnapshot).mockResolvedValueOnce({
       ok: true,
       authoritative: true,
@@ -707,6 +908,7 @@ describe("store authoritative fallback policy", () => {
     expect(result).toEqual({ ok: true, authoritative: true });
     expect(useGameStore.getState().account.name).toBe("Server Commander");
     expect(useGameStore.getState().resources).toEqual({ gold: 650, dust: 80, gems: 55, arenaTickets: 5, adventureKeys: 1 });
+    expect(useGameStore.getState().adventureProgress).toEqual({});
   });
 
   it("blocks linked accounts when server snapshot loading has no session", async () => {

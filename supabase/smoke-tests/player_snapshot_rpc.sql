@@ -140,6 +140,64 @@ begin
   )
   values (v_profile_id, 'chapter-1', 'c1l2', 'cleared', true, true, false, now());
 
+  insert into public.battle_results (
+    profile_id,
+    source,
+    node_id,
+    event_id,
+    arena_opponent_id,
+    preset_id,
+    seed,
+    winner,
+    turns,
+    summary,
+    rewards,
+    created_at
+  )
+  values
+    (
+      v_profile_id,
+      'adventure',
+      'c1l2',
+      null,
+      null,
+      'c1l2',
+      101,
+      'ally',
+      3,
+      '{"allyCoreHp":12,"enemyCoreHp":0,"round":3,"winner":"ally"}'::jsonb,
+      '{"gold":80}'::jsonb,
+      now()
+    ),
+    (
+      v_profile_id,
+      'arena',
+      null,
+      null,
+      'arena-smoke-opponent',
+      'arena-smoke',
+      102,
+      'enemy',
+      4,
+      '{"allyCoreHp":0,"enemyCoreHp":7,"round":4,"winner":"enemy"}'::jsonb,
+      '{}'::jsonb,
+      now()
+    ),
+    (
+      v_profile_id,
+      'event',
+      null,
+      'event-smoke',
+      null,
+      'event-smoke',
+      103,
+      'ally',
+      8,
+      '{"allyCoreHp":10,"enemyCoreHp":4,"round":8,"winner":"ally"}'::jsonb,
+      '{"dust":15}'::jsonb,
+      now()
+    );
+
   perform set_config('request.jwt.claim.sub', v_user_id::text, true);
   perform set_config('request.jwt.claim.role', 'authenticated', true);
 
@@ -163,6 +221,22 @@ begin
 
   if v_snapshot_result #>> '{result,snapshot,frontlineCardLevels,order_guard_wall}' <> '2' then
     raise exception 'Expected card levels in snapshot: %', v_snapshot_result;
+  end if;
+
+  if coalesce((v_snapshot_result #>> '{result,snapshot,battleStats,battlesWon}')::int, 0) <> 2 then
+    raise exception 'Expected battle win stats in snapshot: %', v_snapshot_result;
+  end if;
+
+  if coalesce((v_snapshot_result #>> '{result,snapshot,battleStats,arenaLosses}')::int, 0) <> 1 then
+    raise exception 'Expected arena loss stats in snapshot: %', v_snapshot_result;
+  end if;
+
+  if coalesce((v_snapshot_result #>> '{result,snapshot,eventsPlayed,event-smoke}')::int, 0) <> 1 then
+    raise exception 'Expected event play counters in snapshot: %', v_snapshot_result;
+  end if;
+
+  if v_snapshot_result #>> '{result,snapshot,eventCompletions,event-smoke}' is null then
+    raise exception 'Expected event completion counters in snapshot: %', v_snapshot_result;
   end if;
 
   if v_snapshot_result::text like '%' || v_other_profile_id::text || '%' then

@@ -28,6 +28,9 @@ export type SupabasePasswordUpdateResult = { ok: true; session: SupabaseSessionS
 export type SupabaseGuestUpgradeEmailResult =
   | { ok: true; session: SupabaseSessionSnapshot }
   | { ok: false; reason: SupabaseAuthFailureReason };
+export type SupabasePasswordSetupRedirectResult =
+  | { ok: true; session: SupabaseSessionSnapshot }
+  | { ok: false; reason: SupabaseAuthFailureReason };
 
 export type SupabasePasswordCredentials = {
   email: string;
@@ -246,6 +249,36 @@ export async function updateSupabasePassword(password: string): Promise<Supabase
     ok: true,
     session: toSupabaseSessionSnapshot(data.user ? (await supabase.auth.getSession()).data.session : null),
   };
+}
+
+export async function completeSupabasePasswordSetupRedirect(): Promise<SupabasePasswordSetupRedirectResult> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { ok: false, reason: "unconfigured" };
+  if (typeof window === "undefined") return { ok: false, reason: "auth_error" };
+
+  const code = new URLSearchParams(window.location.search).get("code");
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+    return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
+  }
+
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const accessToken = hashParams.get("access_token");
+  const refreshToken = hashParams.get("refresh_token");
+  if (accessToken && refreshToken) {
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+    return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+  if (!data.session) return { ok: false, reason: "auth_error" };
+  return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
 }
 
 export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "auth_error" }> {

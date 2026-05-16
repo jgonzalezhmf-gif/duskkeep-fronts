@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { defaultInitial } from "@/lib/defaultGameState";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
+import { createPersistedGameStoreState } from "@/lib/storePersistence";
 import type { GameState } from "@/lib/store";
 
 function currentState(): GameState {
@@ -12,6 +13,20 @@ function currentState(): GameState {
 }
 
 describe("persisted game state merge", () => {
+  const originalPersistence = process.env.NEXT_PUBLIC_PERSISTENCE;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_PERSISTENCE = "local";
+  });
+
+  afterEach(() => {
+    if (originalPersistence === undefined) {
+      delete process.env.NEXT_PUBLIC_PERSISTENCE;
+      return;
+    }
+    process.env.NEXT_PUBLIC_PERSISTENCE = originalPersistence;
+  });
+
   it("keeps newly introduced adventureKeys default when persisted resources are older", () => {
     const merged = mergePersistedGameState(
       { resources: { gold: 25 } },
@@ -90,5 +105,55 @@ describe("persisted game state merge", () => {
       heroId: "bran",
       skillLevel: 1,
     });
+  });
+
+  it("ignores persisted sensitive state when Supabase persistence is enabled", () => {
+    process.env.NEXT_PUBLIC_PERSISTENCE = "supabase";
+    const merged = mergePersistedGameState(
+      {
+        resources: { gold: 99999, gems: 99999, adventureKeys: 99 },
+        adventureProgress: { c1l12: { cleared: true, firstClearTaken: true } },
+        adventureMapClaims: { "c1-lower-cache": { claimed: true } },
+        heroes: [{ heroId: "bran", level: 60, stars: 6, shards: 9999, xp: 9999, skillLevel: 5 }],
+        accountLinkMode: "linked",
+        hasSeenIntro: true,
+        audioMuted: true,
+      },
+      currentState(),
+    );
+
+    expect(merged.resources).toEqual(defaultInitial().resources);
+    expect(merged.adventureProgress).toEqual({});
+    expect(merged.adventureMapClaims).toEqual({});
+    expect(merged.heroes.find((hero) => hero.heroId === "bran")?.level).toBe(1);
+    expect(merged.accountLinkMode).toBe("linked");
+    expect(merged.hasSeenIntro).toBe(true);
+    expect(merged.audioMuted).toBe(true);
+  });
+
+  it("persists only client-safe fields when Supabase persistence is enabled", () => {
+    process.env.NEXT_PUBLIC_PERSISTENCE = "supabase";
+    const state = {
+      ...currentState(),
+      resources: { gold: 99999, dust: 99999, gems: 99999, arenaTickets: 99, adventureKeys: 99 },
+      adventureProgress: { c1l1: { cleared: true, firstClearTaken: true } },
+      accountLinkMode: "linked" as const,
+      hasSeenIntro: true,
+      audioMuted: true,
+      musicVolume: 0.5,
+    };
+
+    const persisted = createPersistedGameStoreState(state);
+
+    expect(persisted).toMatchObject({
+      accountLinkMode: "linked",
+      hasSeenIntro: true,
+      audioMuted: true,
+      musicVolume: 0.5,
+    });
+    expect(persisted.resources).toBeUndefined();
+    expect(persisted.adventureProgress).toBeUndefined();
+    expect(persisted.heroes).toBeUndefined();
+    expect(persisted.frontlineLoadout).toBeUndefined();
   });
 });

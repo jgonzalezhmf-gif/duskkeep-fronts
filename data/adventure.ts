@@ -41,6 +41,7 @@ export const ADVENTURE: AdventureLevel[] = [
     ],
     rewards: { gold: 120, dust: 20, xp: 45, accountXp: 14 },
     firstClearRewards: { gems: 15, frontlineCards: [{ cardId: "order_shadow_dive" }] },
+    unlocks: ["c1l4"],
     obstacles: [o(2, 2)],
   },
   {
@@ -93,6 +94,7 @@ export const ADVENTURE: AdventureLevel[] = [
     ],
     rewards: { gold: 220, dust: 40, xp: 90, accountXp: 22 },
     firstClearRewards: { gems: 25, frontlineCards: [{ cardId: "tactic_core_burst" }] },
+    unlocks: ["c1l8"],
     obstacles: [o(2, 2)],
   },
   {

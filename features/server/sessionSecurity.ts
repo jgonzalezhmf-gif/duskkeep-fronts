@@ -1,6 +1,8 @@
 export const AUTH_IDLE_TIMEOUT_MS = 60 * 60 * 1000;
 export const AUTH_ACTIVITY_THROTTLE_MS = 15 * 1000;
 export const AUTH_SESSION_EXPIRED_NOTICE = "Session expired. Sign in again to continue.";
+export const AUTH_ONLINE_PERSISTENCE_UNAVAILABLE_NOTICE =
+  "Online persistence is temporarily unavailable. Try again shortly.";
 
 export type AuthAccountLinkMode = "undecided" | "guest" | "linked";
 export type AuthSessionStatus = "unconfigured" | "anonymous" | "authenticated";
@@ -52,11 +54,15 @@ export function reconcileAuthSessionState({
 export function shouldBlockLocalAuthoritativeFallback({
   accountLinkMode,
   reason,
+  serverPersistenceEnabled = false,
 }: {
   accountLinkMode: AuthAccountLinkMode;
   reason: string;
+  serverPersistenceEnabled?: boolean;
 }) {
-  return accountLinkMode === "linked" && reason === "missing_session";
+  if (reason !== "missing_session" && reason !== "api_disabled") return false;
+  if (accountLinkMode === "linked") return true;
+  return serverPersistenceEnabled && accountLinkMode === "guest";
 }
 
 export function getAuthGateModeForIntent({
@@ -158,6 +164,9 @@ export function shouldStripPasswordRecoveryUrl({ search = "", hash = "" }: Pick<
   return (
     marker.includes("access_token") ||
     marker.includes("refresh_token") ||
+    marker.includes("code=") ||
+    marker.includes("token_hash") ||
+    marker.includes("guestupgrade=confirm") ||
     marker.includes("type=recovery") ||
     marker.includes("type=email_change")
   );
@@ -167,6 +176,8 @@ export function createPasswordRecoveryCleanPath({ pathname, search = "" }: AuthR
   const params = new URLSearchParams(search);
   params.delete("type");
   params.delete("guestUpgrade");
+  params.delete("code");
+  params.delete("token_hash");
   const cleanSearch = params.toString();
   return `${pathname}${cleanSearch ? `?${cleanSearch}` : ""}`;
 }

@@ -1,7 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { subscribeToSupabaseAuthEvents, updateSupabasePassword } from "@/features/server/supabaseBrowserSession";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import {
+  completeSupabasePasswordSetupRedirect,
+  subscribeToSupabaseAuthEvents,
+  updateSupabasePassword,
+} from "@/features/server/supabaseBrowserSession";
 import {
   createPasswordRecoveryCleanPath,
   getPasswordUpdateFailureNoticeKey,
@@ -16,6 +20,7 @@ const MIN_PASSWORD_LENGTH = 8;
 
 export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void }) {
   const { t } = useI18n();
+  const tRef = useRef(t);
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,16 +29,27 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
+  useEffect(() => {
     const subscription = subscribeToSupabaseAuthEvents((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setOpen(true);
-        stripRecoveryTokensFromUrl();
       }
     });
 
     if (hasRecoveryParams()) {
       setOpen(true);
-      stripRecoveryTokensFromUrl();
+      setBusy(true);
+      void completeSupabasePasswordSetupRedirect().then((result) => {
+        setBusy(false);
+        if (!result.ok) {
+          setNotice(tRef.current(getPasswordUpdateFailureNoticeKey(result.reason)));
+          return;
+        }
+        stripRecoveryTokensFromUrl();
+      });
     }
 
     return () => {

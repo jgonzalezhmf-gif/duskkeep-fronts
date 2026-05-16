@@ -68,11 +68,11 @@ insert into public.server_adventure_battle_nodes (
 )
 values
   ('c1l1', true, 'chapter-1', 'battle', '{}', array['c1l2'], 'adventure_battle_c1l1_first', 'adventure_battle_c1l1_repeat', 'Chapter 1 combat node'),
-  ('c1l2', true, 'chapter-1', 'battle', array['c1l1'], array['c1l3','c1l4','c1l7','c1l8'], 'adventure_battle_c1l2_first', 'adventure_battle_c1l2_repeat', 'Chapter 1 branch combat node'),
-  ('c1l4', true, 'chapter-1', 'battle', array['c1l2'], array['c1l5'], 'adventure_battle_c1l4_first', 'adventure_battle_c1l4_repeat', 'Chapter 1 combat node'),
+  ('c1l2', true, 'chapter-1', 'battle', array['c1l1'], array['c1l3','c1l7'], 'adventure_battle_c1l2_first', 'adventure_battle_c1l2_repeat', 'Chapter 1 branch combat node'),
+  ('c1l4', true, 'chapter-1', 'battle', array['c1l3'], array['c1l5'], 'adventure_battle_c1l4_first', 'adventure_battle_c1l4_repeat', 'Chapter 1 combat node'),
   ('c1l5', true, 'chapter-1', 'elite', array['c1l4'], array['c1l6'], 'adventure_battle_c1l5_first', 'adventure_battle_c1l5_repeat', 'Chapter 1 elite node'),
   ('c1l6', true, 'chapter-1', 'battle', array['c1l5'], '{}', 'adventure_battle_c1l6_first', 'adventure_battle_c1l6_repeat', 'Chapter 1 combat node'),
-  ('c1l8', true, 'chapter-1', 'battle', array['c1l2'], array['c1l9'], 'adventure_battle_c1l8_first', 'adventure_battle_c1l8_repeat', 'Chapter 1 combat node'),
+  ('c1l8', true, 'chapter-1', 'battle', array['c1l7'], array['c1l9'], 'adventure_battle_c1l8_first', 'adventure_battle_c1l8_repeat', 'Chapter 1 combat node'),
   ('c1l9', true, 'chapter-1', 'elite', array['c1l8'], array['c1l10'], 'adventure_battle_c1l9_first', 'adventure_battle_c1l9_repeat', 'Chapter 1 elite node'),
   ('c1l10', true, 'chapter-1', 'battle', array['c1l9'], array['c1l11'], 'adventure_battle_c1l10_first', 'adventure_battle_c1l10_repeat', 'Chapter 1 combat node'),
   ('c1l11', true, 'chapter-1', 'elite', array['c1l10'], '{}', 'adventure_battle_c1l11_first', 'adventure_battle_c1l11_repeat', 'Chapter 1 elite node'),

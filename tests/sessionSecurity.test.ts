@@ -99,19 +99,27 @@ describe("auth session security helpers", () => {
     ).toBe(true);
   });
 
-  it("keeps local fallback available for guests and non-session reasons", () => {
+  it("keeps local fallback available for guests but blocks linked accounts when online persistence is unavailable", () => {
     expect(
       shouldBlockLocalAuthoritativeFallback({
         accountLinkMode: "guest",
         reason: "missing_session",
+        serverPersistenceEnabled: false,
       }),
     ).toBe(false);
+    expect(
+      shouldBlockLocalAuthoritativeFallback({
+        accountLinkMode: "guest",
+        reason: "missing_session",
+        serverPersistenceEnabled: true,
+      }),
+    ).toBe(true);
     expect(
       shouldBlockLocalAuthoritativeFallback({
         accountLinkMode: "linked",
         reason: "api_disabled",
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("forces guest account upgrades through account creation only", () => {
@@ -182,6 +190,7 @@ describe("auth session security helpers", () => {
     expect(hasPasswordSetupUrlMarker({ search: "?guestUpgrade=confirm", hash: "" })).toBe(true);
 
     expect(shouldStripPasswordRecoveryUrl({ search: "?type=recovery&next=/home", hash: "" })).toBe(true);
+    expect(shouldStripPasswordRecoveryUrl({ search: "?guestUpgrade=confirm&code=secret", hash: "" })).toBe(true);
     expect(shouldStripPasswordRecoveryUrl({ search: "?next=/home", hash: "#access_token=secret&refresh_token=secret" })).toBe(true);
     expect(shouldStripPasswordRecoveryUrl({ search: "?guestUpgrade=confirm", hash: "#type=email_change&access_token=secret" })).toBe(true);
     expect(shouldStripPasswordRecoveryUrl({ search: "?next=/home", hash: "#safe=1" })).toBe(false);
@@ -190,6 +199,9 @@ describe("auth session security helpers", () => {
       "/home?next=%2Fdeck",
     );
     expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?guestUpgrade=confirm", hash: "#type=email_change" })).toBe("/home");
+    expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?guestUpgrade=confirm&code=secret&next=%2Fhome" })).toBe(
+      "/home?next=%2Fhome",
+    );
     expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?type=recovery", hash: "#refresh_token=secret" })).toBe("/home");
   });
 

@@ -34,6 +34,13 @@ export type ServerPlayerSnapshot = {
     missionsProgress: Record<string, Record<string, unknown>>;
     dailyLoginClaims: Record<string, Record<string, unknown>>;
     shopPurchases: Array<Record<string, unknown>>;
+    battleStats?: {
+      battlesWon: number;
+      arenaWins: number;
+      arenaLosses: number;
+    };
+    eventsPlayed?: Record<string, number>;
+    eventCompletions?: Record<string, string>;
   };
 };
 
@@ -108,6 +115,7 @@ export function parseServerPlayerSnapshotRpcResult(value: unknown): ServerPlayer
   if (frontlineLoadout === undefined) return { ok: false, reason: "invalid_response" };
   const frontlineFortress = normalizeFrontlineFortress(snapshot.frontlineFortress);
   if (frontlineFortress === undefined) return { ok: false, reason: "invalid_response" };
+  const battleStats = normalizeBattleStats(snapshot.battleStats);
 
   const parsed: ServerPlayerSnapshot = {
     profileId,
@@ -137,6 +145,9 @@ export function parseServerPlayerSnapshotRpcResult(value: unknown): ServerPlayer
       missionsProgress: normalizeRecordMap(snapshot.missionsProgress),
       dailyLoginClaims: normalizeRecordMap(snapshot.dailyLoginClaims),
       shopPurchases: Array.isArray(snapshot.shopPurchases) ? snapshot.shopPurchases.filter(isRecord) : [],
+      battleStats,
+      eventsPlayed: normalizeNumberRecord(snapshot.eventsPlayed),
+      eventCompletions: normalizeStringRecord(snapshot.eventCompletions),
     },
   };
 
@@ -207,6 +218,22 @@ function normalizeNumberRecord(value: unknown): Record<string, number> {
   if (!isRecord(value)) return {};
 
   return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, number] => isFiniteNumber(entry[1])));
+}
+
+function normalizeStringRecord(value: unknown): Record<string, string> {
+  if (!isRecord(value)) return {};
+
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+}
+
+function normalizeBattleStats(value: unknown): ServerPlayerSnapshot["snapshot"]["battleStats"] {
+  if (!isRecord(value)) return { battlesWon: 0, arenaWins: 0, arenaLosses: 0 };
+
+  return {
+    battlesWon: normalizeInt(value.battlesWon, 0, 1000000) ?? 0,
+    arenaWins: normalizeInt(value.arenaWins, 0, 1000000) ?? 0,
+    arenaLosses: normalizeInt(value.arenaLosses, 0, 1000000) ?? 0,
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

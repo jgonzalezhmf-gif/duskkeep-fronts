@@ -94,6 +94,9 @@ function validateAuthoritativeConfig() {
   if (!["true", "false"].includes(authoritativeApiEnabled)) {
     issues.push('SERVER_AUTHORITATIVE_API_ENABLED must be "true" or "false".');
   }
+  if (persistence === "supabase" && authoritativeApiEnabled !== "true") {
+    issues.push('SERVER_AUTHORITATIVE_API_ENABLED must be "true" when NEXT_PUBLIC_PERSISTENCE is "supabase".');
+  }
   if (rateLimitBackend !== "memory") {
     issues.push("Unsupported AUTHORITATIVE_RATE_LIMIT_BACKEND. Supported value in this alpha: memory.");
   }

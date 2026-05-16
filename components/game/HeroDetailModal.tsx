@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getHero } from "@/data/heroes";
 import { heroUnlockLevel } from "@/data/unlocks";
 import { getFrontlineHeroProfile, isFrontlineReadyHero } from "@/features/frontline/heroProfile";
@@ -21,14 +22,15 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
   const accountLevel = useGameStore((state) => state.account.level);
   const levelUp = useGameStore((state) => state.levelUpHeroOnlineFirst);
   const starUp = useGameStore((state) => state.starUpHeroOnlineFirst);
+  const [pendingAction, setPendingAction] = useState<"level" | "star" | null>(null);
 
   const owned = Boolean(ph && ph.stars > 0);
   const shards = ph?.shards ?? 0;
   const gateLevel = heroUnlockLevel(heroId);
   const levelGated = gateLevel !== null && accountLevel < gateLevel;
   const frontlineProfile = getFrontlineHeroProfile(hero, ph);
-  const canLevelUp = owned && ph && gold >= LEVEL_UP_GOLD(ph.level);
-  const canStarUp = owned && ph && ph.stars < MAX_STARS && ph.shards >= (SHARDS_FOR_STAR[ph.stars] ?? Infinity);
+  const canLevelUp = owned && ph && gold >= LEVEL_UP_GOLD(ph.level) && !pendingAction;
+  const canStarUp = owned && ph && ph.stars < MAX_STARS && ph.shards >= (SHARDS_FOR_STAR[ph.stars] ?? Infinity) && !pendingAction;
   const shardGoal = owned && ph ? SHARDS_FOR_STAR[ph.stars] ?? 1 : 10;
   const shardProgress = Math.min(100, (shards / shardGoal) * 100);
 
@@ -119,9 +121,15 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
                 <Button
                   onClick={async () => {
-                    const result = await levelUp(heroId);
-                    if (result.ok) sfx.levelUp();
-                    else sfx.error();
+                    if (pendingAction) return;
+                    setPendingAction("level");
+                    try {
+                      const result = await levelUp(heroId);
+                      if (result.ok) sfx.levelUp();
+                      else sfx.error();
+                    } finally {
+                      setPendingAction(null);
+                    }
                   }}
                   disabled={!canLevelUp}
                 >
@@ -133,9 +141,15 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
                 <Button
                   variant="secondary"
                   onClick={async () => {
-                    const result = await starUp(heroId);
-                    if (result.ok) sfx.levelUp();
-                    else sfx.error();
+                    if (pendingAction) return;
+                    setPendingAction("star");
+                    try {
+                      const result = await starUp(heroId);
+                      if (result.ok) sfx.levelUp();
+                      else sfx.error();
+                    } finally {
+                      setPendingAction(null);
+                    }
                   }}
                   disabled={!canStarUp}
                 >

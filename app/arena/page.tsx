@@ -17,6 +17,7 @@ import {
   SectionTitle,
 } from "@/components/game/screens/ScreenChrome";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { useGameStore } from "@/lib/store";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import type { FrontlineBattleState } from "@/features/frontline/types";
@@ -51,6 +52,7 @@ export default function ArenaPage() {
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
   const nextSeed = useGameStore((state) => state.nextSeed);
+  const spend = useGameStore((state) => state.spend);
   const recordArenaResult = useGameStore((state) => state.recordArenaResultOnlineFirst);
   const refreshTickets = useGameStore((state) => state.refreshArenaTicketsIfNeeded);
 
@@ -73,16 +75,13 @@ export default function ArenaPage() {
 
   function startArenaBattle(rival: ArenaRival) {
     if (tickets <= 0 || !loadoutReady) return;
-    const shouldSpendLocally = accountLinkMode !== "linked";
-    if (shouldSpendLocally) {
-      useGameStore.setState((state) => ({
-        resources: { ...state.resources, arenaTickets: Math.max(0, state.resources.arenaTickets - 1) },
-      }));
-    }
+    const shouldSpendLocally = accountLinkMode !== "linked" && !isServerAuthoritativePersistenceEnabled();
+    const ticketSpent = shouldSpendLocally ? spend({ arenaTickets: 1 }) : false;
+    if (shouldSpendLocally && !ticketSpent) return;
     setPicked(rival);
     setSeed(nextSeed());
     setResult(null);
-    setTicketSpentLocally(shouldSpendLocally);
+    setTicketSpentLocally(ticketSpent);
     setPhase("battle");
   }
 

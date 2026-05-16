@@ -11,13 +11,17 @@ loadEnvFile(".env.local");
 loadSupabaseCliEnvIfMissing();
 
 const args = parseArgs(process.argv.slice(2));
-const email = args.email ?? `${DEFAULT_EMAIL_PREFIX}-${Date.now()}@duskkeep.local`;
+const providedEmail = cleanEnvValue(args.email);
+const email = providedEmail ?? `${DEFAULT_EMAIL_PREFIX}-${Date.now()}@duskkeep.local`;
 const password = args.password ?? DEFAULT_PASSWORD;
 const supabaseUrl = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const supabaseAnonKey = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 if (!supabaseUrl || !supabaseAnonKey) {
   fail("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+}
+if (isRemoteSupabaseUrl(supabaseUrl) && !providedEmail) {
+  fail("Remote guest-upgrade smoke requires --email with a real inbox so Supabase can send the verification email.");
 }
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -44,7 +48,10 @@ const upgrade = await supabase.auth.updateUser(
   },
 );
 if (upgrade.error) {
-  fail(`Anonymous guest email verification request failed: ${classifySafeAuthError(upgrade.error.message)}`);
+  fail(
+    `Anonymous guest email verification request failed: ${classifySafeAuthError(upgrade.error.message)}. ` +
+      "Check Supabase Auth logs, email provider settings, redirect URLs and rate limits.",
+  );
 }
 
 const upgradedSession = await supabase.auth.getSession();
@@ -219,7 +226,17 @@ function classifySafeAuthError(message) {
   const normalized = message.toLowerCase();
   if (normalized.includes("rate") || normalized.includes("too many")) return "rate_limited";
   if (normalized.includes("anonymous")) return "anonymous_auth_unavailable";
+  if (normalized.includes("invalid") && normalized.includes("email")) return "invalid_email";
   return "auth_error";
+}
+
+function isRemoteSupabaseUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !["localhost", "127.0.0.1"].includes(url.hostname);
+  } catch {
+    return false;
+  }
 }
 
 function loadEnvFile(fileName) {

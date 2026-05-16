@@ -4,6 +4,7 @@ export type ResourceCost = {
   gold?: number;
   gems?: number;
   dust?: number;
+  arenaTickets?: number;
   adventureKeys?: number;
 };
 
@@ -22,6 +23,7 @@ export function canAfford(resources: Resources, cost: ResourceCost) {
   if (cost.gold && resources.gold < cost.gold) return false;
   if (cost.gems && resources.gems < cost.gems) return false;
   if (cost.dust && resources.dust < cost.dust) return false;
+  if (cost.arenaTickets && resources.arenaTickets < cost.arenaTickets) return false;
   if (cost.adventureKeys && (resources.adventureKeys ?? 0) < cost.adventureKeys) return false;
   return true;
 }
@@ -32,6 +34,7 @@ export function spendResources(resources: Resources, cost: ResourceCost): Resour
     gold: resources.gold - (cost.gold ?? 0),
     gems: resources.gems - (cost.gems ?? 0),
     dust: resources.dust - (cost.dust ?? 0),
+    arenaTickets: resources.arenaTickets - (cost.arenaTickets ?? 0),
     adventureKeys: (resources.adventureKeys ?? 0) - (cost.adventureKeys ?? 0),
   };
 }

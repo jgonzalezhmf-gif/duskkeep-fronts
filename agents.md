@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Objetivo
-Este archivo define como debe trabajar Codex dentro de este repo para avanzar rapido sin romper la vertical slice del juego. El proyecto es un alpha de juego tactico por turnos con progresion meta, construido con Next.js App Router, TypeScript, Tailwind, Zustand y una integracion futura con Supabase.
+Este archivo define como debe trabajar Codex dentro de este repo para avanzar rapido sin romper la vertical slice del juego. El proyecto es un alpha de juego tactico por turnos con progresion meta, construido con Next.js App Router, TypeScript, Tailwind, Zustand y Supabase como backend autoritativo progresivo.
 
 ## Lectura rapida del repo
 - `app/`: rutas y composicion de pantallas.
@@ -11,7 +11,7 @@ Este archivo define como debe trabajar Codex dentro de este repo para avanzar ra
 - `features/tactical/`: motor grid-based tactico y helpers de IA.
 - `data/`: seed data del alpha; heroes, shop, eventos, misiones, aventura.
 - `lib/`: tipos compartidos, store global, constantes, persistencia, utilidades.
-- `supabase/`: schema, seed y notas; backend todavia en modo skeleton.
+- `supabase/`: schema, seed, catalogos y RPCs autoritativas.
 - `tests/`: cobertura del core simulation/rewards/rng.
 
 ## Contexto funcional vivo
@@ -24,8 +24,8 @@ Este archivo define como debe trabajar Codex dentro de este repo para avanzar ra
 - Hay dos motores de juego distintos:
   - `features/battle/*` para combate automatico por eventos.
   - `features/tactical/*` para combate por grid con estado por turno.
-- La persistencia real hoy es local (`zustand/persist` + `localStorage`).
-- `lib/persistence.ts` expone una interfaz correcta, pero el backend Supabase sigue siendo stub.
+- La direccion core es server-authoritative: Supabase/Postgres/RPC y el BFF de Next son fuente de verdad para economia/progreso online.
+- Zustand/localStorage quedan como cache de cliente, UI state y fallback de desarrollo; no son autoridad para cuentas online.
 - `npm run lint` ya es no interactivo y usable.
 - `npm run typecheck` pasa.
 - `npm run test` puede fallar en entornos restringidos por `esbuild spawn EPERM`.
@@ -67,10 +67,10 @@ Responsable de:
 
 ### 5. Backend/Data Engineer
 Responsable de:
-- Supabase schema y migracion futura
+- Supabase schema, RPCs, RLS, catalogos data-driven y migraciones
 - compatibilidad del estado persistido
 - seeds y shape de snapshots
-- no introducir dependencias a backend donde hoy el juego funciona offline
+- no introducir mutaciones sensibles fuera del BFF/RPC autoritativo
 
 ### 6. QA/Release
 Responsable de:
@@ -87,6 +87,15 @@ Responsable de:
 4. Verificar con comandos no interactivos.
 5. Actualizar `CHANGELOG.md` y la version de `package.json`/`package-lock.json` en cada iteracion cerrada.
 6. Cerrar cada tarea con estado real: que se cambio, que se verifico, que quedo pendiente.
+
+## Arquitectura server-authoritative
+- Para cuentas vinculadas o invitado Supabase, el servidor es la fuente de verdad de recursos, recompensas, progreso, compras, claims, inventario, upgrades, misiones y ladder futuro.
+- El frontend envia acciones minimas: ids, seleccion del jugador y resumen/log de combate cuando aplique. Nunca envia precios, recompensas finales, balances, unlocks finales ni loot rolls como verdad.
+- Toda mutacion sensible debe pasar por `/api/server/authoritative` y una RPC Supabase con auth, ownership/RLS, validacion, idempotencia y ledger si toca recursos.
+- `localStorage` solo puede persistir preferencias y estado UI no sensible: idioma, audio, intro/onboarding, opciones visuales, QA local y cache descartable.
+- En modo `NEXT_PUBLIC_PERSISTENCE=supabase`, no rehidratar estado sensible desde Zustand/localStorage. Debe venir de `get_player_snapshot` o de la respuesta autoritativa de una operacion.
+- No anadir nuevas llamadas directas a `awardRewards`, `spend`, `claim*`, `purchase*` o `upgrade*` como autoridad para cuentas online. Si se necesita fallback local, debe ser explicito para desarrollo/offline y bloqueado para `linked`.
+- Los cambios de balance deben vivir en catalogos/seed server-side o datos versionados, no en JSX ni servicios UI.
 
 ## Versionado y CHANGELOG
 - Mantener `CHANGELOG.md` como historial funcional del alpha.
@@ -117,17 +126,17 @@ Responsable de:
 
 ## Prioridad de decision
 1. Mantener el alpha jugable.
-2. No romper la persistencia local existente.
-3. Preservar determinismo de combate y coherencia de progresion.
-4. Mejorar UX movil sin sobreingenieria.
-5. Preparar terreno para Supabase sin acoplar el juego a backend aun.
+2. Mantener servidor como autoridad para economia/progreso online.
+3. No romper la persistencia server-side ni la sesion invitada/vinculada.
+4. Preservar determinismo de combate y coherencia de progresion.
+5. Mejorar UX movil sin sobreingenieria.
 
 ## Reglas practicas para editar
 - Favorecer cambios locales y acotados.
 - Mantener tipos de dominio en `lib/types.ts` o tipos propios de `features/*` cuando aplique.
 - Si una regla pertenece al juego, debe vivir en `features/*`, `data/*` o helpers de dominio; no enterrarla en JSX.
 - Si una pantalla solo orquesta, debe delegar el calculo a store/helpers.
-- No reemplazar seeds estaticas por fetches mientras el brief siga priorizando offline-first.
+- No mover una accion sensible al cliente por comodidad. Crear/usar contrato BFF/RPC y snapshot servidor.
 - Evitar refactors amplios si el problema es puntual.
 
 ## Comandos recomendados para Codex

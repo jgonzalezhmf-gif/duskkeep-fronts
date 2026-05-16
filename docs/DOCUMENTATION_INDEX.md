@@ -78,6 +78,7 @@ Leer antes de:
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: fases objetivo de backend, operaciones sensibles y direccion Supabase.
 - `docs/SUPABASE_REMOTE_OPERATIONS.md`: pasos operativos para preparar y validar Supabase remoto sin commitear secretos.
 - `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para cuenta, recursos, progreso, compras, claims, combate y ledger.
+- `docs/SERVER_AUTHORITATIVE_STATE_OWNERSHIP.md`: matriz de estado server-owned, client-cache y client-only.
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`: contratos de operaciones sensibles que deben ejecutarse en servidor.
 - `docs/BACKEND_SECURITY_CLOSURE_REVIEW.md`: cierre del bloque server-authoritative, riesgos mitigados, riesgos residuales y gates antes de monetizacion/ranking.
 - `docs/QUALITY_AND_RELEASE.md`: checklist de seguridad para el alpha presentable.

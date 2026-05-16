@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { AUTH_SESSION_EXPIRED_NOTICE } from "@/features/server/sessionSecurity";
+import {
+  AUTH_ONLINE_PERSISTENCE_UNAVAILABLE_NOTICE,
+  AUTH_SESSION_EXPIRED_NOTICE,
+} from "@/features/server/sessionSecurity";
 import { createLocalAuthoritativeFallbackDecision } from "@/lib/storeAuthoritativeFallback";
 
 describe("store authoritative fallback decision", () => {
@@ -24,8 +27,42 @@ describe("store authoritative fallback decision", () => {
       createLocalAuthoritativeFallbackDecision({
         accountLinkMode: "guest",
         reason: "missing_session",
+        serverPersistenceEnabled: false,
       }),
     ).toEqual({ blocked: false });
+  });
+
+  it("blocks guest fallback when Supabase persistence is enabled", () => {
+    expect(
+      createLocalAuthoritativeFallbackDecision({
+        accountLinkMode: "guest",
+        reason: "missing_session",
+        serverPersistenceEnabled: true,
+      }),
+    ).toEqual({
+      blocked: true,
+      accountLinkMode: "undecided",
+      notification: {
+        kind: "info",
+        message: AUTH_SESSION_EXPIRED_NOTICE,
+      },
+    });
+  });
+
+  it("blocks linked account local fallback when online persistence is disabled without forcing relogin", () => {
+    expect(
+      createLocalAuthoritativeFallbackDecision({
+        accountLinkMode: "linked",
+        reason: "api_disabled",
+      }),
+    ).toEqual({
+      blocked: true,
+      accountLinkMode: "linked",
+      notification: {
+        kind: "error",
+        message: AUTH_ONLINE_PERSISTENCE_UNAVAILABLE_NOTICE,
+      },
+    });
   });
 
   it("does not convert authoritative server rejections into local fallback blocks", () => {

@@ -40,6 +40,7 @@ export default function HomePageClient({
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
   const syncLocalSnapshotOnlineFirst = useGameStore((state) => state.syncLocalSnapshotOnlineFirst);
+  const loadServerSnapshotOnlineFirst = useGameStore((state) => state.loadServerSnapshotOnlineFirst);
   const [introDismissed, setIntroDismissed] = useState(false);
   const [introSeenThisPageLoad, setIntroSeenThisPageLoad] = useState(() => introSeenInPageRuntime);
   const [guestChoiceResolvedThisPageLoad, setGuestChoiceResolvedThisPageLoad] = useState(() => guestChoiceResolvedInPageRuntime);
@@ -168,6 +169,7 @@ export default function HomePageClient({
           guestChoiceResolvedInPageRuntime = true;
           setGuestChoiceResolvedThisPageLoad(true);
           setAccountLinkMode("linked");
+          void loadServerSnapshotOnlineFirst();
         }}
       />
       <PasswordRecoveryGate

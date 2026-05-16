@@ -163,6 +163,7 @@ export function SessionSecurityMonitor() {
         lastRecordedAtRef.current = Date.now();
         setExpired(false);
         setAccountLinkMode("linked");
+        void loadServerSnapshotOnlineFirst();
       }}
     />
   );

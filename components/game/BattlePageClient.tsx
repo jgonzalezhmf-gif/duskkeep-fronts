@@ -20,6 +20,7 @@ import { summarizeBattleStats } from "@/lib/frontlineBattleStats";
 import { audio } from "@/lib/audio";
 import { frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
@@ -31,7 +32,7 @@ import {
   projectAccountProgress,
   resolveBattleBackgroundKey,
 } from "@/components/game/frontline/frontlineBattlePageLogic";
-import { shouldPersistBattleOutcome } from "@/components/game/frontline/frontlineBattleRewardPolicy";
+import { shouldPersistBattleOutcome, shouldRecordLocalBattleOutcome } from "@/components/game/frontline/frontlineBattleRewardPolicy";
 import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 
@@ -168,11 +169,14 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
         rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
       }
     }
+    const serverPersistenceEnabled = isServerAuthoritativePersistenceEnabled();
     const shouldPersistOutcome = shouldPersistBattleOutcome({
       accountLinkMode,
       adventureLevelActive: Boolean(adventureLevel),
       adventureClaimSucceeded,
+      serverPersistenceEnabled,
     });
+    const shouldRecordLocalOutcome = shouldPersistOutcome && shouldRecordLocalBattleOutcome({ accountLinkMode, serverPersistenceEnabled });
     if (!shouldPersistOutcome) {
       rewards = {};
     }
@@ -209,7 +213,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       firstClear: firstClearAchieved,
       adventureName: adventureLevel?.name ?? null,
     });
-    if (shouldPersistOutcome) recordBattleResult(won, adventureLevel ? "adventure" : "vsai");
+    if (shouldRecordLocalOutcome) recordBattleResult(won, adventureLevel ? "adventure" : "vsai");
     if (!rewardsAppliedByAdventureClaim && (rewards.gold || rewards.dust || rewards.gems || rewards.accountXp || rewards.xp || rewards.arenaTickets || rewards.adventureKeys || rewards.shards?.length || rewards.frontlineCards?.length)) {
       awardRewards(rewards, won && adventureLevel ? adventureLevel.name : won ? t("frontline.victory") : winner === "draw" ? t("frontline.draw") : t("frontline.defeat"));
     }
