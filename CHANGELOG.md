@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.0] - 2026-05-17
+
+### Audio
+- Integrada la musica independiente `intro_cinematic` para la cinematica inicial sin sustituir musica de Home ni otros temas existentes.
+- Registrados SFX independientes de intro/boss (`eclipse_lightning`, `boss_tension_riser`, `fortress_eclipse_pulse`) y sincronizados con los beats visuales de rayos, castillo y aparicion del boss.
+- La repeticion de intro desde opciones vuelve al tema de la ruta activa en lugar de forzar Home cuando se cierra.
+
 ## [0.33.19] - 2026-05-17
 
 ### Audio
@@ -2765,7 +2772,7 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `npm.cmd run check`
 - `npm.cmd run build`
 - `git diff --check`
-- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase features tests -g "!docs/skills/**"`
+- Auditoria de referencias externas no permitidas en documentacion y codigo versionado.
 
 ## [0.25.265] - 2026-05-11
 
@@ -2780,7 +2787,7 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `npm.cmd run check`
 - `npm.cmd run build`
 - `git diff --check`
-- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase features tests -g "!docs/skills/**"`
+- Auditoria de referencias externas no permitidas en documentacion y codigo versionado.
 
 ## [0.25.264] - 2026-05-11
 
@@ -2808,7 +2815,7 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `npm.cmd run check`
 - `npm.cmd run typecheck`
 - `git diff --check`
-- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase -g "!docs/skills/**"`
+- Auditoria de referencias externas no permitidas en documentacion y codigo versionado.
 
 ## [0.25.262] - 2026-05-10
 
@@ -2822,7 +2829,7 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 ### Tested
 - `npm.cmd run typecheck`
 - `git diff --check`
-- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase -g "!docs/skills/**"`
+- Auditoria de referencias externas no permitidas en documentacion y codigo versionado.
 
 ## [0.25.261] - 2026-05-10
 
@@ -2837,30 +2844,30 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 ### Tested
 - `npm.cmd run typecheck`
 - `git diff --check`
-- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md supabase -g "!docs/skills/**"`
+- Auditoria de referencias externas no permitidas en documentacion y codigo versionado.
 
 ## [0.25.260] - 2026-05-10
 
 ### Changed
 - Traducidos al espanol documentos secundarios de proyecto: `ADVENTURE_MAP_INTERACTIONS_BACKLOG.md`, `ART_PIPELINE_CODEX.md`, `ASSET_RIGHTS_NOTES.md`, `IMPECCABLE_ANIMATION_USAGE.md` y `REWARD_VISIBILITY_RULES.md`.
-- Revisada de nuevo la documentacion versionada principal para evitar referencias a juegos externos o competidores.
+- Revisada de nuevo la documentacion versionada principal para evitar referencias externas no permitidas.
 
 ### Tested
 - `npm.cmd run typecheck`
 - `git diff --check`
-- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md -g "!docs/skills/**"`
+- Auditoria de referencias externas no permitidas en documentacion versionada.
 
 ## [0.25.259] - 2026-05-10
 
 ### Changed
 - Traducidos al espanol `README.md`, `docs/ARCHITECTURE.md`, `docs/GAMEPLAY_GUIDE.md`, `docs/QUALITY_AND_RELEASE.md` y `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
-- Aniadida regla explicita para no incluir referencias a otros juegos, competidores o ejemplos externos en documentacion versionada.
+- Aniadida regla explicita para no incluir referencias externas no permitidas en documentacion versionada.
 - Revisada la documentacion versionada principal para confirmar que no contiene referencias a juegos externos prohibidos.
 
 ### Tested
 - `npm.cmd run typecheck`
 - `git diff --check`
-- `rg -i "might|mighty|cunt|cuntwars|darkest dungeon|hearthstone|fall guys|slay the spire|raid shadow|marvel snap|gwent|darkest|hearth" README.md docs AGENTS.md -g "!docs/skills/**"`
+- Auditoria de referencias externas no permitidas en documentacion versionada.
 
 ## [0.25.258] - 2026-05-10
 

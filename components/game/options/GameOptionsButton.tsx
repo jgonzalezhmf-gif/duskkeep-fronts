@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { UiIcon } from "@/components/game/shared/UiIcon";
 import { signOutSupabase } from "@/features/server/supabaseBrowserSession";
 import { SUPPORTED_LOCALES, type LocaleCode } from "@/lib/i18n/locales";
@@ -10,6 +11,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import { audio, sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import { useGameStore } from "@/lib/store";
+import type { ThemeName } from "@/lib/audio-runtime";
 
 const GameIntroPreview = dynamic(() => import("@/components/game/intro/GameIntro").then((mod) => mod.GameIntro), {
   ssr: false,
@@ -25,6 +27,7 @@ function pct(value: number) {
 
 export default function GameOptionsButton({ className }: { className?: string }) {
   const { t, locale } = useI18n();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [introPreviewOpen, setIntroPreviewOpen] = useState(false);
   const [accountGateOpen, setAccountGateOpen] = useState(false);
@@ -273,7 +276,7 @@ export default function GameOptionsButton({ className }: { className?: string })
           document.body,
         )
         : null}
-      {introPreviewOpen ? <GameIntroPreview onDone={() => setIntroPreviewOpen(false)} /> : null}
+      {introPreviewOpen ? <GameIntroPreview onDone={() => setIntroPreviewOpen(false)} returnTheme={getRouteReturnTheme(pathname)} /> : null}
       {accountGateOpen ? (
         <GameAuthGate
           open={accountGateOpen}
@@ -296,6 +299,14 @@ export default function GameOptionsButton({ className }: { className?: string })
       ) : null}
     </>
   );
+}
+
+function getRouteReturnTheme(pathname: string): ThemeName {
+  if (pathname === "/adventure") return "adventure";
+  if (/^\/events(?:\/|$)/.test(pathname)) return "event";
+  if (/^\/shop(?:\/|$)/.test(pathname)) return "shop";
+  if (/^\/battle(?:\/|$)/.test(pathname) || /^\/adventure\/[^/]+$/.test(pathname)) return null;
+  return "home";
 }
 
 function accountModeTitleKey(mode: string) {

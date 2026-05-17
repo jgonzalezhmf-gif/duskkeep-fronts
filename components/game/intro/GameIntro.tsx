@@ -1,13 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { audio } from "@/lib/audio";
+import type { ThemeName } from "@/lib/audio-runtime";
 import { useGameStore } from "@/lib/store";
 import { INTRO_TOTAL_MS } from "./introScenes";
 import { IntroStage } from "./IntroStage";
 
+const INTRO_SFX_CUES = [
+  { atMs: 2200, name: "eclipse_lightning" },
+  { atMs: 9500, name: "eclipse_lightning" },
+  { atMs: 11200, name: "fortress_eclipse_pulse" },
+  { atMs: 15000, name: "boss_tension_riser" },
+  { atMs: 15400, name: "eclipse_lightning" },
+  { atMs: 16400, name: "eclipse_lightning" },
+] as const;
+
 type GameIntroProps = {
   /** Called once when the intro is skipped or the CTA is pressed. */
   onDone: () => void;
+  returnTheme?: ThemeName;
 };
 
 /**
@@ -15,11 +27,20 @@ type GameIntroProps = {
  * requestAnimationFrame so animations stay in sync with display refresh and
  * pause cleanly when the tab is hidden.
  */
-export function GameIntro({ onDone }: GameIntroProps) {
+export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
   const storeReducedMotion = useGameStore((state) => state.reducedMotion);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [mediaReducedMotion, setMediaReducedMotion] = useState(false);
   const doneRef = useRef(false);
+  const lastElapsedRef = useRef(0);
+  const playedCueIndexesRef = useRef(new Set<number>());
+
+  useEffect(() => {
+    audio.setTheme("intro");
+    return () => {
+      audio.setTheme(returnTheme);
+    };
+  }, [returnTheme]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -29,6 +50,19 @@ export function GameIntro({ onDone }: GameIntroProps) {
     mql.addEventListener?.("change", update);
     return () => mql.removeEventListener?.("change", update);
   }, []);
+
+  useEffect(() => {
+    const previous = lastElapsedRef.current;
+    lastElapsedRef.current = elapsedMs;
+
+    for (const [index, cue] of INTRO_SFX_CUES.entries()) {
+      if (playedCueIndexesRef.current.has(index)) continue;
+      if (previous <= cue.atMs && elapsedMs >= cue.atMs) {
+        playedCueIndexesRef.current.add(index);
+        audio.playSfxAsset(cue.name);
+      }
+    }
+  }, [elapsedMs]);
 
   const reducedMotion = storeReducedMotion || mediaReducedMotion;
 
@@ -69,6 +103,7 @@ export function GameIntro({ onDone }: GameIntroProps) {
   function finish() {
     if (doneRef.current) return;
     doneRef.current = true;
+    audio.setTheme(returnTheme);
     onDone();
   }
 

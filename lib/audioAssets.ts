@@ -27,6 +27,9 @@ export type AudioSfxAssetName =
   | "stun"
   | "guard"
   | "regen"
+  | "eclipse_lightning"
+  | "boss_tension_riser"
+  | "fortress_eclipse_pulse"
   | "purchase"
   | "claim"
   | "level_up"
@@ -36,6 +39,8 @@ export type AudioSfxAssetName =
 
 export type AudioMusicAssetName =
   | "home"
+  | "intro"
+  | "intro_cinematic"
   | "adventure"
   | "battle"
   | "boss"
@@ -77,6 +82,9 @@ export const AUDIO_SFX_ASSETS: AudioAssetManifest<AudioSfxAssetName> = {
   guard: { src: "/assets/audio/sfx/guard.mp3", credit: "elevenlabs", gain: 0.58 },
   leader_power: { src: "/assets/audio/sfx/leader_power.mp3", credit: "elevenlabs", gain: 0.62 },
   poison: { src: "/assets/audio/sfx/poison.mp3", credit: "elevenlabs", gain: 0.54 },
+  boss_tension_riser: { src: "/assets/audio/sfx/boss_tension_riser.mp3", credit: "elevenlabs", gain: 0.72 },
+  eclipse_lightning: { src: "/assets/audio/sfx/eclipse_lightning.mp3", credit: "elevenlabs", gain: 0.82 },
+  fortress_eclipse_pulse: { src: "/assets/audio/sfx/fortress_eclipse_pulse.mp3", credit: "elevenlabs", gain: 0.68 },
   purchase: { src: "/assets/audio/sfx/purchase.mp3", credit: "elevenlabs", gain: 0.82 },
   regen: { src: "/assets/audio/sfx/regen.mp3", credit: "elevenlabs", gain: 0.58 },
   resolve_clash: { src: "/assets/audio/sfx/resolve_clash.mp3", credit: "elevenlabs", gain: 0.64 },
@@ -98,6 +106,8 @@ export const AUDIO_MUSIC_ASSETS: AudioAssetManifest<AudioMusicAssetName> = {
   battle_event: { src: "/assets/audio/music/battle_event.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
   event: { src: "/assets/audio/music/battle_event.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },
   home: { src: "/assets/audio/music/home.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },
+  intro: { src: "/assets/audio/music/intro_cinematic.mp3", credit: "elevenlabs", loop: false, gain: 0.62 },
+  intro_cinematic: { src: "/assets/audio/music/intro_cinematic.mp3", credit: "elevenlabs", loop: false, gain: 0.62 },
   postbattle: { src: "/assets/audio/music/postbattle.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },
   prebattle: { src: "/assets/audio/music/prebattle.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },
   shop: { src: "/assets/audio/music/shop.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
