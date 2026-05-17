@@ -37,7 +37,20 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
 
   useEffect(() => {
     audio.setTheme("intro");
+    const retryTimers = [120, 450, 1100].map((delay) =>
+      window.setTimeout(() => {
+        if (!doneRef.current) audio.setTheme("intro");
+      }, delay),
+    );
+    const retryIntroAudio = () => {
+      if (!doneRef.current) audio.setTheme("intro");
+    };
+    window.addEventListener("pointerdown", retryIntroAudio, { passive: true });
+    window.addEventListener("keydown", retryIntroAudio, { passive: true });
     return () => {
+      for (const timer of retryTimers) window.clearTimeout(timer);
+      window.removeEventListener("pointerdown", retryIntroAudio);
+      window.removeEventListener("keydown", retryIntroAudio);
       audio.setTheme(returnTheme);
     };
   }, [returnTheme]);
@@ -59,6 +72,7 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
       if (playedCueIndexesRef.current.has(index)) continue;
       if (previous <= cue.atMs && elapsedMs >= cue.atMs) {
         playedCueIndexesRef.current.add(index);
+        audio.setTheme("intro");
         audio.playSfxAsset(cue.name);
       }
     }

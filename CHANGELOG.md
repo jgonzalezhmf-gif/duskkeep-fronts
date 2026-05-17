@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.1] - 2026-05-17
+
+### Fixed
+- Reforzado el arranque de la musica de intro para que `RouteAudioDirector` no pueda devolver el tema a Home durante el montaje inicial.
+- La intro reintenta activar su tema en los primeros instantes, en el primer gesto de usuario y antes de cada cue de SFX sincronizado.
+- Aumentado ligeramente el gain del tema de intro para que se perciba mejor sobre los efectos de rayo/tension.
+
 ## [0.34.0] - 2026-05-17
 
 ### Audio
