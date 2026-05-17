@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.12] - 2026-05-17
+
+### Security
+- Mitigada la vulnerabilidad moderada de PostCSS anidada en Next mediante `overrides` a `postcss@8.5.10`, sin usar `audit fix --force`.
+- Fijada la dependencia directa de PostCSS para que el arbol instalado y el lockfile sean reproducibles.
+
 ## [0.33.11] - 2026-05-17
 
 ### Docs
