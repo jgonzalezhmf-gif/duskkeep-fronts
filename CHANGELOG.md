@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.5] - 2026-05-17
+
+### Fixed
+- Reintentada la musica pendiente de la intro cuando el `AudioContext` pasa de `suspended` a `running` tras recargar la pagina.
+- Mantenido el arranque automatico de la intro sin placa ni boton adicional.
+
 ## [0.34.4] - 2026-05-17
 
 ### Fixed

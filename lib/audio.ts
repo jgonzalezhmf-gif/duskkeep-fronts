@@ -54,6 +54,7 @@ class AudioManager {
   private primed = false;
   private primingBound = false;
   private visibilityBound = false;
+  private resumeAttemptPending = false;
   private routeThemeSuppressed = false;
   private theme: ThemeName = null;
   private activeThemeChannel: ThemeChannel | null = null;
@@ -251,9 +252,7 @@ class AudioManager {
       this.sfxVerbIn = graph.sfxVerbIn;
     }
 
-    if (this.ctx.state === "suspended") {
-      this.ctx.resume().catch(() => {});
-    }
+    this.resumeContextWhenAllowed();
 
     return {
       ctx: this.ctx,
@@ -267,6 +266,24 @@ class AudioManager {
       musicDelayIn: this.musicDelayIn,
       sfxVerbIn: this.sfxVerbIn,
     };
+  }
+
+  private resumeContextWhenAllowed() {
+    if (!this.ctx || this.ctx.state !== "suspended" || this.resumeAttemptPending) return;
+    this.resumeAttemptPending = true;
+    this.ctx
+      .resume()
+      .then(() => {
+        this.resumeAttemptPending = false;
+        if (!this.ctx || this.ctx.state !== "running") return;
+        this.primed = true;
+        this.refreshMix();
+        if (!this.muted && this.theme && !this.routeThemeSuppressed) this.crossfadeTheme(this.theme);
+        this.retryPendingOneShotMusic();
+      })
+      .catch(() => {
+        this.resumeAttemptPending = false;
+      });
   }
 
   private refreshMix() {
