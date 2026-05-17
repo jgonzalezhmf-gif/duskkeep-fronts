@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.13] - 2026-05-17
+
+### Docs
+- Anadida `docs/DEMO_GUIDE.md` con recorrido de demo, preparacion local/Supabase, checklist, persistencia online y troubleshooting.
+- Actualizados README, indice documental y estado de proyecto para enlazar la guia de demo y reflejar la direccion server-authoritative actual.
+
 ## [0.33.12] - 2026-05-17
 
 ### Security

@@ -67,6 +67,7 @@ Evidencia:
 - `docs/ENGINEERING_STANDARDS.md`
 - `docs/QUALITY_AND_RELEASE.md`
 - `docs/GAMEPLAY_GUIDE.md`
+- `docs/DEMO_GUIDE.md`
 
 No seguir salvo:
 

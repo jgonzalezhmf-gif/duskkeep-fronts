@@ -183,7 +183,7 @@ Documentacion pura o refactors aislados de dominio no necesitan validacion en na
 ## Estandares de Documentacion
 
 - La documentacion versionada debe estar en espanol.
-- No hacer referencias a otros juegos, competidores o ejemplos externos en documentos subidos al repositorio.
+- No hacer referencias a otros juegos, productos externos o ejemplos externos en documentos subidos al repositorio.
 - Si hace falta explicar una inspiracion visual o mecanica, describirla de forma generica: "juego tactico por turnos", "mapa de campania", "apertura de recompensa", "tienda de juego".
 - No incluir contexto privado que no deba formar parte del repositorio.
 - Preferir terminos propios del proyecto: Home, Adventure, Frontline, Fortress, Deck, Shop, Missions, Arena y Events.

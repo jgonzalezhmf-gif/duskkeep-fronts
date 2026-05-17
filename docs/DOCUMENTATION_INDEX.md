@@ -12,6 +12,7 @@ Leer primero estos documentos:
 - `docs/ARCHITECTURE.md`: capas del codigo, limites, flujo de datos y reglas de extension.
 - `docs/ENGINEERING_STANDARDS.md`: estandares de calidad, seguridad, rendimiento y desarrollo para futuros cambios.
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: estado de bloques, siguientes prioridades y regla para no iterar indefinidamente.
+- `docs/DEMO_GUIDE.md`: recorrido recomendado para demostrar la vertical slice y validar una demo de 10-15 minutos.
 
 ## Por Area
 
@@ -98,6 +99,7 @@ Leer antes de:
 - `docs/PERFORMANCE_BASELINE.md`: presupuestos actuales, auditoria de assets y practicas de rendimiento.
 - `docs/QUALITY_AND_RELEASE.md`: checks de lanzamiento, rutas de validacion rapida y gates de calidad.
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: matriz de bloques cerrados, backlog priorizado y gates por tipo de trabajo.
+- `docs/DEMO_GUIDE.md`: guia practica de preparacion, recorrido, persistencia online y troubleshooting para demo.
 
 Leer antes de:
 
@@ -112,7 +114,7 @@ Leer antes de:
 Estos son los siguientes puntos de documentacion que conviene mejorar:
 
 - Anadir una checklist UX pantalla por pantalla cuando la direccion visual actual este estabilizada.
-- Anadir una guia ligera de troubleshooting para desarrollo local, validacion en navegador y problemas de assets.
+- Ampliar troubleshooting operativo si aparecen incidencias repetidas en Supabase remoto, navegador o assets.
 - Traducir a espanol documentos historicos que todavia mantengan secciones en ingles.
 
 ## Reglas de Documentacion
@@ -121,5 +123,5 @@ Estos son los siguientes puntos de documentacion que conviene mejorar:
 - Mantener los documentos alineados con el codigo tras cada iteracion relevante.
 - Preferir actualizar documentos existentes antes que crear duplicados.
 - No incluir contexto privado del proyecto que no deba estar en el repositorio.
-- No mencionar otros juegos, competidores o referencias externas en documentacion versionada.
+- No mencionar otros juegos, productos externos o referencias externas en documentacion versionada.
 - Si un documento describe un sistema futuro, marcarlo claramente como roadmap o arquitectura objetivo.

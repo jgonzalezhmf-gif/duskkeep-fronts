@@ -1,6 +1,6 @@
 # Duskkeep Fronts
 
-Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actual se centra en Duskkeep Fronts: Home como hub, flujo de Adventure, pre-combate, combate de cartas en tres frentes, progresion de Deck, Fortress, Market, Missions, Events y Arena. Funciona offline en el primer arranque; la integracion con Supabase esta preparada para una futura pasada de persistencia.
+Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actual se centra en Duskkeep Fronts: Home como hub, flujo de Adventure, pre-combate, combate de cartas en tres frentes, progresion de Deck, Fortress, Market, Missions, Events y Arena. Funciona en modo local para desarrollo y tambien tiene persistencia online opcional con Supabase mediante operaciones server-authoritative.
 
 > Fuentes de referencia: `AGENTS.md`, `docs/DOCUMENTATION_INDEX.md`,
 > `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`, `docs/ARCHITECTURE.md`,
@@ -11,10 +11,10 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 
 - **Next.js App Router** + TypeScript.
 - **Tailwind CSS** para UI responsive y shell de juego.
-- **Zustand** persistido en `localStorage`.
-- **Zod** instalado para futura validacion de schemas.
+- **Zustand** como store de UI y cache de snapshot.
+- **Zod** para contratos y validacion de operaciones servidor.
 - **Vitest** para tests unitarios de motor, RNG y rewards.
-- **Supabase SDK** preparado, con schema en `supabase/schema.sql`.
+- **Supabase SDK** para Auth, persistencia online y RPCs autoritativas.
 
 ## Documentacion
 
@@ -22,6 +22,7 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 - `docs/ARCHITECTURE.md`: capas del codigo, flujo de datos, limites y reglas de extension.
 - `docs/ENGINEERING_STANDARDS.md`: estandares de arquitectura, calidad, seguridad, rendimiento y lanzamiento.
 - `docs/GAMEPLAY_GUIDE.md`: loop jugable, pantallas y expectativas de gameplay.
+- `docs/DEMO_GUIDE.md`: recorrido recomendado para demostrar la vertical slice en 10-15 minutos.
 - `docs/QUALITY_AND_RELEASE.md`: checklist de lanzamiento, comandos de prueba, rutas de validacion rapida y gates de calidad.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: persistencia online, validacion backend y roadmap de seguridad.
 - `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para persistencia online segura.
@@ -77,6 +78,13 @@ npm run test         # tests unitarios
 npm run test:watch   # tests en watch mode
 npm run screenshots  # capturas contra una app ya arrancada
 npm run screenshots:auto # arranca servidor local y captura pantallas
+```
+
+Para probar la build de produccion en local:
+
+```bash
+npm run build
+npm run start
 ```
 
 ### Automatizacion de Capturas
@@ -164,6 +172,8 @@ npm run build
 
 Usar `npm run check:full` cuando el entorno permita procesos hijos de Vitest/esbuild y workers de build de Next. En sandboxes restringidos, tests o build pueden fallar con `spawn EPERM` aunque el codigo sea correcto.
 
+Para una demo funcional, seguir `docs/DEMO_GUIDE.md`.
+
 ## Implementado en el Alpha
 
 - **Home** con nivel de cuenta, XP, acceso a continuar Adventure y navegacion a sistemas principales.
@@ -176,7 +186,8 @@ Usar `npm run check:full` cuando el entorno permita procesos hijos de Vitest/esb
 - **Missions** con progreso diario/semanal y recompensas reclamables.
 - **Shop** con ofertas, recursos, feedback visual y Adventure Keys.
 - **Resources**: gold, dust, gems, tickets, Adventure Keys y account XP.
-- **Persistencia**: Zustand + `localStorage`; Supabase queda como futura capa backend.
+- **Persistencia local**: Zustand + `localStorage` para desarrollo/offline.
+- **Persistencia online**: Supabase Auth, snapshots de jugador y operaciones server-authoritative para rewards, compras, claims y progreso sensible.
 - **Mobile UX** con layout responsive, safe-area y targets tactiles.
 - **Tests** para simulacion determinista, RNG, recompensas y helpers criticos.
 
@@ -194,7 +205,7 @@ features/
   tactical/            # prototipo tactico legacy
 data/                  # seed data de heroes, aventura, misiones, eventos, shop, arena
 lib/                   # store, persistencia, rng, tipos, manifests, constantes
-supabase/              # schema, seed y notas de backend futuro
+supabase/              # migraciones, seed, smokes y RPCs Supabase
 tests/                 # cobertura de motores, recompensas, rng y helpers
 ```
 
@@ -217,13 +228,25 @@ location.reload();
 
 ## Supabase Opcional
 
-Ver `supabase/README.md`. El cambio de persistencia se activa con:
+Ver `supabase/README.md` y `docs/SUPABASE_REMOTE_OPERATIONS.md`. El modo online se activa con:
 
 ```text
 NEXT_PUBLIC_PERSISTENCE=supabase
+SERVER_AUTHORITATIVE_API_ENABLED=true
 ```
 
-en `.env.local`. Si faltan credenciales, el juego debe seguir usando almacenamiento local.
+en `.env.local`, junto con `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+Comandos utiles:
+
+```bash
+npm run dev:supabase
+npm run check:supabase:remote
+npm run smoke:supabase:snapshot
+npm run smoke:authoritative-api
+```
+
+Regla de seguridad: el cliente no debe ser fuente de verdad para recursos, compras, rewards, claims, progreso online ni futuros rankings.
 
 ## TODO Priorizado
 
@@ -232,7 +255,7 @@ en `.env.local`. Si faltan credenciales, el juego debe seguir usando almacenamie
 1. Mantener `npm run check`, `npm run test` y `npm run build` en verde.
 2. Terminar el pulido demo de Chapter 1 y mantener Chapter 2 bloqueado hasta tener contenido.
 3. Anadir boundaries de error por ruta y estados vacios.
-4. Preparar diseno de persistencia backend sin hacer autoritativo al cliente.
+4. Mantener la persistencia online server-authoritative sin ampliar fallback local sensible.
 5. Mantener documentacion actualizada con gameplay, arquitectura y estado de lanzamiento.
 
 ### P1
@@ -241,11 +264,11 @@ en `.env.local`. Si faltan credenciales, el juego debe seguir usando almacenamie
 2. Tiers/evolucion de heroes y uso mas profundo de shards.
 3. Replays deterministas en servidor y resumenes de resultado.
 4. Hook de analitica y flags de funcionalidad.
-5. MVP de persistencia Supabase con cuentas autenticadas.
+5. Mejorar observabilidad de errores Auth/RPC/snapshot.
 
 ### P2
 
-1. Operaciones de economia autoritativas.
+1. Validacion server-side mas fuerte de combate.
 2. Ladder de Arena y validacion anti-tamper.
 3. Cosmeticos, skins y flujos de tienda premium.
 4. Notificaciones push.
