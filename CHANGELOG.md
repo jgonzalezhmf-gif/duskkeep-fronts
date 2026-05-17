@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.10] - 2026-05-17
+
+### Fixed
+- Evitado que Arena intente refrescar tickets diarios mediante mutacion local cuando la app usa persistencia Supabase.
+- Las sesiones Supabase con refresh token local obsoleto se limpian como sesion anonima/cerrada en vez de conservar estado corrupto.
+
+### Tests
+- Cubierta la deteccion de errores de refresh token invalido sin exponer tokens ni datos sensibles.
+
 ## [0.33.9] - 2026-05-16
 
 ### Docs

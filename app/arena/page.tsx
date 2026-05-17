@@ -64,7 +64,7 @@ export default function ArenaPage() {
 
   useEffect(() => {
     setClientReady(true);
-    refreshTickets();
+    if (!isServerAuthoritativePersistenceEnabled()) refreshTickets();
   }, [refreshTickets]);
 
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;

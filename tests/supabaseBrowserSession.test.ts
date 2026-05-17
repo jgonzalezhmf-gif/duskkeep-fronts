@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifySupabaseAuthError,
   isSupabaseAuthPasswordWithinBounds,
+  isInvalidRefreshTokenError,
   normalizeSupabaseAuthEmail,
   normalizeSupabaseAuthRedirectTo,
   prepareSupabasePasswordCredentials,
@@ -99,6 +100,13 @@ describe("Supabase browser session helpers", () => {
     expect(classifySupabaseAuthError("Invalid login credentials")).toBe("invalid_credentials");
     expect(classifySupabaseAuthError("Too many requests")).toBe("rate_limited");
     expect(classifySupabaseAuthError("Unexpected provider error")).toBe("auth_error");
+  });
+
+  it("detects invalid refresh-token errors for local session cleanup", () => {
+    expect(isInvalidRefreshTokenError("Invalid Refresh Token: Refresh Token Not Found")).toBe(true);
+    expect(isInvalidRefreshTokenError("Refresh token not found")).toBe(true);
+    expect(isInvalidRefreshTokenError("Invalid login credentials")).toBe(false);
+    expect(isInvalidRefreshTokenError("Too many requests")).toBe(false);
   });
 
   it("normalizes and bounds password credentials before Supabase calls", () => {

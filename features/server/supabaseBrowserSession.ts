@@ -64,7 +64,10 @@ export async function getSupabaseSessionSnapshot(): Promise<SupabaseSessionSnaps
   if (!supabase) return { status: "unconfigured" };
 
   const { data, error } = await supabase.auth.getSession();
-  if (error) return { status: "anonymous" };
+  if (error) {
+    if (isInvalidRefreshTokenError(error.message)) await clearStaleSupabaseSession(supabase);
+    return { status: "anonymous" };
+  }
 
   return toSupabaseSessionSnapshot(data.session);
 }
@@ -74,7 +77,10 @@ export async function getSupabaseAccessToken() {
   if (!supabase) return null;
 
   const { data, error } = await supabase.auth.getSession();
-  if (error) return null;
+  if (error) {
+    if (isInvalidRefreshTokenError(error.message)) await clearStaleSupabaseSession(supabase);
+    return null;
+  }
 
   return data.session?.access_token ?? null;
 }
@@ -286,6 +292,10 @@ export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; rea
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
   const { error } = await supabase.auth.signOut();
+  if (error && isInvalidRefreshTokenError(error.message)) {
+    await clearStaleSupabaseSession(supabase);
+    return { ok: true };
+  }
   if (error) return { ok: false, reason: "auth_error" };
   return { ok: true };
 }
@@ -379,6 +389,19 @@ export function classifySupabaseAuthError(message: string): SupabaseAuthFailureR
   if (normalized.includes("invalid") || normalized.includes("credentials")) return "invalid_credentials";
   if (normalized.includes("rate") || normalized.includes("too many")) return "rate_limited";
   return "auth_error";
+}
+
+export function isInvalidRefreshTokenError(message: string) {
+  const normalized = message.toLowerCase();
+  return normalized.includes("refresh token") && (normalized.includes("invalid") || normalized.includes("not found"));
+}
+
+async function clearStaleSupabaseSession(supabase: SupabaseClient) {
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    // Best-effort cleanup only. The caller still treats the session as anonymous.
+  }
 }
 
 function getCurrentBrowserOrigin() {
