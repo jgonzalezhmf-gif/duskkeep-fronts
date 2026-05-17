@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.3] - 2026-05-17
+
+### Fixed
+- La intro espera una interaccion explicita antes de iniciar timeline, musica y SFX, evitando silencio por autoplay y truenos acumulados al recargar.
+- Anadida placa inicial localizada para activar audio y comenzar la cinematica desde el segundo 0 con sincronizacion estable.
+
 ## [0.34.2] - 2026-05-17
 
 ### Fixed

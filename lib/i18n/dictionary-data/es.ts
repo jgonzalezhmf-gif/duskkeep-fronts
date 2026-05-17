@@ -99,6 +99,8 @@ export const esDictionary = {
       adventureKeys: "Llaves",
     },
     intro: {
+      start: "Iniciar intro",
+      startHint: "Pulsa para activar audio y comenzar la cinematica.",
       skip: "Saltar",
       enter: "Entrar al bastión",
       title: "Duskkeep Front",

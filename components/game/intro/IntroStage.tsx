@@ -11,6 +11,8 @@ type IntroStageProps = {
   elapsedMs: number;
   totalMs: number;
   reducedMotion: boolean;
+  awaitingStart?: boolean;
+  onStart?: () => void;
   onEnter: () => void;
   onSkip: () => void;
 };
@@ -21,7 +23,7 @@ type IntroStageProps = {
  * are intentionally subtle and additive (drift + scene-specific bumps)
  * so the playback never feels like discrete cuts.
  */
-export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip }: IntroStageProps) {
+export function IntroStage({ elapsedMs, totalMs, reducedMotion, awaitingStart = false, onStart, onEnter, onSkip }: IntroStageProps) {
   const { locale: storeLocale } = useI18n();
   const introLocale = useIntroLocale(storeLocale);
   const t = (key: string) => translate(introLocale, key);
@@ -117,6 +119,8 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
   const sceneText = scene?.id === "crest" || !scene?.textKey ? "" : t(scene.textKey);
   const crestText = t("intro.title");
   const skipLabel = t("intro.skip");
+  const startLabel = t("intro.start");
+  const startHint = t("intro.startHint");
   const enterLabel = t("intro.enter");
   // CTA fades in once the crest beat opens; doesn't wait for end-of-timeline.
   const showCta = elapsedMs >= 22500 || finished;
@@ -160,6 +164,15 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
         skipLabel={skipLabel}
         enterLabel={enterLabel}
       />
+
+      {awaitingStart ? (
+        <div className="intro-stage__start-gate" role="presentation">
+          <button type="button" className="intro-stage__start" onPointerDown={onStart} onClick={onStart}>
+            <span className="intro-stage__start-label">{startLabel}</span>
+            <span className="intro-stage__start-hint">{startHint}</span>
+          </button>
+        </div>
+      ) : null}
 
       <style jsx global>{`
         .intro-stage {
@@ -533,6 +546,53 @@ export function IntroStage({ elapsedMs, totalMs, reducedMotion, onEnter, onSkip 
           transform: translateX(-50%) translateY(-1px);
           border-color: rgba(245, 220, 160, 0.95);
           color: #fff3cc;
+        }
+        .intro-stage__start-gate {
+          position: absolute;
+          inset: 0;
+          z-index: 30;
+          display: grid;
+          place-items: center;
+          background:
+            radial-gradient(circle at 50% 46%, rgba(87, 60, 124, 0.18), transparent 32%),
+            rgba(3, 4, 7, 0.42);
+          pointer-events: auto;
+        }
+        .intro-stage__start {
+          display: grid;
+          gap: 0.55rem;
+          min-width: min(82vw, 24rem);
+          border: 1px solid rgba(196, 162, 92, 0.78);
+          border-radius: 2px;
+          background: linear-gradient(180deg, rgba(31, 24, 17, 0.92), rgba(9, 7, 6, 0.96));
+          box-shadow:
+            inset 0 0 0 1px rgba(245, 220, 160, 0.18),
+            0 22px 70px rgba(0, 0, 0, 0.58),
+            0 0 42px rgba(141, 101, 220, 0.16);
+          padding: 1.05rem 1.6rem;
+          color: #f3e2b4;
+          cursor: pointer;
+          text-align: center;
+          transition: transform 180ms ease, border-color 220ms ease, color 200ms ease;
+        }
+        .intro-stage__start:hover {
+          transform: translateY(-1px);
+          border-color: rgba(245, 220, 160, 0.95);
+          color: #fff3cc;
+        }
+        .intro-stage__start-label {
+          font-family: "IM Fell English SC", "Cormorant SC", "Cormorant Garamond",
+            "Trajan Pro", "Garamond", "Georgia", serif;
+          font-size: clamp(16px, 3vw, 24px);
+          font-weight: 700;
+          font-variant: small-caps;
+          letter-spacing: 0.24em;
+          text-transform: lowercase;
+        }
+        .intro-stage__start-hint {
+          font-size: 11px;
+          letter-spacing: 0.08em;
+          color: rgba(245, 231, 193, 0.58);
         }
 
         @keyframes introStageFadeIn {

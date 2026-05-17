@@ -165,6 +165,19 @@ class AudioManager {
     return this.sfxVolume;
   }
 
+  isPrimed() {
+    return this.primed && this.ctx?.state !== "suspended";
+  }
+
+  primeNow() {
+    if (typeof window === "undefined") return false;
+    this.primed = true;
+    const graph = this.ensureGraph();
+    this.refreshMix();
+    if (!this.muted && this.theme) this.crossfadeTheme(this.theme);
+    return Boolean(graph);
+  }
+
   setTheme(theme: ThemeName) {
     if (this.theme === theme) {
       if (!theme || this.muted || !this.primed) return;
