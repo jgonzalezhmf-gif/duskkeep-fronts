@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.11] - 2026-05-17
+
+### Docs
+- Anadido checklist manual de smoke para Supabase remoto cubriendo login, Adventure, recompensas, Shop, Arena, logout/login e incognito.
+- Actualizado el estado de siguientes bloques para reflejar Supabase remoto validado manualmente para alpha.
+
 ## [0.33.10] - 2026-05-17
 
 ### Fixed

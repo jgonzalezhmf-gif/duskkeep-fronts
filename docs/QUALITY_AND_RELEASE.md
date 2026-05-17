@@ -80,6 +80,40 @@ Validar al menos:
 - Comprar un item normal de Shop si hay recursos.
 - Cambiar seleccion de Deck o Team sin romper el inicio de Combat.
 
+## Smoke Manual Supabase Remoto
+
+Ejecutar cuando la build use `NEXT_PUBLIC_PERSISTENCE=supabase` y `SERVER_AUTHORITATIVE_API_ENABLED=true`.
+
+Preparacion:
+
+- Confirmar que `npm.cmd run check:supabase:remote` pasa.
+- Confirmar que `npx.cmd supabase db push` no deja migraciones pendientes.
+- Usar una cuenta de prueba, no una cuenta de produccion real.
+
+Flujo minimo:
+
+1. Entrar en la app desde una ventana limpia.
+2. Completar o saltar intro.
+3. Iniciar sesion con cuenta vinculada.
+4. Entrar en Adventure y completar un nodo disponible.
+5. Verificar que la pantalla de victoria muestra recompensas sin aviso de fallback local.
+6. Volver a Adventure y comprobar que el nodo queda persistido.
+7. Reclamar o abrir una recompensa disponible, incluido key chest si hay llave.
+8. Comprar una oferta normal de Shop y confirmar que los recursos cambian solo tras respuesta servidor.
+9. Entrar en Arena, iniciar combate con ticket y finalizarlo.
+10. Confirmar que Arena no muestra avisos de `Online progress must be validated by the server`.
+11. Cerrar sesion y volver a iniciar sesion en otra ventana o incognito.
+12. Confirmar que recursos, progreso de Adventure, compras y contador de Arena se recuperan desde servidor.
+
+Senales de bloqueo:
+
+- Error visible de `Invalid Refresh Token` repetido tras login normal.
+- Aviso de fallback local en una accion sensible de cuenta vinculada.
+- Recursos que aparecen tras una accion pero desaparecen tras recargar.
+- Nodo de Adventure marcado como bloqueado tras haber sido iniciado desde un estado permitido.
+
+Si aparece una senal de bloqueo, revisar primero `/api/server/authoritative`, `get_player_snapshot`, RLS y variables de entorno antes de tocar el frontend.
+
 ## Checklist de Calidad de Codigo
 
 - Los tipos TypeScript son explicitos en datos de dominio.

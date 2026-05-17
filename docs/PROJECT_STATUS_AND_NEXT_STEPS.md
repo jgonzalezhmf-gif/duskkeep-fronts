@@ -112,7 +112,9 @@ Validar:
 
 ### 2. Supabase remoto y entorno operativo
 
-Objetivo: preparar una instancia remota segura sin activar todavia monetizacion.
+Estado: validado manualmente para alpha con cuenta de prueba.
+
+Objetivo: mantener una instancia remota segura sin activar todavia monetizacion.
 
 Cuándo hacerlo:
 
@@ -133,6 +135,14 @@ Estado operativo:
 
 - Existe `docs/SUPABASE_REMOTE_OPERATIONS.md` como guia de preparacion y validacion remota.
 - Existe `npm.cmd run check:supabase:remote` para comprobar variables publicas, URL remota, anon key, persistencia, proxy autoritativo, rate limit y observabilidad sin imprimir secretos.
+- Las pruebas manuales remotas recientes cubrieron login, Adventure, recompensas, Shop, Arena, logout/login e incognito sin perdida aparente de snapshot.
+- El checklist manual queda definido en `docs/QUALITY_AND_RELEASE.md`.
+
+No seguir salvo:
+
+- Fallo real de sincronizacion, sesion, RLS, RPC o snapshot.
+- Preparacion de produccion publica.
+- Monetizacion, pagos, ladder real o necesidad de rate limit distribuido.
 
 ### 3. Pulido de pantallas no-combat bajo demanda
 
