@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.2] - 2026-05-17
+
+### Fixed
+- Cambiada la musica de intro a reproduccion one-shot por WebAudio para evitar bloqueos/intermitencias del `HTMLAudioElement` en la cinematica inicial.
+- La intro precarga, reintenta y detiene explicitamente `intro_cinematic` sin depender del tema de ruta ni de la musica de Home.
+- Si el navegador desbloquea audio tarde, la musica de intro entra con offset temporal para conservar la sincronizacion con la cinematica.
+
 ## [0.34.1] - 2026-05-17
 
 ### Fixed

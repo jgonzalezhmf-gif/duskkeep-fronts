@@ -12,6 +12,7 @@ import {
 import {
   getAudioMusicAsset,
   getAudioSfxAsset,
+  type AudioMusicAssetName,
   type AudioSfxAssetName,
 } from "@/lib/audioAssets";
 import {
@@ -56,6 +57,16 @@ class AudioManager {
   private theme: ThemeName = null;
   private activeThemeChannel: ThemeChannel | null = null;
   private activeMusicAssetChannel: MusicAssetChannel | null = null;
+  private activeOneShotMusic:
+    | {
+        name: AudioMusicAssetName;
+        source: AudioBufferSourceNode;
+        gain: GainNode;
+      }
+    | null = null;
+  private pendingOneShotMusicName: AudioMusicAssetName | null = null;
+  private pendingOneShotMusicOffsetSeconds = 0;
+  private musicAssetBuffers = new Map<AudioMusicAssetName, Promise<AudioBuffer | null>>();
   private sfxAssetBuffers = new Map<AudioSfxAssetName, Promise<AudioBuffer | null>>();
   private themeEntryCursor: Partial<Record<AudioThemeName, number>> = {};
   private musicVolume = 0.78;
@@ -285,6 +296,100 @@ class AudioManager {
     fadeHtmlAudio(channel, 0, fadeSeconds, () => {
       disposeMusicElement(channel.audio);
     });
+  }
+
+  stopOneShotMusicAsset(fadeSeconds = 0.18) {
+    this.pendingOneShotMusicName = null;
+    this.pendingOneShotMusicOffsetSeconds = 0;
+    const channel = this.activeOneShotMusic;
+    if (!channel || !this.ctx) return;
+    this.activeOneShotMusic = null;
+    const now = this.ctx.currentTime;
+    try {
+      channel.gain.gain.cancelScheduledValues(now);
+      channel.gain.gain.setValueAtTime(channel.gain.gain.value, now);
+      channel.gain.gain.linearRampToValueAtTime(0.0001, now + Math.max(0.02, fadeSeconds));
+      window.setTimeout(() => {
+        try {
+          channel.source.stop();
+          channel.source.disconnect();
+          channel.gain.disconnect();
+        } catch {}
+      }, Math.round((fadeSeconds + 0.06) * 1000));
+    } catch {}
+  }
+
+  private loadMusicBuffer(name: AudioMusicAssetName) {
+    const existing = this.musicAssetBuffers.get(name);
+    if (existing) return existing;
+    const asset = getAudioMusicAsset(name);
+    if (!asset) return Promise.resolve(null);
+
+    const pending = fetch(asset.src)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Audio asset failed: ${asset.src}`);
+        return response.arrayBuffer();
+      })
+      .then((buffer) => {
+        const graph = this.ensureGraph();
+        if (!graph) return null;
+        return graph.ctx.decodeAudioData(buffer.slice(0));
+      })
+      .catch(() => null);
+
+    this.musicAssetBuffers.set(name, pending);
+    return pending;
+  }
+
+  preloadMusicAsset(name: AudioMusicAssetName) {
+    void this.loadMusicBuffer(name);
+  }
+
+  playOneShotMusicAsset(name: AudioMusicAssetName, options: { offsetSeconds?: number } = {}) {
+    const graph = this.ensureGraph();
+    const asset = getAudioMusicAsset(name);
+    if (!graph || !asset || this.muted || !this.ctx) return false;
+    const offsetSeconds = Math.max(0, options.offsetSeconds ?? 0);
+    if (this.activeOneShotMusic?.name === name) return true;
+    if (this.pendingOneShotMusicName === name) {
+      this.pendingOneShotMusicOffsetSeconds = Math.max(this.pendingOneShotMusicOffsetSeconds, offsetSeconds);
+      return true;
+    }
+
+    this.pendingOneShotMusicName = name;
+    this.pendingOneShotMusicOffsetSeconds = offsetSeconds;
+    this.stopActiveProceduralTheme(0.22);
+    this.stopMusicAssetChannel(0.22);
+    stopUntrackedMusicElements();
+
+    this.loadMusicBuffer(name).then((buffer) => {
+      if (this.pendingOneShotMusicName !== name) return;
+      const startOffsetSeconds = this.pendingOneShotMusicOffsetSeconds;
+      this.pendingOneShotMusicName = null;
+      this.pendingOneShotMusicOffsetSeconds = 0;
+      if (!buffer || this.muted || !this.ctx || !this.musicGain) return;
+
+      this.stopOneShotMusicAsset(0.08);
+      const source = this.ctx.createBufferSource();
+      const gain = this.ctx.createGain();
+      source.buffer = buffer;
+      source.loop = asset.loop ?? false;
+      gain.gain.value = 0.0001;
+      source.connect(gain).connect(this.musicGain);
+      this.activeOneShotMusic = { name, source, gain };
+      const now = this.ctx.currentTime;
+      source.start(now, Math.min(Math.max(0, startOffsetSeconds), Math.max(0, buffer.duration - 0.05)));
+      gain.gain.linearRampToValueAtTime(asset.gain ?? 1, now + 0.28);
+      source.onended = () => {
+        if (this.activeOneShotMusic?.source === source) this.activeOneShotMusic = null;
+        try {
+          source.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
+    });
+
+    return true;
   }
 
   private playMusicAsset(theme: AudioThemeName) {
@@ -786,6 +891,7 @@ class AudioManager {
     if (!this.primed || this.muted) {
       this.stopActiveProceduralTheme(0.35);
       this.stopMusicAssetChannel(0.35);
+      this.stopOneShotMusicAsset(0.18);
       stopUntrackedMusicElements();
       return;
     }
@@ -793,9 +899,12 @@ class AudioManager {
     if (!theme) {
       this.stopActiveProceduralTheme(0.58);
       this.stopMusicAssetChannel(0.58);
+      this.stopOneShotMusicAsset(0.18);
       stopUntrackedMusicElements();
       return;
     }
+
+    this.stopOneShotMusicAsset(0.18);
 
     if (getAudioMusicAsset(theme)) {
       this.stopActiveProceduralTheme(0.45);

@@ -34,16 +34,19 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
   const doneRef = useRef(false);
   const lastElapsedRef = useRef(0);
   const playedCueIndexesRef = useRef(new Set<number>());
+  const introOffsetSeconds = () => Math.max(0, lastElapsedRef.current / 1000);
 
   useEffect(() => {
-    audio.setTheme("intro");
+    audio.setTheme(null);
+    audio.preloadMusicAsset("intro_cinematic");
+    audio.playOneShotMusicAsset("intro_cinematic", { offsetSeconds: 0 });
     const retryTimers = [120, 450, 1100].map((delay) =>
       window.setTimeout(() => {
-        if (!doneRef.current) audio.setTheme("intro");
+        if (!doneRef.current) audio.playOneShotMusicAsset("intro_cinematic", { offsetSeconds: introOffsetSeconds() });
       }, delay),
     );
     const retryIntroAudio = () => {
-      if (!doneRef.current) audio.setTheme("intro");
+      if (!doneRef.current) audio.playOneShotMusicAsset("intro_cinematic", { offsetSeconds: introOffsetSeconds() });
     };
     window.addEventListener("pointerdown", retryIntroAudio, { passive: true });
     window.addEventListener("keydown", retryIntroAudio, { passive: true });
@@ -51,6 +54,7 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
       for (const timer of retryTimers) window.clearTimeout(timer);
       window.removeEventListener("pointerdown", retryIntroAudio);
       window.removeEventListener("keydown", retryIntroAudio);
+      audio.stopOneShotMusicAsset(0.28);
       audio.setTheme(returnTheme);
     };
   }, [returnTheme]);
@@ -72,7 +76,7 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
       if (playedCueIndexesRef.current.has(index)) continue;
       if (previous <= cue.atMs && elapsedMs >= cue.atMs) {
         playedCueIndexesRef.current.add(index);
-        audio.setTheme("intro");
+        audio.playOneShotMusicAsset("intro_cinematic", { offsetSeconds: elapsedMs / 1000 });
         audio.playSfxAsset(cue.name);
       }
     }
@@ -117,6 +121,7 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
   function finish() {
     if (doneRef.current) return;
     doneRef.current = true;
+    audio.stopOneShotMusicAsset(0.28);
     audio.setTheme(returnTheme);
     onDone();
   }
