@@ -44,6 +44,8 @@ npm.cmd run check:performance
 
 ## Rutas de Validacion Rapida en Navegador
 
+Para criterios UX especificos por pantalla, usar tambien `docs/SCREEN_UX_CHECKLIST.md`.
+
 Validar estas rutas:
 
 - `/`

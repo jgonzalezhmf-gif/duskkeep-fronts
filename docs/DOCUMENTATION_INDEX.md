@@ -13,6 +13,7 @@ Leer primero estos documentos:
 - `docs/ENGINEERING_STANDARDS.md`: estandares de calidad, seguridad, rendimiento y desarrollo para futuros cambios.
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: estado de bloques, siguientes prioridades y regla para no iterar indefinidamente.
 - `docs/DEMO_GUIDE.md`: recorrido recomendado para demostrar la vertical slice y validar una demo de 10-15 minutos.
+- `docs/SCREEN_UX_CHECKLIST.md`: checklist UX por pantalla para demo, release candidate y pasadas visuales acotadas.
 
 ## Por Area
 
@@ -100,6 +101,7 @@ Leer antes de:
 - `docs/QUALITY_AND_RELEASE.md`: checks de lanzamiento, rutas de validacion rapida y gates de calidad.
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: matriz de bloques cerrados, backlog priorizado y gates por tipo de trabajo.
 - `docs/DEMO_GUIDE.md`: guia practica de preparacion, recorrido, persistencia online y troubleshooting para demo.
+- `docs/SCREEN_UX_CHECKLIST.md`: criterios de aceptacion por pantalla y riesgos antes de tocar UI.
 
 Leer antes de:
 
@@ -113,7 +115,6 @@ Leer antes de:
 
 Estos son los siguientes puntos de documentacion que conviene mejorar:
 
-- Anadir una checklist UX pantalla por pantalla cuando la direccion visual actual este estabilizada.
 - Ampliar troubleshooting operativo si aparecen incidencias repetidas en Supabase remoto, navegador o assets.
 - Traducir a espanol documentos historicos que todavia mantengan secciones en ingles.
 

@@ -68,6 +68,7 @@ Evidencia:
 - `docs/QUALITY_AND_RELEASE.md`
 - `docs/GAMEPLAY_GUIDE.md`
 - `docs/DEMO_GUIDE.md`
+- `docs/SCREEN_UX_CHECKLIST.md`
 
 No seguir salvo:
 
