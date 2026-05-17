@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.19] - 2026-05-17
+
+### Audio
+- Anadido `intro_cinematic` como draft independiente de musica para la intro, separado de Home y sin registrar ni reemplazar temas existentes.
+- Documentado el comando de generacion del draft de intro dentro del pipeline de ElevenLabs.
+
 ## [0.33.18] - 2026-05-17
 
 ### Audio

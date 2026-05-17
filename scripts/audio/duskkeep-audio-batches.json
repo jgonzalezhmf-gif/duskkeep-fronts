@@ -52,5 +52,10 @@
     "description": "Single-candidate draft pass for Eclipse boss, castle pressure and lightning/tension cues.",
     "sfx": ["eclipse_lightning", "boss_tension_riser", "fortress_eclipse_pulse"],
     "music": ["battle_boss_eclipse"]
+  },
+  "intro-cinematic-v1": {
+    "description": "Single-candidate one-shot cinematic score for the 24-second opening intro.",
+    "sfx": [],
+    "music": ["intro_cinematic"]
   }
 }

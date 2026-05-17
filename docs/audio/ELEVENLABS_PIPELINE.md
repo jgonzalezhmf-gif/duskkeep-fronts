@@ -92,6 +92,12 @@ Generate the Eclipse boss draft theme:
 npm.cmd run audio:music -- battle_boss_eclipse
 ```
 
+Generate the independent intro cinematic draft:
+
+```powershell
+npm.cmd run audio:music -- intro_cinematic
+```
+
 ## Registration
 
 Generated files are not used automatically. After approving a file:
@@ -131,6 +137,7 @@ Music:
 - `battle`
 - `battle_boss`
 - `battle_boss_eclipse` draft candidate for Eclipse/boss
+- `intro_cinematic` independent one-shot intro draft, not Home music
 - `prebattle`
 - `postbattle`
 - `shop`
