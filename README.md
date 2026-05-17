@@ -23,6 +23,7 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 - `docs/ENGINEERING_STANDARDS.md`: estandares de arquitectura, calidad, seguridad, rendimiento y lanzamiento.
 - `docs/GAMEPLAY_GUIDE.md`: loop jugable, pantallas y expectativas de gameplay.
 - `docs/DEMO_GUIDE.md`: recorrido recomendado para demostrar la vertical slice en 10-15 minutos.
+- `docs/OPERATIONS_TROUBLESHOOTING.md`: guia de diagnostico para Supabase/Auth, assets, navegador, audio, build y rendimiento.
 - `docs/QUALITY_AND_RELEASE.md`: checklist de lanzamiento, comandos de prueba, rutas de validacion rapida y gates de calidad.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: persistencia online, validacion backend y roadmap de seguridad.
 - `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para persistencia online segura.

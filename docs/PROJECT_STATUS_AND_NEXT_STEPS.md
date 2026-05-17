@@ -69,6 +69,7 @@ Evidencia:
 - `docs/GAMEPLAY_GUIDE.md`
 - `docs/DEMO_GUIDE.md`
 - `docs/SCREEN_UX_CHECKLIST.md`
+- `docs/OPERATIONS_TROUBLESHOOTING.md`
 
 No seguir salvo:
 

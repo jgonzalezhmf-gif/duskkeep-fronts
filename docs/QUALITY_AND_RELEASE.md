@@ -13,6 +13,8 @@ Este documento define el minimo de calidad para una build presentable de Duskkee
 
 ## Comandos Requeridos
 
+Si algun comando o flujo falla, revisar primero `docs/OPERATIONS_TROUBLESHOOTING.md`.
+
 Ejecutar antes de una candidata a lanzamiento:
 
 ```powershell

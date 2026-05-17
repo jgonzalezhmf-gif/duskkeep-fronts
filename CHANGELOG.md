@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.16] - 2026-05-17
+
+### Docs
+- Anadida `docs/OPERATIONS_TROUBLESHOOTING.md` con diagnostico operativo para Supabase/Auth, snapshots, rewards, assets, navegador, audio, build y rendimiento.
+- Enlazada la guia desde README, indice documental, calidad/release y estado de proyecto.
+
 ## [0.33.15] - 2026-05-17
 
 ### Fixed

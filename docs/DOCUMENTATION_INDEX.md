@@ -14,6 +14,7 @@ Leer primero estos documentos:
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: estado de bloques, siguientes prioridades y regla para no iterar indefinidamente.
 - `docs/DEMO_GUIDE.md`: recorrido recomendado para demostrar la vertical slice y validar una demo de 10-15 minutos.
 - `docs/SCREEN_UX_CHECKLIST.md`: checklist UX por pantalla para demo, release candidate y pasadas visuales acotadas.
+- `docs/OPERATIONS_TROUBLESHOOTING.md`: diagnostico operativo de Supabase/Auth, assets, navegador, audio, build y rendimiento.
 
 ## Por Area
 
@@ -84,6 +85,7 @@ Leer antes de:
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`: contratos de operaciones sensibles que deben ejecutarse en servidor.
 - `docs/BACKEND_SECURITY_CLOSURE_REVIEW.md`: cierre del bloque server-authoritative, riesgos mitigados, riesgos residuales y gates antes de monetizacion/ranking.
 - `docs/QUALITY_AND_RELEASE.md`: checklist de seguridad para el alpha presentable.
+- `docs/OPERATIONS_TROUBLESHOOTING.md`: sintomas y acciones seguras para Auth, Supabase, snapshots, rewards y RPCs.
 
 Leer antes de:
 
@@ -102,6 +104,7 @@ Leer antes de:
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: matriz de bloques cerrados, backlog priorizado y gates por tipo de trabajo.
 - `docs/DEMO_GUIDE.md`: guia practica de preparacion, recorrido, persistencia online y troubleshooting para demo.
 - `docs/SCREEN_UX_CHECKLIST.md`: criterios de aceptacion por pantalla y riesgos antes de tocar UI.
+- `docs/OPERATIONS_TROUBLESHOOTING.md`: guia de incidencias operativas recurrentes y comandos de recuperacion.
 
 Leer antes de:
 
@@ -115,7 +118,6 @@ Leer antes de:
 
 Estos son los siguientes puntos de documentacion que conviene mejorar:
 
-- Ampliar troubleshooting operativo si aparecen incidencias repetidas en Supabase remoto, navegador o assets.
 - Traducir a espanol documentos historicos que todavia mantengan secciones en ingles.
 
 ## Reglas de Documentacion
