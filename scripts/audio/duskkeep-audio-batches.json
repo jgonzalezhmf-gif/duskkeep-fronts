@@ -47,5 +47,10 @@
       "regen"
     ],
     "music": ["prebattle", "postbattle"]
+  },
+  "boss-audio-v1": {
+    "description": "Single-candidate draft pass for Eclipse boss, castle pressure and lightning/tension cues.",
+    "sfx": ["eclipse_lightning", "boss_tension_riser", "fortress_eclipse_pulse"],
+    "music": ["battle_boss_eclipse"]
   }
 }

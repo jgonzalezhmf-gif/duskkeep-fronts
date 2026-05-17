@@ -22,6 +22,8 @@ ELEVENLABS_API_KEY=your_key_here
 npm.cmd run audio:sfx
 ```
 
+By default, generated SFX are written to `public/assets/audio/sfx/_drafts/` so existing final assets are not overwritten. Use `--final` only after explicitly approving a draft.
+
 Generate specific sounds:
 
 ```powershell
@@ -46,11 +48,19 @@ Dry run without API access:
 npm.cmd run audio:sfx -- --dry-run
 ```
 
+Generate the boss/eclipse draft pass:
+
+```powershell
+npm.cmd run audio:sfx -- --batch=boss-audio-v1
+```
+
 ## Generate Music
 
 ```powershell
 npm.cmd run audio:music
 ```
+
+By default, generated music is written to `public/assets/audio/music/_drafts/` so existing final tracks are not overwritten. Use `--final` only after explicitly approving a draft.
 
 Generate a specific theme:
 
@@ -74,6 +84,12 @@ Dry run without API access:
 
 ```powershell
 npm.cmd run audio:music -- --dry-run
+```
+
+Generate the Eclipse boss draft theme:
+
+```powershell
+npm.cmd run audio:music -- battle_boss_eclipse
 ```
 
 ## Registration
@@ -113,10 +129,17 @@ Music:
 - `home`
 - `adventure`
 - `battle`
+- `battle_boss`
+- `battle_boss_eclipse` draft candidate for Eclipse/boss
 - `prebattle`
 - `postbattle`
 - `shop`
 - `event`
+
+Boss/Eclipse draft SFX:
+- `eclipse_lightning`
+- `boss_tension_riser`
+- `fortress_eclipse_pulse`
 
 ## Commercial Safety
 

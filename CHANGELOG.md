@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.18] - 2026-05-17
+
+### Audio
+- Anadido lote draft `boss-audio-v1` para musica de boss/eclipse y SFX de rayo, tension y pulso de fortaleza.
+- Protegido el generador de SFX para que escriba en `_drafts/` por defecto y no sobrescriba assets finales salvo uso explicito de `--final`.
+- Documentado el flujo de generacion segura de drafts de audio.
+
 ## [0.33.17] - 2026-05-17
 
 ### Docs

@@ -230,6 +230,27 @@
       "durationSeconds": 2.4,
       "promptInfluence": 0.62,
       "prompt": "Short defeat stinger for dark medieval fantasy tactics, low drum, falling strings, smoky unresolved ending, instrumental, no voice."
+    },
+    {
+      "id": "eclipse_lightning",
+      "output": "public/assets/audio/sfx/eclipse_lightning.mp3",
+      "durationSeconds": 2.2,
+      "promptInfluence": 0.78,
+      "prompt": "Dark fantasy eclipse lightning strike for a boss encounter, sudden magical thunder crack, blue-white arc through ancient stone, low rumble tail, cinematic but concise, no voice, no melody."
+    },
+    {
+      "id": "boss_tension_riser",
+      "output": "public/assets/audio/sfx/boss_tension_riser.mp3",
+      "durationSeconds": 3.0,
+      "promptInfluence": 0.72,
+      "prompt": "Short boss tension riser for a dark medieval tactics game, low strings tightening, distant war drum heartbeat, ominous choir texture without words, ends unresolved, no jump scare, no melody."
+    },
+    {
+      "id": "fortress_eclipse_pulse",
+      "output": "public/assets/audio/sfx/fortress_eclipse_pulse.mp3",
+      "durationSeconds": 2.4,
+      "promptInfluence": 0.74,
+      "prompt": "Ancient fortress under eclipse pressure, deep stone gate resonance, magical shadow pulse, subtle metal chain vibration, heavy but not explosive, dark fantasy UI event cue, no voice."
     }
   ],
   "music": [
@@ -286,6 +307,12 @@
       "output": "public/assets/audio/music/postbattle.mp3",
       "musicLengthMs": 60000,
       "prompt": "Loopable instrumental post-battle results music for a dark medieval fantasy tactics game, one minute long. It must sound complete and emotionally readable from the first second, no long intro, no slow build-up. Reflective victory or defeat aftermath, low strings, soft drums, warm but shadowed bells, reward screen atmosphere, no vocals, no copyrighted style references."
+    },
+    {
+      "id": "battle_boss_eclipse",
+      "output": "public/assets/audio/music/battle_boss_eclipse.mp3",
+      "musicLengthMs": 210000,
+      "prompt": "Loopable instrumental Eclipse boss battle music for a dark medieval fantasy tactical game, three and a half minutes long. Start with immediate tension and percussion, no slow empty intro. Ominous low strings, contrabass pulse, war drums, dark brass, ritual choir textures without words, sharp violin ostinatos, occasional lightning-like orchestral hits and short string solo phrases. It should feel more dangerous and supernatural than a normal battle, with several variations and a seamless loop. No modern electronic trailer sound, no vocals, no copyrighted style references."
     }
   ]
 }
