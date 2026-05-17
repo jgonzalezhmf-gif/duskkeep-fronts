@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.17] - 2026-05-17
+
+### Docs
+- Actualizado el handoff funcional con el estado reciente del alpha: backend server-authoritative, Auth/guest upgrade, Supabase local/remoto, snapshots, validaciones, pantallas, riesgos y backlog inmediato.
+- Anadido el bloque de audio pendiente para musica/SFX de boss, eclipse, castillo, tension y rayo, dejando explicita la regla de no sobrescribir assets existentes sin backup o nombre versionado.
+
 ## [0.33.16] - 2026-05-17
 
 ### Docs

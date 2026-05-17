@@ -1,6 +1,6 @@
-# Duskkeep Fronts Functional Handoff
+# Handoff Funcional de Duskkeep Fronts
 
-Fecha de corte: 2026-05-15
+Fecha de corte: 2026-05-17
 
 Este documento resume el estado funcional y visual del juego para que una futura sesion de Codex u otra IA pueda continuar sin depender del historial conversacional.
 
@@ -14,7 +14,10 @@ Leer primero:
 - `docs/GAME_ARCHITECTURE_AND_VISUAL_SYSTEM.md`
 - `docs/FRONTLINE_COMBAT_HANDOFF.md`
 - `docs/FRONTLINE_PROGRESSION.md`
-- `docs/SCREEN_AUDIT_AND_ROADMAP.md`
+- `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`
+- `docs/DEMO_GUIDE.md`
+- `docs/SCREEN_UX_CHECKLIST.md`
+- `docs/OPERATIONS_TROUBLESHOOTING.md`
 
 Regla practica:
 - Si la tarea toca combate, leer tambien `docs/FRONTLINE_COMBAT_HANDOFF.md`.
@@ -23,6 +26,7 @@ Regla practica:
 - Si la tarea toca animacion, leer `docs/IMPECCABLE_ANIMATION_USAGE.md`.
 - Si la tarea toca recompensas reclamables, leer `docs/REWARD_VISIBILITY_RULES.md`.
 - Si la tarea toca backend, BBDD, persistencia online, economia segura o ladder, leer `docs/SECURITY_AND_BACKEND_ROADMAP.md`, `docs/BACKEND_DATA_MODEL.md` y `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`.
+- Si la tarea toca audio, musica o SFX, revisar `lib/audioAssets.ts`, `docs/audio/ELEVENLABS_PIPELINE.md` y usar las skills de audio solo para generar assets nuevos, no para sobreescribir finales.
 
 ## Vision del Juego
 
@@ -31,8 +35,9 @@ Duskkeep Fronts es un alpha de juego tactico por turnos con progresion meta. La 
 - UI visual-first: iconos, cartas, standees, landmarks y estados antes que texto.
 - Home como hub principal.
 - Duskkeep Fronts como combate manual principal.
-- Progresion offline-first con Zustand/localStorage por ahora.
-- Backend Supabase preparado como skeleton, no acoplado al loop actual.
+- Supabase/Postgres/RPC como direccion server-authoritative para cuentas online.
+- Zustand/localStorage como cache de cliente, preferencias, UI state y fallback local de desarrollo/offline.
+- Seguridad, rendimiento y documentacion como criterios de producto, no tareas separadas al final.
 
 No se debe convertir la app en una web app de paneles. Las pantallas deben sentirse como partes de un juego.
 
@@ -42,9 +47,9 @@ Stack:
 - Next.js App Router.
 - TypeScript.
 - Tailwind.
-- Zustand persist.
+- Zustand para UI/cache de snapshot.
 - Vitest.
-- Supabase futuro, actualmente stub/skeleton.
+- Supabase Auth, migraciones, RLS, RPCs y smokes para persistencia online autoritativa.
 
 Directorios principales:
 - `app/`: rutas y pantallas.
@@ -56,17 +61,22 @@ Directorios principales:
 - `features/battle/`: auto-battle legacy/rewards.
 - `features/tactical/`: grid tactical legacy/prototipo.
 - `data/`: seed data.
-- `lib/store.ts`: progresion, economia local, misiones, shop, fortress.
+- `lib/store.ts`: store cliente, cache/snapshot, fallback local explicito y acciones online-first.
+- `features/server/*`: contratos y dispatcher de operaciones autoritativas.
+- `supabase/`: migraciones, seed, smokes y RPCs.
 
 Regla de arquitectura:
 - Las reglas de juego viven en `features/*`, `data/*` o helpers de dominio.
 - Los componentes no deben esconder balance ni economia.
 - Los assets opcionales se cargan solo via manifest para evitar 404.
+- En modo `NEXT_PUBLIC_PERSISTENCE=supabase`, recursos, rewards, compras, claims, progreso, upgrades y snapshots sensibles vienen del servidor.
+- El frontend envia ids, seleccion del jugador y resumenes minimos; no envia precios, recompensas finales ni balances como verdad.
 
 ## Estado Actual de la Vertical Slice
 
 El alpha jugable actual esta centrado en:
 - Home hub.
+- Intro cinematica y Auth Gate con login, registro, invitado y conversion de invitado a cuenta nueva.
 - Adventure map integrado con precombat y Frontline.
 - Battle quick start con Frontline.
 - Deck Frontline squad/card builder.
@@ -74,18 +84,59 @@ El alpha jugable actual esta centrado en:
 - Shop/Market con ofertas, recursos y feedback visual.
 - Missions como command log con claims.
 - Arena y Events migrados en MVP a Frontline.
+- Chapter 1 como contenido demo activo; Chapter 2 visible pero bloqueado hasta tener arte, musica, layout y contenido propio.
+- Cofre interactuable de Adventure con Adventure Keys, loot table, claim con reset temporal y estados visuales.
+- Persistencia local/offline y persistencia online Supabase server-authoritative para cuentas vinculadas e invitados Supabase.
 
-La base es aceptable para seguir iterando, pero aun no es premium.
+La base es presentable para alpha, con backlog claro antes de monetizacion, ladder publico o lanzamiento abierto.
+
+## Estado Reciente de Backend, Auth y Datos
+
+Estado:
+- Backend/Auth/Data-driven esta cerrado como MVP estable para alpha.
+- Supabase local y remoto se han validado manualmente con cuenta de prueba.
+- `get_player_snapshot` es la fuente de verdad para recursos, progreso, compras, misiones, daily login, Arena/Events y agregados de batalla.
+- `/api/server/authoritative` es el camino de mutaciones sensibles cuando la app usa Supabase.
+- Las operaciones sensibles principales refrescan snapshot servidor tras mutacion para evitar cache local obsoleta.
+- El modo invitado usa sesion anonima Supabase cuando esta disponible; si se convierte a cuenta nueva, conserva el mismo `user_id`.
+- No se permite merge de invitado con cuenta existente dentro del flujo invitado. Si el usuario quiere cuenta existente, debe iniciar sesion desde el Auth Gate inicial.
+
+Reglas activas:
+- No rehidratar estado sensible desde `localStorage` en modo Supabase.
+- No fallback local para cuentas vinculadas o invitados Supabase cuando una operacion autoritativa falla.
+- Errores de login/registro/recuperacion deben ser genericos para evitar enumeracion de cuentas.
+- No exponer secrets en `NEXT_PUBLIC_*`.
+
+Documentos clave:
+- `docs/AUTH_FLOW_AND_SESSION_POLICY.md`
+- `docs/SERVER_AUTHORITATIVE_STATE_OWNERSHIP.md`
+- `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`
+- `docs/BACKEND_SECURITY_CLOSURE_REVIEW.md`
+- `docs/SUPABASE_REMOTE_OPERATIONS.md`
+- `docs/OPERATIONS_TROUBLESHOOTING.md`
+
+Riesgos residuales aceptados para alpha:
+- Rate limit autoritativo en memoria.
+- Combate ejecutado en cliente con validaciones defensivas, sin replay server-side completo.
+- Fallback local solo para desarrollo/offline cuando no hay backend configurado.
+
+No aceptar antes de monetizacion o ladder publico:
+- Moneda premium concedida desde cliente.
+- Ranking o puntuacion competitiva confiada al cliente.
+- Rate limit en memoria para trafico publico sensible.
+- Webhooks/pagos sin backend-only y firma verificada.
 
 ## Duskkeep Fronts
 
 Estado:
 - Es el combate manual principal.
 - Usa 3 frentes, core por bando, command por turno, mano de cartas y clash.
-- Usa heroes como standees placeholder.
-- Usa cartas full-art placeholder cuando existen.
+- Usa standees, portraits de lider, fondos por capitulo/tipo y card art registrados mediante manifests.
+- Las cartas en combate priorizan arte, coste y stats utiles; se redujo texto redundante.
 - Heroes y cartas del jugador usan perfiles progresados derivados, no los datos base mutados.
 - Tiene cola visual de eventos, ataques mas lentos, KO ghost y overlay de victoria/derrota.
+- La UI de combate fue aligerada para dejar ver mejor fondos y personajes.
+- La musica de boss debe sonar sola; no debe superponerse con temas de Home/Adventure.
 
 Archivos clave:
 - `features/frontline/types.ts`
@@ -113,6 +164,7 @@ Pendiente Frontline:
 - Bosses y mutadores de eventos.
 - Mejor transition layer post-victoria.
 - Mejor AI readability sin depender del log.
+- Audio/VFX de boss: tension, rayo/eclipse, impacto de castillo o presencia de boss sin mezclar tracks.
 
 ## Heroes, Enemigos y Assets
 
@@ -176,7 +228,7 @@ Estado actual:
 - `GameResourceBar` muestra recursos compartidos.
 - `GameRewardToken` muestra rewards con iconos y pop.
 - `RewardBurstOverlay` centraliza bursts visuales para objetos `Rewards`.
-- Shop dispara feedback visual real cuando `purchaseOffer` devuelve ok.
+- Shop dispara feedback visual real cuando una compra autoritativa/local valida devuelve ok.
 - Shop oculta ofertas one-shot compradas y stock diario agotado tras el feedback de compra.
 - Missions dispara feedback visual real cuando `claimMission` devuelve rewards.
 - Missions oculta contratos ya reclamados en el ciclo actual y muestra estado vacio por columna.
@@ -185,6 +237,8 @@ Estado actual:
 - La barra de recursos remonta chips por valor para hacer pop cuando cambia gold/dust/gems/tickets.
 - Adventure y precombat no muestran bonuses `firstClearRewards` ni desbloqueos de cartas si la primera limpieza ya fue tomada.
 - Events permite replay tras completar la rotacion diaria, pero no vuelve a mostrar ni entregar el payout diario como recompensa activa.
+- Adventure battle, Arena, Events, Fortress, Shop, daily login, misiones, Deck/loadout y upgrades principales tienen ruta online-first cuando Supabase esta activo.
+- Key chest consume Adventure Keys, usa loot table server/local y no debe permitir doble claim dentro de su ciclo.
 
 Archivos:
 - `components/game/shared/GameRewardToken.tsx`
@@ -203,27 +257,38 @@ Pendiente:
 - Hacer que reward tokens vuelen hacia la barra de recursos.
 - Reutilizar el mismo patron en Events y Arena.
 - Diferenciar visualmente gasto de recurso vs ganancia.
+- Completar validacion server-side de combate antes de ladder publico o economia premium.
 
 ## Estado de Pantallas
 
 Home:
 - Pantalla mas avanzada visualmente.
 - Hub principal y referencia de direccion.
+- Intro aparece antes de Auth al entrar por URL.
+- Auth Gate permite cuenta, registro, Google preparado e invitado.
+- HUD mobile fue pulido para separar commander, recursos, opciones/audio y tutorial inicial.
 - Pendiente: mas detalle en landmarks si se retoma arte.
 
 Combat:
 - Base alpha aceptable.
 - Mejor pantalla junto a Home.
-- Pendiente: VFX por tipo de carta/status y mejor pacing final.
+- Personajes y cartas ya tienen tratamiento mas visual y menos texto.
+- Pendiente: VFX por tipo de carta/status, audio de boss/eclipse y mejor pacing final.
 
 Adventure:
 - Integrada con Frontline.
-- Mapa visual recuperable.
+- Mapa visual full-screen con mission card compacta.
 - Los nodos ya declaran `frontlinePresetId` explicito y el mapa usa unidades Frontline reales para leer amenaza.
-- Pendiente: camino mas natural, fases con iconos mas fuertes y precombat mas visual.
+- Chapter 2 aparece bloqueado para alcance demo.
+- Soporta nodos battle, elite, boss, chest y locked con repeat policies.
+- Cofre interactuable de mapa usa estados visuales de key chest y Adventure Keys.
+- QA `?qa=adventure-map` sigue siendo la herramienta para posiciones manuales.
+- Pendiente: nuevas interacciones de mapa, nodos ocultos, eventos/lore/recompensas periodicas y precombat mas visual.
 
 Precombat:
 - Ya conecta con Frontline.
+- Permite volver al mapa.
+- La musica no debe reiniciarse si continua Adventure; al entrar en combate debe sonar solo la musica de combate correspondiente.
 - Pendiente: mas representacion visual de enemigos, rewards y cartas recomendadas.
 
 Deck:
@@ -241,12 +306,13 @@ Roster/Heroes:
 Fortress:
 - MVP funcional con edificios, garrison, raids y rewards.
 - Usa iconos PNG fortress.
-- Pendiente: mas escena/landmark, feedback de upgrade/raid mas fuerte y progresion profunda.
+- Pendiente: mas escena/landmark, feedback de upgrade/raid mas fuerte, progresion profunda y SFX/ambiente de castillo.
 
 Shop/Market:
 - Storefront avanzado visualmente.
 - Usa iconos shop/resources/progression.
 - Tiene feedback real de compra.
+- Adventure Keys aparecen como recurso/oferta cuando estan desbloqueadas.
 - Pendiente: productos Frontline reales, packs, shards, bundles por evento y reward flight.
 
 Missions/Quests:
@@ -262,6 +328,7 @@ Events:
 Arena:
 - Migrada en MVP a Frontline.
 - La placa de rango/progreso ya es visible tambien fuera de layouts grandes.
+- Evita refrescos locales de tickets cuando la persistencia es Supabase.
 - Pendiente: ranks, ladder, streaks, rivales por tier y reward reveal propio.
 
 Team:
@@ -305,34 +372,42 @@ Skills importantes:
 - `duskkeep-reward-feedback`
 - `duskkeep-browser-validation`
 - `duskkeep-localization`
+- `duskkeep-secure-backend`
 - `duskkeep-skill-maintenance`
 - `impeccable`
+- `audio-and-sound`
+- `music`
+- `sound-effects`
+- `ux-sound-design`
 
 Regla:
 - Usar la skill si la tarea toca su area.
 - Revisar skills ocasionalmente si aparece una tarea repetida o regla fragil.
 - Mantener `docs/skills/*` como fuente y sincronizar con `.agents/skills/*` si cambia una skill.
+- Para audio, no sobreescribir assets finales existentes sin crear copia/backup o asset versionado nuevo.
 
 ## Backlog Prioritario
 
 Prioridad inmediata sugerida:
-1. Validacion browser de release candidate: intro, auth, invitado, Home y rutas principales.
-2. Supabase remoto y entorno operativo si se prioriza persistencia online real.
+1. Audio pass acotado: musica/ambiente y SFX para boss/eclipse/castillo/rayo/tension, sin sobreescribir assets existentes.
+2. Validacion browser de release candidate si se vuelve a tocar UI o audio visible.
 3. Reward feedback reutilizable en Events y Arena si se retoma pulido visual.
 4. Precombat visual: enemigos, rewards, camino hacia Combat.
-5. Adventure map polish bajo demanda: camino real, iconos de fase, side panel limpio.
-6. Deck visual: squad stage y cartas mas parecidas a Combat.
-7. Fortress scene pass: landmark mas vivo, upgrade/raid sequence.
-8. Roster tiers: definicion de datos y visual por tier.
-9. Shop content: packs Frontline, shards, bundles, claim diario.
-10. Localization migration continua.
+5. Adventure map mechanics: interacciones adicionales, nodos ocultos, lore/recompensas periodicas y condiciones.
+6. Adventure map polish bajo demanda: camino real, iconos de fase, side panel limpio.
+7. Deck visual: squad stage y cartas mas parecidas a Combat.
+8. Fortress scene/audio pass: landmark mas vivo, upgrade/raid sequence y ambiente propio.
+9. Roster tiers: definicion de datos y visual por tier.
+10. Shop content: packs Frontline, shards, bundles, claim diario.
+11. Localization migration continua.
 
 Backlog tecnico:
-- Obligatorio antes de monetizacion: crear un `GameFixedStage` global para renderizar el juego dentro de una resolucion logica fija y migrar Home, Adventure, Combat y pantallas clave a ese shell.
-- Obligatorio antes de monetizacion: mover economia sensible, moneda premium, compras, claims, inventario y recompensas a backend autoritativo. El cliente/canvas nunca debe ser fuente de verdad porque F12, memoria, localStorage y requests siempre son manipulables.
+- Antes de monetizacion: crear un `GameFixedStage` global para renderizar el juego dentro de una resolucion logica fija y migrar Home, Adventure, Combat y pantallas clave a ese shell si se decide estabilizar layout global.
+- Antes de monetizacion: completar validacion server-side robusta de combate/replays y ladder. El cliente/canvas nunca debe ser fuente de verdad porque F12, memoria, localStorage y requests siempre son manipulables.
+- Antes de monetizacion: rate limit distribuido, observabilidad operativa y webhooks backend-only si hay pagos.
 - Extraer datos hardcoded de Arena/Events si crecen.
 - Decidir destino de tactical/grid legacy.
-- Preparar Supabase sin romper offline-first.
+- Mantener Supabase server-authoritative sin romper fallback local explicito de desarrollo/offline.
 - Mejorar tests de Frontline y store de progresion.
 
 ## Reglas Para Futuras Iteraciones
@@ -369,7 +444,23 @@ npm.cmd run test
 npm.cmd run build
 ```
 
+Si se toca Supabase/backend:
+
+```powershell
+npm.cmd run smoke:supabase:guest
+npm.cmd run smoke:supabase:snapshot
+npm.cmd run smoke:authoritative-api
+npm.cmd run check:supabase:remote
+```
+
 Si se toca UI:
 - Validar con `agent-browser`.
 - Capturar pantallas en `artifacts/validation/`.
 - Revisar consola y 404.
+- Cerrar agent-browser y servidores locales al terminar.
+
+Si se toca audio:
+- Validar que solo suena una musica a la vez.
+- Si una pantalla comparte el mismo tema que la anterior, no reiniciar el track.
+- Crear assets nuevos con nombre versionado o backup previo; no sobreescribir musica/SFX existente sin instruccion explicita.
+- Revisar `lib/audioAssets.ts` y los manifests antes de cambiar rutas.
