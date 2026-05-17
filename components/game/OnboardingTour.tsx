@@ -93,7 +93,7 @@ export default function OnboardingTour() {
       className={cn(
         "pointer-events-none fixed z-50",
         onHome
-          ? "left-3 right-3 top-[88px] md:left-auto md:right-5 md:top-5 md:w-[320px]"
+          ? "left-3 right-3 top-[10.5rem] md:left-auto md:right-5 md:top-5 md:w-[320px]"
           : "left-3 right-3 top-[88px] md:left-auto md:w-[320px] lg:right-6",
       )}
     >

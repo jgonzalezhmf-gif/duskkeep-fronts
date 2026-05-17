@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.33.15] - 2026-05-17
+
+### Fixed
+- Reducida la compresion del HUD de Home en mobile: recursos apilados a la derecha, opciones/audio agrupados debajo y tutorial inicial separado del chrome superior.
+- Ocultado el daily tribute en mobile solo mientras el tutorial inicial esta visible, evitando solapes en el primer arranque sin afectar desktop.
+
 ## [0.33.14] - 2026-05-17
 
 ### Docs

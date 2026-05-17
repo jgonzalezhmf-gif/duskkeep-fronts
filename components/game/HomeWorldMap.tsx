@@ -392,7 +392,11 @@ export default function HomeWorldMap({
           levelLabel={t("common.level")}
           powerLabel={t("common.power")}
         />
-        {!cleanMode ? <DailyLoginCharm /> : null}
+        {!cleanMode ? (
+          <div className={cn(tutorialOpen && "hidden md:block")}>
+            <DailyLoginCharm />
+          </div>
+        ) : null}
         {!cleanMode ? (
           <div className="hidden gap-2 md:flex">
             <TimedCharm label={t("nav.rewards")} value={timers.reward} tone="gold" icon="quests" />
@@ -401,10 +405,12 @@ export default function HomeWorldMap({
         ) : null}
       </div>
 
-      <div className="pointer-events-auto absolute right-3 top-3 z-30 flex max-w-[calc(100vw-9rem)] items-start gap-1.5 md:right-5 md:top-4 md:max-w-none md:gap-2">
-        <GameResourceBar resources={resources} size="sm" />
-        <GameOptionsButton />
-        <MuteButton />
+      <div className="pointer-events-auto absolute right-3 top-3 z-30 flex max-w-[calc(100vw-18rem)] flex-col items-end gap-1.5 md:right-5 md:top-4 md:max-w-none md:flex-row md:items-start md:gap-2">
+        <GameResourceBar resources={resources} size="sm" className="flex-col flex-nowrap items-end gap-1.5 md:flex-row md:flex-wrap md:items-start md:gap-2.5" />
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <GameOptionsButton />
+          <MuteButton />
+        </div>
       </div>
 
       <div className="pointer-events-auto absolute right-3 top-[8.9rem] z-30 hidden flex-col gap-2.5 md:right-5 md:flex">
