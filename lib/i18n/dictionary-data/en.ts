@@ -99,8 +99,6 @@ export const enDictionary = {
       adventureKeys: "Keys",
     },
     intro: {
-      start: "Start intro",
-      startHint: "Press to enable audio and start the cinematic.",
       skip: "Skip",
       enter: "Enter the Keep",
       title: "Duskkeep Front",

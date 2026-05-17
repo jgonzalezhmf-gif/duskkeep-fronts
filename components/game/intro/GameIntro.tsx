@@ -29,17 +29,15 @@ type GameIntroProps = {
  */
 export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
   const storeReducedMotion = useGameStore((state) => state.reducedMotion);
-  const [started, setStarted] = useState(() => audio.isPrimed());
   const [elapsedMs, setElapsedMs] = useState(0);
   const [mediaReducedMotion, setMediaReducedMotion] = useState(false);
   const doneRef = useRef(false);
-  const startedRef = useRef(started);
   const lastElapsedRef = useRef(0);
   const playedCueIndexesRef = useRef(new Set<number>());
   const introOffsetSeconds = () => Math.max(0, lastElapsedRef.current / 1000);
 
   useEffect(() => {
-    if (!started) return;
+    audio.setRouteThemeSuppressed(true);
     audio.setTheme(null);
     audio.preloadMusicAsset("intro_cinematic");
     audio.playOneShotMusicAsset("intro_cinematic", { offsetSeconds: 0 });
@@ -58,9 +56,10 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
       window.removeEventListener("pointerdown", retryIntroAudio);
       window.removeEventListener("keydown", retryIntroAudio);
       audio.stopOneShotMusicAsset(0.28);
+      audio.setRouteThemeSuppressed(false);
       audio.setTheme(returnTheme);
     };
-  }, [returnTheme, started]);
+  }, [returnTheme]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -72,7 +71,6 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
   }, []);
 
   useEffect(() => {
-    if (!started) return;
     const previous = lastElapsedRef.current;
     lastElapsedRef.current = elapsedMs;
 
@@ -81,15 +79,14 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
       if (previous <= cue.atMs && elapsedMs >= cue.atMs) {
         playedCueIndexesRef.current.add(index);
         audio.playOneShotMusicAsset("intro_cinematic", { offsetSeconds: elapsedMs / 1000 });
-        audio.playSfxAsset(cue.name);
+        if (audio.isPrimed()) audio.playSfxAsset(cue.name);
       }
     }
-  }, [elapsedMs, started]);
+  }, [elapsedMs]);
 
   const reducedMotion = storeReducedMotion || mediaReducedMotion;
 
   useEffect(() => {
-    if (!started) return;
     if (doneRef.current) return;
     let rafId = 0;
     let start: number | null = null;
@@ -105,7 +102,7 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
     };
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [started]);
+  }, []);
 
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
@@ -127,18 +124,9 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
     if (doneRef.current) return;
     doneRef.current = true;
     audio.stopOneShotMusicAsset(0.28);
+    audio.setRouteThemeSuppressed(false);
     audio.setTheme(returnTheme);
     onDone();
-  }
-
-  function startIntro() {
-    if (startedRef.current || doneRef.current) return;
-    startedRef.current = true;
-    audio.primeNow();
-    playedCueIndexesRef.current.clear();
-    lastElapsedRef.current = 0;
-    setElapsedMs(0);
-    setStarted(true);
   }
 
   return (
@@ -146,8 +134,6 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
       elapsedMs={elapsedMs}
       totalMs={INTRO_TOTAL_MS}
       reducedMotion={reducedMotion}
-      awaitingStart={!started}
-      onStart={startIntro}
       onSkip={finish}
       onEnter={finish}
     />

@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.4] - 2026-05-17
+
+### Fixed
+- Eliminada la placa de inicio manual: la intro vuelve a arrancar automaticamente.
+- Bloqueada la musica de ruta mientras la intro esta montada para evitar que Home u otros temas pisen `intro_cinematic`.
+- Evitado que los SFX de intro se acumulen y suenen tarde si el navegador aun no ha desbloqueado audio.
+
 ## [0.34.3] - 2026-05-17
 
 ### Fixed

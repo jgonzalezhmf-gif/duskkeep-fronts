@@ -54,6 +54,7 @@ class AudioManager {
   private primed = false;
   private primingBound = false;
   private visibilityBound = false;
+  private routeThemeSuppressed = false;
   private theme: ThemeName = null;
   private activeThemeChannel: ThemeChannel | null = null;
   private activeMusicAssetChannel: MusicAssetChannel | null = null;
@@ -90,6 +91,7 @@ class AudioManager {
       this.ensureGraph();
       this.refreshMix();
       if (!this.muted && this.theme) this.crossfadeTheme(this.theme);
+      this.retryPendingOneShotMusic();
       window.removeEventListener("pointerdown", prime);
       window.removeEventListener("keydown", prime);
     };
@@ -175,10 +177,20 @@ class AudioManager {
     const graph = this.ensureGraph();
     this.refreshMix();
     if (!this.muted && this.theme) this.crossfadeTheme(this.theme);
+    this.retryPendingOneShotMusic();
     return Boolean(graph);
   }
 
+  setRouteThemeSuppressed(suppressed: boolean) {
+    this.routeThemeSuppressed = suppressed;
+    if (suppressed) this.crossfadeTheme(null);
+  }
+
   setTheme(theme: ThemeName) {
+    if (this.routeThemeSuppressed && theme !== null) {
+      this.theme = theme;
+      return;
+    }
     if (this.theme === theme) {
       if (!theme || this.muted || !this.primed) return;
       if (this.activeMusicAssetChannel?.theme === theme) {
@@ -358,6 +370,17 @@ class AudioManager {
     void this.loadMusicBuffer(name);
   }
 
+  private retryPendingOneShotMusic() {
+    const pendingName = this.pendingOneShotMusicName;
+    if (!pendingName) return;
+    const offsetSeconds = this.pendingOneShotMusicOffsetSeconds;
+    this.pendingOneShotMusicName = null;
+    this.pendingOneShotMusicOffsetSeconds = 0;
+    window.setTimeout(() => {
+      this.playOneShotMusicAsset(pendingName, { offsetSeconds });
+    }, 0);
+  }
+
   playOneShotMusicAsset(name: AudioMusicAssetName, options: { offsetSeconds?: number } = {}) {
     const graph = this.ensureGraph();
     const asset = getAudioMusicAsset(name);
@@ -366,6 +389,13 @@ class AudioManager {
     if (this.activeOneShotMusic?.name === name) return true;
     if (this.pendingOneShotMusicName === name) {
       this.pendingOneShotMusicOffsetSeconds = Math.max(this.pendingOneShotMusicOffsetSeconds, offsetSeconds);
+      return true;
+    }
+
+    if (!this.primed || graph.ctx.state === "suspended") {
+      this.pendingOneShotMusicName = name;
+      this.pendingOneShotMusicOffsetSeconds = offsetSeconds;
+      this.preloadMusicAsset(name);
       return true;
     }
 
