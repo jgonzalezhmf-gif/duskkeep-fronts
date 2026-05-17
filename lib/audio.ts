@@ -135,7 +135,7 @@ class AudioManager {
       this.crossfadeTheme(null);
       return;
     }
-    if (this.theme) this.crossfadeTheme(this.theme);
+    if (this.theme && !this.routeThemeSuppressed) this.crossfadeTheme(this.theme);
   }
 
   setMuted(muted: boolean) {
@@ -143,7 +143,7 @@ class AudioManager {
     this.persistPrefs();
     this.refreshMix();
     if (muted) this.crossfadeTheme(null);
-    else if (this.theme) this.crossfadeTheme(this.theme);
+    else if (this.theme && !this.routeThemeSuppressed) this.crossfadeTheme(this.theme);
   }
 
   setMusicVolume(volume: number) {
@@ -191,7 +191,11 @@ class AudioManager {
 
   setRouteThemeSuppressed(suppressed: boolean) {
     this.routeThemeSuppressed = suppressed;
-    if (suppressed) this.crossfadeTheme(null);
+    if (suppressed) {
+      this.stopActiveProceduralTheme(0.18);
+      this.stopMusicAssetChannel(0.18);
+      stopUntrackedMusicElements(this.activeOneShotMusicElement?.audio);
+    }
   }
 
   setTheme(theme: ThemeName) {

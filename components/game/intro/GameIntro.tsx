@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { audio } from "@/lib/audio";
 import type { ThemeName } from "@/lib/audio-runtime";
 import { useGameStore } from "@/lib/store";
@@ -36,7 +36,7 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
   const playedCueIndexesRef = useRef(new Set<number>());
   const introOffsetSeconds = () => Math.max(0, lastElapsedRef.current / 1000);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     audio.setRouteThemeSuppressed(true);
     audio.setTheme(null);
     audio.preloadMusicAsset("intro_cinematic");

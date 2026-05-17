@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.7] - 2026-05-17
+
+### Fixed
+- Evitado que `syncFromStore` o `setMuted` puedan arrancar la musica de Home mientras la intro suprime musica de ruta.
+- Movido el bloqueo de audio de ruta de la intro a `useLayoutEffect` para que ocurra antes de los efectos pasivos del director global de audio.
+- Anadido versionado de URL a `intro_cinematic.mp3` para evitar cache del navegador con una pista antigua bajo el mismo nombre.
+
 ## [0.34.6] - 2026-05-17
 
 ### Fixed
