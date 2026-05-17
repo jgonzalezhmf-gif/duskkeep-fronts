@@ -1,9 +1,12 @@
 "use client";
 
-import type { MusicAssetChannel } from "@/lib/audio-runtime";
-
 type DuskkeepMusicAssetGlobal = typeof globalThis & {
   __duskkeepMusicElements?: Set<HTMLAudioElement>;
+};
+
+type HtmlAudioChannel = {
+  audio: HTMLAudioElement;
+  timer: number | null;
 };
 
 export function getMusicElementRegistry() {
@@ -34,7 +37,7 @@ export function stopUntrackedMusicElements(except?: HTMLAudioElement) {
 }
 
 export function fadeHtmlAudio(
-  channel: MusicAssetChannel,
+  channel: HtmlAudioChannel,
   targetVolume: number,
   seconds: number,
   onDone?: () => void,

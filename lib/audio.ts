@@ -37,6 +37,12 @@ import {
   type ThemeName,
 } from "@/lib/audio-runtime";
 
+type OneShotMusicElementChannel = {
+  name: AudioMusicAssetName;
+  audio: HTMLAudioElement;
+  timer: number | null;
+};
+
 class AudioManager {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
@@ -66,6 +72,7 @@ class AudioManager {
         gain: GainNode;
       }
     | null = null;
+  private activeOneShotMusicElement: OneShotMusicElementChannel | null = null;
   private pendingOneShotMusicName: AudioMusicAssetName | null = null;
   private pendingOneShotMusicOffsetSeconds = 0;
   private musicAssetBuffers = new Map<AudioMusicAssetName, Promise<AudioBuffer | null>>();
@@ -91,7 +98,7 @@ class AudioManager {
       this.primed = true;
       this.ensureGraph();
       this.refreshMix();
-      if (!this.muted && this.theme) this.crossfadeTheme(this.theme);
+      if (!this.muted && this.theme && !this.routeThemeSuppressed) this.crossfadeTheme(this.theme);
       this.retryPendingOneShotMusic();
       window.removeEventListener("pointerdown", prime);
       window.removeEventListener("keydown", prime);
@@ -177,7 +184,7 @@ class AudioManager {
     this.primed = true;
     const graph = this.ensureGraph();
     this.refreshMix();
-    if (!this.muted && this.theme) this.crossfadeTheme(this.theme);
+    if (!this.muted && this.theme && !this.routeThemeSuppressed) this.crossfadeTheme(this.theme);
     this.retryPendingOneShotMusic();
     return Boolean(graph);
   }
@@ -343,6 +350,7 @@ class AudioManager {
   stopOneShotMusicAsset(fadeSeconds = 0.18) {
     this.pendingOneShotMusicName = null;
     this.pendingOneShotMusicOffsetSeconds = 0;
+    this.stopOneShotMusicElement(fadeSeconds);
     const channel = this.activeOneShotMusic;
     if (!channel || !this.ctx) return;
     this.activeOneShotMusic = null;
@@ -359,6 +367,18 @@ class AudioManager {
         } catch {}
       }, Math.round((fadeSeconds + 0.06) * 1000));
     } catch {}
+  }
+
+  private stopOneShotMusicElement(fadeSeconds = 0.18) {
+    const channel = this.activeOneShotMusicElement;
+    if (!channel) return;
+    this.activeOneShotMusicElement = null;
+    if (fadeSeconds <= 0) {
+      if (channel.timer !== null) window.clearInterval(channel.timer);
+      disposeMusicElement(channel.audio);
+      return;
+    }
+    fadeHtmlAudio(channel, 0, fadeSeconds, () => disposeMusicElement(channel.audio));
   }
 
   private loadMusicBuffer(name: AudioMusicAssetName) {
@@ -387,6 +407,57 @@ class AudioManager {
     void this.loadMusicBuffer(name);
   }
 
+  private getOneShotMusicVolume(name: AudioMusicAssetName) {
+    const visible = typeof document === "undefined" || document.visibilityState === "visible";
+    const asset = getAudioMusicAsset(name);
+    return this.muted ? 0 : this.musicVolume * (asset?.gain ?? 1) * (visible ? 1 : 0.55);
+  }
+
+  private playOneShotMusicAssetElement(name: AudioMusicAssetName, offsetSeconds: number) {
+    if (typeof window === "undefined" || this.muted) return false;
+    const asset = getAudioMusicAsset(name);
+    if (!asset) return false;
+
+    if (this.activeOneShotMusicElement?.name === name) return true;
+
+    this.stopActiveProceduralTheme(0.18);
+    this.stopMusicAssetChannel(0.18);
+    this.stopOneShotMusicElement(0.08);
+    stopUntrackedMusicElements();
+
+    const audio = new Audio(asset.src);
+    audio.loop = asset.loop ?? false;
+    audio.preload = "auto";
+    audio.volume = 0;
+    const channel: OneShotMusicElementChannel = { name, audio, timer: null };
+    this.activeOneShotMusicElement = channel;
+    registerMusicElement(audio);
+
+    const seek = Math.max(0, offsetSeconds);
+    const applySeek = () => {
+      try {
+        if (Number.isFinite(audio.duration)) audio.currentTime = Math.min(seek, Math.max(0, audio.duration - 0.05));
+      } catch {}
+    };
+    audio.addEventListener("loadedmetadata", applySeek, { once: true });
+    applySeek();
+
+    const cleanup = () => {
+      if (this.activeOneShotMusicElement === channel) this.activeOneShotMusicElement = null;
+      disposeMusicElement(audio);
+    };
+    audio.addEventListener("ended", cleanup, { once: true });
+    audio.play().then(
+      () => fadeHtmlAudio(channel, this.getOneShotMusicVolume(name), 0.22),
+      () => {
+        cleanup();
+        this.pendingOneShotMusicName = name;
+        this.pendingOneShotMusicOffsetSeconds = offsetSeconds;
+      },
+    );
+    return true;
+  }
+
   private retryPendingOneShotMusic() {
     const pendingName = this.pendingOneShotMusicName;
     if (!pendingName) return;
@@ -410,10 +481,8 @@ class AudioManager {
     }
 
     if (!this.primed || graph.ctx.state === "suspended") {
-      this.pendingOneShotMusicName = name;
-      this.pendingOneShotMusicOffsetSeconds = offsetSeconds;
       this.preloadMusicAsset(name);
-      return true;
+      return this.playOneShotMusicAssetElement(name, offsetSeconds);
     }
 
     this.pendingOneShotMusicName = name;
@@ -430,6 +499,7 @@ class AudioManager {
       if (!buffer || this.muted || !this.ctx || !this.musicGain) return;
 
       this.stopOneShotMusicAsset(0.08);
+      this.stopOneShotMusicElement(0.08);
       const source = this.ctx.createBufferSource();
       const gain = this.ctx.createGain();
       source.buffer = buffer;
@@ -948,6 +1018,7 @@ class AudioManager {
 
   private crossfadeTheme(theme: ThemeName) {
     if (typeof window === "undefined") return;
+    if (this.routeThemeSuppressed && theme) return;
     if (!this.primed || this.muted) {
       this.stopActiveProceduralTheme(0.35);
       this.stopMusicAssetChannel(0.35);
@@ -1115,10 +1186,30 @@ class AudioManager {
     return pending;
   }
 
+  private playSfxAssetElement(name: AudioSfxAssetName) {
+    if (typeof window === "undefined" || this.muted) return false;
+    const asset = getAudioSfxAsset(name);
+    if (!asset) return false;
+    const audio = new Audio(asset.src);
+    audio.preload = "auto";
+    audio.volume = clamp01(this.sfxVolume * (asset.gain ?? 1));
+    const cleanup = () => {
+      audio.src = "";
+      audio.load();
+    };
+    audio.addEventListener("ended", cleanup, { once: true });
+    audio.play().catch(cleanup);
+    return true;
+  }
+
   playSfxAsset(name: AudioSfxAssetName, fallback?: () => void) {
     const graph = this.ensureGraph();
     const asset = getAudioSfxAsset(name);
     if (!graph || !asset || this.muted || !this.ctx) return false;
+
+    if (!this.primed || graph.ctx.state === "suspended") {
+      return this.playSfxAssetElement(name);
+    }
 
     this.loadSfxAsset(name).then((buffer) => {
       if (!buffer) {

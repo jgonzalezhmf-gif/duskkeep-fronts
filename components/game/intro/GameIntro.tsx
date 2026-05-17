@@ -79,7 +79,7 @@ export function GameIntro({ onDone, returnTheme = "home" }: GameIntroProps) {
       if (previous <= cue.atMs && elapsedMs >= cue.atMs) {
         playedCueIndexesRef.current.add(index);
         audio.playOneShotMusicAsset("intro_cinematic", { offsetSeconds: elapsedMs / 1000 });
-        if (audio.isPrimed()) audio.playSfxAsset(cue.name);
+        audio.playSfxAsset(cue.name);
       }
     }
   }, [elapsedMs]);

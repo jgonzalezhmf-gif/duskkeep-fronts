@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.34.6] - 2026-05-17
+
+### Fixed
+- Blindado el bloqueo de musica de ruta durante la intro para que `home` no pueda arrancar al primar o reanudar audio.
+- Anadida reproduccion dedicada HTML para la musica y SFX de intro cuando WebAudio aun esta `suspended`, evitando silencios en recarga y sonidos retrasados.
+
 ## [0.34.5] - 2026-05-17
 
 ### Fixed
