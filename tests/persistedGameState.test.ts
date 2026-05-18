@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { defaultInitial } from "@/lib/defaultGameState";
 import { mergePersistedGameState } from "@/lib/persistedGameState";
-import { createPersistedGameStoreState } from "@/lib/storePersistence";
+import { createPersistedGameStoreState, migratePersistedGameStoreState } from "@/lib/storePersistence";
 import type { GameState } from "@/lib/store";
 
 function currentState(): GameState {
@@ -35,6 +35,16 @@ describe("persisted game state merge", () => {
 
     expect(merged.resources.gold).toBe(25);
     expect(merged.resources.adventureKeys).toBe(0);
+  });
+
+  it("migrates v6 saves with the default ladder state", () => {
+    const migrated = migratePersistedGameStoreState({ resources: { gold: 25 } }, 6);
+    const merged = mergePersistedGameState(migrated, currentState());
+
+    expect(merged.resources.gold).toBe(25);
+    expect(merged.ladder.league).toBe("bronze");
+    expect(merged.ladder.division).toBe("iii");
+    expect(merged.ladder.points).toBe(0);
   });
 
   it("keeps intro unseen by default for older saves", () => {

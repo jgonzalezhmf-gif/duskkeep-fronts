@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.35.1] - 2026-05-18
+
+### Fixed
+- Anadida migracion explicita del store persistido para snapshots anteriores a Ladder, evitando el warning de Zustand al cargar saves locales v6.
+- Cubierto con test de persistencia que conserva recursos locales y rellena el estado base de Ladder.
+
 ## [0.35.0] - 2026-05-18
 
 ### Added
