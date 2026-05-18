@@ -8,6 +8,7 @@ import {
 } from "@/features/frontline/cardProgression";
 import { createDefaultFrontlineLoadout } from "@/features/frontline/engine";
 import { createDefaultFrontlineFortress } from "@/features/frontline/fortress";
+import { createDefaultLadderState } from "@/features/ladder/data";
 import { DEFAULT_LOCALE, isLocaleCode } from "@/lib/i18n/locales";
 import { DECK_SIZE } from "./constants";
 import { defaultFortress, defaultInitial, freshStarterDeck } from "./defaultGameState";
@@ -95,6 +96,11 @@ export function mergePersistedGameState<TCurrent extends GameState>(persisted: u
       ).slice(0, 3) as FrontlineFortressState["garrison"],
     },
     eventCompletions: sensitive.eventCompletions ?? current.eventCompletions ?? {},
+    ladder: {
+      ...createDefaultLadderState(),
+      ...(current.ladder ?? {}),
+      ...(sensitive.ladder ?? {}),
+    },
     dailyShopPurchases: sensitive.dailyShopPurchases ?? current.dailyShopPurchases ?? {},
     shopRefreshedAt: sensitive.shopRefreshedAt ?? current.shopRefreshedAt ?? null,
     audioMuted: typeof p.audioMuted === "boolean" ? p.audioMuted : current.audioMuted ?? false,

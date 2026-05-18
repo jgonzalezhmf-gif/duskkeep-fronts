@@ -417,6 +417,16 @@ export const serverOperationPayloadSchemas = {
     })
     .strict()
     .superRefine(refineFrontlineBattlePayload),
+  recordLadderResult: z
+    .object({
+      opponentId: idSchema,
+      battleSeed: z.number().int().safe(),
+      winner: z.enum(["ally", "enemy", "draw"]),
+      turns: z.number().int().nonnegative().max(500),
+      battleSummary: frontlineBattleSummarySchema,
+    })
+    .strict()
+    .superRefine(refineFrontlineBattlePayload),
   recordEventResult: z
     .object({
       eventId: idSchema,
@@ -455,6 +465,7 @@ export const supportedAuthoritativeApiOperations = [
   "upgradeFrontlineFortress",
   "resolveFrontlineFortressRaid",
   "recordArenaResult",
+  "recordLadderResult",
   "recordEventResult",
 ] as const satisfies ServerOperationType[];
 

@@ -13,6 +13,7 @@ export type ArenaRival = {
   power: number;
   rewards: Rewards;
   tone: GameIconTone;
+  modifier: string;
 };
 
 export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
@@ -25,6 +26,7 @@ export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
     power: 110,
     rewards: { gold: 120, gems: 3, accountXp: 8 },
     tone: "ember",
+    modifier: "Breach weather: enemy left front starts aggressive.",
   },
   {
     id: "arena_plague",
@@ -35,6 +37,7 @@ export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
     power: 175,
     rewards: { gold: 180, gems: 5, dust: 20, accountXp: 10 },
     tone: "emerald",
+    modifier: "Plague mist: sustain-focused enemy pressure.",
   },
   {
     id: "arena_ember",
@@ -45,6 +48,7 @@ export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
     power: 260,
     rewards: { gold: 260, gems: 8, dust: 35, accountXp: 14 },
     tone: "gold",
+    modifier: "Storm oath: heavier core threat and slower trading.",
   },
 ];
 
@@ -55,4 +59,8 @@ export function tx(t: TranslateFn, key: string, fallback: string, params?: Recor
 
 export function rivalText(t: TranslateFn, rival: ArenaRival, field: "rank" | "style") {
   return tx(t, `arenaScreen.rivals.${rival.id}.${field}`, rival[field]);
+}
+
+export function arenaModifierText(t: TranslateFn, rival: ArenaRival) {
+  return tx(t, `arenaScreen.rivals.${rival.id}.modifier`, rival.modifier);
 }

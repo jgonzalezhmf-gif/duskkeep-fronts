@@ -26,6 +26,7 @@ type ServerSnapshotPatch = Pick<GameState, "account" | "resources"> &
       | "battlesWon"
       | "arenaWins"
       | "arenaLosses"
+      | "ladder"
       | "eventsPlayed"
       | "eventCompletions"
     >
@@ -63,6 +64,7 @@ export function createServerPlayerSnapshotPatch(state: GameState, serverSnapshot
     battlesWon: battleStats.battlesWon,
     arenaWins: battleStats.arenaWins,
     arenaLosses: battleStats.arenaLosses,
+    ...(snapshot.ladder ? { ladder: snapshot.ladder } : {}),
     eventsPlayed: normalizeEventsPlayed(snapshot.eventsPlayed ?? {}),
     eventCompletions: normalizeEventCompletions(snapshot.eventCompletions ?? {}),
   };

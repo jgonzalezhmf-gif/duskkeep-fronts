@@ -736,7 +736,7 @@ type SkillUpHeroResult = {
 
 Registra un resultado de Arena y actualiza estadisticas basicas. La implementacion SQL es `public.record_arena_result(p_idempotency_key text, p_opponent_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`.
 
-Alcance MVP: lee rival, preset, coste de `arenaTicket` y reward por resultado desde `server_arena_opponents`, escribe `battle_results`, avanza misiones mediante trigger y devuelve el record de Arena. Todavia no simula la batalla en servidor ni calcula ladder real; para ladder competitivo sera necesario validar el resultado con seed/log o ejecutar la simulacion autoritativa.
+Alcance MVP: lee rival, preset, coste de `arenaTicket` y reward por resultado desde `server_arena_opponents`, escribe `battle_results`, avanza misiones mediante trigger y devuelve el record de Arena. Arena queda separada de Ladder: Arena usa tickets y batallas especiales; Ladder usa otra RPC sin coste de ticket.
 
 Payload:
 
@@ -759,7 +759,7 @@ Validaciones:
 - La operacion es idempotente.
 - El gasto de ticket y rewards quedan en `resource_ledger`.
 - El resultado se escribe en `battle_results` con `source = 'arena'`.
-- Para ladder futura, el servidor debera validar consistencia del resumen o simular el combate.
+- Para modos competitivos publicos, el servidor debera validar el replay completo o simular el combate.
 
 Resultado:
 
@@ -769,6 +769,58 @@ type RecordArenaResultResult = {
   arenaLosses: number;
   rewardsGranted: Rewards;
   resources: Resources;
+};
+```
+
+### `recordLadderResult`
+
+Registra un resultado de Ladder y actualiza puntos, rango, progreso de llave y rewards anti-farm. La implementacion SQL es `public.record_ladder_result(p_idempotency_key text, p_opponent_id text, p_battle_seed bigint, p_winner text, p_turns int, p_battle_summary jsonb)`.
+
+Alcance MVP: lee rangos desde `server_ladder_tiers`, rivales desde `server_ladder_opponents` y premios desde `server_ladder_reward_rules`. Solo Bronce III-II-I esta habilitado. El cliente no envia MMR, rewards ni progreso de llave como verdad.
+
+Payload:
+
+```ts
+type RecordLadderResultPayload = {
+  opponentId: string;
+  battleSeed: number;
+  winner: "ally" | "enemy" | "draw";
+  turns: number;
+  battleSummary: unknown;
+};
+```
+
+Validaciones:
+
+- El usuario esta autenticado.
+- El rival pertenece al catalogo server-side de Ladder y coincide con el rango actual del jugador.
+- El servidor calcula puntos, rango, rewards, limite diario de rewards normales y progreso de llave.
+- La operacion es idempotente.
+- Los recursos concedidos quedan en `resource_ledger`.
+- El resultado se escribe en `battle_results` con `source = 'ladder'`.
+- El snapshot devuelve `ladder` para que el cliente no use cache local como autoridad online.
+
+Resultado:
+
+```ts
+type RecordLadderResultResult = {
+  opponentId: string;
+  winner: "ally" | "enemy" | "draw";
+  rewardsGranted: Rewards;
+  resources: Resources;
+  ladder: {
+    seasonId: string;
+    points: number;
+    league: string;
+    division: string;
+    keyProgress: number;
+    dailyRewardedWins: number;
+    dailyCycleKey: string | null;
+  };
+  pointsDelta: number;
+  keyProgressDelta: number;
+  adventureKeysGranted: number;
+  rewardMode: "normal" | "reduced" | "draw" | "loss";
 };
 ```
 

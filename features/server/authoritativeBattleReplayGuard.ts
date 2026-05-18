@@ -8,6 +8,7 @@ import {
   getFrontlinePresetForAdventureNode,
   getFrontlinePresetForArenaOpponent,
   getFrontlinePresetForEvent,
+  getFrontlinePresetForLadderOpponent,
 } from "@/features/frontline/encounterPresets";
 import { createFrontlineHeroProfileMap } from "@/features/frontline/heroProfile";
 import type { FrontlinePlayerActionLogEntry, FrontlinePreset } from "@/features/frontline/types";
@@ -18,7 +19,7 @@ type RuntimeEnv = Record<string, string | undefined>;
 
 export type FrontlineBattleServerOperation = Extract<
   SupportedAuthoritativeApiOperation,
-  "claimAdventureBattleResult" | "recordArenaResult" | "recordEventResult"
+  "claimAdventureBattleResult" | "recordArenaResult" | "recordLadderResult" | "recordEventResult"
 >;
 
 type FrontlineLoadoutRow = {
@@ -62,6 +63,7 @@ export function isFrontlineBattleOperation(operationType: SupportedAuthoritative
   return (
     operationType === "claimAdventureBattleResult" ||
     operationType === "recordArenaResult" ||
+    operationType === "recordLadderResult" ||
     operationType === "recordEventResult"
   );
 }
@@ -111,6 +113,10 @@ export function resolveFrontlineBattlePresetForOperation(
   if (operationType === "recordArenaResult") {
     const arenaPayload = payload as ServerOperationPayload<"recordArenaResult">;
     return getFrontlinePresetForArenaOpponent(arenaPayload.opponentId);
+  }
+  if (operationType === "recordLadderResult") {
+    const ladderPayload = payload as ServerOperationPayload<"recordLadderResult">;
+    return getFrontlinePresetForLadderOpponent(ladderPayload.opponentId);
   }
   const eventPayload = payload as ServerOperationPayload<"recordEventResult">;
   return getFrontlinePresetForEvent(eventPayload.eventId);

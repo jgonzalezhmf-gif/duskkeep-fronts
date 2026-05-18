@@ -13,6 +13,7 @@ import {
   extractFrontlineCardUpgradeResult,
   extractFrontlineFortressRaidResult,
   extractFrontlineFortressUpgradeResult,
+  extractLadderResult,
   extractLoadoutSaveResult,
   extractLocalSnapshotSyncResult,
   extractMissionClaimResult,
@@ -38,6 +39,9 @@ import type {
   PurchaseShopOfferAuthoritativelyOptions,
   RecordArenaResultAuthoritativelyOptions,
   RecordArenaResultInput,
+  RecordLadderResultAuthoritativelyOptions,
+  RecordLadderResultInput,
+  AuthoritativeLadderResult,
   RecordEventResultAuthoritativelyOptions,
   RecordEventResultInput,
   ResolveFrontlineFortressRaidAuthoritativelyOptions,
@@ -303,6 +307,39 @@ export async function recordArenaResultAuthoritatively(
   if (!response.ok) return response;
 
   const parsed = extractArenaResult(response.result);
+  if (!parsed) {
+    return invalidAuthoritativeServerResponse();
+  }
+  if (parsed.opponentId !== input.opponentId) {
+    return authoritativeResponseMismatch("opponent");
+  }
+  if (parsed.winner !== input.winner) {
+    return authoritativeResponseMismatch("winner");
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+export async function recordLadderResultAuthoritatively(
+  input: RecordLadderResultInput,
+  options: RecordLadderResultAuthoritativelyOptions = {},
+): Promise<AuthoritativeLadderResult> {
+  const response = await callOperationWithSession(
+    "recordLadderResult",
+    {
+      idempotencyKey: createIdempotencyKey("ladder", `${input.opponentId}:${input.battleSeed}:${input.winner}`),
+      payload: input,
+    },
+    options,
+  );
+
+  if (!response.ok) return response;
+
+  const parsed = extractLadderResult(response.result);
   if (!parsed) {
     return invalidAuthoritativeServerResponse();
   }

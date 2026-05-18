@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameBackNav from "@/components/game/shared/GameBackNav";
@@ -20,10 +20,18 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { useGameStore } from "@/lib/store";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
+import {
+  LADDER_BRONZE_OPPONENTS,
+  getLadderOpponentForPoints,
+  getLadderRankForPoints,
+  ladderRankLabel,
+  type LadderOpponent,
+} from "@/features/ladder/data";
 import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
-import { ArenaMetric, ArenaRankPlate, GateLine, ResultMetric, RewardChips } from "./ArenaPrimitives";
+import { ArenaMetric, ArenaRankPlate, GateLine, LadderRankPlate, ResultMetric, RewardChips } from "./ArenaPrimitives";
 import { ArenaRivalCard } from "./ArenaRivalCard";
+import { LadderRivalCard } from "./LadderRivalCard";
 import { FRONTLINE_ARENA_RIVALS, rivalText, tx, type ArenaRival, type TranslateFn } from "./arenaPageHelpers";
 
 const FrontlineBattle = dynamic(() => import("@/components/game/frontline/FrontlineBattle"), {
@@ -32,14 +40,23 @@ const FrontlineBattle = dynamic(() => import("@/components/game/frontline/Frontl
 });
 
 type ArenaPhase = "browse" | "battle" | "post";
+type ArenaMode = "ladder" | "trials";
+type BattlePick =
+  | { mode: "trials"; rival: ArenaRival }
+  | { mode: "ladder"; rival: LadderOpponent };
 
 type ArenaResult = {
   winner: "ally" | "enemy" | "draw";
-  rival: ArenaRival;
+  mode: ArenaMode;
+  rival: ArenaRival | LadderOpponent;
   rounds: number;
   rewards: Rewards;
   allyCoreHp: number;
   enemyCoreHp: number;
+  rankLabel: string;
+  pointsDelta?: number;
+  keyProgressDelta?: number;
+  adventureKeysGranted?: number;
 };
 
 export default function ArenaPage() {
@@ -49,15 +66,18 @@ export default function ArenaPage() {
   const resources = useGameStore((state) => state.resources);
   const wins = useGameStore((state) => state.arenaWins);
   const losses = useGameStore((state) => state.arenaLosses);
+  const ladder = useGameStore((state) => state.ladder);
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
   const nextSeed = useGameStore((state) => state.nextSeed);
   const spend = useGameStore((state) => state.spend);
   const recordArenaResult = useGameStore((state) => state.recordArenaResultOnlineFirst);
+  const recordLadderResult = useGameStore((state) => state.recordLadderResultOnlineFirst);
   const refreshTickets = useGameStore((state) => state.refreshArenaTicketsIfNeeded);
 
   const [phase, setPhase] = useState<ArenaPhase>("browse");
-  const [picked, setPicked] = useState<ArenaRival | null>(null);
+  const [mode, setMode] = useState<ArenaMode>("ladder");
+  const [picked, setPicked] = useState<BattlePick | null>(null);
   const [seed, setSeed] = useState(1);
   const [result, setResult] = useState<ArenaResult | null>(null);
   const [ticketSpentLocally, setTicketSpentLocally] = useState(false);
@@ -72,32 +92,83 @@ export default function ArenaPage() {
   const loadoutReady = squadReady && deckReady;
   const record = wins + losses;
   const winRate = record ? Math.round((wins / record) * 100) : 0;
+  const ladderRank = getLadderRankForPoints(ladder.points);
+  const ladderRankName = ladderRankLabel(ladderRank);
+  const ladderProgress =
+    ladderRank.maxPoints > ladderRank.minPoints
+      ? Math.round(((ladder.points - ladderRank.minPoints) / (ladderRank.maxPoints - ladderRank.minPoints + 1)) * 100)
+      : 100;
+  const currentLadderOpponent = useMemo(() => getLadderOpponentForPoints(ladder.points), [ladder.points]);
 
   function startArenaBattle(rival: ArenaRival) {
     if (tickets <= 0 || !loadoutReady) return;
     const shouldSpendLocally = accountLinkMode !== "linked" && !isServerAuthoritativePersistenceEnabled();
     const ticketSpent = shouldSpendLocally ? spend({ arenaTickets: 1 }) : false;
     if (shouldSpendLocally && !ticketSpent) return;
-    setPicked(rival);
+    setPicked({ mode: "trials", rival });
     setSeed(nextSeed());
     setResult(null);
     setTicketSpentLocally(ticketSpent);
     setPhase("battle");
   }
 
-  async function finishArenaBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
+  function startLadderBattle(rival: LadderOpponent) {
+    if (!loadoutReady || rival.id !== currentLadderOpponent.id) return;
+    setPicked({ mode: "ladder", rival });
+    setSeed(nextSeed());
+    setResult(null);
+    setTicketSpentLocally(false);
+    setPhase("battle");
+  }
+
+  async function finishBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
     if (!picked) return;
     const won = winner === "ally";
-    const rewards = won ? picked.rewards : winner === "draw" ? { gold: 45, dust: 5, accountXp: 3 } : { gold: 25, accountXp: 2 };
+    const previewRewards = picked.mode === "ladder" ? picked.rival.previewRewards : picked.rival.rewards;
+    const rewards = won ? previewRewards : winner === "draw" ? { gold: 45, dust: 5, accountXp: 3 } : { gold: 25, accountXp: 2 };
     const rewardSource = won
-      ? t("arenaScreen.result.winSource", { name: picked.ownerName })
-      : t("arenaScreen.result.resultSource", { name: picked.ownerName });
+      ? t(picked.mode === "ladder" ? "arenaScreen.result.ladderWinSource" : "arenaScreen.result.winSource", { name: picked.rival.ownerName })
+      : t(picked.mode === "ladder" ? "arenaScreen.result.ladderResultSource" : "arenaScreen.result.resultSource", { name: picked.rival.ownerName });
+    const battleSummary = createFrontlineBattleSummary(battleState);
+
+    if (picked.mode === "ladder") {
+      const recorded = await recordLadderResult({
+        opponentId: picked.rival.id,
+        battleSeed: seed,
+        winner,
+        turns: battleState.round,
+        battleSummary,
+        rewards,
+        source: rewardSource,
+      });
+      if (!recorded) {
+        setPhase("browse");
+        return;
+      }
+      const nextRank = getLadderRankForPoints(Math.max(0, Math.min(300, ladder.points + recorded.pointsDelta)));
+      setResult({
+        winner,
+        mode: picked.mode,
+        rival: picked.rival,
+        rounds: battleState.round,
+        rewards: recorded.rewards,
+        allyCoreHp: battleState.allyCoreHp,
+        enemyCoreHp: battleState.enemyCoreHp,
+        rankLabel: ladderRankLabel(nextRank),
+        pointsDelta: recorded.pointsDelta,
+        keyProgressDelta: recorded.keyProgressDelta,
+        adventureKeysGranted: recorded.adventureKeysGranted,
+      });
+      setPhase("post");
+      return;
+    }
+
     const recorded = await recordArenaResult({
-      opponentId: picked.id,
+      opponentId: picked.rival.id,
       battleSeed: seed,
       winner,
       turns: battleState.round,
-      battleSummary: createFrontlineBattleSummary(battleState),
+      battleSummary,
       rewards,
       source: rewardSource,
       ticketAlreadySpent: ticketSpentLocally,
@@ -108,11 +179,13 @@ export default function ArenaPage() {
     }
     setResult({
       winner,
-      rival: picked,
+      mode: picked.mode,
+      rival: picked.rival,
       rounds: battleState.round,
       rewards: recorded.rewards,
       allyCoreHp: battleState.allyCoreHp,
       enemyCoreHp: battleState.enemyCoreHp,
+      rankLabel: rivalText(t, picked.rival, "rank"),
     });
     setPhase("post");
   }
@@ -123,8 +196,8 @@ export default function ArenaPage() {
         <FrontlineBattle
           seed={seed}
           loadout={frontlineLoadout}
-          enemyPresetId={picked.presetId}
-          onFinished={finishArenaBattle}
+          enemyPresetId={picked.rival.presetId}
+          onFinished={finishBattle}
         />
       </div>
     );
@@ -132,6 +205,7 @@ export default function ArenaPage() {
 
   if (phase === "post" && result) {
     const won = result.winner === "ally";
+    const isLadder = result.mode === "ladder";
     return (
       <ScreenScaffold scene="arena" dock={false} homeNav={false} hud={false}>
         <ArenaTopChrome resources={resources} t={t} />
@@ -140,16 +214,25 @@ export default function ArenaPage() {
           <ScreenPanel className="w-full max-w-[42rem] p-5 text-center md:p-7" accent={won}>
             <LazyRewardBurstOverlay rewards={result.rewards} compact />
             <div className="mx-auto w-fit">
-              {won ? <ModeIcon name="ladder" size="xl" /> : <GameIcon kind="battle" tone="ember" size="lg" />}
+              {won ? <ModeIcon name={isLadder ? "ladder" : "arena_draft"} size="xl" /> : <GameIcon kind="battle" tone="ember" size="lg" />}
             </div>
-            <div className="mt-4 text-[10px] font-black uppercase tracking-[0.24em] text-[#f5d498]">{t("arenaScreen.result.eyebrow")}</div>
+            <div className="mt-4 text-[10px] font-black uppercase tracking-[0.24em] text-[#f5d498]">
+              {isLadder ? t("arenaScreen.result.ladderEyebrow") : t("arenaScreen.result.eyebrow")}
+            </div>
             <div className="mt-3 text-4xl font-black text-white">{won ? t("arenaScreen.result.victory") : result.winner === "draw" ? t("arenaScreen.result.draw") : t("arenaScreen.result.defeat")}</div>
             <div className="mt-2 text-sm text-white/62">{t("arenaScreen.result.rounds", { name: result.rival.ownerName, rounds: result.rounds })}</div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <ResultMetric label={t("arenaScreen.result.allyCore")} value={result.allyCoreHp} />
               <ResultMetric label={t("arenaScreen.result.enemyCore")} value={result.enemyCoreHp} />
-              <ResultMetric label={t("arenaScreen.result.rank")} value={rivalText(t, result.rival, "rank")} />
+              <ResultMetric label={isLadder ? t("arenaScreen.ladder.rank") : t("arenaScreen.result.rank")} value={result.rankLabel} />
             </div>
+            {isLadder ? (
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <ResultMetric label={t("arenaScreen.ladder.pointsDelta")} value={formatSigned(result.pointsDelta ?? 0)} />
+                <ResultMetric label={t("arenaScreen.ladder.keyProgress")} value={`+${result.keyProgressDelta ?? 0}%`} />
+                <ResultMetric label={t("arenaScreen.ladder.keys")} value={result.adventureKeysGranted ?? 0} />
+              </div>
+            ) : null}
             <div className="mt-5 rounded-[24px] border border-white/10 bg-white/[0.045] p-4 text-left">
               <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/46">{t("arenaScreen.result.rewards")}</div>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -158,9 +241,18 @@ export default function ArenaPage() {
             </div>
             <div className="mt-6 grid gap-2 sm:grid-cols-2">
               <SceneButton onClick={() => setPhase("browse")} variant="secondary">
-                {t("arenaScreen.result.backToArena")}
+                {isLadder ? t("arenaScreen.result.backToLadder") : t("arenaScreen.result.backToArena")}
               </SceneButton>
-              <SceneButton onClick={() => startArenaBattle(result.rival)} disabled={tickets <= 0 || !loadoutReady}>
+              <SceneButton
+                onClick={() => {
+                  if (isLadder) {
+                    startLadderBattle(result.rival as LadderOpponent);
+                  } else {
+                    startArenaBattle(result.rival as ArenaRival);
+                  }
+                }}
+                disabled={isLadder ? !loadoutReady : tickets <= 0 || !loadoutReady}
+              >
                 {t("arenaScreen.result.rematch")}
               </SceneButton>
             </div>
@@ -209,19 +301,42 @@ export default function ArenaPage() {
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
-                      {t("arenaScreen.hero.badge")}
+                      {mode === "ladder" ? t("arenaScreen.ladder.badge") : t("arenaScreen.hero.badge")}
                     </div>
                     <h1 className="mt-2 max-w-[45rem] text-[1.75rem] font-black leading-[0.92] tracking-[-0.045em] text-white md:text-[2.3rem]">
-                      {t("arenaScreen.hero.title")}
+                      {mode === "ladder" ? t("arenaScreen.ladder.title") : t("arenaScreen.hero.title")}
                     </h1>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <ModeToggle active={mode === "ladder"} onClick={() => setMode("ladder")}>
+                        {t("arenaScreen.tabs.ladder")}
+                      </ModeToggle>
+                      <ModeToggle active={mode === "trials"} onClick={() => setMode("trials")}>
+                        {t("arenaScreen.tabs.trials")}
+                      </ModeToggle>
+                    </div>
                   </div>
-                  <ArenaRankPlate wins={wins} losses={losses} winRate={winRate} rank={tx(t, "arenaScreen.rivals.arena_bonewood.rank", "Bronze II")} t={t} />
+                  {mode === "ladder" ? (
+                    <LadderRankPlate rank={ladderRankName} points={ladder.points} progressPercent={ladderProgress} t={t} />
+                  ) : (
+                    <ArenaRankPlate wins={wins} losses={losses} winRate={winRate} rank={tx(t, "arenaScreen.rivals.arena_bonewood.rank", "Bronze II")} t={t} />
+                  )}
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-                  <ArenaMetric icon="tickets" label={t("arenaScreen.metrics.tickets")} value={tickets} tone="gold" active={tickets > 0} />
-                  <ArenaMetric icon="rewards" modeIcon="ladder" label={t("arenaScreen.metrics.wins")} value={wins} tone="emerald" />
-                  <ArenaMetric icon="shield" label={t("arenaScreen.metrics.losses")} value={losses} tone="ember" />
-                  <ArenaMetric icon="power" label={t("arenaScreen.metrics.rate")} value={`${winRate}%`} tone="sky" />
+                  {mode === "ladder" ? (
+                    <>
+                      <ArenaMetric icon="rewards" modeIcon="ladder" label={t("arenaScreen.ladder.points")} value={ladder.points} tone="gold" active />
+                      <ArenaMetric icon="power" label={t("arenaScreen.ladder.rank")} value={ladderRankName} tone="sky" />
+                      <ArenaMetric icon="rewards" label={t("arenaScreen.ladder.keyProgress")} value={`${ladder.keyProgress}%`} tone="gold" />
+                      <ArenaMetric icon="shield" label={t("arenaScreen.ladder.dailyWins")} value={`${ladder.dailyRewardedWins}/5`} tone="emerald" />
+                    </>
+                  ) : (
+                    <>
+                      <ArenaMetric icon="tickets" label={t("arenaScreen.metrics.tickets")} value={tickets} tone="gold" active={tickets > 0} />
+                      <ArenaMetric icon="rewards" modeIcon="arena_draft" label={t("arenaScreen.metrics.wins")} value={wins} tone="emerald" />
+                      <ArenaMetric icon="shield" label={t("arenaScreen.metrics.losses")} value={losses} tone="ember" />
+                      <ArenaMetric icon="power" label={t("arenaScreen.metrics.rate")} value={`${winRate}%`} tone="sky" />
+                    </>
+                  )}
                 </div>
               </div>
             </ScreenPanel>
@@ -237,7 +352,7 @@ export default function ArenaPage() {
               <div className="mt-3 grid gap-1.5">
                 <GateLine label={t("arenaScreen.gate.squad")} value={`${frontlineLoadout.squad.filter(Boolean).length}/3`} ok={squadReady} />
                 <GateLine label={t("arenaScreen.gate.cards")} value={`${frontlineLoadout.deck.filter(Boolean).length}/8`} ok={deckReady} />
-                <GateLine label={t("arenaScreen.gate.ticket")} value={`${tickets}`} ok={tickets > 0} />
+                {mode === "trials" ? <GateLine label={t("arenaScreen.gate.ticket")} value={`${tickets}`} ok={tickets > 0} /> : null}
               </div>
               {!loadoutReady ? (
                 <a href="/deck" className="mt-4 block rounded-[20px] border border-[#f5c451]/22 bg-[#f5c451]/12 px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.16em] text-[#f5d498]">
@@ -249,27 +364,65 @@ export default function ArenaPage() {
 
           <ScreenPanel className="p-3 md:p-4">
             <SectionTitle
-              eyebrow={t("arenaScreen.floor.eyebrow")}
-              title={t("arenaScreen.floor.title")}
-              aside={<ScreenBadge tone={tickets > 0 ? "gold" : "neutral"}>{tickets > 0 ? t("arenaScreen.floor.entryReady") : t("arenaScreen.floor.noTickets")}</ScreenBadge>}
+              eyebrow={mode === "ladder" ? t("arenaScreen.ladder.eyebrow") : t("arenaScreen.floor.eyebrow")}
+              title={mode === "ladder" ? t("arenaScreen.ladder.floorTitle") : t("arenaScreen.floor.title")}
+              aside={
+                mode === "ladder" ? (
+                  <ScreenBadge tone={loadoutReady ? "gold" : "neutral"}>{loadoutReady ? t("arenaScreen.ladder.ready") : t("arenaScreen.gate.deckNeeded")}</ScreenBadge>
+                ) : (
+                  <ScreenBadge tone={tickets > 0 ? "gold" : "neutral"}>{tickets > 0 ? t("arenaScreen.floor.entryReady") : t("arenaScreen.floor.noTickets")}</ScreenBadge>
+                )
+              }
             />
-            <div className="mt-4 grid gap-4 lg:grid-cols-3">
-              {FRONTLINE_ARENA_RIVALS.map((rival, index) => (
-                <ArenaRivalCard
-                  key={rival.id}
-                  rival={rival}
-                  featured={index === 1}
-                  disabled={tickets <= 0 || !loadoutReady}
-                  onChallenge={() => startArenaBattle(rival)}
-                  t={t}
-                />
-              ))}
-            </div>
+            {mode === "ladder" ? (
+              <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                {LADDER_BRONZE_OPPONENTS.map((opponent) => (
+                  <LadderRivalCard
+                    key={opponent.id}
+                    opponent={opponent}
+                    active={opponent.id === currentLadderOpponent.id}
+                    disabled={!loadoutReady}
+                    onChallenge={() => startLadderBattle(opponent)}
+                    t={t}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                {FRONTLINE_ARENA_RIVALS.map((rival, index) => (
+                  <ArenaRivalCard
+                    key={rival.id}
+                    rival={rival}
+                    featured={index === 1}
+                    disabled={tickets <= 0 || !loadoutReady}
+                    onChallenge={() => startArenaBattle(rival)}
+                    t={t}
+                  />
+                ))}
+              </div>
+            )}
           </ScreenPanel>
         </div>
       </div>
       )}
     </ScreenScaffold>
+  );
+}
+
+function ModeToggle({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] transition",
+        active
+          ? "border-[#f5c451]/34 bg-[#f5c451]/16 text-[#ffe3a1] shadow-[0_10px_24px_rgba(245,196,81,0.12)]"
+          : "border-white/10 bg-white/[0.045] text-white/52 hover:border-white/18 hover:text-white/76",
+      ].join(" ")}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -282,4 +435,8 @@ function ArenaTopChrome({ resources, t }: { resources: { gold: number; dust: num
       </div>
     </>
   );
+}
+
+function formatSigned(value: number) {
+  return value > 0 ? `+${value}` : `${value}`;
 }

@@ -319,24 +319,49 @@ Reglas:
 - En alpha el combate puede ejecutarse en cliente, pero el servidor debe validar prerequisitos antes de persistir rewards.
 - Para ladder futura, guardar seed y resumen permite auditoria y replay determinista.
 
-### `arena_ladder_snapshots`
+### `player_ladder_state`
 
-Estado competitivo futuro.
+Estado persistente del Ladder por jugador y temporada.
 
 Campos objetivo:
 
-- `profile_id uuid primary key`
-- `rating int not null`
-- `rank_tier text not null`
-- `wins int not null`
-- `losses int not null`
-- `streak int not null`
+- `profile_id uuid not null`
+- `season_id text not null`
+- `points int not null`
+- `league text not null`
+- `division text not null`
+- `key_progress int not null`
 - `updated_at timestamptz not null`
 
 Reglas:
 
-- Solo operaciones validadas de Arena pueden modificar rating.
+- Solo `record_ladder_result` puede modificar puntos, rango y progreso de llave.
 - No aceptar puntuaciones arbitrarias desde cliente.
+
+### `player_ladder_daily_state`
+
+Estado diario del Ladder para limitar rewards normales sin limitar partidas.
+
+Campos objetivo:
+
+- `profile_id uuid not null`
+- `season_id text not null`
+- `cycle_key text not null`
+- `rewarded_wins int not null`
+- `updated_at timestamptz not null`
+
+Reglas:
+
+- El limite de victorias con reward normal vive en `server_ladder_reward_rules`.
+- Pasado el limite diario, el servidor reduce reward y no avanza progreso de llave.
+
+### Catalogos Ladder
+
+Catalogos internos server-side:
+
+- `server_ladder_tiers`: ligas/divisiones, rangos de puntos y si estan habilitadas.
+- `server_ladder_opponents`: rivales PVE tipo jugador por liga/division y preset.
+- `server_ladder_reward_rules`: rewards normales/reducidos y avance aleatorio de llave.
 
 ## Datos que Pueden Seguir en Codigo
 
@@ -364,7 +389,8 @@ La migracion desde estado local queda como mecanismo transitorio de alpha. El mo
 - `adventureMapClaims` -> `adventure_map_claims`
 - `missionsProgress` -> `missions_progress`
 - `shopPurchases` y `dailyShopPurchases` -> `shop_purchases`
-- `arenaWins`/`arenaLosses` -> `arena_ladder_snapshots` inicial o estadistica local importada
+- `arenaWins`/`arenaLosses` -> estadistica local importada o derivada de `battle_results`
+- `ladder` -> `player_ladder_state` si existe; si no existe se inicializa como Bronce III al primer resultado
 
 ## Criterios de Aceptacion del Modelo
 

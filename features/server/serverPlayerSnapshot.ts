@@ -1,5 +1,5 @@
 import { getSupabaseBrowserClient } from "@/features/server/supabaseBrowserSession";
-import type { FrontlineFortressState } from "@/lib/types";
+import type { FrontlineFortressState, LadderState } from "@/lib/types";
 
 export type ServerPlayerSnapshot = {
   profileId: string;
@@ -39,6 +39,7 @@ export type ServerPlayerSnapshot = {
       arenaWins: number;
       arenaLosses: number;
     };
+    ladder?: LadderState | null;
     eventsPlayed?: Record<string, number>;
     eventCompletions?: Record<string, string>;
   };
@@ -115,6 +116,8 @@ export function parseServerPlayerSnapshotRpcResult(value: unknown): ServerPlayer
   if (frontlineLoadout === undefined) return { ok: false, reason: "invalid_response" };
   const frontlineFortress = normalizeFrontlineFortress(snapshot.frontlineFortress);
   if (frontlineFortress === undefined) return { ok: false, reason: "invalid_response" };
+  const ladder = normalizeLadderState(snapshot.ladder);
+  if (ladder === undefined) return { ok: false, reason: "invalid_response" };
   const battleStats = normalizeBattleStats(snapshot.battleStats);
 
   const parsed: ServerPlayerSnapshot = {
@@ -146,6 +149,7 @@ export function parseServerPlayerSnapshotRpcResult(value: unknown): ServerPlayer
       dailyLoginClaims: normalizeRecordMap(snapshot.dailyLoginClaims),
       shopPurchases: Array.isArray(snapshot.shopPurchases) ? snapshot.shopPurchases.filter(isRecord) : [],
       battleStats,
+      ladder,
       eventsPlayed: normalizeNumberRecord(snapshot.eventsPlayed),
       eventCompletions: normalizeStringRecord(snapshot.eventCompletions),
     },
@@ -234,6 +238,53 @@ function normalizeBattleStats(value: unknown): ServerPlayerSnapshot["snapshot"][
     arenaWins: normalizeInt(value.arenaWins, 0, 1000000) ?? 0,
     arenaLosses: normalizeInt(value.arenaLosses, 0, 1000000) ?? 0,
   };
+}
+
+function normalizeLadderState(value: unknown): LadderState | null | undefined {
+  if (value === null || value === undefined) return null;
+  if (!isRecord(value)) return undefined;
+
+  const seasonId = optionalString(value.seasonId);
+  const points = normalizeInt(value.points, 0, 1000000);
+  const league = normalizeLadderLeague(value.league);
+  const division = normalizeLadderDivision(value.division);
+  const keyProgress = normalizeInt(value.keyProgress, 0, 99);
+  const dailyRewardedWins = normalizeInt(value.dailyRewardedWins, 0, 1000);
+  const dailyCycleKey = value.dailyCycleKey === null ? null : optionalString(value.dailyCycleKey);
+
+  if (
+    !seasonId ||
+    points === null ||
+    !league ||
+    !division ||
+    keyProgress === null ||
+    dailyRewardedWins === null ||
+    dailyCycleKey === undefined
+  ) {
+    return undefined;
+  }
+
+  return { seasonId, points, league, division, keyProgress, dailyRewardedWins, dailyCycleKey };
+}
+
+function normalizeLadderLeague(value: unknown): LadderState["league"] | undefined {
+  if (
+    value === "bronze" ||
+    value === "silver" ||
+    value === "gold" ||
+    value === "platinum" ||
+    value === "diamond" ||
+    value === "master" ||
+    value === "grandmaster"
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+function normalizeLadderDivision(value: unknown): LadderState["division"] | undefined {
+  if (value === "iii" || value === "ii" || value === "i") return value;
+  return undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

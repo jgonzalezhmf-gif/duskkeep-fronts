@@ -329,7 +329,9 @@ Arena:
 - Migrada en MVP a Frontline.
 - La placa de rango/progreso ya es visible tambien fuera de layouts grandes.
 - Evita refrescos locales de tickets cuando la persistencia es Supabase.
-- Pendiente: ranks, ladder, streaks, rivales por tier y reward reveal propio.
+- Ahora separa dos modos: Ladder sin tickets, con MMR Bronce III-II-I y rivales tipo jugador; y Arena Trials con tickets, mutadores visibles y rewards mas especiales.
+- Ladder usa `recordLadderResult` server-authoritative para puntos, progreso de llave y rewards anti-farm.
+- Pendiente: mas ligas/rivales, mutadores reales en Trials, reward reveal propio y replay/simulacion server-side completa antes de competitivo publico.
 
 Team:
 - Existe como pantalla auxiliar.
@@ -389,9 +391,9 @@ Regla:
 ## Backlog Prioritario
 
 Prioridad inmediata sugerida:
-1. Audio pass acotado: musica/ambiente y SFX para boss/eclipse/castillo/rayo/tension, sin sobreescribir assets existentes.
-2. Validacion browser de release candidate si se vuelve a tocar UI o audio visible.
-3. Reward feedback reutilizable en Events y Arena si se retoma pulido visual.
+1. Validar Ladder/Arena en navegador y Supabase local/remoto tras aplicar migracion.
+2. Audio pass acotado: musica/ambiente y SFX para boss/eclipse/castillo/rayo/tension, sin sobreescribir assets existentes.
+3. Reward feedback reutilizable en Events, Arena y Ladder si se retoma pulido visual.
 4. Precombat visual: enemigos, rewards, camino hacia Combat.
 5. Adventure map mechanics: interacciones adicionales, nodos ocultos, lore/recompensas periodicas y condiciones.
 6. Adventure map polish bajo demanda: camino real, iconos de fase, side panel limpio.

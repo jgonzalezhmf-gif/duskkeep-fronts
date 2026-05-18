@@ -5,7 +5,7 @@ import type {
   SupportedAuthoritativeApiOperation,
 } from "@/features/server/authoritativeOperations";
 import type { AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
-import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, Resources, Rewards } from "@/lib/types";
+import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, LadderState, Resources, Rewards } from "@/lib/types";
 
 export type AuthoritativeDispatcherMode = "authoritative" | "local";
 
@@ -252,6 +252,47 @@ export type AuthoritativeArenaResult =
   | AuthoritativeArenaResultFallback;
 
 export type RecordArenaResultAuthoritativelyOptions = AuthoritativeDispatcherOptions;
+
+export type RecordLadderResultInput = {
+  opponentId: string;
+  battleSeed: number;
+  winner: AuthoritativeArenaWinner;
+  turns: number;
+  battleSummary: FrontlineBattleSummaryPayload;
+};
+
+export type AuthoritativeLadderResultSuccess = {
+  ok: true;
+  mode: "authoritative";
+  opponentId: string;
+  winner: AuthoritativeArenaWinner;
+  rewards: Rewards;
+  resources: Resources;
+  ladder: LadderState;
+  pointsDelta: number;
+  keyProgressDelta: number;
+  adventureKeysGranted: number;
+  rewardMode: "normal" | "reduced" | "draw" | "loss";
+};
+
+export type AuthoritativeLadderResultFailure = {
+  ok: false;
+  mode: "authoritative";
+  reason: string;
+};
+
+export type AuthoritativeLadderResultFallback = {
+  ok: false;
+  mode: "local";
+  reason: "missing_session" | "api_disabled";
+};
+
+export type AuthoritativeLadderResult =
+  | AuthoritativeLadderResultSuccess
+  | AuthoritativeLadderResultFailure
+  | AuthoritativeLadderResultFallback;
+
+export type RecordLadderResultAuthoritativelyOptions = AuthoritativeDispatcherOptions;
 
 export type RecordEventResultInput = {
   eventId: string;

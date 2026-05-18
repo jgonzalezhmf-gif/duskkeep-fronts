@@ -76,6 +76,19 @@ export type Resources = {
   adventureKeys: number;
 };
 
+export type LadderLeague = "bronze" | "silver" | "gold" | "platinum" | "diamond" | "master" | "grandmaster";
+export type LadderDivision = "iii" | "ii" | "i";
+
+export type LadderState = {
+  seasonId: string;
+  points: number;
+  league: LadderLeague;
+  division: LadderDivision;
+  keyProgress: number;
+  dailyRewardedWins: number;
+  dailyCycleKey: string | null;
+};
+
 export type AdventureLevel = {
   id: string;
   chapter: number;

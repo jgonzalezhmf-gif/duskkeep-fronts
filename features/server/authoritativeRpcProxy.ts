@@ -335,6 +335,21 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "recordLadderResult") {
+    const ladderPayload = payload as ServerOperationPayload<"recordLadderResult">;
+    return {
+      rpcName: "record_ladder_result",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_opponent_id: ladderPayload.opponentId,
+        p_battle_seed: ladderPayload.battleSeed,
+        p_winner: ladderPayload.winner,
+        p_turns: ladderPayload.turns,
+        p_battle_summary: ladderPayload.battleSummary,
+      },
+    };
+  }
+
   if (operationType === "recordEventResult") {
     const eventPayload = payload as ServerOperationPayload<"recordEventResult">;
     return {

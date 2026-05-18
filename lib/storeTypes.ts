@@ -11,6 +11,7 @@ import type {
   FrontlineFortressReport,
   FrontlineFortressState,
   FrontlineLoadout,
+  LadderState,
   Mission,
   MissionProgress,
   PlayerHero,
@@ -49,6 +50,7 @@ export type GameState = {
   missionsProgress: Record<string, MissionProgress>;
   arenaWins: number;
   arenaLosses: number;
+  ladder: LadderState;
   shopPurchases: Record<string, number>;
   eventsPlayed: Record<string, number>;
   battlesWon: number;
@@ -121,6 +123,22 @@ export type GameActions = {
     source: string;
     ticketAlreadySpent: boolean;
   }) => Promise<{ rewards: Rewards; authoritative?: boolean; resources?: Resources } | null>;
+  recordLadderResultOnlineFirst: (input: {
+    opponentId: string;
+    battleSeed: number;
+    winner: "ally" | "enemy" | "draw";
+    turns: number;
+    battleSummary: FrontlineBattleSummaryPayload;
+    rewards: Rewards;
+    source: string;
+  }) => Promise<{
+    rewards: Rewards;
+    authoritative?: boolean;
+    resources?: Resources;
+    pointsDelta: number;
+    keyProgressDelta: number;
+    adventureKeysGranted: number;
+  } | null>;
   recordEventResultOnlineFirst: (input: {
     eventId: string;
     battleSeed: number;

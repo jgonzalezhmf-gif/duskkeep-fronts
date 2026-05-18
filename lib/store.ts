@@ -33,6 +33,7 @@ import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
+import { getLadderOpponentForPoints, getLadderRankForPoints, LADDER_DAILY_NORMAL_WIN_LIMIT } from "@/features/ladder/data";
 import {
   createFortressBuildingUpgradeCommand,
   createFrontlineCardUpgradeCommand,
@@ -64,6 +65,7 @@ import {
   openAdventureMapInteractionAuthoritatively,
   purchaseShopOfferAuthoritatively,
   recordArenaResultAuthoritatively,
+  recordLadderResultAuthoritatively,
   recordEventResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
@@ -544,6 +546,105 @@ export const useGameStore = create<GameState & GameActions>()(
           rewards: authoritative.rewards,
           authoritative: true,
           resources: authoritative.resources,
+        };
+      },
+
+      recordLadderResultOnlineFirst: async ({
+        opponentId,
+        battleSeed,
+        winner,
+        turns,
+        battleSummary,
+        rewards,
+      }) => {
+        const authoritative = await recordLadderResultAuthoritatively({
+          opponentId,
+          battleSeed,
+          winner,
+          turns,
+          battleSummary,
+        });
+
+        if (authoritative.mode === "local") {
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
+            return null;
+          }
+
+          const current = get().ladder;
+          const opponent = getLadderOpponentForPoints(current.points);
+          if (opponentId !== opponent.id) {
+            get().pushNotification("error", "Ladder opponent locked");
+            return null;
+          }
+          const pointsDelta = winner === "ally" ? opponent.pointsWin : winner === "draw" ? opponent.pointsDraw : opponent.pointsLoss;
+          const nextPoints = Math.max(0, Math.min(300, current.points + pointsDelta));
+          const nextRank = getLadderRankForPoints(nextPoints);
+          const today = todayYMD();
+          const sameDay = current.dailyCycleKey === today;
+          const dailyRewardedWins = sameDay ? current.dailyRewardedWins : 0;
+          const normalReward = winner === "ally" && dailyRewardedWins < LADDER_DAILY_NORMAL_WIN_LIMIT;
+          const keyProgressDelta = normalReward ? 35 : 0;
+          const totalKeyProgress = current.keyProgress + keyProgressDelta;
+          const adventureKeysGranted = Math.floor(totalKeyProgress / 100);
+          const nextKeyProgress = totalKeyProgress % 100;
+          const grantedRewards =
+            winner === "ally"
+              ? normalReward
+                ? { ...rewards, ...(adventureKeysGranted ? { adventureKeys: adventureKeysGranted } : {}) }
+                : { gold: 15, accountXp: 1 }
+              : winner === "draw"
+                ? { gold: 10, accountXp: 1 }
+                : {};
+
+          set((state) => {
+            const rewardedState = applyRewardsToGameState(state, grantedRewards);
+            return {
+              ...rewardedState,
+              ladder: {
+                seasonId: current.seasonId,
+                points: nextPoints,
+                league: nextRank.league,
+                division: nextRank.division,
+                keyProgress: nextKeyProgress,
+                dailyRewardedWins: normalReward ? dailyRewardedWins + 1 : dailyRewardedWins,
+                dailyCycleKey: today,
+              },
+              battlesWon: winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
+            };
+          });
+          if (winner === "ally") get().updateMissionProgress("battles_won", 1);
+          return {
+            rewards: grantedRewards,
+            authoritative: false,
+            pointsDelta,
+            keyProgressDelta,
+            adventureKeysGranted,
+          };
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set((state) => {
+          const rewardedState = applyRewardsToGameState(state, authoritative.rewards);
+          return {
+            ...rewardedState,
+            resources: authoritative.resources,
+            ladder: authoritative.ladder,
+            battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
+          };
+        });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
+        if (authoritative.winner === "ally") get().updateMissionProgress("battles_won", 1);
+        return {
+          rewards: authoritative.rewards,
+          authoritative: true,
+          resources: authoritative.resources,
+          pointsDelta: authoritative.pointsDelta,
+          keyProgressDelta: authoritative.keyProgressDelta,
+          adventureKeysGranted: authoritative.adventureKeysGranted,
         };
       },
 

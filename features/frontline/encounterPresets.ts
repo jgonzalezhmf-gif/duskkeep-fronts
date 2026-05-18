@@ -10,6 +10,12 @@ export const FRONTLINE_ARENA_PRESET_BY_OPPONENT_ID: Record<string, string> = {
   arena_ember: "ember_court",
 };
 
+export const FRONTLINE_LADDER_PRESET_BY_OPPONENT_ID: Record<string, string> = {
+  ladder_bronze_iii_iron_vow: "bonewood_scouts",
+  ladder_bronze_ii_ash_squire: "bonewood_raiders",
+  ladder_bronze_i_dusk_knight: "rotwood_pack",
+};
+
 export const FRONTLINE_EVENT_PRESET_BY_EVENT_ID: Record<string, string> = {
   gold_rush: "bonewood_raiders",
   arcane_surge: "plague_pack",
@@ -18,6 +24,10 @@ export const FRONTLINE_EVENT_PRESET_BY_EVENT_ID: Record<string, string> = {
 
 export function getFrontlinePresetForArenaOpponent(opponentId: string): FrontlinePreset | null {
   return getFrontlinePresetByMappedId(FRONTLINE_ARENA_PRESET_BY_OPPONENT_ID[opponentId]);
+}
+
+export function getFrontlinePresetForLadderOpponent(opponentId: string): FrontlinePreset | null {
+  return getFrontlinePresetByMappedId(FRONTLINE_LADDER_PRESET_BY_OPPONENT_ID[opponentId]);
 }
 
 export function getFrontlinePresetForEvent(eventId: string): FrontlinePreset | null {

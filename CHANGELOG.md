@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.35.0] - 2026-05-18
+
+### Added
+- Anadido MVP de Ladder separado de Arena: Bronce III-II-I, rivales PVE tipo jugador, MMR, rewards anti-farm y progreso aleatorio de Adventure Key.
+- Anadida RPC autoritativa `record_ladder_result` con catalogos `server_ladder_*`, estado `player_ladder_state`, estado diario y snapshot `ladder`.
+- Anadido smoke test local `supabase/smoke-tests/ladder_rpc.sql`.
+
+### Changed
+- Arena ahora distingue Ladder sin tickets de Arena Trials con tickets y mutadores visibles.
+- Documentado el modelo Ladder server-authoritative en handoff, operaciones autoritativas y modelo de datos.
+
 ## [0.34.7] - 2026-05-17
 
 ### Fixed

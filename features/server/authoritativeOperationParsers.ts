@@ -1,6 +1,6 @@
 import { parseRewardPayload } from "@/features/server/authoritativeOperations";
 import type { AdventureMapInteractionLootTier, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
-import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, Resources, Rewards } from "@/lib/types";
+import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, LadderState, Resources, Rewards } from "@/lib/types";
 
 export type ParsedMapInteractionOpenResult = {
   result: AdventureMapInteractionOpenResult;
@@ -30,6 +30,18 @@ export type ParsedArenaResult = {
   resources: Resources;
   arenaWins: number;
   arenaLosses: number;
+};
+
+export type ParsedLadderResult = {
+  opponentId: string;
+  winner: "ally" | "enemy" | "draw";
+  rewards: Rewards;
+  resources: Resources;
+  ladder: LadderState;
+  pointsDelta: number;
+  keyProgressDelta: number;
+  adventureKeysGranted: number;
+  rewardMode: "normal" | "reduced" | "draw" | "loss";
 };
 
 export type ParsedEventResult = {
@@ -211,6 +223,45 @@ export function extractArenaResult(result: unknown): ParsedArenaResult | null {
     resources,
     arenaWins,
     arenaLosses,
+  };
+}
+
+export function extractLadderResult(result: unknown): ParsedLadderResult | null {
+  if (!isRecord(result)) return null;
+
+  const opponentId = parseString(result.opponentId);
+  const winner = parseArenaWinner(result.winner);
+  const rewards = parseRewardPayload(result.rewardsGranted);
+  const resources = extractResources(result);
+  const ladder = parseLadderState(result.ladder);
+  const pointsDelta = parseIntegerRange(result.pointsDelta, -1000, 1000);
+  const keyProgressDelta = parseIntegerRange(result.keyProgressDelta, 0, 1000);
+  const adventureKeysGranted = parseIntegerRange(result.adventureKeysGranted, 0, 99);
+  const rewardMode = parseRewardMode(result.rewardMode);
+  if (
+    !opponentId ||
+    !winner ||
+    !rewards.success ||
+    !resources ||
+    !ladder ||
+    pointsDelta === null ||
+    keyProgressDelta === null ||
+    adventureKeysGranted === null ||
+    !rewardMode
+  ) {
+    return null;
+  }
+
+  return {
+    opponentId,
+    winner,
+    rewards: rewards.data,
+    resources,
+    ladder,
+    pointsDelta,
+    keyProgressDelta,
+    adventureKeysGranted,
+    rewardMode,
   };
 }
 
@@ -510,6 +561,46 @@ function parseBattleWinner(value: unknown): "ally" | "enemy" | undefined {
 
 function parseArenaWinner(value: unknown): "ally" | "enemy" | "draw" | undefined {
   if (value === "ally" || value === "enemy" || value === "draw") return value;
+  return undefined;
+}
+
+function parseRewardMode(value: unknown): ParsedLadderResult["rewardMode"] | undefined {
+  if (value === "normal" || value === "reduced" || value === "draw" || value === "loss") return value;
+  return undefined;
+}
+
+function parseLadderState(value: unknown): LadderState | null {
+  if (!isRecord(value)) return null;
+  const seasonId = parseString(value.seasonId);
+  const points = parseIntegerRange(value.points, 0, 1000000);
+  const league = parseLadderLeague(value.league);
+  const division = parseLadderDivision(value.division);
+  const keyProgress = parseIntegerRange(value.keyProgress, 0, 99);
+  const dailyRewardedWins = parseIntegerRange(value.dailyRewardedWins, 0, 1000);
+  const dailyCycleKey = value.dailyCycleKey === null ? null : parseString(value.dailyCycleKey);
+  if (!seasonId || points === null || !league || !division || keyProgress === null || dailyRewardedWins === null || dailyCycleKey === undefined) {
+    return null;
+  }
+  return { seasonId, points, league, division, keyProgress, dailyRewardedWins, dailyCycleKey };
+}
+
+function parseLadderLeague(value: unknown): LadderState["league"] | undefined {
+  if (
+    value === "bronze" ||
+    value === "silver" ||
+    value === "gold" ||
+    value === "platinum" ||
+    value === "diamond" ||
+    value === "master" ||
+    value === "grandmaster"
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+function parseLadderDivision(value: unknown): LadderState["division"] | undefined {
+  if (value === "iii" || value === "ii" || value === "i") return value;
   return undefined;
 }
 

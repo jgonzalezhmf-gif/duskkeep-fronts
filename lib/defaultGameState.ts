@@ -4,6 +4,7 @@ import { STARTER_LEADER_ID } from "@/data/leaders";
 import { createDefaultFrontlineCardUnlocks } from "@/features/frontline/cardProgression";
 import { createDefaultFrontlineLoadout } from "@/features/frontline/engine";
 import { createDefaultFrontlineFortress } from "@/features/frontline/fortress";
+import { createDefaultLadderState } from "@/features/ladder/data";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { localDayKey } from "@/lib/rewardVisibility";
 import { DECK_SIZE, TEAM_SIZE } from "./constants";
@@ -55,6 +56,7 @@ export function defaultInitial() {
     missionsProgress: {},
     arenaWins: 0,
     arenaLosses: 0,
+    ladder: createDefaultLadderState(),
     shopPurchases: {},
     eventsPlayed: {},
     battlesWon: 0,

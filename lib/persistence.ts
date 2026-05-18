@@ -3,7 +3,7 @@
 // AND credentials are present. The Zustand store consumes only this interface,
 // so swapping later is a 1-line change.
 
-import type { AccountState, FortressState, MissionProgress, PlayerHero, Resources } from "./types";
+import type { AccountState, FortressState, LadderState, MissionProgress, PlayerHero, Resources } from "./types";
 
 export type PersistedState = {
   account: AccountState;
@@ -18,6 +18,7 @@ export type PersistedState = {
   missionsProgress: Record<string, MissionProgress>;
   arenaWins: number;
   arenaLosses: number;
+  ladder?: LadderState;
   shopPurchases: Record<string, number>;
   eventsPlayed: Record<string, number>;
   battlesWon: number;

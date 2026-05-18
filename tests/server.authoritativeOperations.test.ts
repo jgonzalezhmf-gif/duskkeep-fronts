@@ -29,6 +29,7 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineFortress",
       "resolveFrontlineFortressRaid",
       "recordArenaResult",
+      "recordLadderResult",
       "recordEventResult",
     ]);
   });
@@ -50,6 +51,7 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineFortress",
       "resolveFrontlineFortressRaid",
       "recordArenaResult",
+      "recordLadderResult",
       "recordEventResult",
     ]);
     expect(isSupportedAuthoritativeApiOperation("purchaseShopOffer")).toBe(true);
@@ -63,6 +65,7 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineFortress")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("resolveFrontlineFortressRaid")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordArenaResult")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("recordLadderResult")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordEventResult")).toBe(true);
   });
 
@@ -513,6 +516,13 @@ const validPayloadsByOperation: Record<ServerOperationType, Record<string, unkno
   resolveFrontlineFortressRaid: {},
   recordArenaResult: {
     opponentId: "arena_bonewood",
+    battleSeed: 123,
+    winner: "ally",
+    turns: 7,
+    battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+  },
+  recordLadderResult: {
+    opponentId: "ladder_bronze_iii_iron_vow",
     battleSeed: 123,
     winner: "ally",
     turns: 7,

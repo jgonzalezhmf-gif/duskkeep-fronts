@@ -15,7 +15,7 @@ const noopStorage = {
 } as unknown as Storage;
 
 export const GAME_STORE_STORAGE_NAME = "duskkeep-fronts:player:v1";
-export const GAME_STORE_PERSIST_VERSION = 6;
+export const GAME_STORE_PERSIST_VERSION = 7;
 
 export function createPersistedGameStoreState(state: GameState): PersistedGameStoreShape {
   if (isServerAuthoritativePersistenceEnabled()) {
