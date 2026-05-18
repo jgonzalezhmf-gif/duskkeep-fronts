@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameBackNav from "@/components/game/shared/GameBackNav";
@@ -21,7 +21,6 @@ import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameStat
 import { useGameStore } from "@/lib/store";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import {
-  LADDER_BRONZE_OPPONENTS,
   getLadderOpponentForPoints,
   getLadderRankForPoints,
   ladderRankLabel,
@@ -299,21 +298,14 @@ export default function ArenaPage() {
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,151,92,0.18),transparent_24%),radial-gradient(circle_at_88%_12%,rgba(245,196,81,0.13),transparent_22%)]" />
               <div className="relative z-[1]">
                 <div className="flex flex-wrap items-end justify-between gap-3">
-                  <div>
+                  <div className="max-w-[48rem]">
                     <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#f5d498]">
-                      {mode === "ladder" ? t("arenaScreen.ladder.badge") : t("arenaScreen.hero.badge")}
+                      {t("arenaScreen.hub.badge")}
                     </div>
                     <h1 className="mt-2 max-w-[45rem] text-[1.75rem] font-black leading-[0.92] tracking-[-0.045em] text-white md:text-[2.3rem]">
-                      {mode === "ladder" ? t("arenaScreen.ladder.title") : t("arenaScreen.hero.title")}
+                      {t("arenaScreen.hub.title")}
                     </h1>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <ModeToggle active={mode === "ladder"} onClick={() => setMode("ladder")}>
-                        {t("arenaScreen.tabs.ladder")}
-                      </ModeToggle>
-                      <ModeToggle active={mode === "trials"} onClick={() => setMode("trials")}>
-                        {t("arenaScreen.tabs.trials")}
-                      </ModeToggle>
-                    </div>
+                    <p className="mt-2 max-w-[40rem] text-sm font-semibold leading-6 text-white/58">{t("arenaScreen.hub.copy")}</p>
                   </div>
                   {mode === "ladder" ? (
                     <LadderRankPlate rank={ladderRankName} points={ladder.points} progressPercent={ladderProgress} t={t} />
@@ -337,6 +329,26 @@ export default function ArenaPage() {
                       <ArenaMetric icon="power" label={t("arenaScreen.metrics.rate")} value={`${winRate}%`} tone="sky" />
                     </>
                   )}
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <ModeSelectCard
+                    active={mode === "ladder"}
+                    icon="ladder"
+                    eyebrow={t("arenaScreen.ladder.badge")}
+                    title={t("arenaScreen.ladder.modeTitle")}
+                    copy={t("arenaScreen.ladder.modeCopy")}
+                    meta={t("arenaScreen.ladder.modeMeta")}
+                    onClick={() => setMode("ladder")}
+                  />
+                  <ModeSelectCard
+                    active={mode === "trials"}
+                    icon="arena_draft"
+                    eyebrow={t("arenaScreen.trials.badge")}
+                    title={t("arenaScreen.trials.modeTitle")}
+                    copy={t("arenaScreen.trials.modeCopy")}
+                    meta={t("arenaScreen.trials.modeMeta")}
+                    onClick={() => setMode("trials")}
+                  />
                 </div>
               </div>
             </ScreenPanel>
@@ -365,7 +377,7 @@ export default function ArenaPage() {
           <ScreenPanel className="p-3 md:p-4">
             <SectionTitle
               eyebrow={mode === "ladder" ? t("arenaScreen.ladder.eyebrow") : t("arenaScreen.floor.eyebrow")}
-              title={mode === "ladder" ? t("arenaScreen.ladder.floorTitle") : t("arenaScreen.floor.title")}
+              title={mode === "ladder" ? t("arenaScreen.ladder.sectionTitle") : t("arenaScreen.floor.title")}
               aside={
                 mode === "ladder" ? (
                   <ScreenBadge tone={loadoutReady ? "gold" : "neutral"}>{loadoutReady ? t("arenaScreen.ladder.ready") : t("arenaScreen.gate.deckNeeded")}</ScreenBadge>
@@ -375,17 +387,18 @@ export default function ArenaPage() {
               }
             />
             {mode === "ladder" ? (
-              <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                {LADDER_BRONZE_OPPONENTS.map((opponent) => (
-                  <LadderRivalCard
-                    key={opponent.id}
-                    opponent={opponent}
-                    active={opponent.id === currentLadderOpponent.id}
-                    disabled={!loadoutReady}
-                    onChallenge={() => startLadderBattle(opponent)}
-                    t={t}
-                  />
-                ))}
+              <div className="mt-4">
+                <LadderRivalCard
+                  opponent={currentLadderOpponent}
+                  rankName={ladderRankName}
+                  points={ladder.points}
+                  progressPercent={ladderProgress}
+                  dailyWins={ladder.dailyRewardedWins}
+                  keyProgress={ladder.keyProgress}
+                  disabled={!loadoutReady}
+                  onChallenge={() => startLadderBattle(currentLadderOpponent)}
+                  t={t}
+                />
               </div>
             ) : (
               <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -409,19 +422,48 @@ export default function ArenaPage() {
   );
 }
 
-function ModeToggle({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+function ModeSelectCard({
+  active,
+  onClick,
+  icon,
+  eyebrow,
+  title,
+  copy,
+  meta,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: "ladder" | "arena_draft";
+  eyebrow: string;
+  title: string;
+  copy: string;
+  meta: string;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={[
-        "rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] transition",
+        "group/mode relative overflow-hidden rounded-[26px] border p-3 text-left transition duration-300 md:p-4",
         active
-          ? "border-[#f5c451]/34 bg-[#f5c451]/16 text-[#ffe3a1] shadow-[0_10px_24px_rgba(245,196,81,0.12)]"
-          : "border-white/10 bg-white/[0.045] text-white/52 hover:border-white/18 hover:text-white/76",
+          ? "border-[#f5c451]/34 bg-[radial-gradient(circle_at_18%_8%,rgba(245,196,81,0.22),transparent_36%),linear-gradient(180deg,rgba(62,39,18,0.62),rgba(8,10,16,0.88))] shadow-[0_18px_44px_rgba(245,196,81,0.12)]"
+          : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(8,10,16,0.76))] hover:border-white/18 hover:bg-white/[0.07]",
       ].join(" ")}
     >
-      {children}
+      <span className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-white/10 blur-2xl transition group-hover/mode:bg-white/14" />
+      <span className="relative z-[1] flex items-start gap-3">
+        <span className={["grid h-14 w-14 shrink-0 place-items-center rounded-[20px] border", active ? "border-[#f5c451]/28 bg-[#f5c451]/12" : "border-white/10 bg-black/18"].join(" ")}>
+          <ModeIcon name={icon} size="lg" />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-[9px] font-black uppercase tracking-[0.22em] text-[#f5d498]/78">{eyebrow}</span>
+          <span className="mt-1 block text-lg font-black leading-tight text-white">{title}</span>
+          <span className="mt-1 block text-[12px] font-semibold leading-5 text-white/55">{copy}</span>
+          <span className={["mt-3 inline-flex rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em]", active ? "border-[#f5c451]/28 bg-[#f5c451]/12 text-[#ffe3a1]" : "border-white/10 bg-white/[0.045] text-white/46"].join(" ")}>
+            {meta}
+          </span>
+        </span>
+      </span>
     </button>
   );
 }

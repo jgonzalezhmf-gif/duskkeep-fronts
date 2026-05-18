@@ -51,6 +51,12 @@ export function ArenaRivalCard({
           </div>
         </div>
 
+        <div className="mt-3 flex flex-wrap gap-2">
+          <TrialPill>{t("arenaScreen.trials.ticketCost")}</TrialPill>
+          <TrialPill>{t("arenaScreen.trials.specialReward")}</TrialPill>
+          <TrialPill>{t("arenaScreen.trials.specialChallenge")}</TrialPill>
+        </div>
+
         <div className="mt-3 grid grid-cols-3 gap-1.5">
           {preset?.squad.map((unitId, index) => {
             const unit = FRONTLINE_UNIT_BY_ID[unitId] ?? null;
@@ -73,6 +79,7 @@ export function ArenaRivalCard({
         </div>
 
         <div className="mt-3 rounded-[18px] border border-[#f5c451]/14 bg-[#f5c451]/8 px-3 py-2 text-[11px] font-bold leading-snug text-[#ffe0a4]/82">
+          <span className="mb-1 block text-[8px] font-black uppercase tracking-[0.18em] text-[#f5d498]/72">{t("arenaScreen.trials.modifier")}</span>
           {arenaModifierText(t, rival)}
         </div>
 
@@ -81,9 +88,17 @@ export function ArenaRivalCard({
         </div>
 
         <SceneButton onClick={onChallenge} disabled={disabled} className="mt-4 w-full">
-          {t("arenaScreen.card.challenge")}
+          {t("arenaScreen.trials.challenge")}
         </SceneButton>
       </div>
     </article>
+  );
+}
+
+function TrialPill({ children }: { children: string }) {
+  return (
+    <span className="inline-flex rounded-full border border-orange-200/14 bg-orange-300/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-orange-100/82">
+      {children}
+    </span>
   );
 }

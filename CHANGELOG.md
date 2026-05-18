@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.0] - 2026-05-18
+
+### Changed
+- Redisenada `/arena` como hub competitivo con selector claro entre Liga clasificatoria y Pruebas de Arena.
+- Ladder deja de mostrar tres cards de enemigos y pasa a presentar un unico comandante rival simulado, con rango, puntos, progreso de llave, victorias diarias con recompensa y CTA propio sin tickets.
+- Arena Trials conserva las tres cards grandes de desafio PVE, ahora reforzadas con coste de ticket, mutador visible y copy de recompensa especial.
+
 ## [0.35.1] - 2026-05-18
 
 ### Fixed
