@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { CardTypeIcon } from "@/components/game/shared/CardTypeIcon";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
-import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
+import type { GlyphKind } from "@/components/ui/GameGlyph";
 import { StatusIcon, type StatusIconName } from "@/components/game/shared/StatusIcon";
 import type { FrontlineCardDef, FrontlineHeroDef } from "@/features/frontline/types";
 import { cn } from "@/lib/cn";
@@ -214,7 +214,7 @@ export function FrontlineHeroStandee({
           imgClassName={cn("h-full w-full object-top drop-shadow-[0_20px_28px_rgba(0,0,0,0.48)] transition duration-300 group-hover/hero:scale-105", visual.standeeSrc ? "object-contain" : "object-cover rounded-[24px]")}
           fallback={
             <div className="grid h-full w-full place-items-center rounded-[24px] bg-black/24">
-              <GameGlyph kind="heroes" shell="none" className="h-10 w-10" />
+              <GameIcon kind="heroes" tone={side === "ally" ? "sky" : "ember"} size="lg" />
             </div>
           }
         />

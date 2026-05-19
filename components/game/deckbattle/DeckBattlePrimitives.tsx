@@ -1,5 +1,6 @@
 import ArtPortrait from "@/components/ui/ArtPortrait";
-import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
+import { type GlyphKind } from "@/components/ui/GameGlyph";
+import { InlineGlyphIcon } from "@/components/game/shared/InlineGlyphIcon";
 import { cn } from "@/lib/cn";
 import type { LeaderDef } from "@/lib/types";
 
@@ -23,9 +24,7 @@ export function MetricPill({
             : "border-[#f5c451]/24 bg-[#f5c451]/12 text-[#ffe5a0]",
       )}
     >
-      <span className="h-4 w-4">
-        <GameGlyph kind={icon} shell="none" />
-      </span>
+      <InlineGlyphIcon kind={icon} className="h-4 w-4" />
       {value}
     </span>
   );
@@ -63,7 +62,7 @@ export function HeaderChip({
 export function UtilityBubble({ kind, label, compact }: { kind?: "cfg"; label?: string; compact?: boolean }) {
   return (
     <button className={cn("grid place-items-center rounded-full bg-[linear-gradient(180deg,rgba(16,20,30,0.72),rgba(10,12,18,0.86))] font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_16px_rgba(0,0,0,0.18)]", compact ? "h-[2.125rem] w-[2.125rem] p-1.5 text-[9px]" : "h-11 w-11 p-2 text-[10px]")}>
-      {kind ? <GameGlyph kind={kind} shell="none" /> : label}
+      {kind ? <InlineGlyphIcon kind={kind} className="h-full w-full" /> : label}
     </button>
   );
 }
@@ -108,7 +107,7 @@ export function BattlePhaseBanner({
   return (
     <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-2.5 py-1.25 shadow-[0_8px_14px_rgba(0,0,0,0.16)]">
       <div className="grid h-7 w-7 place-items-center rounded-full border border-[#f5c451]/24 bg-[radial-gradient(circle_at_50%_28%,rgba(255,224,156,0.42),rgba(245,196,81,0.12)_56%,rgba(9,12,18,0.98)_100%)] text-[#f5d498] shadow-[0_8px_14px_rgba(0,0,0,0.18)]">
-        <GameGlyph kind="battle" shell="none" />
+        <InlineGlyphIcon kind="battle" className="h-5 w-5" />
       </div>
       <div>
         <div className="text-[9px] font-black uppercase tracking-[0.22em] text-[#f5d498]">Turn {round}</div>
@@ -161,7 +160,7 @@ export function LeaderPanel({
           alt={leader.name}
           className="h-11 w-11 shrink-0 rounded-[14px] border border-white/10 bg-black/18 shadow-[0_8px_14px_rgba(0,0,0,0.22)] md:h-12 md:w-12"
           imgClassName="object-[center_14%] saturate-[1.12]"
-          fallback={<GameGlyph kind="battle" className="h-7 w-7" shell="none" />}
+          fallback={<InlineGlyphIcon kind="battle" className="h-7 w-7" />}
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -227,7 +226,7 @@ export function LeaderPowerPanel({
     >
       <div className="flex items-center gap-2.5">
         <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[13px] border border-[#f5c451]/24 bg-[radial-gradient(circle_at_50%_28%,rgba(255,224,156,0.44),rgba(245,196,81,0.12)_56%,rgba(9,12,18,0.98)_100%)] p-2">
-          <GameGlyph kind="power" shell="none" />
+          <InlineGlyphIcon kind="power" className="h-full w-full" />
         </div>
         <div className="min-w-0">
           <div className="truncate text-[8px] uppercase tracking-[0.18em] text-[#f5d498]">Leader power</div>

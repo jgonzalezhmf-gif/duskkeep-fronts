@@ -1,7 +1,7 @@
 "use client";
 
 import ArtPortrait from "@/components/ui/ArtPortrait";
-import GameGlyph from "@/components/ui/GameGlyph";
+import { InlineGlyphIcon } from "@/components/game/shared/InlineGlyphIcon";
 import { FRONTLINE_LEADERS } from "@/features/frontline/data";
 import type { FrontlineLeaderDef } from "@/features/frontline/types";
 import { getLeaderPortrait } from "@/lib/art";
@@ -30,7 +30,7 @@ export function LeaderDoctrinePanel({
           src={getLeaderPortrait(leader.id)}
           alt={leaderName}
           className="aspect-[4/4.6] w-full rounded-[20px] border border-white/10 bg-black/20"
-          fallback={<GameGlyph kind="battle" shell="none" className="h-8 w-8" />}
+          fallback={<InlineGlyphIcon kind="battle" className="h-8 w-8" />}
         />
         <div className="mt-2 text-base font-black text-white">{leaderName}</div>
         <div className="mt-1 text-[12px] text-white/58">{leaderTitle}</div>

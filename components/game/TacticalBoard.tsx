@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import GameGlyph from "@/components/ui/GameGlyph";
+import { InlineGlyphIcon } from "@/components/game/shared/InlineGlyphIcon";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import {
@@ -291,7 +291,7 @@ export default function TacticalBoard({
                       <div className="absolute inset-[16%] grid place-items-center rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,22,32,0.82),rgba(10,12,18,0.98))] shadow-[0_16px_24px_rgba(0,0,0,0.24)]">
                         <div className="absolute inset-x-[18%] top-[12%] h-[20%] rounded-full bg-white/8 blur-sm" />
                         <div className="grid h-12 w-12 place-items-center rounded-[18px] border border-white/10 bg-white/6 p-2 text-white/74">
-                          <GameGlyph kind="fortress" shell="none" />
+                          <InlineGlyphIcon kind="fortress" className="h-full w-full" />
                         </div>
                       </div>
                     ) : null}
@@ -377,7 +377,7 @@ export default function TacticalBoard({
                 onClick={() => setState(endSideTurn(state))}
               >
                 <span className="h-4 w-4">
-                  <GameGlyph kind="power" shell="none" />
+                  <InlineGlyphIcon kind="power" className="h-full w-full" />
                 </span>
                 End turn
               </button>

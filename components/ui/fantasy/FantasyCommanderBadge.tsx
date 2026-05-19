@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import ArtPortrait from "@/components/ui/ArtPortrait";
-import GameGlyph from "@/components/ui/GameGlyph";
+import GameAssetIcon from "@/components/ui/GameAssetIcon";
 import { sfx } from "@/lib/audio";
 
 export default function FantasyCommanderBadge({
@@ -44,7 +44,7 @@ export default function FantasyCommanderBadge({
           className="relative z-[1] h-[3.7rem] w-[3.7rem] rounded-[18px] object-cover object-top brightness-[1.04] contrast-[1.06]"
           fallback={
             <span className="relative z-[1] h-[3.3rem] w-[3.3rem]">
-              <GameGlyph kind="heroes" className="h-full w-full" shell="none" />
+              <GameAssetIcon category="nav" name="heroes" size="xl" className="h-full w-full opacity-80" imgClassName="scale-[1.12]" />
             </span>
           }
         />

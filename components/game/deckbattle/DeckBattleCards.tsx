@@ -1,5 +1,6 @@
 import ArtPortrait from "@/components/ui/ArtPortrait";
-import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
+import { type GlyphKind } from "@/components/ui/GameGlyph";
+import { InlineGlyphIcon } from "@/components/game/shared/InlineGlyphIcon";
 import { getCard } from "@/data/cards";
 import { getHero } from "@/data/heroes";
 import { getHeroPortrait } from "@/lib/art";
@@ -63,7 +64,7 @@ export function BattleHandCard({
           fallback={
             <div className="grid h-full w-full place-items-center bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),rgba(0,0,0,0.2)_42%,rgba(0,0,0,0.5)_100%)]">
               <div className="grid h-14 w-14 place-items-center rounded-full border border-white/10 bg-black/18 p-3">
-                <GameGlyph kind={glyph} shell="none" />
+                <InlineGlyphIcon kind={glyph} className="h-8 w-8" />
               </div>
             </div>
           }
@@ -106,7 +107,7 @@ export function BattleHandCard({
               </div>
             </div>
             <div className="grid h-[1.625rem] w-[1.625rem] place-items-center rounded-[10px] border border-white/10 bg-black/34 p-[0.3rem]">
-              <GameGlyph kind={glyph} shell="none" />
+              <InlineGlyphIcon kind={glyph} className="h-full w-full" />
             </div>
           </div>
 
@@ -165,7 +166,7 @@ function CardToken({
     <div className={cn("inline-flex min-w-[2.35rem] items-center justify-center gap-1 rounded-[14px] border bg-gradient-to-b px-2 py-1 text-[10px] font-black shadow-[0_10px_18px_rgba(0,0,0,0.24)]", palette)}>
       {icon ? (
         <span className="h-3.5 w-3.5">
-          <GameGlyph kind={icon} shell="none" />
+          <InlineGlyphIcon kind={icon} className="h-full w-full" />
         </span>
       ) : null}
       {value}

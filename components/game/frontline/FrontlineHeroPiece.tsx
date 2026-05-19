@@ -1,6 +1,6 @@
 "use client";
 
-import GameGlyph from "@/components/ui/GameGlyph";
+import GameAssetIcon from "@/components/ui/GameAssetIcon";
 import { StatusIcon } from "@/components/game/shared/StatusIcon";
 import { FRONTLINE_UNIT_BY_ID } from "@/features/frontline/data";
 import type { FrontlineBattleState, FrontlineEvent } from "@/features/frontline/types";
@@ -172,7 +172,7 @@ export function FrontlineHeroPiece({
             imgClassName={cn("h-full w-full object-top", visual.standeeSrc ? "object-contain" : "object-cover")}
             fallback={
               <div className="grid h-full w-full place-items-center bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.12),rgba(0,0,0,0.28))]">
-                <GameGlyph kind="heroes" shell="none" className="h-10 w-10" />
+                <GameAssetIcon category="nav" name="heroes" size="lg" className="h-12 w-12 opacity-75" imgClassName="scale-[1.12]" />
               </div>
             }
           />

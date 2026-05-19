@@ -297,7 +297,7 @@ export const GAME_ASSET_ICON_FALLBACK_GLYPH: Record<GameAssetIconName, GlyphKind
   target: "skill",
   leader_power: "power",
   danger: "shield",
-  advantage: "rewards",
+  advantage: "skill",
   order: "attack",
   tactic: "skill",
   gear: "shield",
@@ -370,7 +370,16 @@ export function getGameAssetIconWebpSrc(category: GameAssetIconCategory, name: G
 }
 
 export function isResourceAssetIconName(name: string): name is ResourceAssetIconName {
-  return name === "gold" || name === "gems" || name === "gem" || name === "dust" || name === "shards" || name === "tickets" || name === "command";
+  return (
+    name === "gold" ||
+    name === "gems" ||
+    name === "gem" ||
+    name === "dust" ||
+    name === "shards" ||
+    name === "tickets" ||
+    name === "command" ||
+    name === "adventure_key"
+  );
 }
 
 export function isNavAssetIconName(name: string): name is NavAssetIconName {
@@ -496,6 +505,8 @@ export function isModeAssetIconName(name: string): name is ModeAssetIconName {
 export function resolveGlyphAssetIcon(kind: GlyphKind): { category: GameAssetIconCategory; name: GameAssetIconName } | null {
   if (kind === "battle") return { category: "combat", name: "clash" };
   if (kind === "attack" || kind === "shield" || kind === "heal" || kind === "move" || kind === "skill") return { category: "combat", name: kind };
+  if (kind === "power") return { category: "progression", name: "level_up" };
+  if (kind === "offers") return { category: "shop", name: "featured" };
   if (kind === "rewards") return { category: "progression", name: "reward_chest" };
   if (kind === "cfg") return { category: "ui", name: "settings" };
   if (kind === "sound-on") return { category: "ui", name: "sound_on" };

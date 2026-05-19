@@ -1,7 +1,8 @@
 "use client";
 
 import ArtPortrait from "@/components/ui/ArtPortrait";
-import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
+import { type GlyphKind } from "@/components/ui/GameGlyph";
+import { InlineGlyphIcon } from "@/components/game/shared/InlineGlyphIcon";
 import { getHero } from "@/data/heroes";
 import { getHeroPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
@@ -92,7 +93,7 @@ export default function CardShowcase({
           fallback={
             <div className="grid h-full w-full place-items-center bg-[radial-gradient(circle_at_50%_22%,rgba(255,255,255,0.1),rgba(0,0,0,0.22)_38%,rgba(0,0,0,0.54)_100%)]">
               <div className={cn("rounded-full border border-white/10 bg-black/18 p-3 shadow-[0_12px_24px_rgba(0,0,0,0.34)]", compact ? "h-16 w-16" : "h-20 w-20")}>
-                <GameGlyph kind={glyph} shell="none" />
+                <InlineGlyphIcon kind={glyph} className="h-full w-full" />
               </div>
             </div>
           }
@@ -190,7 +191,7 @@ function CornerGem({
     >
       {icon ? (
         <span className="h-3.5 w-3.5">
-          <GameGlyph kind={icon} shell="none" />
+          <InlineGlyphIcon kind={icon} className="h-full w-full" />
         </span>
       ) : null}
       <span className="text-[11px] font-black leading-none [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]">{value}</span>
@@ -214,7 +215,7 @@ function GlyphSeal({
           : "border-sky-100/30 bg-[linear-gradient(180deg,rgba(125,211,252,0.76),rgba(26,97,163,0.96))]",
       )}
     >
-      <GameGlyph kind={icon} shell="none" />
+      <InlineGlyphIcon kind={icon} className="h-full w-full" />
     </div>
   );
 }

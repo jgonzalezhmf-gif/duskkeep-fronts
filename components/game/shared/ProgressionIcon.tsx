@@ -17,6 +17,19 @@ const TONE_CLASSES: Record<ProgressionIconName, string> = {
   reward_chest: "from-[#fff0bc]/46 via-[#f5c451]/18 to-transparent",
 };
 
+const ASSET_SIZE_OVERRIDES: Partial<Record<ProgressionIconName, Partial<Record<GameAssetIconSize, GameAssetIconSize>>>> = {
+  reward_chest: {
+    xs: "sm",
+    sm: "md",
+    md: "lg",
+  },
+  tier_up: {
+    xs: "sm",
+    sm: "md",
+    md: "lg",
+  },
+};
+
 export function ProgressionIcon({
   name,
   size = "md",
@@ -34,6 +47,8 @@ export function ProgressionIcon({
   fallbackClassName?: string;
   withGlow?: boolean;
 }) {
+  const assetSize = ASSET_SIZE_OVERRIDES[name]?.[size] ?? size;
+
   return (
     <span className={cn("relative isolate inline-grid shrink-0 place-items-center overflow-visible", className)}>
       {withGlow ? (
@@ -48,7 +63,7 @@ export function ProgressionIcon({
       <GameAssetIcon
         category="progression"
         name={name}
-        size={size}
+        size={assetSize}
         label={label}
         decorative={!label}
         className="relative z-[1]"

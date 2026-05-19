@@ -1,7 +1,6 @@
 "use client";
 
-import GameGlyph from "@/components/ui/GameGlyph";
-import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontlineVisualAssets";
+import { getFrontlineHeroVisualAsset, getFrontlineUnitPlaceholderSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import type { FrontlineHeroDef } from "@/features/frontline/types";
 import { cn } from "@/lib/cn";
 import type { TranslateFn } from "./deckPageHelpers";
@@ -46,7 +45,14 @@ export function HeroRosterButton({
               )}
             />
           ) : (
-            <GameGlyph kind="heroes" shell="none" className="h-8 w-8 text-white/60" />
+            <img
+              src={getFrontlineUnitPlaceholderSrc()}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-contain object-bottom opacity-80 drop-shadow-[0_10px_14px_rgba(0,0,0,0.44)]"
+            />
           )}
         </div>
         <div className="min-w-0 flex-1">

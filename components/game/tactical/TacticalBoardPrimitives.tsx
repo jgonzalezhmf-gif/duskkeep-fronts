@@ -1,5 +1,6 @@
 import ArtPortrait from "@/components/ui/ArtPortrait";
-import GameGlyph, { type GlyphKind } from "@/components/ui/GameGlyph";
+import { type GlyphKind } from "@/components/ui/GameGlyph";
+import { InlineGlyphIcon } from "@/components/game/shared/InlineGlyphIcon";
 import type { TacticalUnit } from "@/features/tactical/types";
 import { getUnitPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
@@ -43,9 +44,7 @@ export function StatGem({
           : "from-[#f7d46f] to-[#da931f] border-[#fff0b7]/52 text-[#2b1603]";
   return (
     <div className={cn("inline-flex min-w-[2.6rem] items-center justify-center gap-1 rounded-[14px] border bg-gradient-to-b px-2 py-1 text-[9px] font-black shadow-[0_10px_18px_rgba(0,0,0,0.26)]", palette)}>
-      <span className="h-3.5 w-3.5">
-        <GameGlyph kind={kind} shell="none" />
-      </span>
+      <InlineGlyphIcon kind={kind} className="h-3.5 w-3.5" />
       {value}
     </div>
   );
@@ -74,9 +73,7 @@ export function ActionButton({
         disabled && "opacity-35",
       )}
     >
-      <span className="h-4 w-4">
-        <GameGlyph kind={kind} shell="none" />
-      </span>
+      <InlineGlyphIcon kind={kind} className="h-4 w-4" />
       {label}
     </button>
   );
@@ -181,9 +178,7 @@ export function TileHighlight({ kind }: { kind: NonNullable<TacticalHighlightKin
     <>
       <div className={cn("pointer-events-none absolute inset-[6%] rounded-[20px] shadow-[0_0_24px_rgba(0,0,0,0.14)]", palette)} />
       <div className="pointer-events-none absolute left-1/2 top-1/2 z-[1] grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[radial-gradient(circle_at_50%_35%,rgba(255,247,225,0.14),rgba(0,0,0,0.46)_72%)] text-white shadow-[0_12px_20px_rgba(0,0,0,0.28)]">
-        <span className="h-4 w-4">
-          <GameGlyph kind={icon} shell="none" />
-        </span>
+        <InlineGlyphIcon kind={icon} className="h-4 w-4" />
       </div>
     </>
   );
@@ -198,9 +193,7 @@ export function LegendPill({ kind, label }: { kind: "move" | "attack" | "ability
         : "border-fuchsia-200/18 bg-fuchsia-400/10 text-fuchsia-50";
   return (
     <div className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.25 py-0.9 text-[8px] font-black uppercase tracking-[0.16em]", tone)}>
-      <span className="h-3.5 w-3.5">
-        <GameGlyph kind={kind === "move" ? "move" : kind === "attack" ? "attack" : "skill"} shell="none" />
-      </span>
+      <InlineGlyphIcon kind={kind === "move" ? "move" : kind === "attack" ? "attack" : "skill"} className="h-3.5 w-3.5" />
       {label}
     </div>
   );
@@ -264,7 +257,7 @@ export function UnitStandee({
               fallback={
                 <div className="grid h-full w-full place-items-center">
                   <div className="grid h-[4.5rem] w-[4.5rem] place-items-center rounded-full border border-white/10 bg-black/24 p-3">
-                    <GameGlyph kind={fallbackGlyph} shell="none" />
+                    <InlineGlyphIcon kind={fallbackGlyph} className="h-full w-full" />
                   </div>
                 </div>
               }
