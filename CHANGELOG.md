@@ -7,6 +7,51 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.6] - 2026-05-19
+
+### Fixed
+- Recolocado el CTA principal de Home y dividido el dock inferior en dos grupos para evitar solapes con `Adventure Fight` y la placa de `Deck`.
+- Ajustado el render de mode icons en charms de Home para que `Events` y `Pass` no se desplacen fuera de sus contenedores.
+- Adventure deja de renderizar el HUD de Commander sobre el mapa y usa `GameBackNav` + `GameResourceBar` como chrome explicito.
+- Unificado el uso visible de `GameBackNav` en Arena, Events, Team, Fortress y Market para evitar textos e iconos distintos en la misma accion de volver a Home.
+
+## [0.36.5] - 2026-05-19
+
+### Fixed
+- Normalizado el PNG real `progression/tier_up` para que el dibujo ocupe mas espacio y no dependa solo de escalado CSS.
+- Tercera pasada de compactacion en iconos con padding interno excesivo: `progression/upgrade`, `progression/level_up`, `progression/unlock`, `nav/battle_pass`, `nav/quests`, `nav/adventure`, `combat/summon`, `cards/order`, `cards/relic` y `fortress/barracks`.
+- Regeneradas las variantes WebP registradas de `nav/battle_pass` y `nav/quests` para que el navegador no sirva versiones antiguas del icono.
+- Anadidos ajustes compartidos de escala y tamano interno para `progression/tier_up` en wrappers de icono, sin tocar logica de gameplay ni economia.
+
+## [0.36.4] - 2026-05-19
+
+### Fixed
+- Anadido `InlineGlyphIcon` para que componentes legacy usen PNGs registrados cuando exista equivalente, dejando `GameGlyph` solo como fallback encapsulado.
+- Sustituidos glyphs directos en `DeckBattle`, `TacticalBoard` y `CardShowcase` por el wrapper compartido sin cambiar reglas de gameplay.
+- Recentrado y ampliado `combat/advantage` para mejorar su lectura frente al resto de iconos de combate.
+- Ampliado ligeramente `combat/danger` para mantener consistencia visual con `advantage` y el resto de iconos de estado.
+
+## [0.36.3] - 2026-05-18
+
+### Fixed
+- Normalizados los PNG `combat/advantage` y `combat/danger` para eliminar padding excesivo y mejorar su presencia en Arena y Combat.
+- Mapeados `power` y `offers` al sistema central de iconos PNG para reducir glyphs legacy visibles en pantallas compartidas.
+- Corregido el reconocimiento de `adventure_key` como recurso y ampliado el escalado compartido de iconos pequenos de cartas, progreso y navegacion.
+- Sustituidos fallbacks directos de `GameGlyph` en badges/standees visibles por assets PNG o placeholder registrado.
+
+## [0.36.2] - 2026-05-18
+
+### Fixed
+- Registrados los fondos reales `ladder_duel_arena.png` y `arena_trials_coliseum.png` para combates de Ladder y Arena Trials.
+- Normalizado el asset `reward_chest` para eliminar lienzo transparente excesivo y aumentar el tamano real del dibujo en chips, previews y tokens reutilizados.
+
+## [0.36.1] - 2026-05-18
+
+### Fixed
+- Ladder ya no muestra un rival concreto en la vista principal: ahora presenta cola clasificatoria, progreso, reglas y rewards, y revela el rival solo tras buscar partida.
+- Normalizado el tamano visual de `reward_chest` desde el wrapper compartido de iconos para que no quede diminuto en chips y previews.
+- Preparado el mapping de fondos de combate para Ladder y Arena Trials con claves futuras y fallback pixel-art seguro sin requests a assets inexistentes.
+
 ## [0.36.0] - 2026-05-18
 
 ### Changed
