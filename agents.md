@@ -1,166 +1,68 @@
 # AGENTS.md
 
-## Objetivo
-Este archivo define como debe trabajar Codex dentro de este repo para avanzar rapido sin romper la vertical slice del juego. El proyecto es un alpha de juego tactico por turnos con progresion meta, construido con Next.js App Router, TypeScript, Tailwind, Zustand y Supabase como backend autoritativo progresivo.
+## Fuentes De Verdad
+- Para tareas amplias lee primero `README.md`, `docs/DOCUMENTATION_INDEX.md` y `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`.
+- Si tocas backend/Auth/Supabase/economia online, lee tambien `docs/SERVER_AUTHORITATIVE_STATE_OWNERSHIP.md`, `docs/SERVER_AUTHORITATIVE_OPERATIONS.md` y `docs/BACKEND_SECURITY_CLOSURE_REVIEW.md`.
+- Si tocas combate, Adventure, assets, rewards, i18n o audio, usa los docs/skills especificos citados en el handoff antes de editar.
+- Algunas guias antiguas aun dicen que Supabase es "futuro" o "skeleton"; el estado actual verificado es online opcional con RPCs autoritativas y `get_player_snapshot`.
 
-## Lectura rapida del repo
-- `app/`: rutas y composicion de pantallas.
-- `components/game/`: UI de juego y pantallas compuestas.
-- `components/ui/`: primitives compartidas.
-- `features/battle/`: motor auto-battle determinista, rewards y tipos.
-- `features/tactical/`: motor grid-based tactico y helpers de IA.
-- `data/`: seed data del alpha; heroes, shop, eventos, misiones, aventura.
-- `lib/`: tipos compartidos, store global, constantes, persistencia, utilidades.
-- `supabase/`: schema, seed, catalogos y RPCs autoritativas.
-- `tests/`: cobertura del core simulation/rewards/rng.
+## Comandos Reales
+- Instalar/arrancar: `npm.cmd install`, copiar `.env.example` a `.env.local` si hace falta, `npm.cmd run dev`.
+- `npm.cmd run dev` usa `next dev --webpack` a proposito; en este repo dentro de OneDrive, Turbopack puede corromper `.next/dev/cache`. Usa `npm.cmd run clean:next` si dev queda en mal estado.
+- Supabase local + proxy autoritativo en dev: `npm.cmd run dev:supabase` fuerza `NEXT_PUBLIC_PERSISTENCE=supabase` y `SERVER_AUTHORITATIVE_API_ENABLED=true`.
+- Check rapido por defecto: `npm.cmd run check` = ESLint + `tsc --noEmit` + `check:store-boundaries`.
+- Test puntual: `npm.cmd run test -- tests/nombre.test.ts` o `npm.cmd run test -- -t "texto del caso"`.
+- Cierre amplio: `npm.cmd run check`, `npm.cmd run test`, `npm.cmd run build`; `npm.cmd run check:full` encadena todo si el entorno permite procesos hijos.
+- En sandboxes/Windows restringidos, Vitest o Next build pueden fallar por `spawn EPERM`; reporta el bloqueo si `check` pasa.
+- Screenshots: `npm.cmd run screenshots:auto`; si Playwright falla por navegador, probar `$env:PLAYWRIGHT_CHANNEL="msedge"; npm.cmd run screenshots:auto`.
+- No hay CI de npm checks; `.github/workflows/datadog-synthetics.yml` solo corre Datadog synthetics.
 
-## Contexto funcional vivo
-- Antes de tareas amplias, leer `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`.
-- Ese documento resume estado actual, decisiones, pantallas, dependencias, backlog y reglas de continuidad entre sesiones.
+## Arquitectura Que No Debe Confundirse
+- `app/*` son rutas App Router y wiring; muchas paginas son client components que componen UI de `components/game/*`.
+- `components/game/*` renderiza pantallas y feedback; no debe esconder reglas de balance, economia ni combate.
+- `features/frontline/*` es el combate manual principal: 3 frentes, cores, command, cartas, clash, breach, boss/signatures y replay helpers.
+- `features/battle/*`, `features/tactical/*`, `features/deckbattle/*` y `features/td/*` son legacy/prototipos; no los hagas crecer salvo pedido explicito.
+- `data/*` contiene seed/config alpha; el comportamiento reutilizable va en `features/*` o helpers de `lib/*`, no en JSX.
+- `lib/store.ts` sigue siendo el orquestador grande de meta-loop, recursos, misiones, shop, Adventure, Deck, Fortress, Arena/ladder y acciones online-first. Lee la seccion relevante antes de tocarlo.
+- Tipos compartidos viven en `lib/types.ts` o `lib/storeTypes.ts`; tipos de motor viven en su `features/*/types.ts`.
 
-## Estado actual del proyecto
-- La arquitectura base esta bien separada entre UI, dominio y datos seed.
-- `lib/store.ts` concentra gran parte de la logica de progresion, economia y meta-loop.
-- Hay dos motores de juego distintos:
-  - `features/battle/*` para combate automatico por eventos.
-  - `features/tactical/*` para combate por grid con estado por turno.
-- La direccion core es server-authoritative: Supabase/Postgres/RPC y el BFF de Next son fuente de verdad para economia/progreso online.
-- Zustand/localStorage quedan como cache de cliente, UI state y fallback de desarrollo; no son autoridad para cuentas online.
-- `npm run lint` ya es no interactivo y usable.
-- `npm run typecheck` pasa.
-- `npm run test` puede fallar en entornos restringidos por `esbuild spawn EPERM`.
-- `npm run build` tambien puede fallar en esos mismos entornos restringidos por `spawn EPERM`.
+## Server-Authoritative
+- Con `NEXT_PUBLIC_PERSISTENCE=supabase`, recursos, rewards, compras, claims, upgrades, progreso, loadout, Fortress, Adventure, Arena/Events/Ladder y snapshots sensibles vienen del servidor.
+- El cliente solo envia ids, seleccion del jugador, `battleSummary`/`actionLog` y decisiones minimas; nunca envia costes, rewards finales, balances, unlocks ni loot como verdad.
+- Mutaciones sensibles pasan por `/api/server/authoritative` y RPCs Supabase con JWT del usuario, RLS/ownership, idempotencia, catalogos server-side y ledger si toca recursos.
+- UI debe seleccionar acciones `*OnlineFirst` del store. `npm.cmd run check:store-boundaries` bloquea `useGameStore.setState` y acciones locales sensibles desde `app/` o `components/`.
+- No hagas fallback local para cuentas `linked` ni invitado Supabase si falla una operacion autoritativa; el fallback local es solo desarrollo/offline sin backend configurado.
+- En modo Supabase, `localStorage` persiste solo preferencias/UI (`language`, audio, intro, onboarding, motion, escala); estado sensible se rehidrata desde `get_player_snapshot`.
+- `/api/server/authoritative` esta desactivada salvo `SERVER_AUTHORITATIVE_API_ENABLED=true`; no uses service-role key en el navegador ni en el proxy.
+- `SERVER_FRONTLINE_REPLAY_VALIDATION=true` activa validacion defensiva de replays Frontline antes de RPC, pero no sustituye una simulacion server-side completa para competitivo publico.
 
-## Responsabilidades logicas
-Aunque Codex opere como un unico agente, debe cubrir estas responsabilidades por fases.
+## UI, Assets E i18n
+- Direccion visual: dark medieval fantasy, game-first, visual-first; evitar pantallas tipo dashboard SaaS y paneles negros apilados.
+- Reutiliza `ScreenScaffold`, `ScreenBackground`, `GameBackNav`, `GameResourceBar`, reward overlays/tokens e iconos compartidos antes de crear chrome propio.
+- No hardcodees rutas especulativas a `public/assets`; registra assets en manifests como `lib/iconAssets.ts`, `lib/screenBackgroundAssets.ts`, `lib/audioAssets.ts` o `components/game/frontline/frontlineVisualAssets.ts` y provee fallback sin 404.
+- Textos user-facing nuevos van por `lib/i18n/dictionaries.ts` y sus `dictionary-data/*`; ids de dominio no se traducen.
+- Respeta `reducedMotion`, `visualEffects`, `textScale`, touch targets moviles y evita comunicar estado critico solo con color.
 
-### 1. Architect
-Responsable de:
-- estructura del repo
-- boundaries entre `app`, `components`, `features`, `lib`, `data`
-- tipos compartidos y consistencia de nombres
-- evitar mover logica de dominio a componentes sin necesidad
+## Gameplay Y Rewards
+- Adventure es el camino principal temprano; `/adventure/[levelId]` abre precombate Frontline mediante `BattlePageClient` si el nodo es combate.
+- Arena y Events ya usan Frontline; no sigas docs viejos que digan que dependen de `TacticalBattle` sin confirmar en codigo.
+- Las recompensas reclamables deben pasar por `lib/rewardVisibility.ts`; no muestres first-clear, daily o one-shot como disponibles si ya fueron reclamadas.
+- No cambies economia, balance o reglas de Frontline como parte de polish visual salvo instruccion explicita.
 
-### 2. Gameplay Engineer
-Responsable de:
-- reglas del combate
-- IA tactica
-- balance base
-- eventos emitidos por los motores
-- integracion correcta de rewards y seeds
+## Supabase Y Operaciones
+- `.env.local` puede existir y no debe leerse ni commitearse salvo necesidad explicita; `.env.example` documenta variables publicas y flags seguros.
+- Validacion remota: `npm.cmd run check:supabase:remote` carga `.env`/`.env.local`, redacts y falla si `NEXT_PUBLIC_*` parece secreto.
+- Smokes locales utiles: `npm.cmd run smoke:supabase:guest`, `npm.cmd run smoke:supabase:snapshot`, `npm.cmd run smoke:supabase:guest-upgrade`, `npm.cmd run smoke:authoritative-api`.
+- Antes de pagos, premium currency o ladder publico real faltan replay/simulacion server-side robusta, rate limit distribuido y webhooks backend-only.
 
-### 3. Progression Engineer
-Responsable de:
-- economia
-- upgrades
-- account level
-- roadmap, milestones, misiones, eventos
-- coherencia entre recompensas, costes y desbloqueos
+## Versionado, Privacidad Y Cierre
+- Para iteraciones cerradas de app/codigo, actualiza `CHANGELOG.md` y sincroniza `package.json`/`package-lock.json` con `npm.cmd version <version> --no-git-tag-version`.
+- Usa PATCH para fixes/docs/tests pequenos, MINOR para sistemas o UX perceptible, MAJOR solo para cambios incompatibles de arquitectura, persistencia o gameplay core.
+- El repo esperado es privado; antes de push/publicacion verifica `gh repo view <owner>/<repo> --json visibility,isPrivate` y no subas si `isPrivate` no es `true`.
+- No commitees `.env*`, logs, `tmp/`, `artifacts/`, builds, dumps, capturas locales, zips ni credenciales; `.gitignore` ya marca muchos de esos paths.
+- Cierra cada tarea diciendo que cambiaste, que validaste, que no pudiste validar y que riesgo queda.
 
-### 4. Frontend Engineer
-Responsable de:
-- pantallas App Router
-- UX movil y layout max-width
-- estados de carga y error
-- legibilidad del feedback de combate/progresion
-- accesibilidad basica y no romper navegacion
-
-### 5. Backend/Data Engineer
-Responsable de:
-- Supabase schema, RPCs, RLS, catalogos data-driven y migraciones
-- compatibilidad del estado persistido
-- seeds y shape de snapshots
-- no introducir mutaciones sensibles fuera del BFF/RPC autoritativo
-
-### 6. QA/Release
-Responsable de:
-- typecheck
-- tests del core
-- scripts de reset/bootstrapping
-- `.env.example`
-- documentar limitaciones operativas reales del repo
-
-## Flujo de trabajo obligatorio para Codex
-1. Empezar leyendo el contexto minimo necesario antes de editar.
-2. Confirmar si el cambio afecta a arquitectura, gameplay, progresion, frontend, datos o QA.
-3. Hacer cambios pequenos y directamente en el repo.
-4. Verificar con comandos no interactivos.
-5. Actualizar `CHANGELOG.md` y la version de `package.json`/`package-lock.json` en cada iteracion cerrada.
-6. Cerrar cada tarea con estado real: que se cambio, que se verifico, que quedo pendiente.
-
-## Arquitectura server-authoritative
-- Para cuentas vinculadas o invitado Supabase, el servidor es la fuente de verdad de recursos, recompensas, progreso, compras, claims, inventario, upgrades, misiones y ladder futuro.
-- El frontend envia acciones minimas: ids, seleccion del jugador y resumen/log de combate cuando aplique. Nunca envia precios, recompensas finales, balances, unlocks finales ni loot rolls como verdad.
-- Toda mutacion sensible debe pasar por `/api/server/authoritative` y una RPC Supabase con auth, ownership/RLS, validacion, idempotencia y ledger si toca recursos.
-- `localStorage` solo puede persistir preferencias y estado UI no sensible: idioma, audio, intro/onboarding, opciones visuales, QA local y cache descartable.
-- En modo `NEXT_PUBLIC_PERSISTENCE=supabase`, no rehidratar estado sensible desde Zustand/localStorage. Debe venir de `get_player_snapshot` o de la respuesta autoritativa de una operacion.
-- No anadir nuevas llamadas directas a `awardRewards`, `spend`, `claim*`, `purchase*` o `upgrade*` como autoridad para cuentas online. Si se necesita fallback local, debe ser explicito para desarrollo/offline y bloqueado para `linked`.
-- Los cambios de balance deben vivir en catalogos/seed server-side o datos versionados, no en JSX ni servicios UI.
-
-## Versionado y CHANGELOG
-- Mantener `CHANGELOG.md` como historial funcional del alpha.
-- Cada iteracion debe quedar documentada bajo una version concreta.
-- Usar `PATCH` para fixes, documentacion, tests o ajustes pequenos sin impacto funcional amplio.
-- Usar `MINOR` para nuevas pantallas, sistemas, integraciones, pipelines visuales o cambios UX perceptibles.
-- Usar `MAJOR` solo para cambios incompatibles de gameplay core, arquitectura, persistencia o direccion de producto.
-- Preferir `npm.cmd version <version> --no-git-tag-version` para sincronizar `package.json` y `package-lock.json` sin crear tags automaticamente.
-- No cerrar una tarea grande sin indicar si se actualizo version/changelog o por que se pospone.
-
-## GitHub y privacidad
-- El repositorio remoto esperado es privado. Antes de cualquier primer push o publicacion, verificar con `gh repo view <owner>/<repo> --json visibility,isPrivate`.
-- No hacer push si `isPrivate` no es `true`.
-- Mantener `package.json` con `"private": true` salvo decision explicita contraria.
-- No commitear `.env`, `.env.local`, logs, capturas temporales, `artifacts/`, builds, dumps ni credenciales.
-- Antes de subir codigo, revisar `git status --short` y confirmar que no entran secretos o archivos generados locales.
-- No cambiar la visibilidad del repo ni crear repos publicos sin instruccion explicita.
-
-## Skills y mantenimiento del agente
-- Usar las skills locales de Duskkeep Fronts cuando una tarea toque su area: cohesion visual, auditoria de pantallas, assets, Duskkeep Fronts, Adventure, rewards, localizacion/i18n o validacion browser.
-- Usar `duskkeep-secure-backend` cuando una tarea toque backend, Supabase, Auth, RLS, RPCs, persistencia online, pagos, moneda premium, ladder u operaciones autoritativas.
-- Usar `impeccable` como skill auxiliar cuando la tarea trate motion, animacion de personajes/imagenes, microinteracciones, polish visual avanzado, critica de interfaz o iteracion visual en navegador. Para animacion usar especialmente su referencia `animate`, pero mantener siempre las reglas propias de Duskkeep Fronts sobre gameplay, assets, manifests, i18n y validacion.
-- Antes de aplicar `impeccable` en tareas de diseno/motion, ejecutar `node .agents/skills/impeccable/scripts/load-context.mjs`. Si faltan `PRODUCT.md` o `DESIGN.md`, no bloquear tareas pequenas: usar el contexto del repo y avisar de que conviene crear esos documentos antes de una pasada visual grande.
-- Revisar ocasionalmente si una tarea repetida, una regla fragil o una nueva area estable necesita una skill nueva o una actualizacion de una skill existente.
-- Usar `duskkeep-skill-maintenance` para decidir si crear/modificar skills o si conviene actualizar este `AGENTS.md`.
-- Mantener `docs/skills/*` como copia fuente y sincronizar los cambios necesarios en `.agents/skills/*` para futuras sesiones.
-- No crear skills para tareas puntuales; una skill debe reducir friccion repetida o proteger reglas importantes del proyecto.
-
-## Prioridad de decision
-1. Mantener el alpha jugable.
-2. Mantener servidor como autoridad para economia/progreso online.
-3. No romper la persistencia server-side ni la sesion invitada/vinculada.
-4. Preservar determinismo de combate y coherencia de progresion.
-5. Mejorar UX movil sin sobreingenieria.
-
-## Reglas practicas para editar
-- Favorecer cambios locales y acotados.
-- Mantener tipos de dominio en `lib/types.ts` o tipos propios de `features/*` cuando aplique.
-- Si una regla pertenece al juego, debe vivir en `features/*`, `data/*` o helpers de dominio; no enterrarla en JSX.
-- Si una pantalla solo orquesta, debe delegar el calculo a store/helpers.
-- No mover una accion sensible al cliente por comodidad. Crear/usar contrato BFF/RPC y snapshot servidor.
-- Evitar refactors amplios si el problema es puntual.
-
-## Comandos recomendados para Codex
-Usar primero checks no interactivos:
-
-```powershell
-npm.cmd run check
-npm.cmd run typecheck
-npm.cmd run test
-npm.cmd run build
-```
-
-Si el entorno permite procesos hijos, usar tambien:
-
-```powershell
-npm.cmd run check:full
-```
-
-## Criterios de salida por tarea
-Una tarea se considera cerrada cuando:
-- el cambio principal esta implementado
-- el estado del repo queda consistente
-- se ejecutan los checks razonables disponibles
-- se deja claro cualquier riesgo o limitacion restante
-
-## Regla final
-Actua siempre por fases, cubriendo las responsabilidades anteriores aunque la tarea parezca pequena. No te limites a "hacer que funcione": deja el repo en un estado mas facil de mantener por el siguiente pase de Codex.
+## Skills Locales
+- Usa skills Duskkeep cuando la tarea toque su area: `duskkeep-combat`, `duskkeep-adventure-flow`, `duskkeep-asset-pipeline`, `duskkeep-reward-feedback`, `duskkeep-localization`, `duskkeep-visual-cohesion`, `duskkeep-browser-validation` o `duskkeep-secure-backend`.
+- Para motion/polish avanzado, usa `impeccable` y antes ejecuta `node .agents/skills/impeccable/scripts/load-context.mjs`; mantener `PRODUCT.md` y `DESIGN.md` como contexto visual.
+- Si cambias una skill, `docs/skills/*` es la fuente y debe sincronizarse con `.agents/skills/*`; no crees skills para tareas puntuales.
