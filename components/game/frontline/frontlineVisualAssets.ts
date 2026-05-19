@@ -63,12 +63,21 @@ const FRONTLINE_EFFECT_ASSETS: FrontlineAssetManifest = {
 export type FrontlineBattleBackgroundKey =
   | "ch1_battle_road"
   | "ch1_battle_ruins"
-  | "ch1_boss_eclipse_gate";
+  | "ch1_boss_eclipse_gate"
+  | "ladder_duel_arena"
+  | "arena_trials_coliseum";
 
-const FRONTLINE_BATTLE_BACKGROUND_ASSETS: Record<FrontlineBattleBackgroundKey, string> = {
+const FRONTLINE_BATTLE_BACKGROUND_ASSETS: Record<FrontlineBattleBackgroundKey, string | null> = {
   ch1_battle_road: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_road.png`,
   ch1_battle_ruins: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_ruins.png`,
   ch1_boss_eclipse_gate: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_boss_eclipse_gate.png`,
+  ladder_duel_arena: `${FRONTLINE_ASSET_ROOT}/backgrounds/ladder_duel_arena.png`,
+  arena_trials_coliseum: `${FRONTLINE_ASSET_ROOT}/backgrounds/arena_trials_coliseum.png`,
+};
+
+const FRONTLINE_BATTLE_BACKGROUND_FALLBACKS: Partial<Record<FrontlineBattleBackgroundKey, FrontlineBattleBackgroundKey>> = {
+  ladder_duel_arena: "ch1_battle_road",
+  arena_trials_coliseum: "ch1_battle_ruins",
 };
 
 const FRONTLINE_BOSS_ASSETS: FrontlineAssetManifest = {
@@ -86,7 +95,10 @@ export function getFrontlineBossAssetSrc(assetKey: string | null | undefined): s
 
 export function getFrontlineBattleBackgroundSrc(key: FrontlineBattleBackgroundKey | null | undefined): string | null {
   if (!key) return null;
-  return FRONTLINE_BATTLE_BACKGROUND_ASSETS[key] ?? null;
+  const src = FRONTLINE_BATTLE_BACKGROUND_ASSETS[key];
+  if (src) return src;
+  const fallbackKey = FRONTLINE_BATTLE_BACKGROUND_FALLBACKS[key];
+  return fallbackKey ? FRONTLINE_BATTLE_BACKGROUND_ASSETS[fallbackKey] ?? null : null;
 }
 
 export function getFrontlineUnitPlaceholderSrc() {

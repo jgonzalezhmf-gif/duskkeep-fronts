@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CombatIcon } from "@/components/game/shared/CombatIcon";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
 import { GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
+import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { cn } from "@/lib/cn";
 import type { Rewards } from "@/lib/types";
 
@@ -98,7 +98,7 @@ export function ArenaMetric({
       {modeIcon ? (
         <ModeIcon name={modeIcon} size="lg" />
       ) : icon === "power" ? (
-        <CombatIcon name="advantage" size="md" className="h-12 w-12" />
+        <ProgressionIcon name="tier_up" size="md" className="h-12 w-12" />
       ) : (
         <GameIcon kind={icon} tone={tone} size="md" />
       )}

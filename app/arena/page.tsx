@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameBackNav from "@/components/game/shared/GameBackNav";
@@ -20,6 +20,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { useGameStore } from "@/lib/store";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
+import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   getLadderOpponentForPoints,
   getLadderRankForPoints,
@@ -30,7 +31,7 @@ import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
 import { ArenaMetric, ArenaRankPlate, GateLine, LadderRankPlate, ResultMetric, RewardChips } from "./ArenaPrimitives";
 import { ArenaRivalCard } from "./ArenaRivalCard";
-import { LadderRivalCard } from "./LadderRivalCard";
+import { LadderQueueCard } from "./LadderQueueCard";
 import { FRONTLINE_ARENA_RIVALS, rivalText, tx, type ArenaRival, type TranslateFn } from "./arenaPageHelpers";
 
 const FrontlineBattle = dynamic(() => import("@/components/game/frontline/FrontlineBattle"), {
@@ -40,6 +41,7 @@ const FrontlineBattle = dynamic(() => import("@/components/game/frontline/Frontl
 
 type ArenaPhase = "browse" | "battle" | "post";
 type ArenaMode = "ladder" | "trials";
+type LadderMatchmakingState = "idle" | "finding" | "found";
 type BattlePick =
   | { mode: "trials"; rival: ArenaRival }
   | { mode: "ladder"; rival: LadderOpponent };
@@ -80,11 +82,21 @@ export default function ArenaPage() {
   const [seed, setSeed] = useState(1);
   const [result, setResult] = useState<ArenaResult | null>(null);
   const [ticketSpentLocally, setTicketSpentLocally] = useState(false);
+  const [ladderMatchmaking, setLadderMatchmaking] = useState<LadderMatchmakingState>("idle");
+  const [foundLadderOpponent, setFoundLadderOpponent] = useState<LadderOpponent | null>(null);
+  const ladderMatchTimers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
 
   useEffect(() => {
     setClientReady(true);
     if (!isServerAuthoritativePersistenceEnabled()) refreshTickets();
   }, [refreshTickets]);
+
+  useEffect(() => {
+    return () => {
+      ladderMatchTimers.current.forEach((timer) => clearTimeout(timer));
+      ladderMatchTimers.current = [];
+    };
+  }, []);
 
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;
   const deckReady = frontlineLoadout.deck.filter(Boolean).length === 8;
@@ -118,6 +130,25 @@ export default function ArenaPage() {
     setResult(null);
     setTicketSpentLocally(false);
     setPhase("battle");
+  }
+
+  function startLadderMatchmaking() {
+    if (!loadoutReady || ladderMatchmaking !== "idle") return;
+    ladderMatchTimers.current.forEach((timer) => clearTimeout(timer));
+    ladderMatchTimers.current = [];
+    setFoundLadderOpponent(null);
+    setLadderMatchmaking("finding");
+
+    const foundTimer = setTimeout(() => {
+      setFoundLadderOpponent(currentLadderOpponent);
+      setLadderMatchmaking("found");
+    }, 620);
+    const battleTimer = setTimeout(() => {
+      setLadderMatchmaking("idle");
+      setFoundLadderOpponent(null);
+      startLadderBattle(currentLadderOpponent);
+    }, 1120);
+    ladderMatchTimers.current = [foundTimer, battleTimer];
   }
 
   async function finishBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
@@ -196,6 +227,9 @@ export default function ArenaPage() {
           seed={seed}
           loadout={frontlineLoadout}
           enemyPresetId={picked.rival.presetId}
+          battleBackgroundSrc={getFrontlineBattleBackgroundSrc(
+            picked.mode === "ladder" ? "ladder_duel_arena" : "arena_trials_coliseum",
+          )}
           onFinished={finishBattle}
         />
       </div>
@@ -388,15 +422,17 @@ export default function ArenaPage() {
             />
             {mode === "ladder" ? (
               <div className="mt-4">
-                <LadderRivalCard
-                  opponent={currentLadderOpponent}
+                <LadderQueueCard
                   rankName={ladderRankName}
                   points={ladder.points}
                   progressPercent={ladderProgress}
                   dailyWins={ladder.dailyRewardedWins}
                   keyProgress={ladder.keyProgress}
+                  rewardPreview={currentLadderOpponent.previewRewards}
+                  matchmaking={ladderMatchmaking}
+                  foundOpponent={foundLadderOpponent}
                   disabled={!loadoutReady}
-                  onChallenge={() => startLadderBattle(currentLadderOpponent)}
+                  onFindMatch={startLadderMatchmaking}
                   t={t}
                 />
               </div>
@@ -471,7 +507,7 @@ function ModeSelectCard({
 function ArenaTopChrome({ resources, t }: { resources: { gold: number; dust: number; gems: number; arenaTickets: number }; t: TranslateFn }) {
   return (
     <>
-      <GameBackNav label={t("common.home")} eyebrow={t("nav.arena")} icon="arena" tone="gold" placement="top-left" />
+      <GameBackNav />
       <div className="pointer-events-auto fixed right-3 top-3 z-40 flex items-center gap-1.5 md:right-5 md:top-4 md:gap-2">
         <GameResourceBar resources={resources} arenaTickets={resources.arenaTickets} size="sm" className="max-w-[calc(100vw-9rem)] md:max-w-none" />
       </div>
