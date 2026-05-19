@@ -4,7 +4,6 @@ import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { ShopIcon, type ShopIconName } from "@/components/game/shared/ShopIcon";
 import { cn } from "@/lib/cn";
-import { useI18n } from "@/lib/i18n/useI18n";
 import type { ShopCategory } from "@/data/shop";
 import { categoryLabel, type TranslateFn } from "./shopPageHelpers";
 
@@ -47,12 +46,10 @@ export function EmptyShopStock({ category, resetLabel, t }: { category: ShopCate
 }
 
 export function MarketTopChrome({ resources, showAdventureKeys }: { resources: { gold: number; dust: number; gems: number; adventureKeys?: number }; showAdventureKeys?: boolean }) {
-  const { t } = useI18n();
-
   return (
     <div className="pointer-events-none fixed inset-x-3 top-4 z-30 flex items-start justify-between gap-2 md:inset-x-5 md:gap-3">
       <div className="pointer-events-auto">
-        <GameBackNav label={t("common.home")} eyebrow={t("nav.market")} icon="market" tone="emerald" placement="top-left" />
+        <GameBackNav />
       </div>
       <GameResourceBar resources={resources} adventureKeys={showAdventureKeys ? resources.adventureKeys ?? 0 : undefined} size="md" className="pointer-events-auto max-w-[calc(100vw-9rem)] md:max-w-none" />
     </div>

@@ -137,7 +137,7 @@ export function HomeVisualIcon({
   className?: string;
 }) {
   if (modeIcon) {
-    return <ModeIcon name={modeIcon} size="xl" className={className} imgClassName="h-full w-full object-contain" />;
+    return <ModeIcon name={modeIcon} size="lg" className={className} imgClassName="h-full w-full object-contain" />;
   }
 
   return <HomeIcon kind={icon} className={className} />;

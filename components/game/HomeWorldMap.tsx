@@ -438,7 +438,7 @@ export default function HomeWorldMap({
           <CornerAction href="/missions" label={t("nav.quests")} sublabel={timers.reward} tone="gold" icon="quests" compact={cleanMode} />
         </div>
         <div
-          className="origin-bottom justify-self-center scale-[var(--home-cta-mobile-scale)] md:scale-100"
+          className="origin-bottom translate-y-4 justify-self-center scale-[var(--home-cta-mobile-scale)] md:translate-y-9 md:scale-100"
           style={{ ["--home-cta-mobile-scale" as string]: HOME_CTA_LAYOUT.mobileScale }}
         >
           <FightCrystal href="/adventure" />
@@ -450,10 +450,23 @@ export default function HomeWorldMap({
 
       <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-30 md:inset-x-0 md:bottom-4">
         <div className="pointer-events-none absolute inset-x-6 bottom-0 h-14 rounded-[999px] bg-[radial-gradient(circle_at_50%_50%,rgba(9,16,26,0.72),transparent_74%)] blur-2xl md:inset-x-[calc(50%-16rem)]" />
-        <div className="mx-auto flex max-w-[22rem] items-center justify-center gap-3 px-2 py-1 md:max-w-[30rem] md:gap-5 md:px-5">
+        <div className="mx-auto flex max-w-[22rem] items-center justify-center gap-3 px-2 py-1 sm:hidden">
           {DOCK_ACTIONS.map((action, index) => (
             <DockShrine key={action.href} {...action} label={t(action.labelKey)} delay={`${index * 0.08}s`} />
           ))}
+        </div>
+        <div className="mx-auto hidden max-w-[46rem] grid-cols-[1fr_minmax(16rem,20rem)_1fr] items-end gap-3 px-5 py-1 sm:grid md:max-w-[54rem] md:grid-cols-[1fr_minmax(19rem,24rem)_1fr] md:gap-5">
+          <div className="flex justify-end gap-3 md:gap-5">
+            {DOCK_ACTIONS.slice(0, 2).map((action, index) => (
+              <DockShrine key={action.href} {...action} label={t(action.labelKey)} delay={`${index * 0.08}s`} />
+            ))}
+          </div>
+          <div aria-hidden className="h-1" />
+          <div className="flex justify-start gap-3 md:gap-5">
+            {DOCK_ACTIONS.slice(2).map((action, index) => (
+              <DockShrine key={action.href} {...action} label={t(action.labelKey)} delay={`${(index + 2) * 0.08}s`} />
+            ))}
+          </div>
         </div>
       </div>
 

@@ -212,7 +212,7 @@ export default function TeamPage() {
 function TeamTopChrome({ resources, t }: { resources: { gold: number; dust: number; gems: number }; t: (key: string) => string }) {
   return (
     <>
-      <GameBackNav label={t("common.home")} eyebrow={t("nav.team")} icon="team" tone="sky" placement="top-left" />
+      <GameBackNav />
       <div className="pointer-events-auto fixed right-3 top-3 z-40 flex items-center gap-1.5 md:right-5 md:top-4 md:gap-2">
         <GameResourceBar resources={resources} size="sm" className="max-w-[calc(100vw-9rem)] md:max-w-none" />
       </div>

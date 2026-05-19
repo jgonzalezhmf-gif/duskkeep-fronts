@@ -92,7 +92,7 @@ export const HOME_LANDMARK_LAYOUT: Record<HomeLandmarkId, HomeLandmarkLayout> = 
     hotspotDx: 0,
     hotspotDy: -108,
     labelDx: 0,
-    labelDy: 128,
+    labelDy: 92,
     hotspotWidth: 315,
     hotspotHeight: 205,
     plaqueWidth: 155,
