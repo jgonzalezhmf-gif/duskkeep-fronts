@@ -153,18 +153,20 @@ export function hasPasswordRecoveryUrlMarker({ search = "", hash = "" }: Pick<Au
 
 export function hasGuestUpgradePasswordSetupUrlMarker({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
   const marker = `${hash} ${search}`.toLowerCase();
-  return marker.includes("guestupgrade=confirm") || marker.includes("type=email_change");
+  return marker.includes("guestupgrade=confirm");
 }
 
 export function hasPasswordSetupUrlMarker(parts: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
-  return hasPasswordRecoveryUrlMarker(parts) || hasGuestUpgradePasswordSetupUrlMarker(parts);
+  const marker = `${parts.hash ?? ""} ${parts.search ?? ""}`.toLowerCase();
+  return hasPasswordRecoveryUrlMarker(parts) || hasGuestUpgradePasswordSetupUrlMarker(parts) || marker.includes("type=email_change");
 }
 
 export function getPasswordSetupUrlSource(
-  parts: Pick<AuthRecoveryUrlParts, "search" | "hash">,
+  { search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">,
 ): PasswordSetupSource | null {
-  if (hasGuestUpgradePasswordSetupUrlMarker(parts)) return "guestUpgrade";
-  if (hasPasswordRecoveryUrlMarker(parts)) return "passwordRecovery";
+  const marker = `${hash} ${search}`.toLowerCase();
+  if (hasGuestUpgradePasswordSetupUrlMarker({ search, hash })) return "guestUpgrade";
+  if (hasPasswordRecoveryUrlMarker({ search, hash }) || marker.includes("type=email_change")) return "passwordRecovery";
   return null;
 }
 

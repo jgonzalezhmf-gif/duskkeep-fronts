@@ -194,10 +194,12 @@ describe("auth session security helpers", () => {
     expect(hasPasswordRecoveryUrlMarker({ search: "", hash: "#access_token=secret&type=recovery" })).toBe(true);
     expect(hasPasswordRecoveryUrlMarker({ search: "?next=/home", hash: "" })).toBe(false);
     expect(hasGuestUpgradePasswordSetupUrlMarker({ search: "?guestUpgrade=confirm", hash: "" })).toBe(true);
-    expect(hasGuestUpgradePasswordSetupUrlMarker({ search: "", hash: "#access_token=secret&type=email_change" })).toBe(true);
+    expect(hasGuestUpgradePasswordSetupUrlMarker({ search: "", hash: "#access_token=secret&type=email_change" })).toBe(false);
     expect(hasPasswordSetupUrlMarker({ search: "?guestUpgrade=confirm", hash: "" })).toBe(true);
+    expect(hasPasswordSetupUrlMarker({ search: "", hash: "#access_token=secret&type=email_change" })).toBe(true);
     expect(getPasswordSetupUrlSource({ search: "?guestUpgrade=confirm", hash: "" })).toBe("guestUpgrade");
     expect(getPasswordSetupUrlSource({ search: "?type=recovery", hash: "" })).toBe("passwordRecovery");
+    expect(getPasswordSetupUrlSource({ search: "", hash: "#access_token=secret&type=email_change" })).toBe("passwordRecovery");
     expect(getPasswordSetupUrlSource({ search: "?next=/home", hash: "" })).toBeNull();
 
     expect(shouldStripPasswordRecoveryUrl({ search: "?type=recovery&next=/home", hash: "" })).toBe(true);

@@ -7,6 +7,11 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.11] - 2026-05-20
+
+### Fixed
+- Endurecida la clasificacion de links de setup de cuenta: solo `guestUpgrade=confirm` permite sincronizar snapshot local, mientras links genericos `type=email_change` cargan snapshot servidor.
+
 ## [0.36.10] - 2026-05-20
 
 ### Fixed
