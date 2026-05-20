@@ -1,15 +1,15 @@
 # Integracion Supabase
 
-El juego funciona **sin conexion** usando `localStorage` por defecto. Supabase es opcional y permanece desactivado en el alpha.
+El juego puede funcionar **sin conexion** usando `localStorage` para desarrollo, QA o demos locales. Para progreso real online/produccion, Supabase no es opcional: incluso el invitado sin login visible debe estar respaldado por sesion anonima Supabase, snapshots de jugador y RPCs autoritativas para economia/progreso sensible cuando se activa `NEXT_PUBLIC_PERSISTENCE=supabase`.
 
-Antes de convertir Supabase en servidor autoritativo, leer:
+Antes de tocar Supabase, Auth, RPCs o economia online, leer:
 
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`
 - `docs/SUPABASE_REMOTE_OPERATIONS.md`
 - `docs/BACKEND_DATA_MODEL.md`
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`
 
-El estado de cliente no es seguro para economia, compras, ladder ni claims de recompensas.
+El estado de cliente no es seguro para economia, compras, ladder ni claims de recompensas. En produccion, si el servidor autoritativo no esta disponible, no se deben aceptar mutaciones sensibles.
 
 ## Activacion
 
@@ -26,13 +26,13 @@ El estado de cliente no es seguro para economia, compras, ladder ni claims de re
 
    `supabase/config.toml` es local y no se versiona. En remoto hay que activar esta opcion explicitamente en el proyecto Supabase antes de validar invitados reales.
 
-5. Para el schema alpha legacy, aplicar:
+5. Si se necesita reproducir el schema alpha legacy, aplicar:
 
    ```bash
    psql "$SUPABASE_DB_URL" -f supabase/schema.sql
    ```
 
-6. Para empezar la linea de persistencia online segura, aplicar migraciones:
+6. Para la persistencia online segura actual, aplicar migraciones:
 
    ```bash
    supabase db push
@@ -40,9 +40,9 @@ El estado de cliente no es seguro para economia, compras, ladder ni claims de re
 
 7. Opcional: cargar datos seed con `supabase/seed.sql`. El seed actual es tolerante con el schema seguro y salta datos legacy si las tablas antiguas no existen.
 
-La interfaz de persistencia (`lib/persistence.ts`) ya expone un skeleton `SupabaseBackend`. Sustituir sus metodos solo despues de definir estrategia de validacion server-side para acciones sensibles.
+La lectura online principal usa la RPC `get_player_snapshot`. Las mutaciones sensibles pasan por `/api/server/authoritative` y RPCs Supabase; no anadir nuevos metodos que acepten costes, rewards, loot o balances desde el cliente como verdad.
 
-La ruta `/api/server/authoritative` es el primer proxy HTTP hacia RPCs autoritativas. Esta desactivada por defecto y solo responde si `SERVER_AUTHORITATIVE_API_ENABLED=true`. Requiere `Authorization: Bearer <supabase-user-jwt>` y no usa service role.
+La ruta `/api/server/authoritative` es el proxy HTTP hacia RPCs autoritativas. Esta desactivada por defecto y solo responde si `SERVER_AUTHORITATIVE_API_ENABLED=true`. Requiere `Authorization: Bearer <supabase-user-jwt>` y no usa service role.
 
 ## Migraciones
 

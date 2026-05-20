@@ -65,7 +65,7 @@ Leer antes de:
 
 - `docs/REWARD_VISIBILITY_RULES.md`: cuando los rewards deben verse, ocultarse, quedar reclamados o mostrarse como replay reducido.
 - `docs/FRONTLINE_PROGRESSION.md`: expectativas de progresion de cartas/heroes y desbloqueos.
-- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: manejo futuro autoritativo de acciones sensibles de economia.
+- `docs/SECURITY_AND_BACKEND_ROADMAP.md`: manejo autoritativo de acciones sensibles de economia y riesgos previos a produccion.
 
 Leer antes de:
 

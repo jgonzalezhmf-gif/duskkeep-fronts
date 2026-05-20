@@ -35,12 +35,12 @@ import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
 import GameOptionsButton from "@/components/game/options/GameOptionsButton";
 import MuteButton from "@/components/ui/MuteButton";
 import { getLeader } from "@/data/leaders";
-import { teamPower } from "@/features/tactical/engine";
 import { getLeaderPortraitAsset } from "@/lib/art";
 import { cn } from "@/lib/cn";
 import { getHomeEffectAsset, type HomeEffectId } from "@/lib/homeEffectAssets";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
+import { teamPower } from "@/lib/teamPower";
 
 const HomeEffectsQaPanel = dynamic(
   () => import("@/components/game/home/HomeEffectsQaEditor").then((module) => module.HomeEffectsQaPanel),

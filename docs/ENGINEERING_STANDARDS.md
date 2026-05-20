@@ -8,7 +8,7 @@ Este documento define el nivel tecnico minimo para futuros cambios en Duskkeep F
 2. Preservar compatibilidad con la persistencia local existente.
 3. Mantener reglas de gameplay, economia y rewards deterministas y auditables.
 4. Mantener una cohesion visual clara sin cargar assets innecesarios.
-5. Preparar el terreno para autoridad de backend sin acoplar demasiado pronto el alpha offline a un backend.
+5. Mantener el modo online autoritativo para progreso real sin romper el fallback local/offline de desarrollo.
 
 ## Estandares de Arquitectura
 
@@ -59,24 +59,27 @@ Los componentes no deben:
 
 ## Estandares de Store y Persistencia
 
-La persistencia actual es local:
+La persistencia tiene dos modos:
 
-- Zustand persist escribe en `localStorage`.
+- Local/offline: Zustand persist escribe en `localStorage` solo como fallback de desarrollo, QA o demo local.
+- Supabase online/produccion: `get_player_snapshot` y respuestas RPC rehidratan recursos, progreso, compras, claims, loadout y otros datos sensibles.
 - Las migraciones de store deben proporcionar defaults seguros para campos nuevos.
 - Los snapshots existentes no deben resetearse destructivamente durante iteraciones normales.
 - Los nuevos datos persistentes deben tolerar campos ausentes y ser compatibles con versiones previas.
 
-Hasta que exista autoridad de backend:
+En modo Supabase:
 
-- No presentar balances del cliente como seguros.
-- No depender de `localStorage` para nada monetizado o competitivo.
-- Mantener centralizadas las operaciones sensibles de economia para poder moverlas despues a servidor.
+- El cliente es cache/proyeccion UI, no autoridad.
+- `localStorage` solo debe guardar preferencias y estado UI permitido.
+- Las operaciones sensibles de economia/progreso deben usar acciones `OnlineFirst` y RPCs/proxy autoritativo.
+- No hacer fallback local para cuentas vinculadas o invitados Supabase si falla una operacion autoritativa.
+- En produccion, un invitado sin login visible debe ser invitado anonimo Supabase; no debe existir progreso real sensible solo local.
 
 ## Estandares de Seguridad
 
 El navegador no es autoritativo.
 
-Para el alpha offline actual:
+Para todos los modos:
 
 - Nunca commitear `.env`, `.env.local`, service keys, logs o dumps.
 - Mantener `package.json` como privado.
@@ -84,7 +87,7 @@ Para el alpha offline actual:
 - Validar inputs expuestos en endpoints API/dev.
 - Tratar endpoints dev-only como herramientas locales, no como funcionalidades de produccion.
 
-Para el futuro modo online:
+Para el modo online Supabase:
 
 - Autenticar usuarios antes de persistir.
 - Verificar ownership en servidor.

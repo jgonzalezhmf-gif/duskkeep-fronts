@@ -22,7 +22,6 @@ export function mergeRewards(...all: (Rewards | undefined)[]): Rewards {
   }
   if (shardMap.size) out.shards = Array.from(shardMap.entries()).map(([heroId, amount]) => ({ heroId, amount }));
   if (frontlineCardIds.size) out.frontlineCards = Array.from(frontlineCardIds).map((cardId) => ({ cardId }));
-  // clean empties
   if (!out.gold) delete out.gold;
   if (!out.dust) delete out.dust;
   if (!out.gems) delete out.gems;
@@ -39,10 +38,10 @@ export function describeRewards(r: Rewards): string {
   if (r.dust) parts.push(`${r.dust} dust`);
   if (r.gems) parts.push(`${r.gems} gems`);
   if (r.adventureKeys) parts.push(`${r.adventureKeys} adventure keys`);
-  if (r.arenaTickets) parts.push(`${r.arenaTickets} 🎟 tickets`);
+  if (r.arenaTickets) parts.push(`${r.arenaTickets} arena tickets`);
   if (r.xp) parts.push(`${r.xp} hero XP`);
   if (r.accountXp) parts.push(`${r.accountXp} account XP`);
   if (r.frontlineCards?.length) parts.push(r.frontlineCards.map((card) => `${card.cardId} card`).join(", "));
-  if (r.shards?.length) parts.push(r.shards.map((s) => `${s.amount}× ${s.heroId} shards`).join(", "));
-  return parts.join(" · ");
+  if (r.shards?.length) parts.push(r.shards.map((s) => `${s.amount}x ${s.heroId} shards`).join(", "));
+  return parts.join(" / ");
 }

@@ -227,9 +227,9 @@ localStorage.removeItem("duskkeep-fronts:player:v1");
 location.reload();
 ```
 
-## Supabase Opcional
+## Supabase y Autoridad Online
 
-Ver `supabase/README.md` y `docs/SUPABASE_REMOTE_OPERATIONS.md`. El modo online se activa con:
+Ver `supabase/README.md` y `docs/SUPABASE_REMOTE_OPERATIONS.md`. El modo local/offline existe para desarrollo y demos locales; en produccion, todo progreso real debe pasar por servidor, incluso si el jugador entra como invitado anonimo sin login visible. El modo online se activa con:
 
 ```text
 NEXT_PUBLIC_PERSISTENCE=supabase
@@ -247,7 +247,7 @@ npm run smoke:supabase:snapshot
 npm run smoke:authoritative-api
 ```
 
-Regla de seguridad: el cliente no debe ser fuente de verdad para recursos, compras, rewards, claims, progreso online ni futuros rankings.
+Regla de seguridad: el cliente no debe ser fuente de verdad para recursos, compras, rewards, claims, progreso online ni futuros rankings. Sin servidor autoritativo disponible, produccion no debe aceptar cambios sensibles; solo preferencias/UI pueden persistirse localmente.
 
 ## TODO Priorizado
 
@@ -270,7 +270,7 @@ Regla de seguridad: el cliente no debe ser fuente de verdad para recursos, compr
 ### P2
 
 1. Validacion server-side mas fuerte de combate.
-2. Ladder de Arena y validacion anti-tamper.
+2. Endurecer Arena Ladder con validacion anti-tamper publica.
 3. Cosmeticos, skins y flujos de tienda premium.
 4. Notificaciones push.
 5. Social, clanes y PvP en tiempo real.

@@ -7,7 +7,7 @@ Este documento describe la arquitectura actual del alpha y las reglas que mantie
 - Mantener jugable la vertical slice mientras evolucionan los sistemas.
 - Mantener las reglas de gameplay fuera de componentes de presentacion.
 - Mantener assets visuales detras de manifests y fallbacks seguros.
-- Mantener funcionando la persistencia local hasta introducir backend online.
+- Mantener funcionando el fallback local de desarrollo y el modo online server-authoritative sin confundir cache cliente con autoridad.
 - Hacer que el codigo sea facil de auditar, probar y extender.
 
 ## Stack
@@ -16,9 +16,9 @@ Este documento describe la arquitectura actual del alpha y las reglas que mantie
 - React client components para pantallas interactivas de juego.
 - TypeScript para modelos de dominio y seguridad de tipos.
 - Tailwind CSS para UI responsive de juego.
-- Zustand persist para estado local del alpha.
+- Zustand persist para estado local/offline y preferencias/cache de cliente.
 - Vitest para tests deterministas de gameplay y rewards.
-- Supabase SDK y schema skeleton para la futura pasada de persistencia online.
+- Supabase SDK, Auth, migraciones, RLS, RPCs, smokes y `get_player_snapshot` para persistencia online autoritativa. En produccion no es opcional para progreso real.
 
 ## Limites Entre Capas
 
@@ -78,23 +78,25 @@ Infraestructura compartida:
 
 1. El contenido estatico se define en `data/*` y archivos especificos de feature.
 2. Los helpers de feature derivan estado de gameplay, rewards, desbloqueos y resumenes para UI.
-3. `lib/store.ts` persiste el estado del jugador y llama helpers de feature para mutar progreso.
+3. `lib/store.ts` orquesta estado local/offline y acciones `OnlineFirst`; en modo Supabase aplica snapshots/respuestas autoritativas.
 4. Las rutas en `app/*` seleccionan estado y componen pantallas.
 5. Los componentes renderizan estado visual con assets compartidos y fallbacks.
 
 ## Estrategia de Persistencia
 
-Alpha actual:
+Modo local/offline:
 
 - Zustand persist escribe en `localStorage`.
-- El juego prioriza funcionamiento offline y funciona sin servidor.
-- `supabase/schema.sql` y `lib/persistence.ts` preparan la direccion backend futura.
+- Permite desarrollo, QA y demos locales sin servidor.
+- Es fallback de desarrollo/alpha, no fuente valida para economia, progreso o rankings de produccion.
 
-Modo online futuro:
+Modo Supabase / produccion online:
 
-- El estado de cliente sera cache, no autoridad.
-- Funciones de servidor validaran acciones sensibles de economia.
-- Resultados de batalla, rewards, compras y ladder deben verificarse antes de persistir.
+- El estado de cliente es cache/proyeccion UI, no autoridad.
+- `get_player_snapshot` rehidrata recursos, progreso, compras, claims, loadout, Fortress, Arena/Events/Ladder y datos sensibles.
+- Las mutaciones sensibles pasan por `/api/server/authoritative` y RPCs con JWT, ownership/RLS, idempotencia, catalogos server-side y ledger cuando toca recursos.
+- El login visible puede ser opcional; el invitado online debe usar sesion anonima Supabase si genera progreso real.
+- Los resultados Frontline tienen validacion defensiva y replay opcional; competitivo publico todavia requiere simulacion/replay server-side robusto.
 
 ## Principios de Calidad
 
@@ -108,7 +110,7 @@ Modo online futuro:
 
 - `lib/store.ts` es potente pero demasiado amplio; seguir extrayendo helpers de dominio.
 - Todavia existen sistemas legacy que deben aislarse del flujo principal Frontline.
-- La persistencia online aun no es autoritativa; no tratar recursos del cliente como seguros.
+- La persistencia online es autoritativa para el MVP alpha, pero faltan gates de produccion como rate limit distribuido, observabilidad real y replay/simulacion server-side completa para competitivo publico.
 - La app es visualmente rica, por lo que smoke tests en navegador y validacion de assets importan antes de release.
 
 ## Reglas de Extension

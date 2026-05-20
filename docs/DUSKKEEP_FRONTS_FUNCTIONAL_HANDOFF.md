@@ -35,8 +35,8 @@ Duskkeep Fronts es un alpha de juego tactico por turnos con progresion meta. La 
 - UI visual-first: iconos, cartas, standees, landmarks y estados antes que texto.
 - Home como hub principal.
 - Duskkeep Fronts como combate manual principal.
-- Supabase/Postgres/RPC como direccion server-authoritative para cuentas online.
-- Zustand/localStorage como cache de cliente, preferencias, UI state y fallback local de desarrollo/offline.
+- Supabase/Postgres/RPC como autoridad server-side para cuentas online y progreso real de produccion.
+- Zustand/localStorage como cache de cliente, preferencias, UI state y fallback local solo de desarrollo/offline.
 - Seguridad, rendimiento y documentacion como criterios de producto, no tareas separadas al final.
 
 No se debe convertir la app en una web app de paneles. Las pantallas deben sentirse como partes de un juego.
@@ -58,10 +58,11 @@ Directorios principales:
 - `components/game/shared/`: chrome, iconos, recursos, rewards, botones comunes.
 - `components/ui/`: primitives visuales reutilizables.
 - `features/frontline/`: motor y datos funcionales de Frontline.
-- `features/battle/`: auto-battle legacy/rewards.
+- `features/battle/`: auto-battle legacy.
 - `features/tactical/`: grid tactical legacy/prototipo.
 - `data/`: seed data.
 - `lib/store.ts`: store cliente, cache/snapshot, fallback local explicito y acciones online-first.
+- `lib/rewards.ts`: helpers compartidos para combinar y describir rewards sin depender de motores legacy.
 - `features/server/*`: contratos y dispatcher de operaciones autoritativas.
 - `supabase/`: migraciones, seed, smokes y RPCs.
 
@@ -86,7 +87,7 @@ El alpha jugable actual esta centrado en:
 - Arena y Events migrados en MVP a Frontline.
 - Chapter 1 como contenido demo activo; Chapter 2 visible pero bloqueado hasta tener arte, musica, layout y contenido propio.
 - Cofre interactuable de Adventure con Adventure Keys, loot table, claim con reset temporal y estados visuales.
-- Persistencia local/offline y persistencia online Supabase server-authoritative para cuentas vinculadas e invitados Supabase.
+- Persistencia local/offline para desarrollo y persistencia online Supabase server-authoritative para cuentas vinculadas e invitados Supabase.
 
 La base es presentable para alpha, con backlog claro antes de monetizacion, ladder publico o lanzamiento abierto.
 
@@ -104,6 +105,7 @@ Estado:
 Reglas activas:
 - No rehidratar estado sensible desde `localStorage` en modo Supabase.
 - No fallback local para cuentas vinculadas o invitados Supabase cuando una operacion autoritativa falla.
+- En produccion, entrar sin login visible debe crear/usar invitado anonimo Supabase; no aceptar progreso real sensible solo local.
 - Errores de login/registro/recuperacion deben ser genericos para evitar enumeracion de cuentas.
 - No exponer secrets en `NEXT_PUBLIC_*`.
 
@@ -118,7 +120,7 @@ Documentos clave:
 Riesgos residuales aceptados para alpha:
 - Rate limit autoritativo en memoria.
 - Combate ejecutado en cliente con validaciones defensivas, sin replay server-side completo.
-- Fallback local solo para desarrollo/offline cuando no hay backend configurado.
+- Fallback local solo para desarrollo/offline cuando no hay backend configurado; no es modo valido para progreso real de produccion.
 
 No aceptar antes de monetizacion o ladder publico:
 - Moneda premium concedida desde cliente.
@@ -409,7 +411,7 @@ Backlog tecnico:
 - Antes de monetizacion: rate limit distribuido, observabilidad operativa y webhooks backend-only si hay pagos.
 - Extraer datos hardcoded de Arena/Events si crecen.
 - Decidir destino de tactical/grid legacy.
-- Mantener Supabase server-authoritative sin romper fallback local explicito de desarrollo/offline.
+- Mantener Supabase server-authoritative para produccion sin romper fallback local explicito de desarrollo/offline.
 - Mejorar tests de Frontline y store de progresion.
 
 ## Reglas Para Futuras Iteraciones

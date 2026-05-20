@@ -920,4 +920,4 @@ Ademas, los contratos TypeScript rechazan campos economicos no declarados en tod
 - Todas las operaciones tienen idempotencia.
 - Todas las operaciones devuelven snapshot autoritativo minimo.
 - Ninguna operacion confia en rewards enviados por cliente.
-- El modelo sigue permitiendo modo local/offline mientras se implementa backend.
+- El modelo sigue permitiendo modo local/offline para desarrollo, pero produccion debe usar operaciones autoritativas para todo progreso real.

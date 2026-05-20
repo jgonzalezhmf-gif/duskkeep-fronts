@@ -1,6 +1,6 @@
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
-import { mergeRewards } from "@/features/battle/rewards";
 import { hashSeed, createRng } from "@/lib/rng";
+import { mergeRewards } from "@/lib/rewards";
 import type { Resources, Rewards } from "@/lib/types";
 
 export type AdventureMapInteractionKind = "keyChest";

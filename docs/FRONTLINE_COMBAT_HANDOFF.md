@@ -150,24 +150,15 @@ Estado actual:
 - `features/frontline/adventure.ts` decide qué preset enemigo usar según capítulo/índice.
 
 Mapping actual:
-- Chapter 1, niveles 1-4: `bonewood_raiders`.
-- Chapter 1, niveles 5-8: `plague_pack`.
-- Chapter 1, niveles 9-12: `ember_court`.
-- Chapter 2, niveles 1-2: `plague_pack`.
-- Chapter 2, niveles 3+: `ember_court`.
+- `data/adventure.ts` declara `frontlinePresetId` explicito por nodo cuando aplica.
+- `features/frontline/adventure.ts` mantiene helpers para derivar presets y previews Frontline desde Adventure.
 
 Limitación:
 - `data/adventure.ts` todavía contiene `enemyTeam` antiguo basado en héroes legacy. El mapa ahora muestra el squad Frontline derivado, pero la seed antigua sigue ahí para compatibilidad y debe migrarse en una pasada posterior.
 
 ## Recompensas y Progreso
 
-`BattlePageClient` aplica:
-- Rewards de preset para combate libre.
-- Rewards de `data/adventure.ts` para Adventure.
-- First clear si corresponde.
-- `markAdventureCleared`.
-- `recordBattleResult`.
-- `awardRewards`.
+`BattlePageClient` coordina setup, combate, resultado y rewards. En Adventure usa `claimAdventureBattleResultOnlineFirst` para que Supabase/RPC decida rewards y progreso cuando el modo online esta activo; en local/offline conserva el flujo de rewards local.
 
 Importante:
 - No duplicar rewards. La lógica de Adventure ya está centralizada en `BattlePageClient`.
@@ -188,24 +179,25 @@ Adventure:
 - Debe dejar de depender de Tactical/DeckBattle para combate manual.
 
 Arena:
-- Todavía usa `TacticalBattle`.
-- Debe migrarse a Frontline o a una variante Frontline PvE/PvAI.
+- El flujo visible ya usa `FrontlineBattle`, con Ladder y Arena Trials separados.
+- Ladder registra resultados mediante `recordLadderResultOnlineFirst`; Arena Trials usa `recordArenaResultOnlineFirst`.
+- Antes de competitivo publico falta replay/simulacion server-side robusta.
 
 Events:
-- Todavía usa `TacticalBattle` y `TowerDefenseRun`.
-- Debe decidirse si los eventos normales pasan a Frontline y si Tower Defense queda como modo separado.
+- El flujo visible ya usa `FrontlineBattle` con operaciones Frontline y recompensa diaria.
+- `TowerDefenseRun` queda como prototipo/legacy fuera del flujo principal; decidir si se archiva o se convierte en modo futuro.
 
 Team:
-- Es legacy para el sistema antiguo.
-- A medio plazo debe fusionarse, ocultarse o reconvertirse según Deck/Frontline.
+- Es una vista ligera de revision del squad Frontline y no debe duplicar el builder de Deck.
+- A medio plazo hay que decidir si se mantiene, renombra o fusiona con Deck.
 
 Roster/Heroes:
 - Sigue basado en `data/heroes.ts` y progresión vieja.
 - Necesita conectarse con tiers visuales y roles Frontline.
 
 Shop:
-- Sigue vendiendo recursos/shards/boosts legacy.
-- Debe alinearse con cartas Frontline, héroes, tiers y posiblemente enemy/event unlocks.
+- Tiene catalogo MVP alineado con Frontline/Fortress/Arena y previews de cartas/heroes.
+- Quedan pendientes inventario real de cartas, cosmetics, tier materials y reward reveal propio.
 
 ## Deuda Técnica Conocida
 
@@ -215,20 +207,18 @@ Shop:
   - `features/deckbattle/*`
   - `features/frontline/*`
 - `savedBattle` en store todavía guarda `TacticalState`; Adventure nuevo no lo usa.
-- `data/adventure.ts`, `data/events.ts`, `data/arenaOpponents.ts` todavía modelan enemigos como héroes legacy.
-- `TeamPage` y varias pantallas usan `team`, no `frontlineLoadout`.
-- `TacticalBattle`, `DeckBattle` y `TowerDefenseRun` siguen presentes para modos no migrados.
+- `data/adventure.ts` conserva `enemyTeam` legacy por compatibilidad, aunque los nodos de combate usan `frontlinePresetId`.
+- `TacticalBattle`, `DeckBattle` y `TowerDefenseRun` siguen presentes como legacy/prototipos; no hacerlos crecer salvo encargo explicito.
 
 ## Próximos Pasos Recomendados
 
-1. Migrar `data/adventure.ts` a `frontlinePresetId`, `enemyTierBand` o `enemySquadId`.
-2. Crear más presets enemigos por tier: tutorial, early, mid, elite, boss.
-3. Añadir tipos de enemigos y habilidades más expresivas sin ampliar demasiado el motor.
-4. Crear bosses Frontline con reglas simples: core mayor, trait especial, carta signature.
-5. Conectar Deck con arte full-card real y tiers de héroe.
-6. Migrar Arena a Frontline con rivales por rango.
-7. Migrar eventos normales a Frontline con mutadores ligeros.
-8. Decidir si `TeamPage` se elimina o se transforma en una vista legacy escondida.
-9. Añadir tests de integración para Adventure -> Frontline -> Rewards cuando Vitest no esté bloqueado por el entorno.
-10. Validar browser de `/adventure`, `/adventure/c1l1`, `/battle?adventure=c1l1&start=1` y `/deck`.
-
+1. Eliminar o aislar datos legacy `enemyTeam` cuando ya no tengan consumidores reales.
+2. Crear mas presets enemigos por tier: tutorial, early, mid, elite, boss.
+3. Anadir tipos de enemigos y habilidades mas expresivas sin ampliar demasiado el motor.
+4. Profundizar bosses Frontline y signatures.
+5. Conectar Deck con arte full-card real y tiers de heroe.
+6. Profundizar Arena/Ladder con rangos, rivales y validacion server-side robusta.
+7. Anadir mutadores Frontline reales a Events.
+8. Decidir si `Team` se mantiene como Squad Review o se fusiona con Deck.
+9. Anadir tests de integracion para Adventure -> Frontline -> Rewards cuando aplique.
+10. Validar browser de `/adventure`, `/adventure/c1l1`, `/battle?adventure=c1l1&start=1`, `/arena`, `/events` y `/deck`.

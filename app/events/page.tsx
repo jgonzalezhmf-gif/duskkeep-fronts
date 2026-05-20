@@ -15,10 +15,10 @@ import {
   ScreenPanel,
   ScreenScaffold,
 } from "@/components/game/screens/ScreenChrome";
-import { mergeRewards } from "@/features/battle/rewards";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import { translate, useI18n } from "@/lib/i18n/useI18n";
 import { hasRewardEntries } from "@/lib/rewardVisibility";
+import { mergeRewards } from "@/lib/rewards";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";

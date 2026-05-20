@@ -122,13 +122,13 @@ Arena y Events son modos secundarios basados en Frontline.
 
 Alcance actual:
 
-- Arena usa tickets y presets de oponentes.
-- Events usa presets de operaciones y reglas de recompensa diaria.
+- Arena separa Ladder sin tickets de Arena Trials con tickets, ambos sobre Frontline.
+- Events usa operaciones Frontline y reglas de recompensa diaria.
 
 Alcance futuro:
 
-- Ladder de Arena.
-- Modificadores de evento.
+- Mas ligas, rivales y validacion server-side robusta para Ladder publico.
+- Mutadores reales de evento.
 - Mejores revelados de recompensas y timing de rotacion.
 
 ## Reglas de Guia al Jugador

@@ -12,12 +12,12 @@ import FantasyCommanderBadge from "@/components/ui/fantasy/FantasyCommanderBadge
 import FantasyNavButton from "@/components/ui/fantasy/FantasyNavButton";
 import { getLeader } from "@/data/leaders";
 import { isAdventureKeySystemUnlocked } from "@/features/adventure/mapInteractions";
-import { teamPower } from "@/features/tactical/engine";
 import { getLeaderPortrait } from "@/lib/art";
 import { cn } from "@/lib/cn";
 import { resolveGlyphAssetIcon } from "@/lib/iconAssets";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
+import { teamPower } from "@/lib/teamPower";
 
 const NAV_ITEMS = [
   { href: "/", label: "nav.home", short: "nav.base", icon: "fortress" as const, tone: "gold" as const },

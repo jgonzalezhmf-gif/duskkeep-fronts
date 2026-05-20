@@ -399,4 +399,4 @@ La migracion desde estado local queda como mecanismo transitorio de alpha. El mo
 - No hay balance negativo posible.
 - Claims repetidos se bloquean por constraints o idempotencia.
 - El cliente no puede escribir directamente recursos, compras, rewards ni ladder.
-- El schema permite mantener fallback local durante desarrollo.
+- El schema permite mantener fallback local durante desarrollo, pero produccion debe usar perfil servidor incluso para invitados anonimos.

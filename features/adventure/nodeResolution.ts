@@ -1,6 +1,6 @@
 import { ADVENTURE_BY_ID } from "@/data/adventure";
-import { mergeRewards } from "@/features/battle/rewards";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
+import { mergeRewards } from "@/lib/rewards";
 import type { AdventureLevel, Rewards } from "@/lib/types";
 
 export type AdventureNodeType =

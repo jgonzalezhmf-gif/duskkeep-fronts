@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeRewards, describeRewards } from "@/features/battle/rewards";
+import { mergeRewards, describeRewards } from "@/lib/rewards";
 
 describe("rewards", () => {
   it("merges numeric resources", () => {

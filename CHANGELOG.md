@@ -7,6 +7,17 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.7] - 2026-05-19
+
+### Fixed
+- Movidos fuera de `public/assets` cinco borradores de audio ignorados y no referenciados para que no cuenten en el presupuesto runtime.
+- Recompactados sin cambiar rutas ni dimensiones ocho PNG registrados de Home, Adventure y fondos Frontline, bajando `public/assets` de 118.71 MB a 100.71 MB.
+- Recuperado el gate `npm.cmd run check:performance` sin tocar gameplay, economia, backend ni manifests.
+- Alineadas guias operativas obsoletas para reflejar que Supabase ya tiene MVP autoritativo y que Adventure, Arena y Events usan Frontline en el flujo visible.
+- Aclarado que Supabase es opcional solo para desarrollo/local; en produccion todo progreso real requiere autoridad servidor, incluso para invitados anonimos.
+- Movidos los helpers compartidos de rewards a `lib/rewards.ts` para desacoplar Adventure, Events y Shop del namespace legacy `features/battle`.
+- Movido el calculo de poder de squad a `lib/teamPower.ts` para que Home y HUD no importen el motor tactico legacy.
+
 ## [0.36.6] - 2026-05-19
 
 ### Fixed

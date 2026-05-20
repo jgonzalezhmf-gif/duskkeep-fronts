@@ -432,15 +432,3 @@ export function recomputeWinner(state: TacticalState) {
   else if (!anyAlly) state.winner = "enemy";
   else if (!anyEnemy) state.winner = "ally";
 }
-
-// --- team power (for match-making displays) -----------------------------
-
-export function teamPower(team: { heroId: string; level: number; stars: number }[]): number {
-  let p = 0;
-  for (let i = 0; i < team.length; i++) {
-    const h = getHero(team[i].heroId);
-    const u = computeUnit(h, team[i].level, team[i].stars, "ally", i);
-    p += u.power;
-  }
-  return Math.round(p);
-}

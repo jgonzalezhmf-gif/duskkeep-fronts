@@ -1,7 +1,7 @@
 import type { GlyphKind } from "@/components/ui/GameGlyph";
 import type { ExtendedShopOffer, ShopCategory } from "@/data/shop";
-import { describeRewards } from "@/features/battle/rewards";
 import { sfx } from "@/lib/audio";
+import { describeRewards } from "@/lib/rewards";
 import type { ShopIconName } from "@/components/game/shared/ShopIcon";
 
 export const CATEGORY_SHOP_ICONS: Record<ShopCategory, ShopIconName> = {
