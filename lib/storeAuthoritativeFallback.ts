@@ -36,7 +36,6 @@ export function createClientSensitiveMutationDecision(input: {
 }): ClientSensitiveMutationDecision {
   const serverPersistenceEnabled = input.serverPersistenceEnabled ?? isServerAuthoritativePersistenceEnabled();
   if (!serverPersistenceEnabled) return { blocked: false };
-  if (input.accountLinkMode === "undecided") return { blocked: false };
 
   return {
     blocked: true,

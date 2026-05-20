@@ -79,6 +79,21 @@ describe("server-authoritative local mutation guard", () => {
     expect(useGameStore.getState().arenaLosses).toBe(0);
   });
 
+  it("blocks direct local resource rewards for undecided Supabase sessions", () => {
+    process.env.NEXT_PUBLIC_PERSISTENCE = "supabase";
+    useGameStore.setState({
+      accountLinkMode: "undecided",
+      resources: { gold: 100, dust: 10, gems: 5, arenaTickets: 3, adventureKeys: 0 },
+    });
+
+    useGameStore.getState().awardRewards({ gold: 999 }, "tampered undecided reward");
+
+    expect(useGameStore.getState().resources).toEqual({ gold: 100, dust: 10, gems: 5, arenaTickets: 3, adventureKeys: 0 });
+    expect(useGameStore.getState().notifications).toContainEqual(
+      expect.objectContaining({ kind: "error", message: CLIENT_SENSITIVE_MUTATION_BLOCKED_NOTICE }),
+    );
+  });
+
   it("keeps local mutation available when the app is configured for local persistence", () => {
     process.env.NEXT_PUBLIC_PERSISTENCE = "local";
     useGameStore.setState({

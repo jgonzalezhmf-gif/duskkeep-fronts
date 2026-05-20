@@ -49,6 +49,23 @@ describe("store authoritative fallback decision", () => {
     });
   });
 
+  it("blocks undecided local fallback when Supabase persistence is enabled", () => {
+    expect(
+      createLocalAuthoritativeFallbackDecision({
+        accountLinkMode: "undecided",
+        reason: "missing_session",
+        serverPersistenceEnabled: true,
+      }),
+    ).toEqual({
+      blocked: true,
+      accountLinkMode: "undecided",
+      notification: {
+        kind: "info",
+        message: AUTH_SESSION_EXPIRED_NOTICE,
+      },
+    });
+  });
+
   it("blocks linked account local fallback when online persistence is disabled without forcing relogin", () => {
     expect(
       createLocalAuthoritativeFallbackDecision({

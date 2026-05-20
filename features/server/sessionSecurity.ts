@@ -62,7 +62,7 @@ export function shouldBlockLocalAuthoritativeFallback({
 }) {
   if (reason !== "missing_session" && reason !== "api_disabled") return false;
   if (accountLinkMode === "linked") return true;
-  return serverPersistenceEnabled && accountLinkMode === "guest";
+  return serverPersistenceEnabled;
 }
 
 export function getAuthGateModeForIntent({

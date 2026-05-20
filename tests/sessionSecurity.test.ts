@@ -116,6 +116,13 @@ describe("auth session security helpers", () => {
     ).toBe(true);
     expect(
       shouldBlockLocalAuthoritativeFallback({
+        accountLinkMode: "undecided",
+        reason: "missing_session",
+        serverPersistenceEnabled: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldBlockLocalAuthoritativeFallback({
         accountLinkMode: "linked",
         reason: "api_disabled",
       }),

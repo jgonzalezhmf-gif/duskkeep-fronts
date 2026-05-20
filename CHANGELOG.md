@@ -7,6 +7,11 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.8] - 2026-05-20
+
+### Fixed
+- Bloqueado el fallback local y las mutaciones locales sensibles tambien para sesiones `undecided` cuando `NEXT_PUBLIC_PERSISTENCE=supabase`, evitando progreso cliente antes del Auth Gate o por manipulacion local.
+
 ## [0.36.7] - 2026-05-19
 
 ### Fixed
