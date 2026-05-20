@@ -7,6 +7,11 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.9] - 2026-05-20
+
+### Fixed
+- Resueltas las vulnerabilidades moderadas de dependencias transitivas fijando `ws` en `8.20.1` bajo Supabase Realtime y `brace-expansion` en `5.0.6` bajo TypeScript ESLint.
+
 ## [0.36.8] - 2026-05-20
 
 ### Fixed
