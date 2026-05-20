@@ -4,6 +4,7 @@ import {
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
   getPasswordRecoveryRequestNoticeKey,
+  getPasswordSetupUrlSource,
   getPasswordUpdateFailureNoticeKey,
   hasGuestUpgradePasswordSetupUrlMarker,
   hasPasswordRecoveryUrlMarker,
@@ -195,6 +196,9 @@ describe("auth session security helpers", () => {
     expect(hasGuestUpgradePasswordSetupUrlMarker({ search: "?guestUpgrade=confirm", hash: "" })).toBe(true);
     expect(hasGuestUpgradePasswordSetupUrlMarker({ search: "", hash: "#access_token=secret&type=email_change" })).toBe(true);
     expect(hasPasswordSetupUrlMarker({ search: "?guestUpgrade=confirm", hash: "" })).toBe(true);
+    expect(getPasswordSetupUrlSource({ search: "?guestUpgrade=confirm", hash: "" })).toBe("guestUpgrade");
+    expect(getPasswordSetupUrlSource({ search: "?type=recovery", hash: "" })).toBe("passwordRecovery");
+    expect(getPasswordSetupUrlSource({ search: "?next=/home", hash: "" })).toBeNull();
 
     expect(shouldStripPasswordRecoveryUrl({ search: "?type=recovery&next=/home", hash: "" })).toBe(true);
     expect(shouldStripPasswordRecoveryUrl({ search: "?guestUpgrade=confirm&code=secret", hash: "" })).toBe(true);

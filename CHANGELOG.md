@@ -7,6 +7,11 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.10] - 2026-05-20
+
+### Fixed
+- La recuperacion normal de contrasena ahora recarga el snapshot servidor en vez de sincronizar progreso local; la importacion de snapshot local queda limitada al flujo explicito de conversion de invitado.
+
 ## [0.36.9] - 2026-05-20
 
 ### Fixed

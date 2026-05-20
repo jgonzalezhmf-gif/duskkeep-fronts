@@ -8,9 +8,10 @@ import {
 } from "@/features/server/supabaseBrowserSession";
 import {
   createPasswordRecoveryCleanPath,
+  getPasswordSetupUrlSource,
   getPasswordUpdateFailureNoticeKey,
-  hasPasswordSetupUrlMarker,
   shouldStripPasswordRecoveryUrl,
+  type PasswordSetupSource,
 } from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
@@ -18,7 +19,11 @@ import { useI18n } from "@/lib/i18n/useI18n";
 
 const MIN_PASSWORD_LENGTH = 8;
 
-export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void }) {
+export function PasswordRecoveryGate({
+  onRecovered,
+}: {
+  onRecovered?: (context: { source: PasswordSetupSource }) => void | Promise<void>;
+}) {
   const { t } = useI18n();
   const tRef = useRef(t);
   const [open, setOpen] = useState(false);
@@ -27,6 +32,7 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [setupSource, setSetupSource] = useState<PasswordSetupSource>("passwordRecovery");
 
   useEffect(() => {
     tRef.current = t;
@@ -35,11 +41,14 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
   useEffect(() => {
     const subscription = subscribeToSupabaseAuthEvents((event) => {
       if (event === "PASSWORD_RECOVERY") {
+        setSetupSource((source) => (source === "guestUpgrade" ? source : "passwordRecovery"));
         setOpen(true);
       }
     });
 
-    if (hasRecoveryParams()) {
+    const urlSetupSource = getRecoveryUrlSource();
+    if (urlSetupSource) {
+      setSetupSource(urlSetupSource);
       setOpen(true);
       setBusy(true);
       void completeSupabasePasswordSetupRedirect().then((result) => {
@@ -89,7 +98,7 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
     setPassword("");
     setConfirmPassword("");
     setNotice(t("auth.passwordRecoveryDone"));
-    onRecovered?.();
+    void onRecovered?.({ source: setupSource });
   }
 
   return (
@@ -174,9 +183,9 @@ export function PasswordRecoveryGate({ onRecovered }: { onRecovered?: () => void
   );
 }
 
-function hasRecoveryParams() {
-  if (typeof window === "undefined") return false;
-  return hasPasswordSetupUrlMarker({ hash: window.location.hash, search: window.location.search });
+function getRecoveryUrlSource() {
+  if (typeof window === "undefined") return null;
+  return getPasswordSetupUrlSource({ hash: window.location.hash, search: window.location.search });
 }
 
 function stripRecoveryTokensFromUrl() {

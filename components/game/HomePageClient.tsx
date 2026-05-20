@@ -173,9 +173,13 @@ export default function HomePageClient({
         }}
       />
       <PasswordRecoveryGate
-        onRecovered={async () => {
+        onRecovered={async ({ source }) => {
           setAccountLinkMode("linked");
-          await syncLocalSnapshotOnlineFirst();
+          if (source === "guestUpgrade") {
+            await syncLocalSnapshotOnlineFirst();
+            return;
+          }
+          await loadServerSnapshotOnlineFirst();
         }}
       />
     </>

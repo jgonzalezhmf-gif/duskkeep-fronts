@@ -18,6 +18,7 @@ export type AuthFailureNoticeKey =
 export type PasswordUpdateFailureNoticeKey = "auth.unconfigured" | "auth.rateLimited" | "auth.passwordRecoveryGenericError";
 export type PasswordRecoveryRequestFailureReason = "unconfigured" | "rate_limited" | "auth_error";
 export type PasswordRecoveryRequestNoticeKey = "auth.unconfigured" | "auth.rateLimited" | "auth.recoveryGeneric";
+export type PasswordSetupSource = "guestUpgrade" | "passwordRecovery";
 export type AuthRecoveryUrlParts = {
   pathname: string;
   search?: string;
@@ -157,6 +158,14 @@ export function hasGuestUpgradePasswordSetupUrlMarker({ search = "", hash = "" }
 
 export function hasPasswordSetupUrlMarker(parts: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
   return hasPasswordRecoveryUrlMarker(parts) || hasGuestUpgradePasswordSetupUrlMarker(parts);
+}
+
+export function getPasswordSetupUrlSource(
+  parts: Pick<AuthRecoveryUrlParts, "search" | "hash">,
+): PasswordSetupSource | null {
+  if (hasGuestUpgradePasswordSetupUrlMarker(parts)) return "guestUpgrade";
+  if (hasPasswordRecoveryUrlMarker(parts)) return "passwordRecovery";
+  return null;
 }
 
 export function shouldStripPasswordRecoveryUrl({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
