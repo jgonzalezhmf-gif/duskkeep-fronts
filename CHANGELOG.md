@@ -7,6 +7,11 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.36.12] - 2026-05-20
+
+### Fixed
+- Eliminado el backend legacy no usado `lib/persistence.ts`, que exponia un stub Supabase con fallback a `localStorage` y podia confundirse con la persistencia autoritativa actual.
+
 ## [0.36.11] - 2026-05-20
 
 ### Fixed
