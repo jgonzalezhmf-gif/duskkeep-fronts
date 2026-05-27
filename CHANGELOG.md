@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.10] - 2026-05-27
+
+### Changed
+- Migrado el arte de boss Frontline de The Eclipse a WebP en el manifest seguro, conservando dimensiones y transparencia.
+- Guardado backup externo del PNG sustituido en `C:\Users\Usuario\DuskkeepAssetBackups\2026-05-27_0.37.10_frontline_bosses`.
+- Reducido el presupuesto de `public/assets` de `52.58 MB` a `50.65 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.9] - 2026-05-27
 
 ### Changed

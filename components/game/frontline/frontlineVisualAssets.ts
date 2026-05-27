@@ -81,8 +81,8 @@ const FRONTLINE_BATTLE_BACKGROUND_FALLBACKS: Partial<Record<FrontlineBattleBackg
 };
 
 const FRONTLINE_BOSS_ASSETS: FrontlineAssetManifest = {
-  // The PNG was originally added under crown_of_ashes.png but is the art for The Eclipse (c1l12).
-  the_eclipse: `${FRONTLINE_ASSET_ROOT}/bosses/crown_of_ashes.png`,
+  // The art was originally added under crown_of_ashes but is used for The Eclipse (c1l12).
+  the_eclipse: `${FRONTLINE_ASSET_ROOT}/bosses/crown_of_ashes.webp`,
   // crown_of_ashes (c2l8) currently has no boss art and falls back to per-segment readouts.
 };
 
