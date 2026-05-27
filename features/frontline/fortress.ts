@@ -119,11 +119,11 @@ export function frontlineFortressProjectedOutcome(
     defensePower,
     margin: defensePower - attackPower,
     outcome,
-    rewards: rewardsForOutcome(state, outcome),
+    rewards: frontlineFortressRewardsForOutcome(state, outcome),
   };
 }
 
-function rewardsForOutcome(
+export function frontlineFortressRewardsForOutcome(
   state: FrontlineFortressState,
   outcome: FrontlineFortressOutcome,
 ): Rewards {
@@ -169,7 +169,7 @@ export function resolveFrontlineFortressRaid(
     integrityDelta = -26;
   }
 
-  const rewards = rewardsForOutcome(state, outcome);
+  const rewards = frontlineFortressRewardsForOutcome(state, outcome);
   const report: FrontlineFortressReport = {
     resolvedAt: now.toISOString(),
     outcome,
@@ -180,14 +180,26 @@ export function resolveFrontlineFortressRaid(
   };
 
   return {
-    nextState: {
-      ...state,
-      integrity: Math.max(0, Math.min(100, state.integrity + integrityDelta)),
-      lastResolvedAt: report.resolvedAt,
-      nextAttackAt: new Date(now.getTime() + RAID_INTERVAL_HOURS * 3_600_000).toISOString(),
-      raidsResolved: state.raidsResolved + 1,
-      lastReport: report,
-    } satisfies FrontlineFortressState,
+    nextState: applyFrontlineFortressReport(state, report),
     report,
+  };
+}
+
+export function applyFrontlineFortressReport(
+  state: FrontlineFortressState,
+  report: FrontlineFortressReport,
+): FrontlineFortressState {
+  const resolvedAt = Date.parse(report.resolvedAt);
+  const nextAttackAt = Number.isFinite(resolvedAt)
+    ? new Date(resolvedAt + RAID_INTERVAL_HOURS * 3_600_000).toISOString()
+    : new Date(Date.now() + RAID_INTERVAL_HOURS * 3_600_000).toISOString();
+
+  return {
+    ...state,
+    integrity: Math.max(0, Math.min(100, state.integrity + report.integrityDelta)),
+    lastResolvedAt: report.resolvedAt,
+    nextAttackAt,
+    raidsResolved: state.raidsResolved + 1,
+    lastReport: report,
   };
 }

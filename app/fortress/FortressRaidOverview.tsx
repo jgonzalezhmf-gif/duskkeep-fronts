@@ -31,14 +31,14 @@ export function FortressHero({
         <ScreenBadge tone={raidReady ? "ember" : "gold"}>{raidReady ? t("fortressScreen.watch.raidAtGate") : t("fortressScreen.watch.castleWatch")}</ScreenBadge>
         <ScreenBadge tone={state.badgeTone}>{state.label}</ScreenBadge>
       </div>
-      <h1 className="mt-2 max-w-[34rem] text-[1.75rem] font-black leading-[0.92] text-white drop-shadow-[0_12px_28px_rgba(0,0,0,0.42)] md:text-[2.65rem]">
+      <h1 className="mt-1.5 max-w-[31rem] text-[1.65rem] font-black leading-[0.92] text-white drop-shadow-[0_12px_28px_rgba(0,0,0,0.42)] md:text-[2.3rem]">
         {t("fortressScreen.watch.title")}
       </h1>
-      <p className="mt-2 hidden max-w-[34rem] text-[12px] leading-5 text-white/54 xl:block">
+      <p className="mt-1.5 hidden max-w-[31rem] text-[11px] leading-4 text-white/50 2xl:block">
         {t("fortressScreen.watch.copy")}
       </p>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <HeroMetric icon="integrity" label={t("fortressScreen.metrics.integrity")} value={`${integrity}%`} />
         <HeroMetric icon="defense_rating" label={t("fortressScreen.metrics.defense")} value={defenseRating} />
         <HeroMetric icon="garrison" label={t("fortressScreen.metrics.guards")} value={`${garrisonFilled}/3`} />

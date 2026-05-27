@@ -26,9 +26,9 @@ export function HeroMetric({
   value: ReactNode;
 }) {
   return (
-    <div className="rounded-[24px] border border-white/10 bg-black/24 px-3 py-3 backdrop-blur-xl">
+    <div className="rounded-[22px] border border-white/10 bg-black/24 px-2.5 py-2.5 backdrop-blur-xl">
       <div className="flex items-center gap-2">
-        <FortressIcon name={icon} size="lg" />
+        <FortressIcon name={icon} size="md" />
         <div className="min-w-0">
           <div className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</div>
           <div className="mt-1 truncate text-sm font-black text-white">{value}</div>
@@ -84,9 +84,9 @@ export function CostTile({
 }) {
   const enough = current >= required;
   return (
-    <div className="rounded-[18px] border border-white/10 bg-black/20 p-3">
+    <div className="rounded-[16px] border border-white/10 bg-black/20 p-2.5">
       <div className="flex items-center gap-2">
-        <GameIcon kind={icon} tone={tone} size="sm" className="h-8 w-8 rounded-[12px] p-1" />
+        <GameIcon kind={icon} tone={tone} size="sm" className="h-7 w-7 rounded-[11px] p-1" />
         <div>
           <div className="text-[9px] font-black uppercase tracking-[0.14em] text-white/42">{label}</div>
           <div className={cn("text-sm font-black", enough ? "text-white" : "text-rose-200")}>{current}/{required}</div>

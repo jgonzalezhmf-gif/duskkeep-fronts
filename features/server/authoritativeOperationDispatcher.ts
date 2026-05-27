@@ -28,6 +28,7 @@ import type {
   AuthoritativeEventResult,
   AuthoritativeFrontlineCardUpgradeResult,
   AuthoritativeFrontlineFortressRaidResult,
+  AuthoritativeFrontlineFortressDefenseResult,
   AuthoritativeFrontlineFortressUpgradeResult,
   AuthoritativeLoadoutSaveResult,
   AuthoritativeLocalSnapshotSyncResult,
@@ -45,6 +46,8 @@ import type {
   RecordEventResultAuthoritativelyOptions,
   RecordEventResultInput,
   ResolveFrontlineFortressRaidAuthoritativelyOptions,
+  ClaimFrontlineFortressDefenseAuthoritativelyOptions,
+  ClaimFrontlineFortressDefenseInput,
   SaveFrontlineLoadoutAuthoritativelyOptions,
   SyncLocalSnapshotAuthoritativelyOptions,
   UpgradeFrontlineCardAuthoritativelyOptions,
@@ -160,6 +163,33 @@ export async function resolveFrontlineFortressRaidAuthoritatively(
     {
       idempotencyKey: createIdempotencyKey("frontline-fortress-raid", "resolve"),
       payload: {},
+    },
+    options,
+  );
+
+  if (!response.ok) return response;
+
+  const parsed = extractFrontlineFortressRaidResult(response.result);
+  if (!parsed) {
+    return invalidAuthoritativeServerResponse();
+  }
+
+  return {
+    ok: true,
+    mode: "authoritative",
+    ...parsed,
+  };
+}
+
+export async function claimFrontlineFortressDefenseAuthoritatively(
+  input: ClaimFrontlineFortressDefenseInput,
+  options: ClaimFrontlineFortressDefenseAuthoritativelyOptions = {},
+): Promise<AuthoritativeFrontlineFortressDefenseResult> {
+  const response = await callOperationWithSession(
+    "claimFrontlineFortressDefense",
+    {
+      idempotencyKey: createIdempotencyKey("frontline-fortress-defense", String(input.battleSeed)),
+      payload: input,
     },
     options,
   );

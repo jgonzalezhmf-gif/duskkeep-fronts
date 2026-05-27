@@ -28,37 +28,67 @@ export function CastleStage({
   t: TranslateFn;
 }) {
   return (
-    <div className="relative z-[1] mt-3 h-[18rem] md:absolute md:inset-x-0 md:top-[11rem] md:mt-0 md:h-[22rem]">
-      <div className="absolute left-1/2 top-[50%] h-[13rem] w-[54%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(circle_at_50%_44%,rgba(110,159,217,0.11),rgba(31,53,86,0.13)_42%,rgba(4,7,12,0.3)_78%,transparent_100%)]" />
-      <div className="absolute bottom-[13%] left-[22%] right-[22%] h-[12%] rounded-[50%] border border-sky-200/8 bg-[radial-gradient(circle_at_50%_45%,rgba(71,162,218,0.18),rgba(22,58,99,0.16)_42%,rgba(2,7,12,0.38)_100%)] animate-[waterShimmer_12s_ease-in-out_infinite]" />
+    <div className="relative z-[1] mt-3 h-[24rem] md:absolute md:inset-x-0 md:top-[9.5rem] md:mt-0 md:h-[25rem]">
+      <div className="absolute left-1/2 top-[39%] h-[16rem] w-[64%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(circle_at_50%_44%,rgba(110,159,217,0.13),rgba(31,53,86,0.14)_42%,rgba(4,7,12,0.32)_78%,transparent_100%)]" />
+      <div className="absolute bottom-[24%] left-[16%] right-[16%] h-[12%] rounded-[50%] border border-sky-200/8 bg-[radial-gradient(circle_at_50%_45%,rgba(71,162,218,0.18),rgba(22,58,99,0.16)_42%,rgba(2,7,12,0.38)_100%)] animate-[waterShimmer_12s_ease-in-out_infinite]" />
 
       <FortressSilhouette integrity={integrity} raidReady={raidReady} reportPulse={reportPulse} />
 
-      {(Object.keys(BUILDING_META) as FrontlineFortressBuildingId[]).map((buildingId) => {
-        const meta = BUILDING_META[buildingId];
-        const selected = selectedBuilding === buildingId;
-        const label = buildingLabel(buildingId, t);
-        return (
-          <button
+      <div className="absolute inset-x-[4%] bottom-20 grid grid-cols-[1fr_1.16fr_1fr] items-end gap-2 sm:inset-x-[8%] sm:gap-3 md:bottom-20 lg:inset-x-[12%]">
+        {(["treasury", "keep", "barracks"] as FrontlineFortressBuildingId[]).map((buildingId) => (
+          <BuildingNode
             key={buildingId}
-            className={cn(
-              "frontline-motion-tab group absolute isolate grid place-items-center rounded-[28px] border border-transparent bg-transparent transition duration-300",
-              meta.position,
-              selected ? "shadow-[0_0_24px_rgba(245,196,81,0.1)]" : "hover:bg-white/[0.015]",
-            )}
+            buildingId={buildingId}
+            level={levels[buildingId]}
+            selected={selectedBuilding === buildingId}
+            emphasized={buildingId === "keep"}
             onClick={() => setSelectedBuilding(buildingId)}
-          >
-            <span className={cn("pointer-events-none absolute inset-6 rounded-[26px] bg-[radial-gradient(circle_at_50%_34%,var(--tw-gradient-stops))] blur-lg opacity-40", selected && meta.glow)} />
-            <span className="relative z-[1] flex flex-col items-center">
-              <FortressIcon name={meta.icon} size="md" className={cn("transition", selected ? "opacity-90 animate-[iconBreath_2.8s_ease-in-out_infinite]" : "opacity-0 group-hover:opacity-70")} />
-              <span className={cn("mt-1 rounded-full border border-white/12 bg-black/56 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white shadow-[0_8px_16px_rgba(0,0,0,0.24)] transition", !selected && "opacity-0 group-hover:opacity-100")}>
-                {label} {t("fortressScreen.buildings.level", { level: levels[buildingId] })}
-              </span>
-            </span>
-          </button>
-        );
-      })}
+            t={t}
+          />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function BuildingNode({
+  buildingId,
+  level,
+  selected,
+  emphasized,
+  onClick,
+  t,
+}: {
+  buildingId: FrontlineFortressBuildingId;
+  level: number;
+  selected: boolean;
+  emphasized: boolean;
+  onClick: () => void;
+  t: TranslateFn;
+}) {
+  const meta = BUILDING_META[buildingId];
+  const label = buildingLabel(buildingId, t);
+  return (
+    <button
+      className={cn(
+        "frontline-motion-tab group relative isolate grid min-w-0 place-items-center overflow-hidden rounded-[22px] border px-2 py-2 text-center shadow-[0_16px_34px_rgba(0,0,0,0.24)] backdrop-blur-md transition duration-300",
+        emphasized ? "min-h-[6.4rem] -translate-y-2 sm:min-h-[7rem]" : "min-h-[5.6rem] sm:min-h-[6.1rem]",
+        selected
+          ? "border-[#f5c451]/34 bg-[linear-gradient(180deg,rgba(245,196,81,0.16),rgba(12,10,8,0.72))]"
+          : "border-white/12 bg-[linear-gradient(180deg,rgba(15,20,31,0.46),rgba(6,8,14,0.68))] hover:border-white/22",
+      )}
+      onClick={onClick}
+    >
+      <span className={cn("pointer-events-none absolute -inset-5 bg-[radial-gradient(circle_at_50%_30%,var(--tw-gradient-stops))] opacity-40 blur-2xl transition", selected ? meta.glow : "from-white/10 via-white/0 to-transparent")} />
+      <FortressIcon
+        name={meta.icon}
+        size={emphasized ? "xl" : "lg"}
+        className={cn("transition", selected ? "opacity-100 animate-[iconBreath_2.8s_ease-in-out_infinite]" : "opacity-88 group-hover:opacity-100")}
+      />
+      <span className="relative z-[1] mt-1 max-w-full truncate rounded-full border border-white/12 bg-black/56 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white">
+        {label} {t("fortressScreen.buildings.level", { level })}
+      </span>
+    </button>
   );
 }
 
@@ -74,7 +104,7 @@ function FortressSilhouette({
   const fortressAsset = getHomeLandmarkAsset("fortress");
 
   return (
-    <div className={cn("absolute left-1/2 top-[3%] h-[16rem] w-[28rem] max-w-[80%] -translate-x-1/2 transition", reportPulse && "animate-[fortressHit_0.7s_ease-in-out_1]")}>
+    <div className={cn("absolute left-1/2 top-[1%] h-[16.5rem] w-[30rem] max-w-[82%] -translate-x-1/2 transition", reportPulse && "animate-[fortressHit_0.7s_ease-in-out_1]")}>
       <div className="absolute bottom-[12%] left-[19%] right-[19%] h-[13%] rounded-[50%] bg-black/28 blur-lg" />
       {fortressAsset ? (
         <img

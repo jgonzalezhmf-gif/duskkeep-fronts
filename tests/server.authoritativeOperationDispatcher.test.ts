@@ -3,6 +3,7 @@ import {
   claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
   claimDailyLoginAuthoritatively,
+  claimFrontlineFortressDefenseAuthoritatively,
   claimMissionAuthoritatively,
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
@@ -168,6 +169,35 @@ describe("authoritative operation dispatcher", () => {
     const result = await resolveFrontlineFortressRaidAuthoritatively({
       tokenProvider: async () => null,
     });
+
+    expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
+  });
+
+  it("falls back to local Frontline fortress defense claims when there is no Supabase session", async () => {
+    const result = await claimFrontlineFortressDefenseAuthoritatively(
+      {
+        battleSeed: 98765,
+        outcome: "full_repel",
+        turns: 8,
+        castleHp: 82,
+        maxCastleHp: 112,
+        enemiesDefeated: 9,
+        defenseSummary: {
+          schemaVersion: 1,
+          seed: 98765,
+          turns: 8,
+          outcome: "full_repel",
+          castleHp: 82,
+          maxCastleHp: 112,
+          enemiesDefeated: 9,
+          wavesCleared: 3,
+          actionLog: [{ turn: 1, action: "castle_shot", castleHp: 94, enemyCount: 3 }],
+        },
+      },
+      {
+        tokenProvider: async () => null,
+      },
+    );
 
     expect(result).toEqual({ ok: false, mode: "local", reason: "missing_session" });
   });

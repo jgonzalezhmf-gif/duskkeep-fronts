@@ -1,4 +1,5 @@
 import type { AdventureMapInteractionClaim, AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
+import type { FortressDefenseClaimPayload } from "@/features/fortress-defense/engine";
 import type { FrontlineBattleSummaryPayload } from "@/features/server/authoritativeOperations";
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
 import type { FrontlineCardLevels, FrontlineCardUnlocks } from "@/features/frontline/cardProgression";
@@ -100,6 +101,8 @@ export type GameActions = {
   setFrontlineGarrisonSlot: (slotIdx: number, heroId: string | null) => void;
   resolveFrontlineFortressRaid: () => FrontlineFortressReport | null;
   resolveFrontlineFortressRaidOnlineFirst: () => Promise<FrontlineFortressReport | null>;
+  claimFrontlineFortressDefense: (payload: FortressDefenseClaimPayload) => FrontlineFortressReport | null;
+  claimFrontlineFortressDefenseOnlineFirst: (payload: FortressDefenseClaimPayload) => Promise<FrontlineFortressReport | null>;
   awardRewards: (r: Rewards, source?: string) => void;
   spend: (cost: { gold?: number; gems?: number; dust?: number; arenaTickets?: number; adventureKeys?: number }) => boolean;
   levelUpHero: (heroId: string) => boolean;

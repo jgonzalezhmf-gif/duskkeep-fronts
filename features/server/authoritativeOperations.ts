@@ -154,6 +154,104 @@ const frontlineBattleSummarySchema = z
 
 export type FrontlineBattleSummaryPayload = z.input<typeof frontlineBattleSummarySchema>;
 
+const fortressDefenseOutcomeSchema = z.enum(["full_repel", "partial_hold", "breach"]);
+const fortressDefenseActionIdSchema = z.enum([
+  "castle_shot",
+  "bulwark",
+  "volley",
+  "arcane_barrage",
+  "traps",
+  "mend",
+  "war_chant",
+]);
+
+const fortressDefenseActionLogEntrySchema = z
+  .object({
+    turn: z.number().int().positive().max(80),
+    action: fortressDefenseActionIdSchema,
+    targetId: idSchema.optional(),
+    castleHp: z.number().int().min(0).max(999),
+    enemyCount: z.number().int().min(0).max(12),
+  })
+  .strict();
+
+const fortressDefenseSummarySchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    seed: z.number().int().safe(),
+    turns: z.number().int().positive().max(80),
+    outcome: fortressDefenseOutcomeSchema,
+    castleHp: z.number().int().min(0).max(999),
+    maxCastleHp: z.number().int().positive().max(999),
+    enemiesDefeated: z.number().int().min(0).max(80),
+    wavesCleared: z.number().int().min(0).max(3),
+    actionLog: z.array(fortressDefenseActionLogEntrySchema).max(80),
+  })
+  .strict();
+
+function refineFortressDefensePayload(
+  payload: {
+    battleSeed: number;
+    outcome: "full_repel" | "partial_hold" | "breach";
+    turns: number;
+    castleHp: number;
+    maxCastleHp: number;
+    enemiesDefeated: number;
+    defenseSummary: z.infer<typeof fortressDefenseSummarySchema>;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (payload.defenseSummary.seed !== payload.battleSeed) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["defenseSummary", "seed"],
+      message: "defense summary seed must match battleSeed",
+    });
+  }
+  if (payload.defenseSummary.outcome !== payload.outcome) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["defenseSummary", "outcome"],
+      message: "defense summary outcome must match outcome",
+    });
+  }
+  if (payload.defenseSummary.turns !== payload.turns) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["defenseSummary", "turns"],
+      message: "defense summary turns must match turns",
+    });
+  }
+  if (payload.defenseSummary.castleHp !== payload.castleHp || payload.defenseSummary.maxCastleHp !== payload.maxCastleHp) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["defenseSummary", "castleHp"],
+      message: "defense summary castle HP must match payload",
+    });
+  }
+  if (payload.defenseSummary.enemiesDefeated !== payload.enemiesDefeated) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["defenseSummary", "enemiesDefeated"],
+      message: "defense summary defeated count must match payload",
+    });
+  }
+  if (payload.outcome === "breach" && payload.castleHp > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["castleHp"],
+      message: "breach requires castleHp to be zero",
+    });
+  }
+  if (payload.outcome !== "breach" && payload.castleHp <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["castleHp"],
+      message: "successful defense requires remaining castle HP",
+    });
+  }
+}
+
 function frontlineSummaryMatchesWinner(input: {
   winner: "ally" | "enemy" | "draw";
   turns: number;
@@ -407,6 +505,18 @@ export const serverOperationPayloadSchemas = {
     })
     .strict(),
   resolveFrontlineFortressRaid: z.object({}).strict(),
+  claimFrontlineFortressDefense: z
+    .object({
+      battleSeed: z.number().int().safe(),
+      outcome: fortressDefenseOutcomeSchema,
+      turns: z.number().int().positive().max(80),
+      castleHp: z.number().int().min(0).max(999),
+      maxCastleHp: z.number().int().positive().max(999),
+      enemiesDefeated: z.number().int().min(0).max(80),
+      defenseSummary: fortressDefenseSummarySchema,
+    })
+    .strict()
+    .superRefine(refineFortressDefensePayload),
   recordArenaResult: z
     .object({
       opponentId: idSchema,
@@ -464,6 +574,7 @@ export const supportedAuthoritativeApiOperations = [
   "upgradeFrontlineCard",
   "upgradeFrontlineFortress",
   "resolveFrontlineFortressRaid",
+  "claimFrontlineFortressDefense",
   "recordArenaResult",
   "recordLadderResult",
   "recordEventResult",

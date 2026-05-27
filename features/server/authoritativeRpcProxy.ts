@@ -320,6 +320,23 @@ function toRpcCall<TType extends SupportedAuthoritativeRpcOperation>(
     };
   }
 
+  if (operationType === "claimFrontlineFortressDefense") {
+    const defensePayload = payload as ServerOperationPayload<"claimFrontlineFortressDefense">;
+    return {
+      rpcName: "claim_frontline_fortress_defense",
+      rpcArgs: {
+        p_idempotency_key: idempotencyKey,
+        p_battle_seed: defensePayload.battleSeed,
+        p_outcome: defensePayload.outcome,
+        p_turns: defensePayload.turns,
+        p_castle_hp: defensePayload.castleHp,
+        p_max_castle_hp: defensePayload.maxCastleHp,
+        p_enemies_defeated: defensePayload.enemiesDefeated,
+        p_defense_summary: defensePayload.defenseSummary,
+      },
+    };
+  }
+
   if (operationType === "recordArenaResult") {
     const arenaPayload = payload as ServerOperationPayload<"recordArenaResult">;
     return {

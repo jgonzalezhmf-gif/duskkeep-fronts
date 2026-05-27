@@ -49,8 +49,10 @@ import {
   localDayKey,
 } from "@/lib/rewardVisibility";
 import { isFrontlineCardUnlocked } from "@/features/frontline/cardProgression";
+import { createFrontlineFortressDefenseReportFromPayload } from "@/features/fortress-defense/engine";
 import { getFrontlineAdventureVictoryRewards } from "@/features/frontline/adventure";
 import {
+  applyFrontlineFortressReport,
   frontlineFortressRaidReady,
   resolveFrontlineFortressRaid,
 } from "@/features/frontline/fortress";
@@ -60,6 +62,7 @@ import {
   claimAdventureBattleResultAuthoritatively,
   claimAdventureNodeRewardAuthoritatively,
   claimDailyLoginAuthoritatively,
+  claimFrontlineFortressDefenseAuthoritatively,
   claimMissionAuthoritatively,
   levelUpHeroAuthoritatively,
   openAdventureMapInteractionAuthoritatively,
@@ -327,6 +330,60 @@ export const useGameStore = create<GameState & GameActions>()(
             return null;
           }
           return get().resolveFrontlineFortressRaid();
+        }
+
+        if (!authoritative.ok) {
+          get().pushNotification("error", authoritative.reason);
+          return null;
+        }
+
+        set({
+          resources: authoritative.resources,
+          frontlineFortress: authoritative.frontlineFortress,
+        });
+        await refreshServerSnapshotAfterAuthoritativeMutation(get);
+        get().pushNotification(
+          authoritative.report.outcome === "breach" ? "error" : "success",
+          authoritative.report.outcome === "full_repel"
+            ? "Fortress held the line"
+            : authoritative.report.outcome === "partial_hold"
+              ? "Fortress held with damage"
+              : "Fortress was breached",
+        );
+        return authoritative.report;
+      },
+
+      claimFrontlineFortressDefense: (payload) => {
+        if (blockClientSensitiveMutationIfNeeded(get)) return null;
+        const s = get();
+        if (!frontlineFortressRaidReady(s.frontlineFortress)) return null;
+        const heroProfiles = createFrontlineHeroProfileMap(s.heroes);
+        const report = createFrontlineFortressDefenseReportFromPayload({
+          fortress: s.frontlineFortress,
+          accountLevel: s.account.level,
+          heroProfiles,
+          payload,
+        });
+        set({ frontlineFortress: applyFrontlineFortressReport(s.frontlineFortress, report) });
+        get().awardRewards(report.rewards, "fortress defense");
+        get().pushNotification(
+          report.outcome === "breach" ? "error" : "success",
+          report.outcome === "full_repel"
+            ? "Fortress held the line"
+            : report.outcome === "partial_hold"
+              ? "Fortress held with damage"
+              : "Fortress was breached",
+        );
+        return report;
+      },
+
+      claimFrontlineFortressDefenseOnlineFirst: async (payload) => {
+        const authoritative = await claimFrontlineFortressDefenseAuthoritatively(payload);
+        if (authoritative.mode === "local") {
+          if (blockLocalAuthoritativeFallbackIfNeeded(authoritative.reason, set, get)) {
+            return null;
+          }
+          return get().claimFrontlineFortressDefense(payload);
         }
 
         if (!authoritative.ok) {

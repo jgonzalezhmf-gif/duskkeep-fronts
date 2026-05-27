@@ -28,6 +28,7 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineCard",
       "upgradeFrontlineFortress",
       "resolveFrontlineFortressRaid",
+      "claimFrontlineFortressDefense",
       "recordArenaResult",
       "recordLadderResult",
       "recordEventResult",
@@ -50,6 +51,7 @@ describe("server authoritative operation contracts", () => {
       "upgradeFrontlineCard",
       "upgradeFrontlineFortress",
       "resolveFrontlineFortressRaid",
+      "claimFrontlineFortressDefense",
       "recordArenaResult",
       "recordLadderResult",
       "recordEventResult",
@@ -64,6 +66,7 @@ describe("server authoritative operation contracts", () => {
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineCard")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("upgradeFrontlineFortress")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("resolveFrontlineFortressRaid")).toBe(true);
+    expect(isSupportedAuthoritativeApiOperation("claimFrontlineFortressDefense")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordArenaResult")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordLadderResult")).toBe(true);
     expect(isSupportedAuthoritativeApiOperation("recordEventResult")).toBe(true);
@@ -514,6 +517,25 @@ const validPayloadsByOperation: Record<ServerOperationType, Record<string, unkno
     buildingId: "keep",
   },
   resolveFrontlineFortressRaid: {},
+  claimFrontlineFortressDefense: {
+    battleSeed: 98765,
+    outcome: "full_repel",
+    turns: 8,
+    castleHp: 82,
+    maxCastleHp: 112,
+    enemiesDefeated: 9,
+    defenseSummary: {
+      schemaVersion: 1,
+      seed: 98765,
+      turns: 8,
+      outcome: "full_repel",
+      castleHp: 82,
+      maxCastleHp: 112,
+      enemiesDefeated: 9,
+      wavesCleared: 3,
+      actionLog: [{ turn: 1, action: "castle_shot", castleHp: 94, enemyCount: 3 }],
+    },
+  },
   recordArenaResult: {
     opponentId: "arena_bonewood",
     battleSeed: 123,

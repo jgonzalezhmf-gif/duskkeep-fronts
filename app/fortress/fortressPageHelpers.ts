@@ -36,7 +36,7 @@ export const BUILDING_META: Record<
     position: "right-[15%] top-[43%] h-[33%] w-[28%]",
     glow: "from-sky-200/24 via-cyan-300/10 to-transparent",
     short: "Garrison force",
-    perk: "Makes assigned defenders matter more in auto raids.",
+    perk: "Makes assigned defenders matter more during wave defense.",
   },
 };
 

@@ -6,6 +6,7 @@ import type {
 } from "@/features/server/authoritativeOperations";
 import type { AdventureMapInteractionOpenResult } from "@/features/adventure/mapInteractions";
 import type { FrontlineFortressBuildingId, FrontlineFortressState, FrontlineLoadout, LadderState, Resources, Rewards } from "@/lib/types";
+import type { FortressDefenseClaimPayload } from "@/features/fortress-defense/engine";
 
 export type AuthoritativeDispatcherMode = "authoritative" | "local";
 
@@ -502,6 +503,10 @@ export type AuthoritativeFrontlineFortressRaidResult =
   | AuthoritativeFrontlineFortressRaidFallback;
 
 export type ResolveFrontlineFortressRaidAuthoritativelyOptions = AuthoritativeDispatcherOptions;
+
+export type ClaimFrontlineFortressDefenseInput = FortressDefenseClaimPayload;
+export type AuthoritativeFrontlineFortressDefenseResult = AuthoritativeFrontlineFortressRaidResult;
+export type ClaimFrontlineFortressDefenseAuthoritativelyOptions = AuthoritativeDispatcherOptions;
 
 export type AuthoritativeHeroLevelUpSuccess = {
   ok: true;

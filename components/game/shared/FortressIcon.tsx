@@ -18,6 +18,12 @@ const TONE_CLASSES: Record<FortressIconName, string> = {
   watchtower: "from-[#fff0bc]/34 via-sky-200/14 to-transparent",
 };
 
+const IMAGE_SCALE_CLASSES: Partial<Record<FortressIconName, string>> = {
+  keep: "scale-[1.06]",
+  treasury: "scale-[1.26]",
+  barracks: "scale-[1.18]",
+};
+
 export function FortressIcon({
   name,
   size = "md",
@@ -53,7 +59,7 @@ export function FortressIcon({
         label={label}
         decorative={!label}
         className="relative z-[1]"
-        imgClassName={cn("drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)]", imgClassName)}
+        imgClassName={cn("drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)]", IMAGE_SCALE_CLASSES[name], imgClassName)}
         fallbackClassName={cn("drop-shadow-[0_6px_10px_rgba(0,0,0,0.45)]", fallbackClassName)}
       />
     </span>

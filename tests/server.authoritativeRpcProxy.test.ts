@@ -330,6 +330,52 @@ describe("authoritative RPC proxy", () => {
     });
   });
 
+  it("maps Frontline fortress defense claims to the correct RPC call", () => {
+    const defenseSummary = {
+      schemaVersion: 1,
+      seed: 98765,
+      turns: 8,
+      outcome: "full_repel",
+      castleHp: 82,
+      maxCastleHp: 112,
+      enemiesDefeated: 9,
+      wavesCleared: 3,
+      actionLog: [{ turn: 1, action: "castle_shot", castleHp: 94, enemyCount: 3 }],
+    };
+    const prepared = prepareAuthoritativeRpcCall({
+      body: {
+        operationType: "claimFrontlineFortressDefense",
+        idempotencyKey: "frontline-fortress-defense-20260521",
+        payload: {
+          battleSeed: 98765,
+          outcome: "full_repel",
+          turns: 8,
+          castleHp: 82,
+          maxCastleHp: 112,
+          enemiesDefeated: 9,
+          defenseSummary,
+        },
+      },
+      headers: headers("Bearer valid-token-value"),
+      env: enabledEnv,
+    });
+
+    expect(prepared).toMatchObject({
+      ok: true,
+      rpcName: "claim_frontline_fortress_defense",
+      rpcArgs: {
+        p_idempotency_key: "frontline-fortress-defense-20260521",
+        p_battle_seed: 98765,
+        p_outcome: "full_repel",
+        p_turns: 8,
+        p_castle_hp: 82,
+        p_max_castle_hp: 112,
+        p_enemies_defeated: 9,
+        p_defense_summary: defenseSummary,
+      },
+    });
+  });
+
   it("maps Arena results to the correct RPC call", () => {
     const prepared = prepareAuthoritativeRpcCall({
       body: {
