@@ -29,7 +29,7 @@ export default function AdventureMapPage() {
       <ScreenScaffold scene="adventureAsh" dock={false} homeNav={false} hud={false}>
         <GameBackNav />
         <div className="relative box-border h-dvh overflow-hidden px-3 pb-4 pt-28 sm:pt-28 md:px-6 md:pt-24 xl:px-8" aria-busy="true">
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.34),rgba(4,7,13,0.72)),url('/assets/backgrounds/adventure_bg.png')] bg-cover bg-center" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.34),rgba(4,7,13,0.72)),url('/assets/backgrounds/adventure_bg.webp')] bg-cover bg-center" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,transparent_0%,rgba(4,7,13,0.08)_50%,rgba(4,7,13,0.68)_100%)]" />
           <div className="relative z-10 mx-auto flex h-full max-w-[1680px] flex-col justify-between">
             <div className="w-[min(28rem,calc(100vw-1.5rem))] rounded-[18px] border border-[#f5d498]/12 bg-[linear-gradient(180deg,rgba(10,13,20,0.34),rgba(7,9,14,0.58))] px-2.5 py-2 shadow-[0_12px_28px_rgba(0,0,0,0.2)] backdrop-blur-xl">

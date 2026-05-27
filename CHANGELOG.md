@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.5] - 2026-05-27
+
+### Changed
+- Convertidos los fondos estaticos de pantallas principales (`market`, `deck`, `fortress`, `events`, `arena`, `adventure`, `missions` y `heroes`) de PNG a WebP registrado.
+- Reducido el presupuesto de `public/assets` de `109.97 MB` a `96.86 MB`, manteniendo `check:performance` y `audit:asset-refs` en verde.
+
 ## [0.37.4] - 2026-05-27
 
 ### Changed

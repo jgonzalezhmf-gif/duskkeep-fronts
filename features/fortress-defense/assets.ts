@@ -17,6 +17,6 @@ export const FORTRESS_DEFENSE_SCENE_ASSETS = {
   lastBastionBackdrop: {
     id: "last_bastion_defense",
     src: "/assets/fortress/backgrounds/last_bastion_defense.webp",
-    fallbackSrc: "/assets/backgrounds/fortress_bg.png",
+    fallbackSrc: "/assets/backgrounds/fortress_bg.webp",
   },
 } as const;
