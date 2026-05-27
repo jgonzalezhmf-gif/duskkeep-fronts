@@ -93,12 +93,12 @@ IDs actuales:
 - `enemy_ember_ogre`: tier 4, bruto lento, mucha vida, mucho daño, sin habilidad especial.
 
 Assets:
-- `enemy_bone_archer` -> `public/assets/frontline/heroes/Enemy1.png`
-- `enemy_plague_troll` -> `public/assets/frontline/heroes/Enemy2.png`
-- `enemy_ember_ogre` -> `public/assets/frontline/heroes/Enemy3.png`
-- `enemy_blood_duelist` -> `public/assets/frontline/heroes/Enemy4.png`
-- `enemy_rotmaw` -> `public/assets/frontline/heroes/Enemy5.png`
-- `enemy_void_acolyte` -> `public/assets/frontline/heroes/Enemy6.png`
+- `enemy_bone_archer` -> `public/assets/frontline/heroes/Enemy1.webp`
+- `enemy_plague_troll` -> `public/assets/frontline/heroes/Enemy2.webp`
+- `enemy_ember_ogre` -> `public/assets/frontline/heroes/Enemy3.webp`
+- `enemy_blood_duelist` -> `public/assets/frontline/heroes/Enemy4.webp`
+- `enemy_rotmaw` -> `public/assets/frontline/heroes/Enemy5.webp`
+- `enemy_void_acolyte` -> `public/assets/frontline/heroes/Enemy6.webp`
 
 ## Cartas
 

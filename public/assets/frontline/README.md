@@ -2,8 +2,8 @@ Duskkeep Fronts visual asset slots.
 
 Drop production art here and register it in
 `components/game/frontline/frontlineVisualAssets.ts` before the UI will request it:
-- `heroes/{heroId}.png` for 2.5D standees.
-- `heroes/Enemy1.png` ... `heroes/Enemy6.png` for the current enemy unit set.
+- `heroes/{heroId}.webp` for 2.5D standees.
+- `heroes/Enemy1.webp` ... `heroes/Enemy6.webp` for the current enemy unit set.
 - `cards/{cardId}.png` for full-art card illustrations.
 - `effects/{effectKey}.png` for authored combat VFX sprites or overlays.
 
@@ -21,9 +21,9 @@ Fallbacks:
 - effects use CSS pulses/floating labels until an effect asset is registered.
 
 Current enemy standee IDs:
-- `enemy_bone_archer` -> `heroes/Enemy1.png`
-- `enemy_plague_troll` -> `heroes/Enemy2.png`
-- `enemy_ember_ogre` -> `heroes/Enemy3.png`
-- `enemy_blood_duelist` -> `heroes/Enemy4.png`
-- `enemy_rotmaw` -> `heroes/Enemy5.png`
-- `enemy_void_acolyte` -> `heroes/Enemy6.png`
+- `enemy_bone_archer` -> `heroes/Enemy1.webp`
+- `enemy_plague_troll` -> `heroes/Enemy2.webp`
+- `enemy_ember_ogre` -> `heroes/Enemy3.webp`
+- `enemy_blood_duelist` -> `heroes/Enemy4.webp`
+- `enemy_rotmaw` -> `heroes/Enemy5.webp`
+- `enemy_void_acolyte` -> `heroes/Enemy6.webp`

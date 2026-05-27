@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.11] - 2026-05-27
+
+### Changed
+- Migrados los standees de heroes y enemigos Frontline a WebP-only desde el manifest seguro, conservando dimensiones y transparencia.
+- Guardado backup externo de los PNG sustituidos en `C:\Users\Usuario\DuskkeepAssetBackups\2026-05-27_0.37.11_frontline_heroes`.
+- Actualizadas las guias locales de assets Frontline para documentar las rutas WebP runtime.
+- Reducido el presupuesto de `public/assets` de `50.65 MB` a `48.39 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.10] - 2026-05-27
 
 ### Changed
