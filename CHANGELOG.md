@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.13] - 2026-05-27
+
+### Changed
+- Migrados los assets runtime de cofre con llave, brillo `gold_shine_loop` y recurso `adventure_key` a WebP desde sus manifests seguros.
+- Guardado backup externo de los PNG sustituidos en `C:\Users\Usuario\DuskkeepAssetBackups\2026-05-27_0.37.13_adventure_key_visuals`.
+- Conservadas dimensiones, alpha y `frameCount` del brillo del key chest para no cambiar posicionamiento ni animacion.
+- Reducido el presupuesto de `public/assets` de `43.37 MB` a `42.31 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.12] - 2026-05-27
 
 ### Changed

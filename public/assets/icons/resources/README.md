@@ -1,6 +1,6 @@
 # Resource Icons
 
-PNG resource icons used by the shared game UI live here.
+Runtime resource icons used by the shared game UI live here.
 
 ## Registered icons
 
@@ -10,6 +10,7 @@ PNG resource icons used by the shared game UI live here.
 - `shards.png`
 - `tickets.png`
 - `command.png`
+- `adventure_key.webp`
 
 ## How they are loaded
 
@@ -17,7 +18,7 @@ The UI only requests icons declared in the central manifest:
 
 `lib/iconAssets.ts`
 
-Register new files in `GAME_ICON_ASSET_MANIFEST.resources`. If an icon is not registered, the UI uses the existing SVG fallback and does not request a speculative PNG path.
+Register new files in `GAME_ICON_ASSET_MANIFEST.resources`. If an icon is not registered, the UI uses the existing SVG fallback and does not request a speculative asset path.
 
 ## Naming
 
@@ -30,4 +31,4 @@ Use lowercase resource ids:
 - `tickets`
 - `command`
 
-Keep transparent PNGs where possible so the same icon can be reused in the top resource bar, rewards, shop, fortress and combat.
+Keep transparent assets where possible so the same icon can be reused in the top resource bar, rewards, shop, fortress and combat.

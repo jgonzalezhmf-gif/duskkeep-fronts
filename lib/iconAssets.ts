@@ -123,7 +123,7 @@ export const GAME_ICON_ASSET_MANIFEST = {
     shards: `${RESOURCE_ROOT}/shards.png`,
     tickets: `${RESOURCE_ROOT}/tickets.png`,
     command: `${RESOURCE_ROOT}/command.png`,
-    adventure_key: `${RESOURCE_ROOT}/adventure_key.png`,
+    adventure_key: `${RESOURCE_ROOT}/adventure_key.webp`,
   },
   nav: {
     adventure: `${NAV_ROOT}/adventure.png`,

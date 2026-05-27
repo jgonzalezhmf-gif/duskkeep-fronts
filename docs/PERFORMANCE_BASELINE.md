@@ -33,7 +33,7 @@ Tambien se movieron fuera de `public/assets` laminas fuente PNG ignoradas y no r
 
 Se eliminaron duplicados publicos de fondos de batalla de Chapter 1 bajo `public/assets/backgrounds/`; el runtime usa los registrados en `public/assets/frontline/backgrounds/`. Tambien se retiro `deck_hall.png` legacy tras alinear el manifest de Home con `deck_hall_clean.png`.
 
-Tambien se movieron fuera de `public/assets` versiones intermedias no registradas del brillo del key chest (`gold_shine_loop.png` y `gold_shine_loop_aligned.png`). El runtime conserva la version activa `gold_shine_loop_core_aligned.png`, registrada en `lib/adventureMapInteractionAssets.ts`.
+Tambien se movieron fuera de `public/assets` versiones intermedias no registradas del brillo del key chest (`gold_shine_loop.png` y `gold_shine_loop_aligned.png`). El runtime conserva la version activa `gold_shine_loop_core_aligned.webp`, registrada en `lib/adventureMapInteractionAssets.ts`.
 
 Tambien se movieron fuera de `public/assets` variantes Home no referenciadas (`*_aligned` intermedias, `banner_red_cloth_loop.png` y `banner_red_static.png`). Se conservaron los sprites activos registrados por `lib/homeEffectAssets.ts`, incluidos `flag_red_cloth_loop.png`, `blue_flame_loop_aligned.png` y `purple_flame_loop_base_aligned.png`.
 
