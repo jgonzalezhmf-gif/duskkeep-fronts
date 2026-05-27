@@ -7,6 +7,52 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.3] - 2026-05-25
+
+### Changed
+- Estabilizada Last Bastion Defense sobre una matriz unica 3x5 compartida por motor y UI: enemigos, guardias y trampas quedan como entidades separadas, Shadow Trap exige casilla R2-R4 y los movimientos tras ordenes tacticas permanecen dentro del grid.
+- Reencuadrada la lectura del grid de Last Bastion Defense con carriles horizontales, columnas R1-R5 alineadas, carril inferior mas alto y enemigos generados avanzando como maximo un rango por turno.
+- Corregido el mapeo de habilidades por heroes asignados a Fortress Defense: sin heroes solo quedan Castle Shot/Deploy Guard; Bran desbloquea Bulwark, Kara Blade Rush, Vex Volley, Mira Mend, Drak Shadow Trap y Tovi War Chant.
+- Mejorado el feedback visual de Fortress Defense con marcadores de trampa, origen de habilidad por heroe/base y el PNG `garrison_guard.png` registrado para los guardias desplegados, con fallback CSS seguro.
+
+## [0.37.2] - 2026-05-22
+
+### Changed
+- Registrados los temas musicales `ladder` y `arena_trials`, apuntando a `ladder_ranked.mp3` y `arena_trials_epic.mp3` con fallback procedural seguro.
+- La pantalla `/arena` cambia la musica de combate segun el modo: Ladder usa el tema ranked y Arena Trials usa el tema epico de trials, sin tocar reglas de combate, MMR, tickets ni rewards.
+- La defensa activa de `/fortress` pasa a una escena interna de combate con HUD de castillo, oleadas, enemigos en aproximacion, ordenes defensivas y claim final, manteniendo intactas economia y recompensas.
+- Pulida Last Bastion Defense como escena full-screen de asedio: fondo dominante, puerta/muralla como Castle Core sin castillo duplicado, oleadas por rango, ordenes naciendo desde la muralla, ataque enemigo visible y feedback de escudo/curacion/dano.
+- Redisenada Last Bastion Defense como defensa tactica por rangos 1-5: enemigos con velocidad y alcance de ataque, Castle Shot con objetivo manual, Volley como dano/slow de grupo y lectura visual clara de amenaza/distancia.
+- Mejorado el targeting tactico de Last Bastion Defense: cada orden declara `targetType`, Castle Shot entra en modo seleccion manual, todos los enemigos vivos actuan por turno con cola visual, y los slots/rangos quedan centralizados para futuras trampas, carriles y casillas.
+- Normalizados los carriles de Last Bastion Defense para que Volley y Castle Shot avancen todos los enemigos vivos con la misma cadencia visual, sin frenar carriles ni solapar standees.
+- Corregidos los avances y el targeting de Last Bastion Defense: los enemigos ya no se teletransportan antes de animar nodo a nodo, mantienen su imagen por identidad/arquetipo y los atacantes en rango de peligro siguen siendo seleccionables con Castle Shot.
+- Redisenadas las ordenes de Last Bastion Defense con cooldowns, cargas limitadas para Mend, Bulwark como reserva real de escudo, botones con estado bloqueado/charges y un balance inicial de dano/vida/rangos mas tactico.
+- Anadida la orden base Deploy Guard / Desplegar Guardia en Last Bastion Defense, con slot targeting R1-R2, 2 cargas, cooldown, guardias aliados con HP, limite de dos activos y bloqueo de enemigos melee por lane sin tocar backend ni rewards.
+
+## [0.37.1] - 2026-05-22
+
+### Fixed
+- Reestructurada la escena de edificios de Fortress para mostrar Treasury, Keep y Barracks como triada visible, con Keep central y Treasury/Barracks a tamaño legible.
+- Compactados el hero/header y el inspector inferior de Fortress para dejar más protagonismo visual al escenario y los edificios.
+
+## [0.37.0] - 2026-05-21
+
+### Added
+- Implementado MVP de defensa manual de Fortress por oleadas: el castillo actua como nucleo, la guarnicion habilita acciones defensivas y el jugador reclama el resultado al terminar la defensa.
+- Anadida operacion autoritativa `claimFrontlineFortressDefense` con contrato BFF, mapping RPC, migracion Supabase, idempotencia, ownership por perfil y rewards calculadas en servidor.
+- Cubierto el motor de defensa y el contrato server-authoritative con tests enfocados.
+
+### Changed
+- `/fortress` deja de presentar el resolve automatico como accion principal y pasa a mostrar una defensa jugable con vida del castillo, oleadas, enemigos, acciones de guardias y claim final.
+- Los hotspots de Keep, Treasury y Barracks son visibles sin depender del hover, reduciendo la sensacion de edificios ocultos.
+
+## [0.36.13] - 2026-05-21
+
+### Fixed
+- Ocultado el tour de onboarding global en Adventure, precombate, Missions y Roster para que no tape contenido principal en sesiones frescas, manteniendolo visible en Home y cubierto con tests de rutas.
+- Escalado y recolocado el mapa de Adventure en portrait movil para reducir la franja vacia inicial y dejar el nodo/CTA mas cerca del primer viewport sin cambiar progresion ni combate.
+- Ajustadas las misiones diaria/semanal de combate para que progresen con batallas de Arena/Ladder y lleven a `/arena`, incluyendo catalogo server-side y progreso Ladder local, evitando que Adventure o combates genericos de bajo riesgo completen esos objetivos.
+
 ## [0.36.12] - 2026-05-20
 
 ### Fixed
