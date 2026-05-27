@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.9] - 2026-05-27
+
+### Changed
+- Migrados los retratos de lideres Frontline a WebP-only en su manifest, manteniendo thumbnails para el HUD cuando existen.
+- Reducido el presupuesto de `public/assets` de `63.40 MB` a `52.58 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.8] - 2026-05-27
 
 ### Changed

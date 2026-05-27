@@ -17,20 +17,20 @@ export type FrontlineLeaderPortraitAsset = {
 
 export const FRONTLINE_LEADER_PORTRAIT_ASSETS: Record<FrontlineLeaderPortraitId, FrontlineLeaderPortraitAsset> = {
   leader_aurora: {
-    src: "/assets/frontline/leaders/aurora_valeborn.png",
+    src: "/assets/frontline/leaders/aurora_valeborn.webp",
     webpSrc: "/assets/frontline/leaders/aurora_valeborn.webp",
     thumbnailWebpSrc: "/assets/frontline/leaders/aurora_valeborn_128.webp",
   },
   leader_morrow: {
-    src: "/assets/frontline/leaders/morrow_blackveil.png",
+    src: "/assets/frontline/leaders/morrow_blackveil.webp",
     webpSrc: "/assets/frontline/leaders/morrow_blackveil.webp",
     thumbnailWebpSrc: "/assets/frontline/leaders/morrow_blackveil_128.webp",
   },
-  enemy_warlord: { src: "/assets/frontline/leaders/enemy_warlord.png", webpSrc: "/assets/frontline/leaders/enemy_warlord.webp" },
-  enemy_cultist: { src: "/assets/frontline/leaders/enemy_cultist.png", webpSrc: "/assets/frontline/leaders/enemy_cultist.webp" },
-  enemy_plague_lord: { src: "/assets/frontline/leaders/enemy_plague_lord.png", webpSrc: "/assets/frontline/leaders/enemy_plague_lord.webp" },
-  enemy_shadow_commander: { src: "/assets/frontline/leaders/enemy_shadow_commander.png", webpSrc: "/assets/frontline/leaders/enemy_shadow_commander.webp" },
-  crown_of_ashes: { src: "/assets/frontline/leaders/crown_of_ashes_leader.png", webpSrc: "/assets/frontline/leaders/crown_of_ashes_leader.webp" },
+  enemy_warlord: { src: "/assets/frontline/leaders/enemy_warlord.webp", webpSrc: "/assets/frontline/leaders/enemy_warlord.webp" },
+  enemy_cultist: { src: "/assets/frontline/leaders/enemy_cultist.webp", webpSrc: "/assets/frontline/leaders/enemy_cultist.webp" },
+  enemy_plague_lord: { src: "/assets/frontline/leaders/enemy_plague_lord.webp", webpSrc: "/assets/frontline/leaders/enemy_plague_lord.webp" },
+  enemy_shadow_commander: { src: "/assets/frontline/leaders/enemy_shadow_commander.webp", webpSrc: "/assets/frontline/leaders/enemy_shadow_commander.webp" },
+  crown_of_ashes: { src: "/assets/frontline/leaders/crown_of_ashes_leader.webp", webpSrc: "/assets/frontline/leaders/crown_of_ashes_leader.webp" },
 };
 
 const ENEMY_PRESET_PORTRAITS: Partial<Record<string, FrontlineLeaderPortraitId>> = {
