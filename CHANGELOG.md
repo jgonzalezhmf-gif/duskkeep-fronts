@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.8] - 2026-05-27
+
+### Changed
+- Migrados el fondo base y landmarks de Home a WebP-only en su manifest responsive, manteniendo los `srcSet` existentes.
+- Reducido el presupuesto de `public/assets` de `69.57 MB` a `63.40 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.7] - 2026-05-27
 
 ### Changed
