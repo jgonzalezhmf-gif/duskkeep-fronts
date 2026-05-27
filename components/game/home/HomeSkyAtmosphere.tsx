@@ -110,13 +110,13 @@ export function HomeSkyAtmosphere() {
       {crow ? (
         <>
           <span className="home-crow-flight" data-home-crow-flight="1">
-            <CrowSprite src={crow.src} webpSrc={crow.webpSrc} x="0px" y="0px" width="64px" height="42px" scale="1" opacity="0.94" />
-            <CrowSprite src={crow.src} webpSrc={crow.webpSrc} x="42px" y="18px" width="48px" height="32px" scale="0.88" opacity="0.9" />
-            <CrowSprite src={crow.src} webpSrc={crow.webpSrc} x="-40px" y="24px" width="43px" height="29px" scale="0.78" opacity="0.82" />
+            <CrowSprite src={crow.src} x="0px" y="0px" width="64px" height="42px" scale="1" opacity="0.94" />
+            <CrowSprite src={crow.src} x="42px" y="18px" width="48px" height="32px" scale="0.88" opacity="0.9" />
+            <CrowSprite src={crow.src} x="-40px" y="24px" width="43px" height="29px" scale="0.78" opacity="0.82" />
           </span>
           <span className="home-crow-flight home-crow-flight--reverse" data-home-crow-flight="1">
-            <CrowSprite src={crow.src} webpSrc={crow.webpSrc} x="0px" y="0px" width="48px" height="32px" scale="0.86" opacity="0.86" flip />
-            <CrowSprite src={crow.src} webpSrc={crow.webpSrc} x="-34px" y="18px" width="38px" height="25px" scale="0.72" opacity="0.72" flip />
+            <CrowSprite src={crow.src} x="0px" y="0px" width="48px" height="32px" scale="0.86" opacity="0.86" flip />
+            <CrowSprite src={crow.src} x="-34px" y="18px" width="38px" height="25px" scale="0.72" opacity="0.72" flip />
           </span>
         </>
       ) : null}
@@ -126,7 +126,6 @@ export function HomeSkyAtmosphere() {
 
 function CrowSprite({
   src,
-  webpSrc,
   x,
   y,
   width,
@@ -136,7 +135,6 @@ function CrowSprite({
   flip = false,
 }: {
   src: string;
-  webpSrc?: string;
   x: string;
   y: string;
   width: string;
@@ -150,7 +148,7 @@ function CrowSprite({
       className="home-crow-sprite"
       data-home-crow-sprite="1"
       style={{
-        ["--home-crow-image" as string]: webpSrc ? `image-set(url("${webpSrc}") type("image/webp"), url("${src}") type("image/png"))` : `url("${src}")`,
+        ["--home-crow-image" as string]: `url("${src}")`,
         ["--home-crow-x" as string]: x,
         ["--home-crow-y" as string]: y,
         ["--home-crow-width" as string]: width,

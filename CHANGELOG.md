@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.6] - 2026-05-27
+
+### Changed
+- Migrados los efectos atmosfericos de Home/Adventure a WebP-only en sus manifests, manteniendo las variantes alineadas para flames, banderas y nubes.
+- Reducido el presupuesto de `public/assets` de `96.86 MB` a `76.86 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.5] - 2026-05-27
 
 ### Changed
