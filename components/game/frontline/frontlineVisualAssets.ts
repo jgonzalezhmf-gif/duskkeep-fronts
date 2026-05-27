@@ -68,11 +68,11 @@ export type FrontlineBattleBackgroundKey =
   | "arena_trials_coliseum";
 
 const FRONTLINE_BATTLE_BACKGROUND_ASSETS: Record<FrontlineBattleBackgroundKey, string | null> = {
-  ch1_battle_road: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_road.png`,
-  ch1_battle_ruins: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_ruins.png`,
-  ch1_boss_eclipse_gate: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_boss_eclipse_gate.png`,
-  ladder_duel_arena: `${FRONTLINE_ASSET_ROOT}/backgrounds/ladder_duel_arena.png`,
-  arena_trials_coliseum: `${FRONTLINE_ASSET_ROOT}/backgrounds/arena_trials_coliseum.png`,
+  ch1_battle_road: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_road.webp`,
+  ch1_battle_ruins: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_battle_ruins.webp`,
+  ch1_boss_eclipse_gate: `${FRONTLINE_ASSET_ROOT}/backgrounds/ch1_boss_eclipse_gate.webp`,
+  ladder_duel_arena: `${FRONTLINE_ASSET_ROOT}/backgrounds/ladder_duel_arena.webp`,
+  arena_trials_coliseum: `${FRONTLINE_ASSET_ROOT}/backgrounds/arena_trials_coliseum.webp`,
 };
 
 const FRONTLINE_BATTLE_BACKGROUND_FALLBACKS: Partial<Record<FrontlineBattleBackgroundKey, FrontlineBattleBackgroundKey>> = {

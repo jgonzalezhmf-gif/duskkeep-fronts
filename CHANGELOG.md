@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.7] - 2026-05-27
+
+### Changed
+- Convertidos los fondos de batalla Frontline (`Adventure`, `boss`, `Ladder` y `Arena Trials`) de PNG a WebP registrado en el manifest de combate.
+- Reducido el presupuesto de `public/assets` de `76.86 MB` a `69.57 MB`, manteniendo `check:performance` y `audit:asset-refs` en verde.
+
 ## [0.37.6] - 2026-05-27
 
 ### Changed
