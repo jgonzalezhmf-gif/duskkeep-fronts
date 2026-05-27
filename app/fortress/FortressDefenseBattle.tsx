@@ -13,6 +13,7 @@ import {
   type FortressDefenseState,
   type FortressDefenseTargetType,
 } from "@/features/fortress-defense/engine";
+import { FORTRESS_DEFENSE_SCENE_ASSETS } from "@/features/fortress-defense/assets";
 import { audio, sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
 import type { FrontlineFortressOutcome, Rewards } from "@/lib/types";
@@ -64,13 +65,7 @@ type FortressDefenseBattleProps = {
   t: TranslateFn;
 };
 
-const LAST_BASTION_DEFENSE_BACKDROP = "/assets/fortress/backgrounds/last_bastion_defense.png";
-const FALLBACK_FORTRESS_BACKDROP = "/assets/backgrounds/fortress_bg.png";
 let fortressDefenseThemeReleaseTimer: number | null = null;
-
-function resolveFortressDefenseBackdrop(fallbackSrc?: string) {
-  return LAST_BASTION_DEFENSE_BACKDROP.length > 0 ? LAST_BASTION_DEFENSE_BACKDROP : fallbackSrc ?? FALLBACK_FORTRESS_BACKDROP;
-}
 
 function retainFortressDefenseTheme() {
   if (typeof window !== "undefined" && fortressDefenseThemeReleaseTimer !== null) {
@@ -134,7 +129,7 @@ export function FortressDefenseBattle({
   const fieldTraps = [...activeTraps, ...ghostTraps];
   const occupiedGuardSlots = new Set(fieldGuards.map((guard) => defenseSlotKey(guard.lane, guard.range)));
   const occupiedEnemySlots = new Set(fieldEnemies.map((enemy) => defenseSlotKey(enemy.lane, enemy.range)));
-  const battleBackdrop = backdropFailed ? FALLBACK_FORTRESS_BACKDROP : resolveFortressDefenseBackdrop();
+  const battleBackdrop = backdropFailed ? FORTRESS_DEFENSE_SCENE_ASSETS.lastBastionBackdrop.fallbackSrc : FORTRESS_DEFENSE_SCENE_ASSETS.lastBastionBackdrop.src;
   const targetingAction = targetingActionId ? actions.find((action) => action.id === targetingActionId) ?? null : null;
   const targetingType = targetingAction?.targetType ?? "none";
   const targetingEnemies = targetingType === "enemy";

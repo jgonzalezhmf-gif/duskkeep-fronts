@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.4] - 2026-05-27
+
+### Changed
+- Convertidos los assets runtime de Last Bastion Defense de PNG a WebP registrado, manteniendo fallback seguro para el fondo de Fortress.
+- Reducido el presupuesto de `public/assets` de `118.44 MB` a `109.97 MB`, dejando `check:performance` en verde.
+
 ## [0.37.3] - 2026-05-25
 
 ### Changed
