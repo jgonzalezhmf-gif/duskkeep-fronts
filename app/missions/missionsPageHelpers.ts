@@ -14,7 +14,7 @@ export const METRIC_META: Record<MissionMetric, MissionMeta> = {
   battles_won: {
     icon: "battle",
     tone: "ember",
-    route: "/battle",
+    route: "/arena",
   },
   adventure_levels_cleared: {
     icon: "adventure",

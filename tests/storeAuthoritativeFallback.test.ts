@@ -13,6 +13,7 @@ import {
   purchaseShopOfferAuthoritatively,
   recordArenaResultAuthoritatively,
   recordEventResultAuthoritatively,
+  recordLadderResultAuthoritatively,
   resolveFrontlineFortressRaidAuthoritatively,
   saveFrontlineLoadoutAuthoritatively,
   skillUpHeroAuthoritatively,
@@ -32,9 +33,10 @@ vi.mock("@/features/server/authoritativeOperationDispatcher", () => ({
   levelUpHeroAuthoritatively: vi.fn(),
   openAdventureMapInteractionAuthoritatively: vi.fn(),
   purchaseShopOfferAuthoritatively: vi.fn(),
-  recordArenaResultAuthoritatively: vi.fn(),
-  recordEventResultAuthoritatively: vi.fn(),
-  resolveFrontlineFortressRaidAuthoritatively: vi.fn(),
+    recordArenaResultAuthoritatively: vi.fn(),
+    recordEventResultAuthoritatively: vi.fn(),
+    recordLadderResultAuthoritatively: vi.fn(),
+    resolveFrontlineFortressRaidAuthoritatively: vi.fn(),
   saveFrontlineLoadoutAuthoritatively: vi.fn(),
   skillUpHeroAuthoritatively: vi.fn(),
   starUpHeroAuthoritatively: vi.fn(),
@@ -56,6 +58,7 @@ const mockedFortressUpgrade = vi.mocked(upgradeFrontlineFortressAuthoritatively)
 const mockedFortressRaid = vi.mocked(resolveFrontlineFortressRaidAuthoritatively);
 const mockedArenaResult = vi.mocked(recordArenaResultAuthoritatively);
 const mockedEventResult = vi.mocked(recordEventResultAuthoritatively);
+const mockedLadderResult = vi.mocked(recordLadderResultAuthoritatively);
 const mockedHeroLevelUp = vi.mocked(levelUpHeroAuthoritatively);
 const mockedHeroStarUp = vi.mocked(starUpHeroAuthoritatively);
 const mockedHeroSkillUp = vi.mocked(skillUpHeroAuthoritatively);
@@ -78,6 +81,7 @@ describe("store authoritative fallback policy", () => {
     mockedFortressRaid.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedArenaResult.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedEventResult.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
+    mockedLadderResult.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(saveFrontlineLoadoutAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     vi.mocked(syncLocalSnapshotAuthoritatively).mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
     mockedCardUpgrade.mockResolvedValue({ ok: false, mode: "local", reason: "api_disabled" });
@@ -362,6 +366,25 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().resources).toEqual(beforeResources);
     expect(useGameStore.getState().arenaWins).toBe(0);
     expect(useGameStore.getState().accountLinkMode).toBe("undecided");
+  });
+
+  it("counts local Ladder results as Arena-risk mission progress", async () => {
+    useGameStore.setState({ accountLinkMode: "guest" });
+
+    const result = await useGameStore.getState().recordLadderResultOnlineFirst({
+      opponentId: "ladder_bronze_iii_iron_vow",
+      battleSeed: 123,
+      winner: "enemy",
+      turns: 6,
+      battleSummary: { allyCoreHp: 0, enemyCoreHp: 12 },
+      rewards: { gold: 9999 },
+      source: "Ladder",
+    });
+
+    expect(result).toMatchObject({ authoritative: false, pointsDelta: -10 });
+    expect(useGameStore.getState().missionsProgress.d_battles_3.progress).toBe(1);
+    expect(useGameStore.getState().missionsProgress.d_arena_1.progress).toBe(1);
+    expect(useGameStore.getState().missionsProgress.w_battles_20.progress).toBe(1);
   });
 
   it("does not award local Adventure draw rewards to linked accounts", async () => {

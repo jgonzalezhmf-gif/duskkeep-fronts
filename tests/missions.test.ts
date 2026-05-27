@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  ALL_MISSIONS,
+  DAILY_MISSIONS,
+  WEEKLY_MISSIONS,
+} from "@/data/missions";
+import {
   applyMissionMetricProgress,
   claimMissionProgress,
   ensureMissionProgress,
@@ -7,6 +12,7 @@ import {
   missionNeedsReset,
 } from "@/lib/missionProgress";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
+import { METRIC_META } from "@/app/missions/missionsPageHelpers";
 import type { Mission, MissionProgress } from "@/lib/types";
 
 const missions: Mission[] = [
@@ -142,5 +148,28 @@ describe("adventure reward visibility helpers", () => {
     expect(isAdventureFirstClearRewardAvailable({ cleared: false, firstClearTaken: false })).toBe(true);
     expect(isAdventureFirstClearRewardAvailable({ cleared: true })).toBe(false);
     expect(isAdventureFirstClearRewardAvailable({ cleared: false, firstClearTaken: true })).toBe(false);
+  });
+});
+
+describe("mission route helpers", () => {
+  it("routes risky battle missions to Arena instead of generic combat", () => {
+    expect(METRIC_META.arena_battles.route).toBe("/arena");
+    expect(METRIC_META.battles_won.route).toBe("/arena");
+  });
+
+  it("counts the daily and weekly battle missions from Arena/Ladder battles", () => {
+    expect(DAILY_MISSIONS.find((mission) => mission.id === "d_battles_3")?.metric).toBe("arena_battles");
+    expect(WEEKLY_MISSIONS.find((mission) => mission.id === "w_battles_20")?.metric).toBe("arena_battles");
+  });
+
+  it("advances risky battle missions from arena battle progress", () => {
+    const progress = applyMissionMetricProgress({}, ALL_MISSIONS, "arena_battles", 1, new Date(2026, 4, 21, 12));
+
+    expect(progress).not.toBeNull();
+    if (!progress) return;
+    expect(progress.d_battles_3.progress).toBe(1);
+    expect(progress.d_arena_1.progress).toBe(1);
+    expect(progress.w_battles_20.progress).toBe(1);
+    expect(progress.d_adv_2?.progress ?? 0).toBe(0);
   });
 });

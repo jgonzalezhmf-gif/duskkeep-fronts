@@ -3,7 +3,7 @@ import type { Mission } from "@/lib/types";
 export const DAILY_MISSIONS: Mission[] = [
   {
     id: "d_battles_3", kind: "daily", name: "Combatant",
-    description: "Win 3 battles", goal: 3, metric: "battles_won",
+    description: "Play 3 Arena or Ladder battles", goal: 3, metric: "arena_battles",
     rewards: { gold: 100, dust: 20, accountXp: 10 },
   },
   {
@@ -26,7 +26,7 @@ export const DAILY_MISSIONS: Mission[] = [
 export const WEEKLY_MISSIONS: Mission[] = [
   {
     id: "w_battles_20", kind: "weekly", name: "Veteran",
-    description: "Win 20 battles this week", goal: 20, metric: "battles_won",
+    description: "Play 20 Arena or Ladder battles this week", goal: 20, metric: "arena_battles",
     rewards: { gold: 1000, dust: 200, gems: 20, accountXp: 50 },
   },
   {

@@ -123,15 +123,12 @@ export function AdventureCampaignMap({
       <AdventureMapInteractionStyles />
       <div
         ref={stageRef}
-        className={cn("absolute", fullScreen ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" : "inset-0")}
-        style={
+        className={cn(
+          "absolute",
           fullScreen
-            ? {
-                width: "min(100vw, 177.7778dvh)",
-                height: "min(100dvh, 56.25vw)",
-              }
-            : undefined
-        }
+            ? "left-1/2 top-[45%] h-[min(100dvh,84.375vw)] w-[min(150vw,177.7778dvh)] -translate-x-1/2 -translate-y-1/2 md:top-1/2 md:h-[min(100dvh,56.25vw)] md:w-[min(100vw,177.7778dvh)]"
+            : "inset-0",
+        )}
         onPointerMove={handlePointerMove}
         onPointerUp={() => setDragging(null)}
         onKeyDown={handleKeyDown}

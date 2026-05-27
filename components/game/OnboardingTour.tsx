@@ -7,6 +7,7 @@ import { useGameStore } from "@/lib/store";
 import Button from "@/components/ui/Button";
 import { sfx } from "@/lib/audio";
 import { cn } from "@/lib/cn";
+import { shouldHideOnboardingTourOnPathname } from "@/lib/onboardingVisibility";
 
 type Step = {
   emoji: string;
@@ -72,16 +73,9 @@ export default function OnboardingTour() {
     setHideOverlay(hidden);
   }, []);
 
-  const hiddenOnCombat =
-    pathname.startsWith("/battle") ||
-    pathname.startsWith("/deck") ||
-    pathname.startsWith("/fortress") ||
-    pathname.startsWith("/shop") ||
-    pathname.startsWith("/arena") ||
-    pathname.startsWith("/events") ||
-    pathname.startsWith("/team");
+  const hiddenOnGameScreen = shouldHideOnboardingTourOnPathname(pathname);
 
-  if (!hydrated || onboarding.completed || onboarding.step >= STEPS.length || hideOverlay || hiddenOnCombat) return null;
+  if (!hydrated || onboarding.completed || onboarding.step >= STEPS.length || hideOverlay || hiddenOnGameScreen) return null;
 
   const current = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;

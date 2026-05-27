@@ -613,6 +613,7 @@ export const useGameStore = create<GameState & GameActions>()(
             };
           });
           if (winner === "ally") get().updateMissionProgress("battles_won", 1);
+          get().updateMissionProgress("arena_battles", 1);
           return {
             rewards: grantedRewards,
             authoritative: false,
