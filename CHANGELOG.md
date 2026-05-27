@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.12] - 2026-05-27
+
+### Changed
+- Migradas las artes de cartas Frontline a WebP-only desde el manifest seguro, conservando dimensiones y sin cambiar layout ni reglas de combate.
+- Guardado backup externo de los PNG sustituidos en `C:\Users\Usuario\DuskkeepAssetBackups\2026-05-27_0.37.12_frontline_cards`.
+- Actualizadas las guias locales de assets Frontline para documentar las rutas WebP runtime de cartas.
+- Reducido el presupuesto de `public/assets` de `48.39 MB` a `43.37 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.11] - 2026-05-27
 
 ### Changed

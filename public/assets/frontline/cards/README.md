@@ -1,24 +1,24 @@
 Frontline card art placeholders.
 
 Expected filenames use card ids, for example:
-- `order_twin_slash.png`
-- `order_guard_wall.png`
-- `order_focus_fire.png`
-- `tactic_battle_hymn.png`
-- `tactic_sanctuary.png`
-- `tactic_smokescreen.png`
-- `tactic_core_burst.png`
-- `tactic_rally_cry.png`
-- `tactic_poisoned_dagger.png`
-- `summon_wolf.png`
-- `summon_barrier.png`
+- `order_twin_slash.webp`
+- `order_guard_wall.webp`
+- `order_focus_fire.webp`
+- `tactic_battle_hymn.webp`
+- `tactic_sanctuary.webp`
+- `tactic_smokescreen.webp`
+- `tactic_core_burst.webp`
+- `tactic_rally_cry.webp`
+- `tactic_poisoned_dagger.webp`
+- `summon_wolf.webp`
+- `summon_barrier.webp`
 
 After adding a file, register it in
 `components/game/frontline/frontlineVisualAssets.ts`:
 
 ```ts
 const FRONTLINE_CARD_ART_ASSETS = {
-  order_guard_wall: "/assets/frontline/cards/order_guard_wall.png",
+  order_guard_wall: "/assets/frontline/cards/order_guard_wall.webp",
 };
 ```
 

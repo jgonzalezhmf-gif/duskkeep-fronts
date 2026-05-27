@@ -4,7 +4,7 @@ Drop production art here and register it in
 `components/game/frontline/frontlineVisualAssets.ts` before the UI will request it:
 - `heroes/{heroId}.webp` for 2.5D standees.
 - `heroes/Enemy1.webp` ... `heroes/Enemy6.webp` for the current enemy unit set.
-- `cards/{cardId}.png` for full-art card illustrations.
+- `cards/{cardId}.webp` for full-art card illustrations.
 - `effects/{effectKey}.png` for authored combat VFX sprites or overlays.
 
 The Combat UI uses an explicit asset manifest so optional future art does not
