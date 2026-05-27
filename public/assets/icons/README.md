@@ -1,6 +1,6 @@
 # Game Icon Assets
 
-PNG icon assets shared by game screens live under this folder.
+Runtime icon assets shared by game screens live under this folder.
 
 ## Folders
 
@@ -19,7 +19,7 @@ Assets are loaded only through the explicit manifest in:
 
 `lib/iconAssets.ts`
 
-The browser only requests files registered in `GAME_ICON_ASSET_MANIFEST`. If a name is not registered, `GameAssetIcon` renders the existing `GameGlyph` fallback instead of probing a missing PNG path.
+The browser only requests files registered in `GAME_ICON_ASSET_MANIFEST`. If a name is not registered, `GameAssetIcon` renders the existing `GameGlyph` fallback instead of probing a missing asset path.
 
 ## Component
 
@@ -50,7 +50,7 @@ Supported sizes:
 
 ## Adding A New Icon
 
-1. Place the transparent PNG in `public/assets/icons/resources/`, `public/assets/icons/nav/`, `public/assets/icons/combat/`, `public/assets/icons/cards/`, `public/assets/icons/fortress/`, `public/assets/icons/progression/`, `public/assets/icons/status/` or `public/assets/icons/shop/`.
+1. Place the transparent runtime asset in `public/assets/icons/resources/`, `public/assets/icons/nav/`, `public/assets/icons/combat/`, `public/assets/icons/cards/`, `public/assets/icons/fortress/`, `public/assets/icons/progression/`, `public/assets/icons/status/` or `public/assets/icons/shop/`.
 2. Register the exact path in `GAME_ICON_ASSET_MANIFEST`.
 3. Add or confirm a fallback glyph in `GAME_ASSET_ICON_FALLBACK_GLYPH`.
 4. Use `GameAssetIcon` directly, or use shared wrappers such as `ResourceIcon` / `GameIcon` when the icon corresponds to an existing resource or navigation glyph.
@@ -61,20 +61,20 @@ Do not build icon paths dynamically from user/data ids unless those ids are chec
 
 Expected Duskkeep Fronts names:
 
-- `core.png`
-- `breach.png`
-- `clash.png`
-- `attack.png`
-- `shield.png`
-- `heal.png`
-- `stun.png`
-- `summon.png`
-- `target.png`
-- `leader_power.png`
-- `danger.png`
-- `advantage.png`
+- `core.webp`
+- `breach.webp`
+- `clash.webp`
+- `attack.webp`
+- `shield.webp`
+- `heal.webp`
+- `stun.webp`
+- `summon.webp`
+- `target.webp`
+- `leader_power.webp`
+- `danger.webp`
+- `advantage.webp`
 
-Only register a combat entry in `lib/iconAssets.ts` after the matching PNG exists. If it is not registered, Combat uses the fallback glyph and the browser makes no request for that PNG. `clash.png` is currently the only expected combat icon still using fallback unless that file is added and registered.
+Only register a combat entry in `lib/iconAssets.ts` after the matching asset exists. If it is not registered, Combat uses the fallback glyph and the browser makes no request for that asset.
 
 ## Card Type Icons
 
