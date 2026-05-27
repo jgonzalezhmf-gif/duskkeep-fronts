@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.15] - 2026-05-28
+
+### Changed
+- Migrados los iconos runtime de progresion a WebP desde `GAME_ICON_ASSET_MANIFEST.progression`, conservando dimensiones y transparencia.
+- Guardado backup externo de los PNG sustituidos en `C:\Users\Usuario\DuskkeepAssetBackups\2026-05-28_0.37.15_progression_icons`.
+- Actualizada la documentacion local de iconos de progresion para reflejar WebP como formato runtime.
+- Reducido el presupuesto de `public/assets` de `41.97 MB` a `41.68 MB`, sin referencias huerfanas en `audit:asset-refs`.
+
 ## [0.37.14] - 2026-05-27
 
 ### Changed

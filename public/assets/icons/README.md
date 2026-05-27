@@ -109,16 +109,16 @@ Use `components/game/shared/FortressIcon.tsx` for Fortress-specific UI. Register
 
 Official progression icon names:
 
-- `upgrade.png`
-- `evolve.png`
-- `star.png`
-- `unlock.png`
-- `claim.png`
-- `level_up.png`
-- `tier_up.png`
-- `reward_chest.png`
+- `upgrade.webp`
+- `evolve.webp`
+- `star.webp`
+- `unlock.webp`
+- `claim.webp`
+- `level_up.webp`
+- `tier_up.webp`
+- `reward_chest.webp`
 
-Use `components/game/shared/ProgressionIcon.tsx` for reward, claim, unlock, level-up, upgrade and tier UI. Register progression PNGs in `GAME_ICON_ASSET_MANIFEST.progression` only after the file exists. `evolve.png` is currently expected but not present, so `evolve` intentionally falls back without a browser request.
+Use `components/game/shared/ProgressionIcon.tsx` for reward, claim, unlock, level-up, upgrade and tier UI. Register progression assets in `GAME_ICON_ASSET_MANIFEST.progression` only after the file exists.
 
 ## Status Icons
 
