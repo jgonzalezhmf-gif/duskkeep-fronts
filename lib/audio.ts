@@ -43,6 +43,11 @@ type OneShotMusicElementChannel = {
   timer: number | null;
 };
 
+type SetThemeOptions = {
+  immediate?: boolean;
+  assetOnly?: boolean;
+};
+
 class AudioManager {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
@@ -198,12 +203,13 @@ class AudioManager {
     }
   }
 
-  setTheme(theme: ThemeName) {
+  setTheme(theme: ThemeName, options: SetThemeOptions = {}) {
+    const forceThemeRefresh = options.immediate || options.assetOnly;
     if (this.routeThemeSuppressed && theme !== null) {
       this.theme = theme;
       return;
     }
-    if (this.theme === theme) {
+    if (this.theme === theme && !forceThemeRefresh) {
       if (!theme || this.muted || !this.primed) return;
       if (this.activeMusicAssetChannel?.theme === theme) {
         this.applyMusicAssetVolume(0.18);
@@ -212,7 +218,7 @@ class AudioManager {
       if (this.activeThemeChannel?.theme === theme) return;
     }
     this.theme = theme;
-    this.crossfadeTheme(theme);
+    this.crossfadeTheme(theme, options);
   }
 
   vibrate(pattern: number | number[]) {
@@ -526,25 +532,27 @@ class AudioManager {
     return true;
   }
 
-  private playMusicAsset(theme: AudioThemeName) {
+  private playMusicAsset(theme: AudioThemeName, options: SetThemeOptions = {}) {
     if (typeof window === "undefined" || !this.primed || this.muted) return false;
     const asset = getAudioMusicAsset(theme);
     if (!asset) return false;
+    const proceduralFade = options.immediate ? 0 : 0.22;
+    const assetFade = options.immediate ? 0.18 : 0.75;
     if (this.activeMusicAssetChannel?.theme === theme) {
-      this.stopActiveProceduralTheme(0.22);
+      this.stopActiveProceduralTheme(proceduralFade);
       stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
-      this.applyMusicAssetVolume(0.18);
+      this.applyMusicAssetVolume(options.immediate ? 0.08 : 0.18);
       return true;
     }
     if (this.activeMusicAssetChannel?.audio.currentSrc.endsWith(asset.src)) {
-      this.stopActiveProceduralTheme(0.22);
+      this.stopActiveProceduralTheme(proceduralFade);
       stopUntrackedMusicElements(this.activeMusicAssetChannel.audio);
       this.activeMusicAssetChannel.theme = theme;
-      this.applyMusicAssetVolume(0.18);
+      this.applyMusicAssetVolume(options.immediate ? 0.08 : 0.18);
       return true;
     }
 
-    this.stopActiveProceduralTheme(0.22);
+    this.stopActiveProceduralTheme(proceduralFade);
     this.stopMusicAssetChannel(0);
     stopUntrackedMusicElements();
     const audio = new Audio(asset.src);
@@ -555,11 +563,11 @@ class AudioManager {
     this.activeMusicAssetChannel = channel;
     registerMusicElement(audio);
     audio.play().then(
-      () => fadeHtmlAudio(channel, this.getMusicAssetVolume(theme), 0.75),
+      () => fadeHtmlAudio(channel, this.getMusicAssetVolume(theme), assetFade),
       () => {
         if (this.activeMusicAssetChannel === channel) this.activeMusicAssetChannel = null;
         disposeMusicElement(audio);
-        this.crossfadeProceduralTheme(theme);
+        if (!options.assetOnly) this.crossfadeProceduralTheme(theme);
       },
     );
     return true;
@@ -992,6 +1000,17 @@ class AudioManager {
     }
     if (!graph) return;
     const now = graph.ctx.currentTime;
+    if (fadeSeconds <= 0) {
+      try {
+        channel.dry.gain.cancelScheduledValues(now);
+        channel.fx.gain.cancelScheduledValues(now);
+        channel.dry.gain.setValueAtTime(0.0001, now);
+        channel.fx.gain.setValueAtTime(0.0001, now);
+        channel.dry.disconnect();
+        channel.fx.disconnect();
+      } catch {}
+      return;
+    }
     channel.dry.gain.cancelScheduledValues(now);
     channel.fx.gain.cancelScheduledValues(now);
     channel.dry.gain.setValueAtTime(Math.max(0.0001, channel.dry.gain.value), now);
@@ -1020,12 +1039,13 @@ class AudioManager {
     channel.timer = window.setTimeout(() => this.scheduleThemeBar(channel), wait);
   }
 
-  private crossfadeTheme(theme: ThemeName) {
+  private crossfadeTheme(theme: ThemeName, options: SetThemeOptions = {}) {
     if (typeof window === "undefined") return;
     if (this.routeThemeSuppressed && theme) return;
     if (!this.primed || this.muted) {
-      this.stopActiveProceduralTheme(0.35);
-      this.stopMusicAssetChannel(0.35);
+      const fade = options.immediate ? 0 : 0.35;
+      this.stopActiveProceduralTheme(fade);
+      this.stopMusicAssetChannel(fade);
       this.stopOneShotMusicAsset(0.18);
       stopUntrackedMusicElements();
       return;
@@ -1042,8 +1062,9 @@ class AudioManager {
     this.stopOneShotMusicAsset(0.18);
 
     if (getAudioMusicAsset(theme)) {
-      this.stopActiveProceduralTheme(0.45);
-      if (this.playMusicAsset(theme)) return;
+      this.stopActiveProceduralTheme(options.immediate ? 0 : 0.45);
+      if (this.playMusicAsset(theme, options)) return;
+      if (options.assetOnly) return;
     } else {
       this.stopMusicAssetChannel(0.45);
       stopUntrackedMusicElements();

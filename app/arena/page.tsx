@@ -19,6 +19,8 @@ import {
 import { useI18n } from "@/lib/i18n/useI18n";
 import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { useGameStore } from "@/lib/store";
+import { audio } from "@/lib/audio";
+import type { AudioThemeName } from "@/lib/audio-score";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
@@ -45,6 +47,11 @@ type LadderMatchmakingState = "idle" | "finding" | "found";
 type BattlePick =
   | { mode: "trials"; rival: ArenaRival }
   | { mode: "ladder"; rival: LadderOpponent };
+
+const ARENA_BATTLE_THEME_BY_MODE = {
+  ladder: "ladder",
+  trials: "arena_trials",
+} satisfies Record<ArenaMode, AudioThemeName>;
 
 type ArenaResult = {
   winner: "ally" | "enemy" | "draw";
@@ -85,6 +92,7 @@ export default function ArenaPage() {
   const [ladderMatchmaking, setLadderMatchmaking] = useState<LadderMatchmakingState>("idle");
   const [foundLadderOpponent, setFoundLadderOpponent] = useState<LadderOpponent | null>(null);
   const ladderMatchTimers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const pickedMode = picked?.mode ?? null;
 
   useEffect(() => {
     setClientReady(true);
@@ -97,6 +105,18 @@ export default function ArenaPage() {
       ladderMatchTimers.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    if (phase === "battle" && pickedMode) {
+      audio.setTheme(ARENA_BATTLE_THEME_BY_MODE[pickedMode]);
+      return;
+    }
+    if (phase === "post") {
+      audio.setTheme("postbattle");
+      return;
+    }
+    audio.setTheme("home");
+  }, [phase, pickedMode]);
 
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;
   const deckReady = frontlineLoadout.deck.filter(Boolean).length === 8;

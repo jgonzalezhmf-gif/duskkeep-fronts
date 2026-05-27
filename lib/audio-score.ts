@@ -5,6 +5,9 @@ export type AudioThemeName =
   | "intro"
   | "battle"
   | "boss"
+  | "ladder"
+  | "arena_trials"
+  | "fortress_defense"
   | "adventure"
   | "event"
   | "shop"
@@ -987,6 +990,9 @@ export const THEME_SCORES: Record<AudioThemeName, AudioThemeScore> = {
   intro: createHomeScore(),
   battle: createBattleScore(),
   boss: createBattleScore(),
+  ladder: createBattleScore(),
+  arena_trials: createEventScore(),
+  fortress_defense: createBattleScore(),
   adventure: createAdventureScore(),
   event: createEventScore(),
   shop: createShopScore(),

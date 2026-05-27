@@ -44,6 +44,12 @@ export type AudioMusicAssetName =
   | "adventure"
   | "battle"
   | "boss"
+  | "ladder"
+  | "arena_trials"
+  | "fortress_defense"
+  | "ladder_ranked"
+  | "arena_trials_epic"
+  | "fortress_last_bastion_defense"
   | "battle_boss"
   | "battle_event"
   | "prebattle"
@@ -103,6 +109,12 @@ export const AUDIO_MUSIC_ASSETS: AudioAssetManifest<AudioMusicAssetName> = {
   battle: { src: "/assets/audio/music/battle.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
   battle_boss: { src: "/assets/audio/music/battle_boss.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
   boss: { src: "/assets/audio/music/battle_boss.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
+  ladder: { src: "/assets/audio/music/ladder_ranked.mp3", credit: "elevenlabs", loop: true, gain: 0.58 },
+  ladder_ranked: { src: "/assets/audio/music/ladder_ranked.mp3", credit: "elevenlabs", loop: true, gain: 0.58 },
+  arena_trials: { src: "/assets/audio/music/arena_trials_epic.mp3", credit: "elevenlabs", loop: true, gain: 0.6 },
+  arena_trials_epic: { src: "/assets/audio/music/arena_trials_epic.mp3", credit: "elevenlabs", loop: true, gain: 0.6 },
+  fortress_defense: { src: "/assets/audio/music/fortress_last_bastion_defense.mp3", credit: "elevenlabs", loop: true, gain: 0.6 },
+  fortress_last_bastion_defense: { src: "/assets/audio/music/fortress_last_bastion_defense.mp3", credit: "elevenlabs", loop: true, gain: 0.6 },
   battle_event: { src: "/assets/audio/music/battle_event.mp3", credit: "elevenlabs", loop: true, gain: 0.56 },
   event: { src: "/assets/audio/music/battle_event.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },
   home: { src: "/assets/audio/music/home.mp3", credit: "elevenlabs", loop: true, gain: 0.54 },
