@@ -455,7 +455,7 @@ export default function HomeWorldMap({
             <DockShrine key={action.href} {...action} label={t(action.labelKey)} delay={`${index * 0.08}s`} />
           ))}
         </div>
-        <div className="mx-auto hidden max-w-[46rem] grid-cols-[1fr_minmax(16rem,20rem)_1fr] items-end gap-3 px-5 py-1 sm:grid md:max-w-[54rem] md:grid-cols-[1fr_minmax(19rem,24rem)_1fr] md:gap-5">
+        <div className="mx-auto hidden max-w-[58rem] grid-cols-[1fr_minmax(20rem,25rem)_1fr] items-end gap-3 px-5 py-1 sm:grid md:max-w-[68rem] md:grid-cols-[1fr_minmax(27rem,32rem)_1fr] md:gap-5">
           <div className="flex justify-end gap-3 md:gap-5">
             {DOCK_ACTIONS.slice(0, 2).map((action, index) => (
               <DockShrine key={action.href} {...action} label={t(action.labelKey)} delay={`${index * 0.08}s`} />

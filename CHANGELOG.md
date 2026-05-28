@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.33] - 2026-05-28
+
+### Fixed
+- Separado el dock inferior de Home del CTA central `Adventure Fight` en desktop, reservando mas espacio horizontal para evitar solapes visuales.
+- Validado el flujo real Intro/Auth -> invitado -> Home con Playwright, ademas de Adventure, Shop, Arena y Fortress, sin errores de consola en las capturas generadas.
+
 ## [0.37.32] - 2026-05-28
 
 ### Changed
