@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.25] - 2026-05-28
+
+### Changed
+- Centralizadas las recompensas de empate y derrota de Adventure Frontline en `features/frontline/adventure.ts`.
+- Reducida responsabilidad de `lib/store.ts`, que ahora solo orquesta el claim online-first y reutiliza las constantes de dominio.
+- Aniadido test unitario para fijar las recompensas no victoriosas actuales sin cambiar economia, rewards, backend ni flujo de combate.
+
 ## [0.37.24] - 2026-05-28
 
 ### Changed

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ADVENTURE } from "@/data/adventure";
 import { FRONTLINE_PRESET_BY_ID } from "@/features/frontline/data";
-import { getFrontlinePresetForAdventure, getFrontlinePresetIdForAdventure } from "@/features/frontline/adventure";
+import {
+  FRONTLINE_ADVENTURE_DEFEAT_REWARDS,
+  FRONTLINE_ADVENTURE_DRAW_REWARDS,
+  getFrontlinePresetForAdventure,
+  getFrontlinePresetIdForAdventure,
+} from "@/features/frontline/adventure";
 
 describe("frontline adventure presets", () => {
   it("uses explicit Frontline presets for every Adventure node", () => {
@@ -23,5 +28,10 @@ describe("frontline adventure presets", () => {
     ]);
     const eclipse = bossLevels.find((level) => level.id === "c1l12")!;
     expect(getFrontlinePresetForAdventure(eclipse).bossId).toBe("the_eclipse");
+  });
+
+  it("keeps non-victory Adventure rewards centralized for store orchestration", () => {
+    expect(FRONTLINE_ADVENTURE_DRAW_REWARDS).toEqual({ gold: 20, dust: 2, gems: 0, accountXp: 1 });
+    expect(FRONTLINE_ADVENTURE_DEFEAT_REWARDS).toEqual({ gold: 0, dust: 0, gems: 0, accountXp: 0 });
   });
 });

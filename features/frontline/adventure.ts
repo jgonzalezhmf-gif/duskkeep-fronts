@@ -1,4 +1,4 @@
-import type { AdventureLevel } from "@/lib/types";
+import type { AdventureLevel, Rewards } from "@/lib/types";
 import { ADVENTURE_BY_ID } from "@/data/adventure";
 import {
   getAdventureNodeRewardPreview,
@@ -14,6 +14,9 @@ const ADVENTURE_PRESET_TIERS = {
   mid: "plague_pack",
   late: "ember_court",
 } as const;
+
+export const FRONTLINE_ADVENTURE_DRAW_REWARDS: Rewards = { gold: 20, dust: 2, gems: 0, accountXp: 1 };
+export const FRONTLINE_ADVENTURE_DEFEAT_REWARDS: Rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
 
 export function getFrontlinePresetIdForAdventure(level: AdventureLevel) {
   if (level.frontlinePresetId && FRONTLINE_PRESET_BY_ID[level.frontlinePresetId]) {

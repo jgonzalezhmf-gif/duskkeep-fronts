@@ -51,7 +51,11 @@ import {
 } from "@/lib/rewardVisibility";
 import { isFrontlineCardUnlocked } from "@/features/frontline/cardProgression";
 import { createFrontlineFortressDefenseReportFromPayload } from "@/features/fortress-defense/engine";
-import { getFrontlineAdventureVictoryRewards } from "@/features/frontline/adventure";
+import {
+  FRONTLINE_ADVENTURE_DEFEAT_REWARDS,
+  FRONTLINE_ADVENTURE_DRAW_REWARDS,
+  getFrontlineAdventureVictoryRewards,
+} from "@/features/frontline/adventure";
 import {
   applyFrontlineFortressReport,
   frontlineFortressRaidReady,
@@ -93,13 +97,9 @@ import {
   SKILL_COOLDOWN_REDUCTION_AT_MAX,
   SKILL_MULTIPLIER_BONUS,
 } from "./constants";
-import type { Rewards } from "@/lib/types";
 
 export type { AccountLinkMode, GameActions, GameState, Notification, NotificationKind, TextScale } from "@/lib/storeTypes";
 export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressState";
-
-const ADVENTURE_DRAW_REWARDS: Rewards = { gold: 20, dust: 2, gems: 0, accountXp: 1 };
-const ADVENTURE_DEFEAT_REWARDS: Rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
 
 export const useGameStore = create<GameState & GameActions>()(
   persist(
@@ -694,10 +694,10 @@ export const useGameStore = create<GameState & GameActions>()(
         if (winner === "draw") {
           if (get().accountLinkMode === "linked") {
             get().pushNotification("info", "Draw rewards are not available for linked Adventure sessions yet");
-            return { rewards: ADVENTURE_DEFEAT_REWARDS, firstClear: false };
+            return { rewards: FRONTLINE_ADVENTURE_DEFEAT_REWARDS, firstClear: false };
           }
-          get().awardRewards(ADVENTURE_DRAW_REWARDS, "Adventure draw");
-          return { rewards: ADVENTURE_DRAW_REWARDS, firstClear: false };
+          get().awardRewards(FRONTLINE_ADVENTURE_DRAW_REWARDS, "Adventure draw");
+          return { rewards: FRONTLINE_ADVENTURE_DRAW_REWARDS, firstClear: false };
         }
 
         const authoritative = await claimAdventureBattleResultAuthoritatively({
@@ -721,7 +721,7 @@ export const useGameStore = create<GameState & GameActions>()(
             return { rewards, firstClear: plan.firstClear };
           }
 
-          return { rewards: ADVENTURE_DEFEAT_REWARDS, firstClear: false };
+          return { rewards: FRONTLINE_ADVENTURE_DEFEAT_REWARDS, firstClear: false };
         }
 
         if (!authoritative.ok) {
