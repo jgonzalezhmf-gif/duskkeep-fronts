@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.16] - 2026-05-28
+
+### Changed
+- Documentado el cierre del bloque de optimizacion de assets runtime con el estado verificado de `public/assets`: 292 archivos y 41.68 MB.
+- Aniadida politica de mantenimiento para assets runtime: manifests explicitos, fallbacks sin 404, backups externos antes de retirar PNGs y no mezclar optimizacion de imagenes con audio.
+- Actualizados los siguientes focos de rendimiento hacia controles de regresion, profiling real y calidad estructural, evitando seguir optimizando imagenes sin objetivo concreto.
+
 ## [0.37.15] - 2026-05-28
 
 ### Changed

@@ -4,7 +4,33 @@ Fecha: 2026-05-09
 
 Este documento marca el inicio del bloque de rendimiento. No sustituye profiling real en navegador, pero deja una base medible para no optimizar a ciegas.
 
-## Estado Actual
+## Estado Verificado Actual - 2026-05-28
+
+- El bloque de optimizacion de assets runtime queda cerrado en `0.37.15`.
+- `public/assets` queda en 292 archivos y 41.68 MB, dentro del presupuesto activo de 112 MB.
+- El peso restante esta dominado por musica activa registrada en `lib/audioAssets.ts`; no se debe comprimir, mover ni sustituir audio como parte de futuras pasadas de imagenes.
+- Las familias de imagenes runtime migradas a WebP incluyen Fortress Defense, fondos de pantalla, Home landmarks/effects, Frontline backgrounds, lideres, bosses, standees, cartas, Adventure key chest, combat icons y progression icons.
+- Cada PNG runtime sustituido fue respaldado fuera del proyecto antes de eliminarse de `public/assets`, bajo `C:\Users\Usuario\DuskkeepAssetBackups\...`.
+- No se cambiaron reglas de combate, economia, rewards, MMR, audio ni comportamiento jugable como parte de este cierre.
+
+## Politica Runtime De Assets
+
+- Los assets finales se cargan desde manifests explicitos (`lib/iconAssets.ts`, `lib/screenBackgroundAssets.ts`, `lib/adventureMapInteractionAssets.ts`, `lib/homeEffectAssets.ts`, `components/game/frontline/frontlineVisualAssets.ts` y equivalentes).
+- No se deben aniadir rutas especulativas a `public/assets`; si un asset es opcional, debe tener fallback seguro sin 404.
+- Los sources/raw, borradores, laminas grandes y backups no pertenecen a `public/assets`.
+- Si se sustituye un PNG runtime por WebP, conservar dimensiones, alpha util, frameCount y alineacion visual antes de cambiar referencias.
+- Antes de retirar PNGs, copiarlos fuera del proyecto y verificar que no quedan referencias huerfanas con `npm.cmd run audit:asset-refs`.
+
+## Auditoria De Assets Actual
+
+Resultado de `npm.cmd run audit:assets`:
+
+- `public/assets`: 292 archivos.
+- Peso total: 41.68 MB.
+- Top de peso: musica activa (`battle.mp3`, `fortress_last_bastion_defense.mp3`, `home.mp3`, `arena_trials_epic.mp3`, `adventure.mp3`, `battle_boss.mp3`, `battle_event.mp3`, `ladder_ranked.mp3`).
+- La imagen runtime mas pesada queda por debajo de 0.32 MB (`public/assets/home/landmarks/arena.webp`).
+
+## Estado Inicial Del Bloque - 2026-05-09
 
 - `npm.cmd run check:full` pasa de forma estable antes de iniciar este bloque.
 - La app usa Next.js App Router con rutas mayoritariamente estaticas y algunas rutas dinamicas para Battle, Adventure level y endpoints dev.
@@ -39,7 +65,7 @@ Tambien se movieron fuera de `public/assets` variantes Home no referenciadas (`*
 
 Se anadio `npm.cmd run audit:asset-refs` para listar candidatos sin referencias textuales en codigo/docs/tests. Es una herramienta de revision manual, no un gate automatico, porque los paths dinamicos pueden producir falsos positivos. Tras revisar el primer reporte se movio fuera de `public/assets` `banner_red_pole.png`; Home usa `flag_red_pole.png`.
 
-## Auditoria Actual
+## Auditoria Historica Del Inicio Del Bloque
 
 Resultado de `npm.cmd run audit:assets`:
 
@@ -116,7 +142,7 @@ Resultado de `npm.cmd run audit:build` tras `npm.cmd run check:full`:
 
 ## Siguientes Focos
 
-1. Revisar imagenes publicas pesadas que si estan registradas y decidir si conviene comprimir, redimensionar o mantener calidad.
-2. Investigar rutas HTML pesadas empezando por Deck y Shop antes de tocar componentes.
-3. Revisar carga de musica/audio sin tocar el sistema de reproduccion actual.
-4. Definir una politica de assets: source/raw fuera del repo, solo PNGs finales recortados en `public/assets`.
+1. Mantener `audit:assets`, `audit:asset-refs`, `audit:build` y `check:performance` como controles de regresion, no como excusa para seguir optimizando imagenes sin objetivo.
+2. Investigar rutas o componentes pesados solo cuando Lighthouse, `audit:build` o profiling muestren un cuello real.
+3. Revisar audio en un bloque separado y explicitamente acotado; no mezclarlo con optimizacion de imagenes ni tocar musica activa sin decision de producto.
+4. Continuar con calidad estructural: reducir acoplamientos grandes, reforzar boundaries server-authoritative y documentar decisiones de arquitectura antes de nuevas features grandes.
