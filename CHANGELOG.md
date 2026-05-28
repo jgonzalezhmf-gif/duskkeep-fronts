@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.31] - 2026-05-28
+
+### Changed
+- Centralizada la aplicacion de rewards autoritativos en `applyAuthoritativeRewardsToGameState`, preservando `resources` como valor server-authoritative.
+- Reutilizado el helper en resultados online-first de Arena, Ladder, Events, Adventure, misiones, cofres y login diario.
+- Reducido `lib/store.ts` a 1166 lineas y ampliados tests de rewards para cubrir resources autoritativos sin cambiar economia, backend ni rewards.
+
 ## [0.37.30] - 2026-05-28
 
 ### Changed

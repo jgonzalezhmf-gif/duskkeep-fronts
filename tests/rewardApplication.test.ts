@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultFrontlineCardUnlocks } from "@/features/frontline/cardProgression";
-import { applyRewardsToGameState, type RewardApplicationState } from "@/lib/rewardApplication";
+import {
+  applyAuthoritativeRewardsToGameState,
+  applyRewardsToGameState,
+  type RewardApplicationState,
+} from "@/lib/rewardApplication";
 
 const baseState: RewardApplicationState = {
   account: {
@@ -70,6 +74,32 @@ describe("reward application", () => {
         frontlineCards: [{ cardId: "order_shadow_dive" }],
       }),
     ).toMatchObject({
+      account: {
+        ...baseState.account,
+        level: 3,
+        xp: 20,
+      },
+      pendingUnlockLevel: 3,
+      frontlineCardUnlocks: {
+        ...baseState.frontlineCardUnlocks,
+        order_shadow_dive: true,
+      },
+    });
+  });
+
+  it("uses authoritative resources while still applying non-resource reward effects", () => {
+    expect(
+      applyAuthoritativeRewardsToGameState(
+        baseState,
+        {
+          gold: 999,
+          accountXp: 180,
+          frontlineCards: [{ cardId: "order_shadow_dive" }],
+        },
+        { gold: 120, dust: 25, gems: 7, arenaTickets: 2, adventureKeys: 1 },
+      ),
+    ).toMatchObject({
+      resources: { gold: 120, dust: 25, gems: 7, arenaTickets: 2, adventureKeys: 1 },
       account: {
         ...baseState.account,
         level: 3,

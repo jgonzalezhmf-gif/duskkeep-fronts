@@ -26,7 +26,7 @@ import {
 import { claimDailyLoginReward, claimMilestoneReward, claimRoadmapReward } from "@/lib/metaRewardClaims";
 import { applyMissionMetricProgress, claimMissionProgress, ensureMissionProgress, getMissionResetAt } from "@/lib/missionProgress";
 import { getMissionAuthoritativeClaimPlan } from "@/lib/missionAuthoritativeClaims";
-import { applyRewardsToGameState } from "@/lib/rewardApplication";
+import { applyAuthoritativeRewardsToGameState, applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
 import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
@@ -531,10 +531,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         set((state) => {
-          const rewardedState = applyRewardsToGameState(state, authoritative.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(state, authoritative.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             arenaWins: authoritative.arenaWins,
             arenaLosses: authoritative.arenaLosses,
             battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
@@ -609,10 +608,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         set((state) => {
-          const rewardedState = applyRewardsToGameState(state, authoritative.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(state, authoritative.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             ladder: authoritative.ladder,
             battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
           };
@@ -664,10 +662,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         set((state) => {
-          const rewardedState = applyRewardsToGameState(state, authoritative.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(state, authoritative.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             battlesWon: authoritative.winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
           };
         });
@@ -738,10 +735,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         set((st) => {
-          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(st, authoritative.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             adventureProgress:
               authoritative.winner === "ally"
                 ? markAdventureLevelCleared(st.adventureProgress, authoritative.nodeId, {
@@ -791,10 +787,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         set((st) => {
-          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(st, authoritative.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             adventureProgress: markAdventureNodeClaimed(st.adventureProgress, authoritative.nodeId, localDayKey()),
           };
         });
@@ -841,10 +836,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         set((st) => {
-          const rewardedState = applyRewardsToGameState(st, authoritative.result.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(st, authoritative.result.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             adventureMapClaims: {
               ...st.adventureMapClaims,
               [interactionId]: {
@@ -902,10 +896,9 @@ export const useGameStore = create<GameState & GameActions>()(
 
         set((st) => {
           const current = st.missionsProgress[missionId];
-          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(st, authoritative.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             missionsProgress: {
               ...st.missionsProgress,
               [missionId]: {
@@ -1012,10 +1005,9 @@ export const useGameStore = create<GameState & GameActions>()(
         }
 
         set((st) => {
-          const rewardedState = applyRewardsToGameState(st, authoritative.rewards);
+          const rewardedState = applyAuthoritativeRewardsToGameState(st, authoritative.rewards, authoritative.resources);
           return {
             ...rewardedState,
-            resources: authoritative.resources,
             dailyLogin: {
               streak: authoritative.streak,
               lastClaim: authoritative.dayKey,

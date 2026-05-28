@@ -49,3 +49,14 @@ export function applyRewardsToGameState(state: RewardApplicationState, rewards: 
 
   return next;
 }
+
+export function applyAuthoritativeRewardsToGameState(
+  state: RewardApplicationState,
+  rewards: Rewards,
+  resources: Resources,
+): RewardApplicationPatch {
+  return {
+    ...applyRewardsToGameState(state, rewards),
+    resources,
+  };
+}
