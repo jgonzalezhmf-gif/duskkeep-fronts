@@ -31,7 +31,6 @@ import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchas
 import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
-import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
 import { getLadderOpponentForPoints, getLadderRankForPoints, LADDER_DAILY_NORMAL_WIN_LIMIT } from "@/features/ladder/data";
 import {
@@ -79,9 +78,11 @@ import {
   upgradeFrontlineFortressAuthoritatively,
 } from "@/features/server/authoritativeOperationDispatcher";
 import {
-  createClientSensitiveMutationDecision,
-  createLocalAuthoritativeFallbackDecision,
-} from "@/lib/storeAuthoritativeFallback";
+  blockClientSensitiveMutationIfNeeded,
+  blockLocalAuthoritativeFallbackIfNeeded,
+  refreshServerSnapshotAfterAuthoritativeMutation,
+  shouldRefreshServerSnapshotAfterMutation,
+} from "@/lib/storeAuthoritativeGuards";
 import { loadServerPlayerSnapshot } from "@/features/server/serverPlayerSnapshot";
 import { createServerPlayerSnapshotPatch } from "@/lib/serverPlayerSnapshotState";
 import {
@@ -97,47 +98,6 @@ export { fortressBattleBonuses, fortressIncomePreview } from "@/lib/fortressStat
 
 const ADVENTURE_DRAW_REWARDS: Rewards = { gold: 20, dust: 2, gems: 0, accountXp: 1 };
 const ADVENTURE_DEFEAT_REWARDS: Rewards = { gold: 0, dust: 0, gems: 0, accountXp: 0 };
-
-type StoreSetPatch = (patch: Partial<GameState & GameActions>) => void;
-type StoreGetState = () => GameState & GameActions;
-
-function blockLocalAuthoritativeFallbackIfNeeded(
-  reason: string,
-  set: StoreSetPatch,
-  get: StoreGetState,
-) {
-  const decision = createLocalAuthoritativeFallbackDecision({
-    accountLinkMode: get().accountLinkMode,
-    reason,
-  });
-  if (!decision.blocked) {
-    return false;
-  }
-
-  set({ accountLinkMode: decision.accountLinkMode });
-  get().pushNotification(decision.notification.kind, decision.notification.message);
-  return true;
-}
-
-function blockClientSensitiveMutationIfNeeded(get: StoreGetState) {
-  const decision = createClientSensitiveMutationDecision({
-    accountLinkMode: get().accountLinkMode,
-  });
-  if (!decision.blocked) return false;
-
-  get().pushNotification(decision.notification.kind, decision.notification.message);
-  return true;
-}
-
-function shouldRefreshServerSnapshotAfterMutation(get: StoreGetState) {
-  const accountLinkMode = get().accountLinkMode;
-  return accountLinkMode === "linked" || (accountLinkMode === "guest" && isServerAuthoritativePersistenceEnabled());
-}
-
-async function refreshServerSnapshotAfterAuthoritativeMutation(get: StoreGetState) {
-  if (!shouldRefreshServerSnapshotAfterMutation(get)) return;
-  await get().loadServerSnapshotOnlineFirst();
-}
 
 export const useGameStore = create<GameState & GameActions>()(
   persist(

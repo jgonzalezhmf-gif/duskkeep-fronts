@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.21] - 2026-05-28
+
+### Changed
+- Extraidos los guards server-authoritative del store a `lib/storeAuthoritativeGuards.ts`.
+- Reducido `lib/store.ts` de 1246 a 1206 lineas, manteniendo el bloqueo de fallback local, mutaciones sensibles y refresco de snapshot sin cambiar economia, rewards ni flujos online.
+
 ## [0.37.20] - 2026-05-28
 
 ### Changed
