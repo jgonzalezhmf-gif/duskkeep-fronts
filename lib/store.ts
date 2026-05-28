@@ -34,6 +34,7 @@ import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
 import { planLocalLadderResult } from "@/features/ladder/resultState";
+import { planLocalEventResult } from "@/features/events/resultState";
 import {
   createFortressBuildingUpgradeCommand,
   createFrontlineCardUpgradeCommand,
@@ -635,15 +636,19 @@ export const useGameStore = create<GameState & GameActions>()(
             return null;
           }
 
-          const won = winner === "ally";
-          const today = todayYMD();
-          const firstClear = won && get().eventCompletions[eventId] !== today;
-          get().recordBattleResult(won, "event");
-          if (firstClear) {
-            get().awardRewards(rewards, source);
+          const plan = planLocalEventResult({
+            eventCompletions: get().eventCompletions,
+            eventId,
+            winner,
+            rewards,
+            today: todayYMD(),
+          });
+          get().recordBattleResult(plan.won, "event");
+          if (plan.firstClear) {
+            get().awardRewards(plan.rewards, source);
             get().markEventCompleted(eventId);
           }
-          return { rewards: firstClear ? rewards : {}, firstClear, authoritative: false };
+          return { rewards: plan.rewards, firstClear: plan.firstClear, authoritative: false };
         }
 
         if (!authoritative.ok) {

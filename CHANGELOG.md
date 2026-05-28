@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.24] - 2026-05-28
+
+### Changed
+- Movida la planificacion de resultado local de Events a `features/events/resultState.ts`, separando first-clear diario y reward claimable de la orquestacion del store.
+- Aniadidos tests unitarios para victoria diaria no reclamada, repeticion del mismo dia y draw/derrota sin reward.
+- Conservado el comportamiento existente de completions, rewards, misiones, backend y flujo online-first.
+
 ## [0.37.23] - 2026-05-28
 
 ### Changed
