@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.30] - 2026-05-28
+
+### Changed
+- Extraida la aplicacion de patches autoritativos de progresion de heroes a `lib/heroAuthoritativeProgressionState.ts`.
+- Reutilizada la misma actualizacion pura para level up, star up y skill up online-first, evitando mapear heroes manualmente en el store.
+- Aniadidos tests unitarios para level, stars/shards y skillLevel autoritativos sin cambiar costes, rewards, misiones ni backend.
+
 ## [0.37.29] - 2026-05-28
 
 ### Changed

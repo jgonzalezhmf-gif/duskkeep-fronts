@@ -45,6 +45,7 @@ import {
   createHeroSkillUpCommand,
   createHeroStarUpCommand,
 } from "@/lib/progressionCommands";
+import { applyHeroAuthoritativeProgressionState } from "@/lib/heroAuthoritativeProgressionState";
 import { applyProgressionCommandResultToStore } from "@/lib/progressionCommandStoreAdapter";
 import { getRewardGrantNotifications } from "@/lib/rewardGrantNotifications";
 import type { GameActions, GameState } from "@/lib/storeTypes";
@@ -391,13 +392,13 @@ export const useGameStore = create<GameState & GameActions>()(
           return { ok: false, reason: authoritative.reason, authoritative: true };
         }
 
-        set((s) => ({
-          resources: authoritative.resources,
-          heroes: s.heroes.map((hero) =>
-            hero.heroId === authoritative.heroId ? { ...hero, level: authoritative.level } : hero,
-          ),
-          heroesUpgraded: s.heroesUpgraded + 1,
-        }));
+        set((s) =>
+          applyHeroAuthoritativeProgressionState(s, {
+            resources: authoritative.resources,
+            heroId: authoritative.heroId,
+            level: authoritative.level,
+          }),
+        );
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().updateMissionProgress("heroes_upgraded", 1);
         get().pushNotification("success", "Hero leveled up");
@@ -423,15 +424,14 @@ export const useGameStore = create<GameState & GameActions>()(
           return { ok: false, reason: authoritative.reason, authoritative: true };
         }
 
-        set((s) => ({
-          resources: authoritative.resources,
-          heroes: s.heroes.map((hero) =>
-            hero.heroId === authoritative.heroId
-              ? { ...hero, stars: authoritative.stars, shards: authoritative.shards }
-              : hero,
-          ),
-          heroesUpgraded: s.heroesUpgraded + 1,
-        }));
+        set((s) =>
+          applyHeroAuthoritativeProgressionState(s, {
+            resources: authoritative.resources,
+            heroId: authoritative.heroId,
+            stars: authoritative.stars,
+            shards: authoritative.shards,
+          }),
+        );
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().updateMissionProgress("heroes_upgraded", 1);
         get().pushNotification("success", "Hero starred up");
@@ -458,13 +458,13 @@ export const useGameStore = create<GameState & GameActions>()(
           return { ok: false, reason: authoritative.reason, authoritative: true };
         }
 
-        set((s) => ({
-          resources: authoritative.resources,
-          heroes: s.heroes.map((hero) =>
-            hero.heroId === authoritative.heroId ? { ...hero, skillLevel: authoritative.skillLevel } : hero,
-          ),
-          heroesUpgraded: s.heroesUpgraded + 1,
-        }));
+        set((s) =>
+          applyHeroAuthoritativeProgressionState(s, {
+            resources: authoritative.resources,
+            heroId: authoritative.heroId,
+            skillLevel: authoritative.skillLevel,
+          }),
+        );
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
         get().updateMissionProgress("heroes_upgraded", 1);
         get().pushNotification("success", `Skill enhanced to level ${authoritative.skillLevel}!`);
