@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.22] - 2026-05-28
+
+### Changed
+- Extraida la notificacion de outcomes de Fortress a `lib/frontlineFortressNotifications.ts` para reutilizar el mapping entre flujos local y online-first.
+- Reducido `lib/store.ts` de 1206 a 1183 lineas eliminando duplicacion sin cambiar dominio, infraestructura, economia, rewards ni comportamiento de juego.
+- Aniadido test unitario para fijar la severidad y copy actual de outcomes de Fortress.
+
 ## [0.37.21] - 2026-05-28
 
 ### Changed

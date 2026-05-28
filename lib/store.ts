@@ -14,6 +14,7 @@ import { markAdventureLevelCleared, markAdventureNodeClaimed } from "@/lib/adven
 import { planAdventureLevelClear, planAdventureNodeClaim } from "@/lib/adventureNodeState";
 import { defaultInitial, todayISO, todayYMD } from "@/lib/defaultGameState";
 import { getFortressIncomeRewards, markFortressIncomeCollected, setFrontlineFortressGarrisonSlot } from "@/lib/fortressState";
+import { getFrontlineFortressOutcomeNotification } from "@/lib/frontlineFortressNotifications";
 import { getNewlyUnlockedFrontlineCardRewards } from "@/lib/frontlineCardRewards";
 import {
   setDeckSlotState,
@@ -272,14 +273,8 @@ export const useGameStore = create<GameState & GameActions>()(
         const { nextState, report } = resolveFrontlineFortressRaid(s.frontlineFortress, s.account.level, new Date(), heroProfiles);
         set({ frontlineFortress: nextState });
         get().awardRewards(report.rewards, "fortress defense");
-        get().pushNotification(
-          report.outcome === "breach" ? "error" : "success",
-          report.outcome === "full_repel"
-            ? "Fortress held the line"
-            : report.outcome === "partial_hold"
-              ? "Fortress held with damage"
-              : "Fortress was breached",
-        );
+        const notification = getFrontlineFortressOutcomeNotification(report.outcome);
+        get().pushNotification(notification.kind, notification.message);
         return report;
       },
 
@@ -302,14 +297,8 @@ export const useGameStore = create<GameState & GameActions>()(
           frontlineFortress: authoritative.frontlineFortress,
         });
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
-        get().pushNotification(
-          authoritative.report.outcome === "breach" ? "error" : "success",
-          authoritative.report.outcome === "full_repel"
-            ? "Fortress held the line"
-            : authoritative.report.outcome === "partial_hold"
-              ? "Fortress held with damage"
-              : "Fortress was breached",
-        );
+        const notification = getFrontlineFortressOutcomeNotification(authoritative.report.outcome);
+        get().pushNotification(notification.kind, notification.message);
         return authoritative.report;
       },
 
@@ -326,14 +315,8 @@ export const useGameStore = create<GameState & GameActions>()(
         });
         set({ frontlineFortress: applyFrontlineFortressReport(s.frontlineFortress, report) });
         get().awardRewards(report.rewards, "fortress defense");
-        get().pushNotification(
-          report.outcome === "breach" ? "error" : "success",
-          report.outcome === "full_repel"
-            ? "Fortress held the line"
-            : report.outcome === "partial_hold"
-              ? "Fortress held with damage"
-              : "Fortress was breached",
-        );
+        const notification = getFrontlineFortressOutcomeNotification(report.outcome);
+        get().pushNotification(notification.kind, notification.message);
         return report;
       },
 
@@ -356,14 +339,8 @@ export const useGameStore = create<GameState & GameActions>()(
           frontlineFortress: authoritative.frontlineFortress,
         });
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
-        get().pushNotification(
-          authoritative.report.outcome === "breach" ? "error" : "success",
-          authoritative.report.outcome === "full_repel"
-            ? "Fortress held the line"
-            : authoritative.report.outcome === "partial_hold"
-              ? "Fortress held with damage"
-              : "Fortress was breached",
-        );
+        const notification = getFrontlineFortressOutcomeNotification(authoritative.report.outcome);
+        get().pushNotification(notification.kind, notification.message);
         return authoritative.report;
       },
 
