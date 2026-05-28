@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.18] - 2026-05-28
+
+### Changed
+- Extraidos los efectos visuales del battlefield de Fortress Defense a `app/fortress/FortressDefenseBattlefieldFx.tsx`.
+- Reducido `app/fortress/FortressDefenseBattlefieldUnits.tsx` de 471 a 371 lineas sin cambiar motor, reglas de oleadas, dano, cooldowns, audio ni rewards.
+
 ## [0.37.17] - 2026-05-28
 
 ### Changed
