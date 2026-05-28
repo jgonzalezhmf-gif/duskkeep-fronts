@@ -33,6 +33,7 @@ import { addNotificationState, completeOnboardingState, createNotificationId, di
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
+import { planLocalArenaResult } from "@/features/arena/resultState";
 import { planLocalLadderResult } from "@/features/ladder/resultState";
 import { planLocalEventResult } from "@/features/events/resultState";
 import {
@@ -502,21 +503,26 @@ export const useGameStore = create<GameState & GameActions>()(
             return null;
           }
 
-          if (!ticketAlreadySpent) {
-            const currentTickets = get().resources.arenaTickets;
-            if (currentTickets <= 0) {
-              get().pushNotification("error", "Arena ticket required");
-              return null;
-            }
-            if (!get().spend({ arenaTickets: 1 })) {
-              get().pushNotification("error", "Arena ticket required");
-              return null;
-            }
+          const plan = planLocalArenaResult({
+            resources: get().resources,
+            winner,
+            rewards,
+            source,
+            ticketAlreadySpent,
+          });
+          if (!plan.ok) {
+            get().pushNotification("error", plan.reason);
+            return null;
           }
 
-          get().recordBattleResult(winner === "ally", "arena");
-          get().awardRewards(rewards, source);
-          return { rewards, authoritative: false };
+          if (plan.shouldSpendTicket && !get().spend({ arenaTickets: 1 })) {
+            get().pushNotification("error", "Arena ticket required");
+            return null;
+          }
+
+          get().recordBattleResult(plan.won, "arena");
+          get().awardRewards(plan.rewards, plan.source);
+          return { rewards: plan.rewards, authoritative: false };
         }
 
         if (!authoritative.ok) {

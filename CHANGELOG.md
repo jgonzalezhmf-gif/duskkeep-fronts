@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.26] - 2026-05-28
+
+### Changed
+- Extraida la planificacion de resultado local de Arena a `features/arena/resultState.ts`, alineando Arena con Ladder y Events.
+- Movida fuera del store la decision pura de ticket requerido, ticket ya consumido y resultado victorioso/no victorioso.
+- Aniadidos tests unitarios para ticket requerido, gasto de ticket y batallas con ticket ya consumido, sin cambiar economia, rewards, MMR, backend ni combate.
+
 ## [0.37.25] - 2026-05-28
 
 ### Changed
