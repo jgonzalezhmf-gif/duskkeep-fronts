@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.23] - 2026-05-28
+
+### Changed
+- Movido el calculo de resultado Ladder local a `features/ladder/resultState.ts`, separando dominio de la orquestacion del store.
+- Reducido `lib/store.ts` de 1183 a 1161 lineas sin cambiar MMR, rewards, key progress, misiones, economia ni flujos online.
+- Aniadidos tests unitarios para victoria normal, recompensa reducida y rival Ladder bloqueado.
+
 ## [0.37.22] - 2026-05-28
 
 ### Changed

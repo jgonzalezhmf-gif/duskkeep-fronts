@@ -33,7 +33,7 @@ import { addNotificationState, completeOnboardingState, createNotificationId, di
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
-import { getLadderOpponentForPoints, getLadderRankForPoints, LADDER_DAILY_NORMAL_WIN_LIMIT } from "@/features/ladder/data";
+import { planLocalLadderResult } from "@/features/ladder/resultState";
 import {
   createFortressBuildingUpgradeCommand,
   createFrontlineCardUpgradeCommand,
@@ -564,56 +564,34 @@ export const useGameStore = create<GameState & GameActions>()(
             return null;
           }
 
-          const current = get().ladder;
-          const opponent = getLadderOpponentForPoints(current.points);
-          if (opponentId !== opponent.id) {
-            get().pushNotification("error", "Ladder opponent locked");
+          const plan = planLocalLadderResult({
+            ladder: get().ladder,
+            opponentId,
+            winner,
+            victoryRewards: rewards,
+            today: todayYMD(),
+          });
+          if (!plan.ok) {
+            get().pushNotification("error", plan.reason);
             return null;
           }
-          const pointsDelta = winner === "ally" ? opponent.pointsWin : winner === "draw" ? opponent.pointsDraw : opponent.pointsLoss;
-          const nextPoints = Math.max(0, Math.min(300, current.points + pointsDelta));
-          const nextRank = getLadderRankForPoints(nextPoints);
-          const today = todayYMD();
-          const sameDay = current.dailyCycleKey === today;
-          const dailyRewardedWins = sameDay ? current.dailyRewardedWins : 0;
-          const normalReward = winner === "ally" && dailyRewardedWins < LADDER_DAILY_NORMAL_WIN_LIMIT;
-          const keyProgressDelta = normalReward ? 35 : 0;
-          const totalKeyProgress = current.keyProgress + keyProgressDelta;
-          const adventureKeysGranted = Math.floor(totalKeyProgress / 100);
-          const nextKeyProgress = totalKeyProgress % 100;
-          const grantedRewards =
-            winner === "ally"
-              ? normalReward
-                ? { ...rewards, ...(adventureKeysGranted ? { adventureKeys: adventureKeysGranted } : {}) }
-                : { gold: 15, accountXp: 1 }
-              : winner === "draw"
-                ? { gold: 10, accountXp: 1 }
-                : {};
 
           set((state) => {
-            const rewardedState = applyRewardsToGameState(state, grantedRewards);
+            const rewardedState = applyRewardsToGameState(state, plan.rewards);
             return {
               ...rewardedState,
-              ladder: {
-                seasonId: current.seasonId,
-                points: nextPoints,
-                league: nextRank.league,
-                division: nextRank.division,
-                keyProgress: nextKeyProgress,
-                dailyRewardedWins: normalReward ? dailyRewardedWins + 1 : dailyRewardedWins,
-                dailyCycleKey: today,
-              },
+              ladder: plan.ladder,
               battlesWon: winner === "ally" ? state.battlesWon + 1 : state.battlesWon,
             };
           });
           if (winner === "ally") get().updateMissionProgress("battles_won", 1);
           get().updateMissionProgress("arena_battles", 1);
           return {
-            rewards: grantedRewards,
+            rewards: plan.rewards,
             authoritative: false,
-            pointsDelta,
-            keyProgressDelta,
-            adventureKeysGranted,
+            pointsDelta: plan.pointsDelta,
+            keyProgressDelta: plan.keyProgressDelta,
+            adventureKeysGranted: plan.adventureKeysGranted,
           };
         }
 
