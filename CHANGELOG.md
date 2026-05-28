@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.28] - 2026-05-28
+
+### Changed
+- Expuestos los deltas de mision de resultados de batalla desde `lib/battleResultState.ts` para reutilizarlos en flujos autoritativos.
+- Reutilizada la misma regla de metricas para resultados online-first de Arena y Events, reduciendo duplicacion sin cambiar contadores, rewards ni backend.
+- Ampliados los tests de `battleResultState` para cubrir deltas de mision usados por flujos autoritativos.
+
 ## [0.37.27] - 2026-05-28
 
 ### Changed

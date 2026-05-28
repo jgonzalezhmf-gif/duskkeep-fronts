@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { planBattleResultState, type BattleResultCounters } from "@/lib/battleResultState";
+import {
+  getBattleResultMissionDeltas,
+  planBattleResultState,
+  type BattleResultCounters,
+} from "@/lib/battleResultState";
 
 const counters: BattleResultCounters = {
   battlesWon: 4,
@@ -37,5 +41,13 @@ describe("battle result state planning", () => {
       patch: {},
       missionDeltas: [],
     });
+  });
+
+  it("exposes mission deltas independently for authoritative result flows", () => {
+    expect(getBattleResultMissionDeltas(true, "event")).toEqual([
+      { metric: "battles_won", delta: 1 },
+      { metric: "events_played", delta: 1 },
+    ]);
+    expect(getBattleResultMissionDeltas(false, "arena")).toEqual([{ metric: "arena_battles", delta: 1 }]);
   });
 });

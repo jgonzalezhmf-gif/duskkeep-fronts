@@ -33,7 +33,7 @@ import { addNotificationState, completeOnboardingState, createNotificationId, di
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
-import { planBattleResultState } from "@/lib/battleResultState";
+import { getBattleResultMissionDeltas, planBattleResultState } from "@/lib/battleResultState";
 import { planLocalArenaResult } from "@/features/arena/resultState";
 import { planLocalLadderResult } from "@/features/ladder/resultState";
 import { planLocalEventResult } from "@/features/events/resultState";
@@ -538,8 +538,9 @@ export const useGameStore = create<GameState & GameActions>()(
           };
         });
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
-        if (authoritative.winner === "ally") get().updateMissionProgress("battles_won", 1);
-        get().updateMissionProgress("arena_battles", 1);
+        for (const { metric, delta } of getBattleResultMissionDeltas(authoritative.winner === "ally", "arena")) {
+          get().updateMissionProgress(metric, delta);
+        }
         return {
           rewards: authoritative.rewards,
           authoritative: true,
@@ -668,8 +669,9 @@ export const useGameStore = create<GameState & GameActions>()(
           };
         });
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
-        if (authoritative.winner === "ally") get().updateMissionProgress("battles_won", 1);
-        get().updateMissionProgress("events_played", 1);
+        for (const { metric, delta } of getBattleResultMissionDeltas(authoritative.winner === "ally", "event")) {
+          get().updateMissionProgress(metric, delta);
+        }
         if (authoritative.firstClear) get().markEventCompleted(authoritative.eventId);
         return {
           rewards: authoritative.rewards,

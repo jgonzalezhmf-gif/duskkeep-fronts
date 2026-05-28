@@ -13,17 +13,36 @@ export type BattleResultStatePlan = {
   missionDeltas: { metric: MissionMetric; delta: number }[];
 };
 
+export function getBattleResultMissionDeltas(
+  won: boolean,
+  source: BattleResultSource,
+): { metric: MissionMetric; delta: number }[] {
+  const missionDeltas: { metric: MissionMetric; delta: number }[] = [];
+
+  if (won) {
+    missionDeltas.push({ metric: "battles_won", delta: 1 });
+  }
+
+  if (source === "arena") {
+    missionDeltas.push({ metric: "arena_battles", delta: 1 });
+  }
+
+  if (source === "event") {
+    missionDeltas.push({ metric: "events_played", delta: 1 });
+  }
+
+  return missionDeltas;
+}
+
 export function planBattleResultState(
   counters: BattleResultCounters,
   won: boolean,
   source: BattleResultSource,
 ): BattleResultStatePlan {
   const patch: Partial<BattleResultCounters> = {};
-  const missionDeltas: { metric: MissionMetric; delta: number }[] = [];
 
   if (won) {
     patch.battlesWon = counters.battlesWon + 1;
-    missionDeltas.push({ metric: "battles_won", delta: 1 });
   }
 
   if (source === "arena") {
@@ -32,12 +51,7 @@ export function planBattleResultState(
     } else {
       patch.arenaLosses = counters.arenaLosses + 1;
     }
-    missionDeltas.push({ metric: "arena_battles", delta: 1 });
   }
 
-  if (source === "event") {
-    missionDeltas.push({ metric: "events_played", delta: 1 });
-  }
-
-  return { patch, missionDeltas };
+  return { patch, missionDeltas: getBattleResultMissionDeltas(won, source) };
 }
