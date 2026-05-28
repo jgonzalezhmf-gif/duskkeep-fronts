@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.19] - 2026-05-28
+
+### Changed
+- Extraido el render del nucleo/castillo de Fortress Defense a `app/fortress/FortressDefenseCastleKeep.tsx`.
+- Reducido `app/fortress/FortressDefenseBattlefieldUnits.tsx` de 371 a 304 lineas sin cambiar posicionamiento, reglas de oleadas, dano, cooldowns, audio ni rewards.
+
 ## [0.37.18] - 2026-05-28
 
 ### Changed
