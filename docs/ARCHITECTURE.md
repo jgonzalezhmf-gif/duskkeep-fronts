@@ -72,7 +72,7 @@ Infraestructura compartida:
 - Diccionarios i18n.
 - RNG y constantes.
 
-`lib/store.ts` sigue siendo un orquestador amplio. Las nuevas reglas deben extraerse a helpers de feature cuando no sean simples transiciones de estado.
+`lib/store.ts` sigue siendo un orquestador amplio, pero la tanda reciente de refactor dejo fuera varias reglas puras de dominio y feedback. Las nuevas reglas deben extraerse a helpers de feature cuando no sean simples transiciones de estado; no conviene seguir dividiendo el store sin un corte funcional claro.
 
 ## Flujo de Datos
 
@@ -108,7 +108,7 @@ Modo Supabase / produccion online:
 
 ## Riesgos Tecnicos Actuales
 
-- `lib/store.ts` es potente pero demasiado amplio; seguir extrayendo helpers de dominio.
+- `lib/store.ts` sigue siendo amplio; extraer solo reglas duplicadas, sensibles o testeables con un beneficio claro, evitando micro-refactors por inercia.
 - Todavia existen sistemas legacy que deben aislarse del flujo principal Frontline.
 - La persistencia online es autoritativa para el MVP alpha, pero faltan gates de produccion como rate limit distribuido, observabilidad real y replay/simulacion server-side completa para competitivo publico.
 - La app es visualmente rica, por lo que smoke tests en navegador y validacion de assets importan antes de release.

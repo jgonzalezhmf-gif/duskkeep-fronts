@@ -56,6 +56,24 @@ No seguir salvo:
 - Nueva pantalla pesada.
 - Preparacion de release candidata.
 
+### Refactorizacion de store y reglas puras
+
+Estado: tanda cerrada para alpha presentable.
+
+Evidencia:
+
+- Versiones cerradas `0.37.21` a `0.37.31`.
+- `lib/store.ts` conserva la orquestacion online-first, snapshots y fallback local explicito.
+- Reglas puras recientes extraidas a helpers testeados: guards autoritativos, resultados de Arena/Ladder/Events, contadores de batalla, notificaciones de rewards, rewards autoritativos y progresion autoritativa de heroes.
+- `npm.cmd run check:full` verde en `0.37.31` con 586 tests y build correcto.
+
+No seguir salvo:
+
+- Regla nueva duplicada dentro de `lib/store.ts`.
+- Bug real en sincronizacion online-first, snapshots, rewards o progresion.
+- Cambio de arquitectura que justifique mover un bloque completo.
+- Preparacion de produccion publica con nuevas restricciones de seguridad.
+
 ### Documentacion base
 
 Estado: base suficiente.
@@ -217,8 +235,9 @@ Cuando se pida "siguiente":
 Aplicacion al estado actual:
 
 - Backend/Auth/Data-driven: cerrado como MVP estable; no reabrir salvo bug, remoto, monetizacion o ladder real.
+- Refactorizacion de store/reglas puras: tanda cerrada en `0.37.31`; no seguir extrayendo helpers por inercia.
 - Pulido no-combat: tanda cerrada tras Team, Arena y Events; no seguir pantalla por pantalla sin una incidencia concreta.
-- Siguiente recomendado: validacion browser de release candidate o preparacion de Supabase remoto, segun si se prioriza demo local o persistencia online real.
+- Siguiente recomendado: validacion browser de release candidate, QA funcional de la demo o preparacion de Supabase remoto, segun si se prioriza demo local o persistencia online real.
 
 ## Gates Generales Antes de Release Presentable
 

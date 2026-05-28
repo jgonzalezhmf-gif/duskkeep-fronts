@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.32] - 2026-05-28
+
+### Changed
+- Documentado el cierre de la tanda de refactorizacion de `lib/store.ts` y reglas puras en `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`.
+- Actualizada `docs/ARCHITECTURE.md` para reflejar que el store sigue siendo orquestador amplio, pero no debe dividirse mas sin un corte funcional claro.
+- Marcado el siguiente foco recomendado hacia validacion browser de release candidate, QA funcional o Supabase remoto, evitando iteraciones indefinidas de refactor.
+
 ## [0.37.31] - 2026-05-28
 
 ### Changed
