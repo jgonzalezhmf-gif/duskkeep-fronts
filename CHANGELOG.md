@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.17] - 2026-05-28
+
+### Changed
+- Extraido el chrome reutilizable del hub de Arena a `app/arena/ArenaHubChrome.tsx`.
+- Reducido `app/arena/page.tsx` de 540 a 482 lineas sin cambiar ladder, trials, rewards, tickets, MMR, audio ni backend.
+
 ## [0.37.16] - 2026-05-28
 
 ### Changed
