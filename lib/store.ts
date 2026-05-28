@@ -46,6 +46,7 @@ import {
   createHeroStarUpCommand,
 } from "@/lib/progressionCommands";
 import { applyProgressionCommandResultToStore } from "@/lib/progressionCommandStoreAdapter";
+import { getRewardGrantNotifications } from "@/lib/rewardGrantNotifications";
 import type { GameActions, GameState } from "@/lib/storeTypes";
 import {
   isAdventureFirstClearRewardAvailable,
@@ -352,10 +353,12 @@ export const useGameStore = create<GameState & GameActions>()(
         const newlyUnlockedFrontlineCards = getNewlyUnlockedFrontlineCardRewards(get().frontlineCardUnlocks, r.frontlineCards);
 
         set((s) => applyRewardsToGameState(s, r));
-        if (newlyUnlockedFrontlineCards.length) {
-          get().pushNotification("success", "Frontline card unlocked");
+        for (const notification of getRewardGrantNotifications({
+          source,
+          unlockedFrontlineCardCount: newlyUnlockedFrontlineCards.length,
+        })) {
+          get().pushNotification(notification.kind, notification.message);
         }
-        if (source) get().pushNotification("success", `Rewards from ${source}`);
       },
 
       spend: (cost) => {

@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.29] - 2026-05-28
+
+### Changed
+- Extraida la planificacion de notificaciones de grants de rewards a `lib/rewardGrantNotifications.ts`.
+- Separada la aplicacion de rewards en el store de las reglas de feedback para cartas Frontline desbloqueadas y origen de recompensa.
+- Aniadidos tests unitarios para mantener orden y contenido de notificaciones sin cambiar rewards, economia ni UI.
+
 ## [0.37.28] - 2026-05-28
 
 ### Changed
