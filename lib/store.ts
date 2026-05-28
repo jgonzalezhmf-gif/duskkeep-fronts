@@ -33,6 +33,7 @@ import { addNotificationState, completeOnboardingState, createNotificationId, di
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
+import { planBattleResultState } from "@/lib/battleResultState";
 import { planLocalArenaResult } from "@/features/arena/resultState";
 import { planLocalLadderResult } from "@/features/ladder/resultState";
 import { planLocalEventResult } from "@/features/events/resultState";
@@ -469,15 +470,11 @@ export const useGameStore = create<GameState & GameActions>()(
 
       recordBattleResult: (won, source) => {
         if (blockClientSensitiveMutationIfNeeded(get)) return;
-        if (won) {
-          set((s) => ({ battlesWon: s.battlesWon + 1 }));
-          get().updateMissionProgress("battles_won", 1);
+        const plan = planBattleResultState(get(), won, source);
+        if (Object.keys(plan.patch).length > 0) set(plan.patch);
+        for (const { metric, delta } of plan.missionDeltas) {
+          get().updateMissionProgress(metric, delta);
         }
-        if (source === "arena") {
-          set((s) => (won ? { arenaWins: s.arenaWins + 1 } : { arenaLosses: s.arenaLosses + 1 }));
-          get().updateMissionProgress("arena_battles", 1);
-        }
-        if (source === "event") get().updateMissionProgress("events_played", 1);
       },
 
       recordArenaResultOnlineFirst: async ({

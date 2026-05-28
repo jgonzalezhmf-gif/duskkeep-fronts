@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.27] - 2026-05-28
+
+### Changed
+- Extraida la planificacion de contadores y metricas de misiones de resultados de batalla a `lib/battleResultState.ts`.
+- Reducido `lib/store.ts` a 1169 lineas, dejando `recordBattleResult` como aplicador del plan y no como duenio de reglas de progreso.
+- Aniadidos tests unitarios para victorias de Arena, derrotas de Arena, participacion en Events y no-victorias fuera de Arena.
+
 ## [0.37.26] - 2026-05-28
 
 ### Changed
