@@ -1,4 +1,5 @@
 import { createClient, type AuthChangeEvent, type Session, type SupabaseClient } from "@supabase/supabase-js";
+import { isRegistrationPasswordFormatValid } from "@/features/server/authPasswordPolicy";
 import { getSupabasePublicConfig } from "@/features/server/supabasePublicConfig";
 
 let browserClient: SupabaseClient | null = null;
@@ -113,7 +114,7 @@ export async function signUpSupabaseWithPassword({
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const credentials = prepareSupabasePasswordCredentials({ email, password });
-  if (!credentials) return { ok: false, reason: "auth_error" };
+  if (!credentials || !isRegistrationPasswordFormatValid(credentials.password)) return { ok: false, reason: "auth_error" };
 
   const { data, error } = await supabase.auth.signUp({
     email: credentials.email,

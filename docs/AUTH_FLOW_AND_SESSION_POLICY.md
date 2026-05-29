@@ -19,11 +19,13 @@ La intro no debe depender de si el usuario ya vio la intro en una sesion anterio
 La pantalla inicial permite:
 
 - Iniciar sesion con cuenta existente.
-- Crear cuenta nueva.
+- Crear cuenta nueva con password de mas de 8 caracteres y confirmacion de password.
 - Autenticarse con Google cuando Supabase este configurado.
 - Jugar como invitado.
 
-Los mensajes de error de registro y recuperacion deben ser genericos. No se debe confirmar si una cuenta existe, no existe, esta confirmada o tiene otro estado. Esta regla evita enumeracion de cuentas.
+El registro muestra validacion local de formato y fortaleza de password antes de enviar la solicitud al proveedor de Auth. Esta validacion es solo UX/shift-left; Supabase Auth sigue siendo la autoridad real de identidad.
+
+Los mensajes de error de registro, login y recuperacion deben ser genericos. No se debe confirmar si una cuenta existe, no existe, esta confirmada o tiene otro estado. Esta regla evita enumeracion de cuentas.
 
 ## Modo Invitado
 

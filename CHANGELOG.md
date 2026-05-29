@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.35] - 2026-05-29
+
+### Changed
+- Reforzado el registro inicial con password de mas de 8 caracteres, confirmacion obligatoria y medidor visual de seguridad.
+- Reducido el copy tecnico del panel de Auth Gate para explicar solo decisiones utiles al jugador.
+- Redisenado el acceso con Google como CTA reconocible manteniendo la integracion OAuth existente de Supabase.
+
+### Added
+- Aniadido helper puro y test unitario para la politica de password de registro.
+
 ## [0.37.34] - 2026-05-29
 
 ### Changed
