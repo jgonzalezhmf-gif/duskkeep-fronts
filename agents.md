@@ -63,6 +63,8 @@
 - Cierra cada tarea diciendo que cambiaste, que validaste, que no pudiste validar y que riesgo queda.
 
 ## Skills Locales
-- Usa skills Duskkeep cuando la tarea toque su area: `duskkeep-combat`, `duskkeep-adventure-flow`, `duskkeep-asset-pipeline`, `duskkeep-reward-feedback`, `duskkeep-localization`, `duskkeep-visual-cohesion`, `duskkeep-browser-validation` o `duskkeep-secure-backend`.
+- Si el usuario dice "sigamos", "siguiente", "next", "vamos", "adelante" o pregunta "como vamos/que queda", usa primero `duskkeep-task-triage`: revisa `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`, decide si el bloque actual esta cerrado y evita iterar por inercia.
+- Usa skills Duskkeep cuando la tarea toque su area: `duskkeep-task-triage`, `duskkeep-combat`, `duskkeep-adventure-flow`, `duskkeep-asset-pipeline`, `duskkeep-reward-feedback`, `duskkeep-localization`, `duskkeep-visual-cohesion`, `duskkeep-screen-audit`, `duskkeep-browser-validation`, `duskkeep-optimization-loop`, `duskkeep-secure-backend` o `duskkeep-skill-maintenance`.
 - Para motion/polish avanzado, usa `impeccable` y antes ejecuta `node .agents/skills/impeccable/scripts/load-context.mjs`; mantener `PRODUCT.md` y `DESIGN.md` como contexto visual.
 - Si cambias una skill, `docs/skills/*` es la fuente y debe sincronizarse con `.agents/skills/*`; no crees skills para tareas puntuales.
+- Ignora carpetas de `.agents/skills` que no tengan `SKILL.md` real; archivos `SKILL.md.txt` son residuos/plantillas y no son fuente de verdad.

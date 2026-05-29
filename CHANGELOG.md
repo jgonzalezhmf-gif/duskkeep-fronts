@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.34] - 2026-05-29
+
+### Changed
+- Creada la skill `duskkeep-task-triage` para decidir el siguiente bloque cuando el usuario diga "sigamos", "siguiente", "next" o pregunte por proximos pasos.
+- Actualizado `agents.md` para usar la triage skill antes de continuar por inercia y para ignorar carpetas de skills sin `SKILL.md` real.
+- Actualizado el handoff funcional para listar la nueva skill y su regla de uso.
+
 ## [0.37.33] - 2026-05-28
 
 ### Fixed

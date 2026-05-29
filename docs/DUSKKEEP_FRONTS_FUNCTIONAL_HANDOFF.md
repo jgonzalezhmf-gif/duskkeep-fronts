@@ -368,6 +368,7 @@ Pendiente:
 ## Skills Locales
 
 Skills importantes:
+- `duskkeep-task-triage`
 - `duskkeep-visual-cohesion`
 - `duskkeep-screen-audit`
 - `duskkeep-asset-pipeline`
@@ -385,6 +386,7 @@ Skills importantes:
 - `ux-sound-design`
 
 Regla:
+- Si el usuario dice "sigamos", "siguiente", "next", "vamos" o pregunta "que queda/como vamos", usar `duskkeep-task-triage` antes de elegir el siguiente bloque.
 - Usar la skill si la tarea toca su area.
 - Revisar skills ocasionalmente si aparece una tarea repetida o regla fragil.
 - Mantener `docs/skills/*` como fuente y sincronizar con `.agents/skills/*` si cambia una skill.
