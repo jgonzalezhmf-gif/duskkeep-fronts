@@ -23,8 +23,10 @@ import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary
 import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   getLadderOpponentForPoints,
+  getLadderOpponentsForPoints,
   getLadderRankForPoints,
   ladderRankLabel,
+  selectLadderOpponentForMatch,
   type LadderOpponent,
 } from "@/features/ladder/data";
 import type { FrontlineBattleState } from "@/features/frontline/types";
@@ -129,6 +131,7 @@ export default function ArenaPage() {
       ? Math.round(((ladder.points - ladderRank.minPoints) / (ladderRank.maxPoints - ladderRank.minPoints + 1)) * 100)
       : 100;
   const currentLadderOpponent = useMemo(() => getLadderOpponentForPoints(ladder.points), [ladder.points]);
+  const currentLadderOpponentPool = useMemo(() => getLadderOpponentsForPoints(ladder.points), [ladder.points]);
 
   function startArenaBattle(rival: ArenaRival) {
     if (tickets <= 0 || !loadoutReady) return;
@@ -143,7 +146,7 @@ export default function ArenaPage() {
   }
 
   function startLadderBattle(rival: LadderOpponent) {
-    if (!loadoutReady || rival.id !== currentLadderOpponent.id) return;
+    if (!loadoutReady || !currentLadderOpponentPool.some((candidate) => candidate.id === rival.id)) return;
     setPicked({ mode: "ladder", rival });
     setSeed(nextSeed());
     setResult(null);
@@ -157,15 +160,16 @@ export default function ArenaPage() {
     ladderMatchTimers.current = [];
     setFoundLadderOpponent(null);
     setLadderMatchmaking("finding");
+    const matchedOpponent = selectLadderOpponentForMatch(ladder.points, Date.now());
 
     const foundTimer = setTimeout(() => {
-      setFoundLadderOpponent(currentLadderOpponent);
+      setFoundLadderOpponent(matchedOpponent);
       setLadderMatchmaking("found");
     }, 620);
     const battleTimer = setTimeout(() => {
       setLadderMatchmaking("idle");
       setFoundLadderOpponent(null);
-      startLadderBattle(currentLadderOpponent);
+      startLadderBattle(matchedOpponent);
     }, 1120);
     ladderMatchTimers.current = [foundTimer, battleTimer];
   }

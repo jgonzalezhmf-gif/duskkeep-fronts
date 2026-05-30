@@ -1484,6 +1484,17 @@ export const enDictionary = {
         arena_plague: { rank: "Silver III", style: "Sustain pressure", modifier: "Plague mist: sustain-focused enemy pressure." },
         arena_ember: { rank: "Gold I", style: "Heavy core threat", modifier: "Storm oath: heavier core threat and slower trading." },
       },
+      ladderOpponents: {
+        ladder_bronze_iii_iron_vow: { style: "Balanced recruit commander" },
+        ladder_bronze_iii_candle_warden: { style: "Defensive sustain recruit" },
+        ladder_bronze_iii_mistbound_recruit: { style: "Fast archer skirmish" },
+        ladder_bronze_ii_ash_squire: { style: "Pressure and cheap tactics" },
+        ladder_bronze_ii_gate_hound: { style: "Tank and healer midgame" },
+        ladder_bronze_ii_thorn_signal: { style: "Rally control loadout" },
+        ladder_bronze_i_dusk_knight: { style: "Sustain line with core pressure" },
+        ladder_bronze_i_raven_bannerman: { style: "Burst and smoke pressure" },
+        ladder_bronze_i_oath_ember: { style: "Aggressive blade commander" },
+      },
       tabs: {
         ladder: "Ladder",
         trials: "Arena Trials",

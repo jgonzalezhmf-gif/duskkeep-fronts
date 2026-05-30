@@ -1,7 +1,9 @@
 import type { Rewards } from "@/lib/types";
 import {
+  getLadderOpponentById,
   getLadderOpponentForPoints,
   getLadderRankForPoints,
+  isLadderOpponentAvailableForPoints,
   LADDER_DAILY_NORMAL_WIN_LIMIT,
   type LadderState,
 } from "./data";
@@ -32,8 +34,8 @@ export function planLocalLadderResult({
   victoryRewards: Rewards;
   today: string;
 }): LocalLadderResultPlan {
-  const opponent = getLadderOpponentForPoints(ladder.points);
-  if (opponentId !== opponent.id) {
+  const opponent = getLadderOpponentById(opponentId);
+  if (!opponent || !isLadderOpponentAvailableForPoints(opponentId, ladder.points)) {
     return { ok: false, reason: "Ladder opponent locked" };
   }
 

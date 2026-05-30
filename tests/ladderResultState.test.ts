@@ -50,6 +50,18 @@ describe("ladder local result planning", () => {
     expect(plan.ladder.dailyRewardedWins).toBe(5);
   });
 
+  it("accepts any active same-division simulated commander", () => {
+    const plan = planLocalLadderResult({
+      ladder: createDefaultLadderState(),
+      opponentId: "ladder_bronze_iii_candle_warden",
+      winner: "ally",
+      victoryRewards: { gold: 60, dust: 4, accountXp: 4 },
+      today: "2026-05-28",
+    });
+
+    expect(plan.ok).toBe(true);
+  });
+
   it("rejects stale or mismatched ladder opponents", () => {
     expect(
       planLocalLadderResult({

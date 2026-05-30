@@ -6,7 +6,7 @@ import { SceneButton } from "@/components/game/screens/ScreenChrome";
 import type { LadderOpponent } from "@/features/ladder/data";
 import type { Rewards } from "@/lib/types";
 import { RewardChips, SmallStat } from "./ArenaPrimitives";
-import type { TranslateFn } from "./arenaPageHelpers";
+import { tx, type TranslateFn } from "./arenaPageHelpers";
 
 type LadderMatchmakingState = "idle" | "finding" | "found";
 
@@ -146,7 +146,11 @@ function MatchmakingStatus({
       <div className="text-[9px] font-black uppercase tracking-[0.18em] text-[#f5d498]/78">{t("arenaScreen.ladder.rivalFound")}</div>
       <div className="mt-2 text-lg font-black text-white">{foundOpponent?.ownerName ?? t("arenaScreen.ladder.unknownCommander")}</div>
       <div className="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white/55">{rankName}</div>
-      {foundOpponent ? <div className="mt-1 text-[11px] font-semibold text-[#ffe0a4]/80">{foundOpponent.style}</div> : null}
+      {foundOpponent ? (
+        <div className="mt-1 text-[11px] font-semibold text-[#ffe0a4]/80">
+          {tx(t, `arenaScreen.ladderOpponents.${foundOpponent.id}.style`, foundOpponent.style)}
+        </div>
+      ) : null}
     </div>
   );
 }

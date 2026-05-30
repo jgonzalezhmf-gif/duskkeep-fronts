@@ -63,19 +63,49 @@ export const LADDER_RANKS: LadderRank[] = [
   { league: "grandmaster", division: "i", minPoints: 2000, maxPoints: 9999, enabled: false },
 ];
 
+const BRONZE_III_REWARDS: Rewards = { gold: 60, dust: 4, accountXp: 4 };
+const BRONZE_II_REWARDS: Rewards = { gold: 75, dust: 6, accountXp: 5 };
+const BRONZE_I_REWARDS: Rewards = { gold: 90, dust: 8, accountXp: 6 };
+
 export const LADDER_BRONZE_OPPONENTS: LadderOpponent[] = [
   {
     id: "ladder_bronze_iii_iron_vow",
     ownerName: "Iron Vow",
     league: "bronze",
     division: "iii",
-    style: "Balanced starter loadout",
-    presetId: "bonewood_scouts",
+    style: "Balanced recruit commander",
+    presetId: "ladder_bronze_iii_iron_vow",
     power: 105,
     pointsWin: 25,
     pointsDraw: 5,
     pointsLoss: -10,
-    previewRewards: { gold: 60, dust: 4, accountXp: 4 },
+    previewRewards: BRONZE_III_REWARDS,
+  },
+  {
+    id: "ladder_bronze_iii_candle_warden",
+    ownerName: "Candle Warden",
+    league: "bronze",
+    division: "iii",
+    style: "Defensive sustain recruit",
+    presetId: "ladder_bronze_iii_candle_warden",
+    power: 108,
+    pointsWin: 25,
+    pointsDraw: 5,
+    pointsLoss: -10,
+    previewRewards: BRONZE_III_REWARDS,
+  },
+  {
+    id: "ladder_bronze_iii_mistbound_recruit",
+    ownerName: "Mistbound Recruit",
+    league: "bronze",
+    division: "iii",
+    style: "Fast archer skirmish",
+    presetId: "ladder_bronze_iii_mistbound_recruit",
+    power: 112,
+    pointsWin: 25,
+    pointsDraw: 5,
+    pointsLoss: -10,
+    previewRewards: BRONZE_III_REWARDS,
   },
   {
     id: "ladder_bronze_ii_ash_squire",
@@ -83,12 +113,38 @@ export const LADDER_BRONZE_OPPONENTS: LadderOpponent[] = [
     league: "bronze",
     division: "ii",
     style: "Pressure and cheap tactics",
-    presetId: "bonewood_raiders",
+    presetId: "ladder_bronze_ii_ash_squire",
     power: 135,
     pointsWin: 25,
     pointsDraw: 5,
     pointsLoss: -10,
-    previewRewards: { gold: 75, dust: 6, accountXp: 5 },
+    previewRewards: BRONZE_II_REWARDS,
+  },
+  {
+    id: "ladder_bronze_ii_gate_hound",
+    ownerName: "Gate Hound",
+    league: "bronze",
+    division: "ii",
+    style: "Tank and healer midgame",
+    presetId: "ladder_bronze_ii_gate_hound",
+    power: 140,
+    pointsWin: 25,
+    pointsDraw: 5,
+    pointsLoss: -10,
+    previewRewards: BRONZE_II_REWARDS,
+  },
+  {
+    id: "ladder_bronze_ii_thorn_signal",
+    ownerName: "Thorn Signal",
+    league: "bronze",
+    division: "ii",
+    style: "Rally control loadout",
+    presetId: "ladder_bronze_ii_thorn_signal",
+    power: 145,
+    pointsWin: 25,
+    pointsDraw: 5,
+    pointsLoss: -10,
+    previewRewards: BRONZE_II_REWARDS,
   },
   {
     id: "ladder_bronze_i_dusk_knight",
@@ -96,14 +152,48 @@ export const LADDER_BRONZE_OPPONENTS: LadderOpponent[] = [
     league: "bronze",
     division: "i",
     style: "Sustain line with core pressure",
-    presetId: "rotwood_pack",
+    presetId: "ladder_bronze_i_dusk_knight",
     power: 165,
     pointsWin: 25,
     pointsDraw: 5,
     pointsLoss: -10,
-    previewRewards: { gold: 90, dust: 8, accountXp: 6 },
+    previewRewards: BRONZE_I_REWARDS,
+  },
+  {
+    id: "ladder_bronze_i_raven_bannerman",
+    ownerName: "Raven Bannerman",
+    league: "bronze",
+    division: "i",
+    style: "Burst and smoke pressure",
+    presetId: "ladder_bronze_i_raven_bannerman",
+    power: 172,
+    pointsWin: 25,
+    pointsDraw: 5,
+    pointsLoss: -10,
+    previewRewards: BRONZE_I_REWARDS,
+  },
+  {
+    id: "ladder_bronze_i_oath_ember",
+    ownerName: "Oath Ember",
+    league: "bronze",
+    division: "i",
+    style: "Aggressive blade commander",
+    presetId: "ladder_bronze_i_oath_ember",
+    power: 178,
+    pointsWin: 25,
+    pointsDraw: 5,
+    pointsLoss: -10,
+    previewRewards: BRONZE_I_REWARDS,
   },
 ];
+
+export const LADDER_OPPONENTS: LadderOpponent[] = [
+  ...LADDER_BRONZE_OPPONENTS,
+];
+
+export const LADDER_OPPONENT_BY_ID = Object.fromEntries(
+  LADDER_OPPONENTS.map((opponent) => [opponent.id, opponent]),
+) as Record<string, LadderOpponent | undefined>;
 
 export function createDefaultLadderState(): LadderState {
   return {
@@ -126,9 +216,31 @@ export function ladderRankLabel(rank: Pick<LadderRank, "league" | "division">) {
   return `${rank.league[0].toUpperCase()}${rank.league.slice(1)} ${rank.division.toUpperCase()}`;
 }
 
-export function getLadderOpponentForPoints(points: number) {
-  const rank = getLadderRankForPoints(points);
-  return LADDER_BRONZE_OPPONENTS.find(
+export function getLadderOpponentsForRank(rank: Pick<LadderRank, "league" | "division">) {
+  return LADDER_OPPONENTS.filter(
     (opponent) => opponent.league === rank.league && opponent.division === rank.division,
-  ) ?? LADDER_BRONZE_OPPONENTS[0];
+  );
+}
+
+export function getLadderOpponentsForPoints(points: number) {
+  return getLadderOpponentsForRank(getLadderRankForPoints(points));
+}
+
+export function getLadderOpponentForPoints(points: number) {
+  return getLadderOpponentsForPoints(points)[0] ?? LADDER_OPPONENTS[0];
+}
+
+export function getLadderOpponentById(opponentId: string) {
+  return LADDER_OPPONENT_BY_ID[opponentId] ?? null;
+}
+
+export function isLadderOpponentAvailableForPoints(opponentId: string, points: number) {
+  return getLadderOpponentsForPoints(points).some((opponent) => opponent.id === opponentId);
+}
+
+export function selectLadderOpponentForMatch(points: number, entropy: number) {
+  const candidates = getLadderOpponentsForPoints(points);
+  if (!candidates.length) return getLadderOpponentForPoints(points);
+  const index = Math.abs(Math.floor(entropy)) % candidates.length;
+  return candidates[index];
 }

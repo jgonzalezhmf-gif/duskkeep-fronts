@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.36] - 2026-05-29
+
+### Changed
+- Convertidos los rivales activos de Ladder Bronze a comandantes simulados tipo jugador, con lider, heroes y cartas Frontline del pool del jugador en lugar de presets PVE de campania/Arena.
+- Aniadidas tres variantes de rival por division Bronze y seleccion de matchmaking entre variantes validas de la division actual sin tocar MMR, tickets ni economia.
+- Sincronizado el mapping de presets Ladder con el catalogo central y preparada migracion Supabase para upsert de los nuevos oponentes server-authoritative.
+
+### Added
+- Aniadidos tests de catalogo Ladder para impedir volver a presets enemy-only o cartas fuera del pool del jugador.
+
 ## [0.37.35] - 2026-05-29
 
 ### Changed

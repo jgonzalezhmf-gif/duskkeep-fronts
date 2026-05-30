@@ -1466,6 +1466,17 @@ export const esDictionary = {
         arena_plague: { rank: "Plata III", style: "Presion de sustain", modifier: "Niebla de plaga: presion enemiga centrada en aguante." },
         arena_ember: { rank: "Oro I", style: "Amenaza pesada al nucleo", modifier: "Juramento de tormenta: amenaza al nucleo mas pesada y trades mas lentos." },
       },
+      ladderOpponents: {
+        ladder_bronze_iii_iron_vow: { style: "Comandante recluta equilibrado" },
+        ladder_bronze_iii_candle_warden: { style: "Recluta defensivo de sustain" },
+        ladder_bronze_iii_mistbound_recruit: { style: "Hostigamiento rapido de arquero" },
+        ladder_bronze_ii_ash_squire: { style: "Presion y tacticas baratas" },
+        ladder_bronze_ii_gate_hound: { style: "Tanque y sanadora de medio ritmo" },
+        ladder_bronze_ii_thorn_signal: { style: "Loadout de control y arenga" },
+        ladder_bronze_i_dusk_knight: { style: "Linea de sustain con presion al nucleo" },
+        ladder_bronze_i_raven_bannerman: { style: "Burst y presion con humo" },
+        ladder_bronze_i_oath_ember: { style: "Comandante de hoja agresivo" },
+      },
       tabs: {
         ladder: "Liga",
         trials: "Pruebas de Arena",
