@@ -14,6 +14,7 @@ import { getFrontlineHeroVisualAsset } from "@/components/game/frontline/frontli
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
 import { frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { PendingActionLabel } from "@/components/game/shared/PendingActionFeedback";
 import { SceneButton, ScreenBadge, ScreenPanel } from "@/components/game/screens/ScreenChrome";
 import type { AdventureCampaignMeta, AdventureNodeState } from "./AdventureCampaignTypes";
 import {
@@ -38,6 +39,7 @@ export function AdventureMissionPanel({
   progress,
   claimedRewards,
   expanded = false,
+  pending = false,
   onToggleExpanded,
   onOpenBattle,
 }: {
@@ -48,6 +50,7 @@ export function AdventureMissionPanel({
   progress?: AdventureProgressEntry;
   claimedRewards?: Rewards | null;
   expanded?: boolean;
+  pending?: boolean;
   onToggleExpanded?: () => void;
   onOpenBattle: () => void;
 }) {
@@ -114,8 +117,10 @@ export function AdventureMissionPanel({
             </div>
 
             <div className="flex items-center gap-2">
-              <SceneButton onClick={onOpenBattle} disabled={cta.disabled} className="pointer-events-auto min-w-[10.5rem] px-4 py-2.5">
-                {cta.label}
+              <SceneButton onClick={onOpenBattle} disabled={cta.disabled || pending} className="pointer-events-auto min-w-[10.5rem] px-4 py-2.5">
+                <PendingActionLabel pending={pending} pendingLabel={t("adventure.claiming")}>
+                  {cta.label}
+                </PendingActionLabel>
               </SceneButton>
               <button
                 type="button"

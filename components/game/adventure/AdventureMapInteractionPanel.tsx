@@ -7,6 +7,7 @@ import {
   type AdventureMapInteractionStatus,
 } from "@/features/adventure/mapInteractions";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
+import { PendingActionLabel } from "@/components/game/shared/PendingActionFeedback";
 import { SceneButton, ScreenBadge, ScreenPanel } from "@/components/game/screens/ScreenChrome";
 import { useI18n } from "@/lib/i18n/useI18n";
 import {
@@ -27,6 +28,7 @@ export function AdventureMapInteractionPanel({
   claimedResult,
   persistedClaim,
   expanded = false,
+  pending = false,
   onToggleExpanded,
   onClaim,
 }: {
@@ -36,6 +38,7 @@ export function AdventureMapInteractionPanel({
   claimedResult?: AdventureMapInteractionOpenResult | null;
   persistedClaim?: AdventureMapInteractionClaim;
   expanded?: boolean;
+  pending?: boolean;
   onToggleExpanded?: () => void;
   onClaim: () => void;
 }) {
@@ -88,8 +91,10 @@ export function AdventureMapInteractionPanel({
           </div>
 
           <div className="flex items-center gap-2">
-            <SceneButton onClick={onClaim} disabled={cta.disabled} className="pointer-events-auto min-w-[10rem] px-4 py-2.5">
-              {cta.label}
+            <SceneButton onClick={onClaim} disabled={cta.disabled || pending} className="pointer-events-auto min-w-[10rem] px-4 py-2.5">
+              <PendingActionLabel pending={pending} pendingLabel={t("adventure.openingCache")}>
+                {cta.label}
+              </PendingActionLabel>
             </SceneButton>
             <button
               type="button"

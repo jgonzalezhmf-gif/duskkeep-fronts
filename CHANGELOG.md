@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.38] - 2026-05-30
+
+### Added
+- Añadido patrón compartido de feedback pendiente para compras, claims, Auth y envíos de resultado de combate.
+- Añadidos helpers testeados para claves de acciones pendientes y prevención de doble envío.
+
+### Changed
+- Shop, Missions, Adventure, login/invitado, login diario, Arena y resultados Frontline muestran spinner/overlay durante acciones autoritativas o async.
+- Añadidas claves i18n en inglés y español para los nuevos estados de espera.
+
 ## [0.37.37] - 2026-05-30
 
 ### Added

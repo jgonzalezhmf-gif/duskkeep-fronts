@@ -5,10 +5,12 @@ import SceneBackdrop from "@/components/game/screens/SceneBackdrop";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
 import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
+import { usePendingActions } from "@/components/game/shared/PendingActionFeedback";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import { DAILY_MISSIONS, WEEKLY_MISSIONS } from "@/data/missions";
 import { sfx } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { createPendingActionKey } from "@/lib/pendingActions";
 import { useGameStore } from "@/lib/store";
 import { MissionColumn, NextContract, type ClaimFx } from "./MissionContracts";
 import {
@@ -22,7 +24,7 @@ export default function MissionsPage() {
   const { t } = useI18n();
   const [clientReady, setClientReady] = useState(false);
   const [claimFx, setClaimFx] = useState<ClaimFx | null>(null);
-  const [pendingClaimId, setPendingClaimId] = useState<string | null>(null);
+  const { activeKeys: pendingClaimKeys, runPendingAction } = usePendingActions();
   const claimFxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const claimFxNonce = useRef(0);
   const progress = useGameStore((state) => state.missionsProgress);
@@ -44,18 +46,18 @@ export default function MissionsPage() {
   const nextReset = getNearestResetLabel(allMissions, progress, t);
 
   const claim = async (id: string) => {
-    if (pendingClaimId) return;
-    setPendingClaimId(id);
-    const rewards = await claimRaw(id).finally(() => setPendingClaimId(null));
-    if (rewards) {
-      sfx.claim();
-      claimFxNonce.current += 1;
-      setClaimFx({ missionId: id, rewards, nonce: claimFxNonce.current });
-      if (claimFxTimer.current) clearTimeout(claimFxTimer.current);
-      claimFxTimer.current = setTimeout(() => setClaimFx(null), 1500);
-    } else {
-      sfx.error();
-    }
+    await runPendingAction(createPendingActionKey("missions.claim", id), async () => {
+      const rewards = await claimRaw(id);
+      if (rewards) {
+        sfx.claim();
+        claimFxNonce.current += 1;
+        setClaimFx({ missionId: id, rewards, nonce: claimFxNonce.current });
+        if (claimFxTimer.current) clearTimeout(claimFxTimer.current);
+        claimFxTimer.current = setTimeout(() => setClaimFx(null), 1500);
+      } else {
+        sfx.error();
+      }
+    }, true);
   };
 
   return (
@@ -107,13 +109,13 @@ export default function MissionsPage() {
               </div>
             </div>
 
-            <NextContract mission={nextMission} progress={progress} claim={claim} claimFx={claimFx} t={t} />
+            <NextContract mission={nextMission} progress={progress} claim={claim} claimFx={claimFx} pendingClaimKeys={pendingClaimKeys} t={t} />
           </div>
         </section>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <MissionColumn title={t("missionsScreen.columns.dailyTitle")} cadence={t("missionsScreen.columns.dailyCadence")} missions={DAILY_MISSIONS} progress={progress} claim={claim} claimFx={claimFx} t={t} />
-          <MissionColumn title={t("missionsScreen.columns.weeklyTitle")} cadence={t("missionsScreen.columns.weeklyCadence")} missions={WEEKLY_MISSIONS} progress={progress} claim={claim} claimFx={claimFx} t={t} />
+          <MissionColumn title={t("missionsScreen.columns.dailyTitle")} cadence={t("missionsScreen.columns.dailyCadence")} missions={DAILY_MISSIONS} progress={progress} claim={claim} claimFx={claimFx} pendingClaimKeys={pendingClaimKeys} t={t} />
+          <MissionColumn title={t("missionsScreen.columns.weeklyTitle")} cadence={t("missionsScreen.columns.weeklyCadence")} missions={WEEKLY_MISSIONS} progress={progress} claim={claim} claimFx={claimFx} pendingClaimKeys={pendingClaimKeys} t={t} />
         </section>
           </>
         )}

@@ -23,9 +23,9 @@
 
 ## Phase 3: Shared pending feedback
 
-- [ ] 3.1 Add shared pending/loading pattern for authoritative actions.
-- [ ] 3.2 Apply it to Shop, rewards/claims, Adventure, Auth, and Arena/Ladder submissions.
-- [ ] 3.3 Add i18n keys and tests for double-submit prevention where applicable.
+- [x] 3.1 Add shared pending/loading pattern for authoritative actions.
+- [x] 3.2 Apply it to Shop, rewards/claims, Adventure, Auth, and Arena/Ladder submissions.
+- [x] 3.3 Add i18n keys and tests for double-submit prevention where applicable.
 
 ## Phase 4: Frontline combat readability
 

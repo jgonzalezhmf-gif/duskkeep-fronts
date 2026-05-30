@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import GameIcon, { type GameIconTone } from "@/components/game/shared/GameIcon";
+import { PendingActionLabel, usePendingActions } from "@/components/game/shared/PendingActionFeedback";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { ResourceIcon, type ResourceIconKind } from "@/components/game/shared/ResourceIcon";
 import { DAILY_LOGIN } from "@/data/dailyLogin";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { createPendingActionKey, isPendingAction } from "@/lib/pendingActions";
 import { getRewardDisplayEntries, type RewardDisplayEntryKind } from "@/lib/rewardDisplayEntries";
 import { dailyLoginStatus, useGameStore } from "@/lib/store";
 
@@ -29,7 +31,9 @@ export function DailyLoginCharm() {
   const { t } = useI18n();
   const status = useGameStore(dailyLoginStatus);
   const claimDailyLogin = useGameStore((state) => state.claimDailyLoginOnlineFirst);
-  const [pending, setPending] = useState(false);
+  const { activeKeys, runPendingAction } = usePendingActions();
+  const pendingKey = createPendingActionKey("dailyLogin.claim");
+  const pending = isPendingAction(activeKeys, pendingKey);
 
   const entry = useMemo(
     () => DAILY_LOGIN.find((item) => item.day === status.nextDay) ?? DAILY_LOGIN[0],
@@ -38,13 +42,10 @@ export function DailyLoginCharm() {
   const rewardEntries = useMemo(() => getRewardDisplayEntries(entry.rewards).slice(0, 3), [entry.rewards]);
 
   const handleClaim = async () => {
-    if (status.claimed || pending) return;
-    setPending(true);
-    try {
+    if (status.claimed) return;
+    await runPendingAction(pendingKey, async () => {
       await claimDailyLogin();
-    } finally {
-      setPending(false);
-    }
+    }, true);
   };
 
   return (
@@ -74,7 +75,9 @@ export function DailyLoginCharm() {
               : "border-[#ffe6a8]/34 bg-[linear-gradient(180deg,#f8d47a,#bb6d31)] text-[#201006] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(245,196,81,0.22)]",
           )}
         >
-          {pending ? t("home.dailyLogin.claiming") : status.claimed ? t("home.dailyLogin.claimed") : t("home.dailyLogin.claim")}
+          <PendingActionLabel pending={pending} pendingLabel={t("home.dailyLogin.claiming")}>
+            {status.claimed ? t("home.dailyLogin.claimed") : t("home.dailyLogin.claim")}
+          </PendingActionLabel>
         </button>
       </div>
 

@@ -1,4 +1,5 @@
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
+import { PendingActionLabel } from "@/components/game/shared/PendingActionFeedback";
 import { ShopIcon } from "@/components/game/shared/ShopIcon";
 import { SceneButton } from "@/components/game/screens/ScreenChrome";
 import { cn } from "@/lib/cn";
@@ -41,6 +42,9 @@ export function FeaturedOfferStage({
   t,
   feedbackActive,
   feedbackNonce,
+  pending,
+  busy,
+  pendingLabel,
   onBuy,
 }: {
   offer: ExtendedShopOffer;
@@ -51,9 +55,12 @@ export function FeaturedOfferStage({
   t: TranslateFn;
   feedbackActive: boolean;
   feedbackNonce: number;
+  pending: boolean;
+  busy: boolean;
+  pendingLabel: string;
   onBuy: () => void;
 }) {
-  const disabled = remaining === 0;
+  const disabled = remaining === 0 || busy;
   const offerIcon = categoryGlyph(offer.category);
   const stateLabel = offerStateLabel(offer, remaining, bought, t);
   const stateIcon = offerStateShopIcon(offer, remaining, bought, clientReady);
@@ -113,13 +120,15 @@ export function FeaturedOfferStage({
             </div>
 
             <SceneButton onClick={onBuy} disabled={disabled} icon={disabled ? undefined : offer.cost.gems ? "gem" : offer.cost.gold ? "gold" : "offers"} tone={offer.cost.gems ? "sky" : "gold"} className={cn("mt-4 w-full", !disabled && "frontline-feedback-purchase")}>
-              {disabled ? (
+              {remaining === 0 ? (
                 <span className="inline-flex items-center gap-2">
                   <ShopIcon name={stateIcon} size="sm" className="h-7 w-7" />
                   {offer.oneTime ? t("shop.states.owned") : t("shop.states.soldOut")}
                 </span>
               ) : (
-                t("shop.actions.buy", { cost: offerCost(offer, t) })
+                <PendingActionLabel pending={pending} pendingLabel={pendingLabel}>
+                  {t("shop.actions.buy", { cost: offerCost(offer, t) })}
+                </PendingActionLabel>
               )}
             </SceneButton>
 
@@ -178,6 +187,9 @@ export function SpotlightOfferCard({
   t,
   feedbackActive,
   feedbackNonce,
+  pending,
+  busy,
+  pendingLabel,
   onBuy,
 }: {
   offer: ExtendedShopOffer;
@@ -187,9 +199,12 @@ export function SpotlightOfferCard({
   t: TranslateFn;
   feedbackActive: boolean;
   feedbackNonce: number;
+  pending: boolean;
+  busy: boolean;
+  pendingLabel: string;
   onBuy: () => void;
 }) {
-  const disabled = remaining === 0;
+  const disabled = remaining === 0 || busy;
   const label = offerStateLabel(offer, remaining, bought, t, true);
   const stateIcon = offerStateShopIcon(offer, remaining, bought, clientReady);
   const valueTag = offerValueTag(offer, t);
@@ -222,7 +237,13 @@ export function SpotlightOfferCard({
           <span>{label}</span>
         </div>
         <SceneButton onClick={onBuy} disabled={disabled} icon={offer.cost.gems ? "gem" : offer.cost.gold ? "gold" : "offers"} tone={offer.cost.gems ? "sky" : "gold"} className={cn("px-4 py-2.5 text-[10px]", !disabled && "frontline-feedback-purchase")}>
-          {disabled ? (offer.oneTime ? t("shop.states.owned") : t("shop.states.soldOut")) : offerCost(offer, t)}
+          {remaining === 0 ? (
+            offer.oneTime ? t("shop.states.owned") : t("shop.states.soldOut")
+          ) : (
+            <PendingActionLabel pending={pending} pendingLabel={pendingLabel}>
+              {offerCost(offer, t)}
+            </PendingActionLabel>
+          )}
         </SceneButton>
       </div>
     </div>
@@ -237,6 +258,9 @@ export function ReserveOfferCard({
   t,
   feedbackActive,
   feedbackNonce,
+  pending,
+  busy,
+  pendingLabel,
   onBuy,
 }: {
   offer: ExtendedShopOffer;
@@ -246,9 +270,12 @@ export function ReserveOfferCard({
   t: TranslateFn;
   feedbackActive: boolean;
   feedbackNonce: number;
+  pending: boolean;
+  busy: boolean;
+  pendingLabel: string;
   onBuy: () => void;
 }) {
-  const disabled = remaining === 0;
+  const disabled = remaining === 0 || busy;
   const label = offer.dailyLimit ? t("shop.left", { count: `${remaining ?? 0}/${offer.dailyLimit}` }) : offer.oneTime ? (bought ? t("shop.states.ownedLower") : t("shop.states.oneTimeLower")) : t("shop.states.always");
   const stateIcon = offerStateShopIcon(offer, remaining, bought, clientReady);
   const valueTag = offerValueTag(offer, t);
@@ -280,7 +307,13 @@ export function ReserveOfferCard({
           <span>{label}</span>
         </div>
         <SceneButton onClick={onBuy} disabled={disabled} icon={offer.cost.gems ? "gem" : offer.cost.gold ? "gold" : "offers"} tone={offer.cost.gems ? "sky" : "gold"} className={cn("px-4 py-2.5 text-[10px]", !disabled && "frontline-feedback-purchase")}>
-          {disabled ? (offer.oneTime ? t("shop.states.owned") : t("shop.states.soldOut")) : offerCost(offer, t)}
+          {remaining === 0 ? (
+            offer.oneTime ? t("shop.states.owned") : t("shop.states.soldOut")
+          ) : (
+            <PendingActionLabel pending={pending} pendingLabel={pendingLabel}>
+              {offerCost(offer, t)}
+            </PendingActionLabel>
+          )}
         </SceneButton>
       </div>
     </div>

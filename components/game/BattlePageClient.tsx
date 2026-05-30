@@ -8,6 +8,7 @@ import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePa
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import { BattlePageSetupLayout } from "@/components/game/frontline/BattlePageSetupLayout";
 import { BattlePageSetupSidebar } from "@/components/game/frontline/BattlePageSetupSidebar";
+import { PendingActionOverlay, usePendingActions } from "@/components/game/shared/PendingActionFeedback";
 import { useBattlePageEnemySelection } from "@/components/game/frontline/useBattlePageEnemySelection";
 import { useBattlePageLoadoutPreview } from "@/components/game/frontline/useBattlePageLoadoutPreview";
 import { useBattlePageRewardReveal } from "@/components/game/frontline/useBattlePageRewardReveal";
@@ -21,6 +22,7 @@ import { audio } from "@/lib/audio";
 import { frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
+import { createPendingActionKey } from "@/lib/pendingActions";
 import { useGameStore } from "@/lib/store";
 import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
@@ -70,6 +72,8 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const [phase, setPhase] = useState<BattlePhase>("setup");
   const [battleSeed, setBattleSeed] = useState(1);
   const [resultContext, setResultContext] = useState<BattlePageResultContext | null>(null);
+  const { activeKeys: pendingActionKeys, runPendingAction } = usePendingActions();
+  const battleResultPending = pendingActionKeys.some((key) => key.startsWith("frontline.result"));
   const { rewardReveal, resetRewardReveal } = useBattlePageRewardReveal({
     active: phase === "result",
     resultContext,
@@ -133,6 +137,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   }, [autostart, deckReady, phase, squadReady, startBattle]);
 
   async function finishBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
+    await runPendingAction(createPendingActionKey("frontline.result", adventureLevel?.id ?? selectedPreset.id), async () => {
     const won = winner === "ally";
     let rewards: Rewards =
       won
@@ -222,6 +227,7 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       window.setTimeout(() => audio.playStinger("victory"), 720);
     }
     setPhase("result");
+    }, true);
   }
 
   if (phase === "battle") {
@@ -231,21 +237,24 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       resolveBattleBackgroundKey(adventureLevel, encounterKind, selectedPreset.bossId),
     );
     return (
-      <BattlePageBattleView
-        seed={battleSeed}
-        loadout={frontlineLoadout}
-        enemyPresetId={selectedPreset.id}
-        allyHeroProfiles={allyHeroProfiles}
-        allyCardProfiles={allyCardProfiles}
-        allySupportProfiles={allySupportProfiles}
-        modifiers={modifiers}
-        encounterKind={encounterKind}
-        encounterTitle={adventureLevel?.name ?? null}
-        battleBackgroundSrc={battleBackgroundSrc}
-        onFinished={(winner, battleState) => {
-          void finishBattle(winner, battleState);
-        }}
-      />
+      <div className="relative min-h-dvh">
+        <BattlePageBattleView
+          seed={battleSeed}
+          loadout={frontlineLoadout}
+          enemyPresetId={selectedPreset.id}
+          allyHeroProfiles={allyHeroProfiles}
+          allyCardProfiles={allyCardProfiles}
+          allySupportProfiles={allySupportProfiles}
+          modifiers={modifiers}
+          encounterKind={encounterKind}
+          encounterTitle={adventureLevel?.name ?? null}
+          battleBackgroundSrc={battleBackgroundSrc}
+          onFinished={(winner, battleState) => {
+            void finishBattle(winner, battleState);
+          }}
+        />
+        {battleResultPending ? <PendingActionOverlay label={t("frontline.resultSubmitting")} /> : null}
+      </div>
     );
   }
 

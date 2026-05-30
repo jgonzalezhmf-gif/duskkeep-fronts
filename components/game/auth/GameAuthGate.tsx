@@ -18,6 +18,7 @@ import {
   subscribeToSupabaseSession,
   type SupabaseSessionSnapshot,
 } from "@/features/server/supabaseBrowserSession";
+import { PendingActionLabel } from "@/components/game/shared/PendingActionFeedback";
 import {
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
@@ -229,8 +230,11 @@ export function GameAuthGate({
     if (busy) return;
     sfx.tap();
     setBusy(true);
-    await onGuest?.();
-    setBusy(false);
+    try {
+      await onGuest?.();
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -322,9 +326,12 @@ export function GameAuthGate({
                   <button
                     type="button"
                     onClick={continueAsGuest}
+                    disabled={busy}
                     className="frontline-motion-action mt-3 w-full rounded-[20px] border border-white/12 bg-white/[0.055] px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white/72 transition hover:border-white/22 hover:text-white md:hidden"
                   >
-                    {t("auth.playGuest")}
+                    <PendingActionLabel pending={busy} pendingLabel={t("auth.working")}>
+                      {t("auth.playGuest")}
+                    </PendingActionLabel>
                   </button>
                 ) : null}
 
@@ -440,7 +447,9 @@ export function GameAuthGate({
                         : "cursor-not-allowed border-white/8 bg-white/[0.04] text-white/30",
                     )}
                   >
-                    {busy ? t("auth.working") : authCta}
+                    <PendingActionLabel pending={busy} pendingLabel={t("auth.working")}>
+                      {authCta}
+                    </PendingActionLabel>
                   </button>
                   {!guestUpgrade && activeMode === "signIn" ? (
                     <button
@@ -474,7 +483,9 @@ export function GameAuthGate({
                       )}
                     >
                       <GoogleMark />
-                      {t("auth.google")}
+                      <PendingActionLabel pending={busy} pendingLabel={t("auth.working")}>
+                        {t("auth.google")}
+                      </PendingActionLabel>
                     </button>
                   </>
                 ) : null}
@@ -483,9 +494,12 @@ export function GameAuthGate({
                   <button
                     type="button"
                     onClick={continueAsGuest}
+                    disabled={busy}
                     className="frontline-motion-action mt-3 hidden w-full rounded-[20px] border border-white/10 bg-black/24 px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-white/62 transition hover:border-white/20 hover:text-white md:block"
                   >
-                    {t("auth.playGuest")}
+                    <PendingActionLabel pending={busy} pendingLabel={t("auth.working")}>
+                      {t("auth.playGuest")}
+                    </PendingActionLabel>
                   </button>
                 ) : null}
               </>

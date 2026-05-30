@@ -7,6 +7,7 @@ import GameIcon from "@/components/game/shared/GameIcon";
 import { LazyRewardBurstOverlay } from "@/components/game/shared/LazyRewardBurstOverlay";
 import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
+import { PendingActionOverlay, usePendingActions } from "@/components/game/shared/PendingActionFeedback";
 import {
   SceneButton,
   ScreenBadge,
@@ -16,6 +17,7 @@ import {
 } from "@/components/game/screens/ScreenChrome";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameState";
+import { createPendingActionKey } from "@/lib/pendingActions";
 import { useGameStore } from "@/lib/store";
 import { audio } from "@/lib/audio";
 import type { AudioThemeName } from "@/lib/audio-score";
@@ -92,8 +94,10 @@ export default function ArenaPage() {
   const [ticketSpentLocally, setTicketSpentLocally] = useState(false);
   const [ladderMatchmaking, setLadderMatchmaking] = useState<LadderMatchmakingState>("idle");
   const [foundLadderOpponent, setFoundLadderOpponent] = useState<LadderOpponent | null>(null);
+  const { activeKeys: pendingActionKeys, runPendingAction } = usePendingActions();
   const ladderMatchTimers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
   const pickedMode = picked?.mode ?? null;
+  const resultPending = pendingActionKeys.some((key) => key.startsWith("arena.result"));
 
   useEffect(() => {
     setClientReady(true);
@@ -175,18 +179,20 @@ export default function ArenaPage() {
   }
 
   async function finishBattle(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
-    if (!picked) return;
+    const pick = picked;
+    if (!pick) return;
+    await runPendingAction(createPendingActionKey("arena.result", pick.mode), async () => {
     const won = winner === "ally";
-    const previewRewards = picked.mode === "ladder" ? picked.rival.previewRewards : picked.rival.rewards;
+    const previewRewards = pick.mode === "ladder" ? pick.rival.previewRewards : pick.rival.rewards;
     const rewards = won ? previewRewards : winner === "draw" ? { gold: 45, dust: 5, accountXp: 3 } : { gold: 25, accountXp: 2 };
     const rewardSource = won
-      ? t(picked.mode === "ladder" ? "arenaScreen.result.ladderWinSource" : "arenaScreen.result.winSource", { name: picked.rival.ownerName })
-      : t(picked.mode === "ladder" ? "arenaScreen.result.ladderResultSource" : "arenaScreen.result.resultSource", { name: picked.rival.ownerName });
+      ? t(pick.mode === "ladder" ? "arenaScreen.result.ladderWinSource" : "arenaScreen.result.winSource", { name: pick.rival.ownerName })
+      : t(pick.mode === "ladder" ? "arenaScreen.result.ladderResultSource" : "arenaScreen.result.resultSource", { name: pick.rival.ownerName });
     const battleSummary = createFrontlineBattleSummary(battleState);
 
-    if (picked.mode === "ladder") {
+    if (pick.mode === "ladder") {
       const recorded = await recordLadderResult({
-        opponentId: picked.rival.id,
+        opponentId: pick.rival.id,
         battleSeed: seed,
         winner,
         turns: battleState.round,
@@ -201,8 +207,8 @@ export default function ArenaPage() {
       const nextRank = getLadderRankForPoints(Math.max(0, Math.min(300, ladder.points + recorded.pointsDelta)));
       setResult({
         winner,
-        mode: picked.mode,
-        rival: picked.rival,
+        mode: pick.mode,
+        rival: pick.rival,
         rounds: battleState.round,
         rewards: recorded.rewards,
         allyCoreHp: battleState.allyCoreHp,
@@ -217,7 +223,7 @@ export default function ArenaPage() {
     }
 
     const recorded = await recordArenaResult({
-      opponentId: picked.rival.id,
+      opponentId: pick.rival.id,
       battleSeed: seed,
       winner,
       turns: battleState.round,
@@ -232,20 +238,21 @@ export default function ArenaPage() {
     }
     setResult({
       winner,
-      mode: picked.mode,
-      rival: picked.rival,
+      mode: pick.mode,
+      rival: pick.rival,
       rounds: battleState.round,
       rewards: recorded.rewards,
       allyCoreHp: battleState.allyCoreHp,
       enemyCoreHp: battleState.enemyCoreHp,
-      rankLabel: rivalText(t, picked.rival, "rank"),
+      rankLabel: rivalText(t, pick.rival, "rank"),
     });
     setPhase("post");
+    }, true);
   }
 
   if (phase === "battle" && picked) {
     return (
-      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
+      <div className="relative mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
         <FrontlineBattle
           seed={seed}
           loadout={frontlineLoadout}
@@ -255,6 +262,7 @@ export default function ArenaPage() {
           )}
           onFinished={finishBattle}
         />
+        {resultPending ? <PendingActionOverlay label={t("arenaScreen.result.submitting")} /> : null}
       </div>
     );
   }

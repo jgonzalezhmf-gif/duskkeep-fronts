@@ -76,8 +76,10 @@ export default function AdventureMapPage() {
     selectedInteraction,
     selectedInteractionClaim,
     selectedInteractionId,
+    selectedInteractionPending,
     selectedInteractionRewards,
     selectedInteractionStatus,
+    selectedNodePending,
     selectedProgress,
     setCacheReveal,
     setChaptersOpen,
@@ -192,6 +194,7 @@ export default function AdventureMapPage() {
                   claimedResult={selectedInteractionRewards}
                   persistedClaim={selectedInteractionClaim}
                   expanded={detailsExpanded}
+                  pending={selectedInteractionPending}
                   onToggleExpanded={() => setDetailsExpanded((value) => !value)}
                   onClaim={resolveSelectedInteraction}
                 />
@@ -204,6 +207,7 @@ export default function AdventureMapPage() {
                   progress={selectedProgress}
                   claimedRewards={claimedRewards}
                   expanded={detailsExpanded}
+                  pending={selectedNodePending}
                   onToggleExpanded={() => setDetailsExpanded((value) => !value)}
                   onOpenBattle={resolveSelectedNode}
                 />

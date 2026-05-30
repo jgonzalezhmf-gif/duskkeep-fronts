@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
+import { usePendingActions } from "@/components/game/shared/PendingActionFeedback";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { createPendingActionKey, isPendingAction } from "@/lib/pendingActions";
 import { useGameStore } from "@/lib/store";
 import {
   SHOP_CATEGORY_UNLOCK_LEVEL,
@@ -52,7 +54,8 @@ export default function ShopPage() {
   const [clientReady, setClientReady] = useState(false);
   const [ms, setMs] = useState(0);
   const [purchaseFx, setPurchaseFx] = useState<{ offerId: string; nonce: number } | null>(null);
-  const [pendingOfferId, setPendingOfferId] = useState<string | null>(null);
+  const { activeKeys: pendingKeys, runPendingAction } = usePendingActions();
+  const purchasePending = pendingKeys.length > 0;
   const purchaseFxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const purchaseFxNonce = useRef(0);
   const resources = useGameStore((s) => s.resources);
@@ -104,18 +107,14 @@ export default function ShopPage() {
     ? t("shop.openStock")
     : t("shop.left", { count: totalRemaining });
   const buyWithFeedback = async (offer: ExtendedShopOffer) => {
-    if (pendingOfferId) return;
-    setPendingOfferId(offer.id);
-    try {
+    await runPendingAction(createPendingActionKey("shop.purchase", offer.id), async () => {
       const ok = await handleBuyAsync(offer, buy, pushNote, t);
       if (!ok) return;
       purchaseFxNonce.current += 1;
       setPurchaseFx({ offerId: offer.id, nonce: purchaseFxNonce.current });
       if (purchaseFxTimer.current) clearTimeout(purchaseFxTimer.current);
       purchaseFxTimer.current = setTimeout(() => setPurchaseFx(null), 1500);
-    } finally {
-      setPendingOfferId(null);
-    }
+    }, true);
   };
 
   return (
@@ -195,6 +194,9 @@ export default function ShopPage() {
                     t={t}
                     feedbackActive={purchaseFx?.offerId === featured.id}
                     feedbackNonce={purchaseFx?.nonce ?? 0}
+                    pending={isPendingAction(pendingKeys, createPendingActionKey("shop.purchase", featured.id))}
+                    busy={purchasePending}
+                    pendingLabel={t("shop.actions.buying")}
                     onBuy={() => buyWithFeedback(featured)}
                   />
                   <MerchantConsole
@@ -220,6 +222,9 @@ export default function ShopPage() {
                         t={t}
                         feedbackActive={purchaseFx?.offerId === offer.id}
                         feedbackNonce={purchaseFx?.nonce ?? 0}
+                        pending={isPendingAction(pendingKeys, createPendingActionKey("shop.purchase", offer.id))}
+                        busy={purchasePending}
+                        pendingLabel={t("shop.actions.buying")}
                         onBuy={() => buyWithFeedback(offer)}
                       />
                     ))}
@@ -252,6 +257,9 @@ export default function ShopPage() {
                       t={t}
                       feedbackActive={purchaseFx?.offerId === offer.id}
                       feedbackNonce={purchaseFx?.nonce ?? 0}
+                      pending={isPendingAction(pendingKeys, createPendingActionKey("shop.purchase", offer.id))}
+                      busy={purchasePending}
+                      pendingLabel={t("shop.actions.buying")}
                       onBuy={() => buyWithFeedback(offer)}
                     />
                   ))

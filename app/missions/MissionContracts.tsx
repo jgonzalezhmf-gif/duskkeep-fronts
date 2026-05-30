@@ -3,8 +3,10 @@
 import Link from "next/link";
 import GameIcon from "@/components/game/shared/GameIcon";
 import { LazyRewardBurstOverlay } from "@/components/game/shared/LazyRewardBurstOverlay";
+import { PendingActionLabel } from "@/components/game/shared/PendingActionFeedback";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { cn } from "@/lib/cn";
+import { createPendingActionKey, isPendingAction } from "@/lib/pendingActions";
 import type { Mission, MissionProgress, Rewards } from "@/lib/types";
 import {
   METRIC_META,
@@ -28,12 +30,14 @@ export function NextContract({
   progress,
   claim,
   claimFx,
+  pendingClaimKeys,
   t,
 }: {
   mission: Mission | null;
   progress: Record<string, MissionProgress>;
   claim: (id: string) => void | Promise<void>;
   claimFx: ClaimFx | null;
+  pendingClaimKeys: readonly string[];
   t: TranslateFn;
 }) {
   if (!mission) {
@@ -51,6 +55,8 @@ export function NextContract({
   const pct = Math.min(1, p.progress / mission.goal);
   const ready = p.progress >= mission.goal && !p.claimed;
   const activeClaim = claimFx?.missionId === mission.id ? claimFx : null;
+  const pending = isPendingAction(pendingClaimKeys, createPendingActionKey("missions.claim", mission.id));
+  const anyPending = pendingClaimKeys.length > 0;
 
   return (
     <div
@@ -87,7 +93,7 @@ export function NextContract({
           <button
             type="button"
             onClick={() => claim(mission.id)}
-            disabled={!ready}
+            disabled={!ready || anyPending}
             className={cn(
               "rounded-[18px] px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.16em] transition",
               ready ? "bg-[#f5c451] text-black shadow-[0_16px_34px_rgba(245,196,81,0.2)]" : "bg-white/8 text-white/42",
@@ -96,7 +102,9 @@ export function NextContract({
           >
             <span className="inline-flex items-center justify-center gap-2">
               <ProgressionIcon name={p.claimed ? "claim" : ready ? "claim" : "unlock"} size="sm" withGlow={ready} />
-              {p.claimed ? t("missionsScreen.actions.claimed") : ready ? t("missionsScreen.actions.claim") : t("missionsScreen.actions.locked")}
+              <PendingActionLabel pending={pending} pendingLabel={t("missionsScreen.actions.claiming")}>
+                {p.claimed ? t("missionsScreen.actions.claimed") : ready ? t("missionsScreen.actions.claim") : t("missionsScreen.actions.locked")}
+              </PendingActionLabel>
             </span>
           </button>
         </div>
@@ -112,6 +120,7 @@ export function MissionColumn({
   progress,
   claim,
   claimFx,
+  pendingClaimKeys,
   t,
 }: {
   title: string;
@@ -120,6 +129,7 @@ export function MissionColumn({
   progress: Record<string, MissionProgress>;
   claim: (id: string) => void | Promise<void>;
   claimFx: ClaimFx | null;
+  pendingClaimKeys: readonly string[];
   t: TranslateFn;
 }) {
   const openMissions = missions.filter((mission) => !(progress[mission.id]?.claimed));
@@ -144,7 +154,7 @@ export function MissionColumn({
       <div className="grid gap-2.5">
         {openMissions.length ? (
           openMissions.map((mission) => (
-            <MissionContract key={mission.id} mission={mission} progress={progress[mission.id] ?? freshProgress()} claim={claim} claimFx={claimFx} t={t} />
+            <MissionContract key={mission.id} mission={mission} progress={progress[mission.id] ?? freshProgress()} claim={claim} claimFx={claimFx} pendingClaimKeys={pendingClaimKeys} t={t} />
           ))
         ) : (
           <div className="rounded-[24px] border border-emerald-300/14 bg-emerald-300/[0.045] px-4 py-6 text-center">
@@ -164,12 +174,14 @@ function MissionContract({
   progress,
   claim,
   claimFx,
+  pendingClaimKeys,
   t,
 }: {
   mission: Mission;
   progress: MissionProgress;
   claim: (id: string) => void | Promise<void>;
   claimFx: ClaimFx | null;
+  pendingClaimKeys: readonly string[];
   t: TranslateFn;
 }) {
   const meta = METRIC_META[mission.metric] ?? METRIC_META.battles_won;
@@ -177,6 +189,8 @@ function MissionContract({
   const ready = progress.progress >= mission.goal && !progress.claimed;
   const claimed = progress.claimed;
   const activeClaim = claimFx?.missionId === mission.id ? claimFx : null;
+  const pending = isPendingAction(pendingClaimKeys, createPendingActionKey("missions.claim", mission.id));
+  const anyPending = pendingClaimKeys.length > 0;
 
   return (
     <article
@@ -221,7 +235,7 @@ function MissionContract({
               <button
                 type="button"
                 onClick={() => claim(mission.id)}
-                disabled={!ready}
+                disabled={!ready || anyPending}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] transition",
                   ready ? "bg-[#f5c451] text-black" : "bg-white/8 text-white/38",
@@ -230,7 +244,9 @@ function MissionContract({
               >
                 <span className="inline-flex items-center justify-center gap-1.5">
                   <ProgressionIcon name={claimed ? "claim" : ready ? "claim" : "unlock"} size="xs" withGlow={ready} />
-                  {claimed ? t("missionsScreen.actions.done") : ready ? t("missionsScreen.actions.claim") : t("missionsScreen.actions.hold")}
+                  <PendingActionLabel pending={pending} pendingLabel={t("missionsScreen.actions.claiming")}>
+                    {claimed ? t("missionsScreen.actions.done") : ready ? t("missionsScreen.actions.claim") : t("missionsScreen.actions.hold")}
+                  </PendingActionLabel>
                 </span>
               </button>
             </div>

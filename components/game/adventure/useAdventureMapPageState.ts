@@ -19,6 +19,8 @@ import {
 } from "@/features/adventure/nodeResolution";
 import { getAdventureUnlockedLevelIds, isAdventureChapterDemoLocked } from "@/features/adventure/progression";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
+import { usePendingActions } from "@/components/game/shared/PendingActionFeedback";
+import { createPendingActionKey } from "@/lib/pendingActions";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "./adventureMapLayout";
 import { getLocalizedChapterMeta } from "./AdventureChapterMeta";
@@ -31,6 +33,7 @@ export function useAdventureMapPageState(t: TranslateFn) {
   const accountLevel = useGameStore((state) => state.account.level);
   const claimAdventureNode = useGameStore((state) => state.claimAdventureNodeOnlineFirst);
   const claimAdventureMapInteraction = useGameStore((state) => state.claimAdventureMapInteractionOnlineFirst);
+  const { activeKeys: pendingActionKeys, runPendingAction } = usePendingActions();
   const router = useRouter();
 
   const chapters = useMemo(() => {
@@ -86,7 +89,6 @@ export function useAdventureMapPageState(t: TranslateFn) {
   const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, Awaited<ReturnType<typeof claimAdventureNode>>>>({});
   const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, AdventureMapInteractionOpenResult | null>>({});
   const [cacheReveal, setCacheReveal] = useState<AdventureMapInteractionOpenResult | null>(null);
-  const [pendingInteractionId, setPendingInteractionId] = useState<string | null>(null);
   const [interactionClock, setInteractionClock] = useState(() => Date.now());
 
   useEffect(() => {
@@ -156,6 +158,10 @@ export function useAdventureMapPageState(t: TranslateFn) {
       : null;
   const selectedInteractionRewards =
     selectedInteractionId && selectedInteractionStatus === "claimed" ? claimedRewardsByInteraction[selectedInteractionId] ?? null : null;
+  const selectedNodePending = pendingActionKeys.includes(createPendingActionKey("adventure.node", selected.lvl.id));
+  const selectedInteractionPending = selectedInteractionId
+    ? pendingActionKeys.includes(createPendingActionKey("adventure.interaction", selectedInteractionId))
+    : false;
   const selectedInteractionClaim =
     selectedInteractionId && selectedInteraction && isAdventureMapInteractionClaimActive(selectedInteraction, adventureMapClaims[selectedInteractionId], interactionNow)
       ? adventureMapClaims[selectedInteractionId]
@@ -177,10 +183,12 @@ export function useAdventureMapPageState(t: TranslateFn) {
     if (selected.locked || selectedDefinition.type === "locked") return;
     if (isAdventureClaimed(selectedDefinition.type, selectedProgress)) return;
     if (!isAdventureCombatNode(selectedDefinition.type)) {
-      const rewards = await claimAdventureNode(selected.lvl.id);
-      if (rewards) {
-        setClaimedRewardsByNode((current) => ({ ...current, [selected.lvl.id]: rewards }));
-      }
+      await runPendingAction(createPendingActionKey("adventure.node", selected.lvl.id), async () => {
+        const rewards = await claimAdventureNode(selected.lvl.id);
+        if (rewards) {
+          setClaimedRewardsByNode((current) => ({ ...current, [selected.lvl.id]: rewards }));
+        }
+      }, true);
       return;
     }
     router.push(`/adventure/${selected.lvl.id}`);
@@ -188,14 +196,14 @@ export function useAdventureMapPageState(t: TranslateFn) {
 
   async function resolveSelectedInteraction() {
     if (!selectedInteractionId) return;
-    if (pendingInteractionId) return;
     const interactionId = selectedInteractionId;
-    setPendingInteractionId(interactionId);
-    const result = await claimAdventureMapInteraction(interactionId).finally(() => setPendingInteractionId(null));
-    if (result) {
-      setClaimedRewardsByInteraction((current) => ({ ...current, [interactionId]: result }));
-      setCacheReveal(result);
-    }
+    await runPendingAction(createPendingActionKey("adventure.interaction", interactionId), async () => {
+      const result = await claimAdventureMapInteraction(interactionId);
+      if (result) {
+        setClaimedRewardsByInteraction((current) => ({ ...current, [interactionId]: result }));
+        setCacheReveal(result);
+      }
+    }, true);
   }
 
   return {
@@ -220,8 +228,10 @@ export function useAdventureMapPageState(t: TranslateFn) {
     selectedInteraction,
     selectedInteractionClaim,
     selectedInteractionId,
+    selectedInteractionPending,
     selectedInteractionRewards,
     selectedInteractionStatus,
+    selectedNodePending,
     selectedProgress,
     setCacheReveal,
     setChaptersOpen,
