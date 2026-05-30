@@ -65,6 +65,38 @@ describe("frontline engine", () => {
     expect(afterEnemy.enemyCoreHp).toBeLessThan(afterEnemy.enemyCoreMaxHp);
   });
 
+  it("converts temporary attack buffs into extra open-lane breach damage", () => {
+    const baseline = makeState();
+    baseline.lanes.left.enemyHero = null;
+    baseline.lanes.left.enemySupport = null;
+    baseline.enemyDeck.deck = [];
+    baseline.enemyDeck.hand = [];
+    baseline.enemyDeck.discard = [];
+    const baselineCore = baseline.enemyCoreHp;
+    const baselineAfterRound = resolveTurn(baseline);
+    const baselineDamage = baselineCore - baselineAfterRound.enemyCoreHp;
+
+    const buffed = makeState();
+    buffed.lanes.left.enemyHero = null;
+    buffed.lanes.left.enemySupport = null;
+    buffed.enemyDeck.deck = [];
+    buffed.enemyDeck.hand = [];
+    buffed.enemyDeck.discard = [];
+    buffed.allyDeck.hand = ["order_twin_slash"];
+    buffed.allyDeck.command = 3;
+    const afterCard = playCard(buffed, "ally", "order_twin_slash", "left");
+    const buffedCore = afterCard.enemyCoreHp;
+    const buffedAfterRound = resolveTurn(afterCard);
+    const buffedDamage = buffedCore - buffedAfterRound.enemyCoreHp;
+
+    expect(buffedDamage).toBeGreaterThan(baselineDamage);
+    expect(
+      buffedAfterRound.events.some(
+        (entry) => entry.kind === "breach" && entry.side === "ally" && entry.lane === "left" && entry.amount === buffedDamage,
+      ),
+    ).toBe(true);
+  });
+
   it("exposes leader power targets and applies beam damage", () => {
     const state = makeState();
     const targets = validLeaderPowerTargets(state, "ally");

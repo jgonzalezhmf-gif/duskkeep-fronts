@@ -130,7 +130,7 @@ export function FrontlineBattleLanes({
               activeResolutionEvent && !activeLaneEvent && "opacity-60 saturate-[0.78] scale-[0.99] transition-[opacity,filter,transform] duration-200",
               activeLaneEvent && "z-[2] ring-[3px] ring-[#f5c451]/56 shadow-[0_0_72px_rgba(245,196,81,0.32)] transition-[box-shadow,transform] duration-200",
             )}
-            title={laneStatusSubtitle(t, insight.lane, insight.status)}
+            title={laneStatusSubtitle(t, insight.lane, insight.status, insight.breachAmount ?? undefined)}
           >
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.028),transparent_30%,rgba(0,0,0,0.14))]" />
             <div className="pointer-events-none absolute inset-x-6 top-11 h-24 rounded-[999px] bg-[radial-gradient(circle,rgba(245,196,81,0.08),transparent_67%)] blur-lg" />
@@ -181,7 +181,7 @@ export function FrontlineBattleLanes({
                 {insight.breachSide ? (
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-black/24 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/72">
                     <CombatIcon name={insight.breachSide === "ally" ? "breach" : "danger"} size="sm" className="h-5 w-5" fallbackClassName="opacity-90" />
-                    <span>{laneBreachValue(lane)}</span>
+                    <span>{insight.breachAmount ?? laneBreachValue(lane)}</span>
                   </div>
                 ) : null}
                 <StatusTag tone={statusMeta.tone} label={statusMeta.label} detail={statusMeta.detail} icon={combatIconForLaneStatus(insight.status)} />

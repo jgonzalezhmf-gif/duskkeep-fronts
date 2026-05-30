@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.44] - 2026-05-30
+
+### Changed
+- El danio de brecha en carriles abiertos ahora convierte ataque temporal del heroe en presion extra al core.
+- La UI de carriles abiertos muestra el valor dinamico de brecha, evitando que buffs de ataque parezcan inutiles cuando no queda enemigo en la linea.
+
 ## [0.37.43] - 2026-05-30
 
 ### Changed

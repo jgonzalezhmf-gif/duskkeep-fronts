@@ -297,3 +297,56 @@ Status: complete.
 - Frontline active front, actor, breach and core damage feedback polish.
 - Arena light mutators.
 - Release candidate validation.
+
+
+## Batch 7 - Open-lane breach pressure from attack buffs
+
+Status: complete.
+
+### Completed Tasks
+
+- [x] 4.6 Temporary ATK buffs now increase open-lane breach damage instead of being ignored once the enemy lane is empty.
+- [x] 4.6 The lane UI preview uses the same dynamic breach amount as the engine.
+- [x] 4.6 Stun behavior remains protected because only active, unstunned heroes contribute temporary attack pressure.
+
+### Rule Clarification
+
+- Open-lane breach keeps its lane base value: left/right 2, center 3.
+- Breach-trait heroes keep their existing extra core damage.
+- Positive temporary ATK adds controlled extra core pressure: at least +1 when buffed, then roughly +1 per 2 temporary ATK.
+- Base hero ATK does not directly convert to breach damage in this slice, preventing a broad balance spike.
+
+### TDD Cycle Evidence
+
+| Task | RED | GREEN | REFACTOR |
+| --- | --- | --- | --- |
+| 4.6 | Added a failing engine test proving `Twin Slash` on an open lane still dealt the same breach damage as no buff. | Focused engine test passed after adding temporary-pressure scaling to `frontlineBreachRules`. | Extracted reusable breach amount helpers for both engine and UI preview. |
+| 4.6 UI | Added derived-state coverage for boosted open-lane breach amount in `analyzeLane`. | Lane status metadata/subtitle now use the dynamic amount. | Existing lane badges and subtitles were reused; no new copy or assets needed. |
+
+### Validation
+
+- `npm.cmd run test -- tests/frontline.engine.test.ts -t "temporary attack buffs"` - failed first as expected, then passed.
+- `npm.cmd run test -- tests/frontline.engine.test.ts tests/frontline.battleDerivedState.test.ts -t "temporary attack buffs|boosted open-lane"` - passed, 2 focused tests.
+- `npm.cmd run test -- tests/frontline.engine.test.ts tests/frontline.battleDerivedState.test.ts tests/frontline.preview.test.ts tests/frontline.resolutionFlow.test.ts` - passed, 4 files / 47 tests.
+- `npm.cmd run check` - passed.
+- `npm.cmd run test` - passed, 87 files / 617 tests.
+- `npm.cmd run build` - passed.
+- `npm.cmd run check:performance` - passed.
+- `npm.cmd run audit:build` - passed.
+- Focused production Playwright smoke on `http://127.0.0.1:3007/battle?start=1` passed for desktop and mobile: route loads, leader power and resolve controls visible, no 404s, no filtered console issues. Screenshots: `tmp/validation/combat-open-lane-pressure-desktop.png`, `tmp/validation/combat-open-lane-pressure-mobile.png`.
+
+### Files Changed in This Batch
+
+- `features/frontline/frontlineBreachMath.ts` - shared pure breach amount helpers and temporary ATK pressure conversion.
+- `features/frontline/frontlineBreachRules.ts` - applies the shared breach amount during end-of-round breach resolution.
+- `components/game/frontline/FrontlineLaneInsights.ts` - dynamic breach amount in lane analysis, metadata and subtitles.
+- `components/game/frontline/FrontlineBattleLanes.tsx` - breach badge shows dynamic amount.
+- `components/game/frontline/FrontlineBattleDerivedState.ts` - selected-lane context uses dynamic breach subtitle.
+- `tests/frontline.engine.test.ts` - regression coverage for attack buffs affecting open-lane breach damage.
+- `tests/frontline.battleDerivedState.test.ts` - regression coverage for dynamic breach preview.
+
+### Remaining Slices
+
+- Frontline active front, actor, breach and core damage visual feedback polish.
+- Arena light mutators.
+- Release candidate validation.

@@ -1,4 +1,5 @@
 import type { FrontlineBattleState } from "@/features/frontline/types";
+import { frontlineBreachAmount, frontlineLaneBaseBreachValue } from "@/features/frontline/frontlineBreachMath";
 import type { CombatAssetIconName } from "@/lib/iconAssets";
 import type { TranslateFn } from "@/lib/i18n/frontlineText";
 import type { FrontlineLane } from "@/lib/types";
@@ -12,6 +13,7 @@ export type LaneInsight = {
   allyLow: boolean;
   enemyLow: boolean;
   breachSide: "ally" | "enemy" | null;
+  breachAmount: number | null;
 };
 
 export function combatIconForLaneStatus(status: LaneInsight["status"]): CombatAssetIconName {
@@ -32,7 +34,7 @@ function laneEntityScore(
 }
 
 export function laneBreachValue(lane: FrontlineLane) {
-  return lane === "center" ? 3 : 2;
+  return frontlineLaneBaseBreachValue(lane);
 }
 
 export function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): LaneInsight {
@@ -54,6 +56,7 @@ export function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): L
       allyLow,
       enemyLow,
       breachSide: "ally",
+      breachAmount: frontlineBreachAmount(state, "ally", lane),
     };
   }
   if (!allyPresent && enemyPresent) {
@@ -66,6 +69,7 @@ export function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): L
       allyLow,
       enemyLow,
       breachSide: "enemy",
+      breachAmount: frontlineBreachAmount(state, "enemy", lane),
     };
   }
   if (!allyPresent && !enemyPresent) {
@@ -78,6 +82,7 @@ export function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): L
       allyLow,
       enemyLow,
       breachSide: null,
+      breachAmount: null,
     };
   }
 
@@ -92,6 +97,7 @@ export function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): L
       allyLow,
       enemyLow,
       breachSide: null,
+      breachAmount: null,
     };
   }
   if (diff <= -10) {
@@ -104,6 +110,7 @@ export function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): L
       allyLow,
       enemyLow,
       breachSide: null,
+      breachAmount: null,
     };
   }
 
@@ -116,6 +123,7 @@ export function analyzeLane(state: FrontlineBattleState, lane: FrontlineLane): L
     allyLow,
     enemyLow,
     breachSide: null,
+    breachAmount: null,
   };
 }
 
@@ -128,9 +136,14 @@ export function laneStatusTitle(t: TranslateFn, status: LaneInsight["status"]) {
   return t("frontline.statusEven");
 }
 
-export function laneStatusSubtitle(t: TranslateFn, lane: FrontlineLane, status: LaneInsight["status"]) {
-  if (status === "open_breach") return t("frontline.subtitleBreach", { amount: laneBreachValue(lane) });
-  if (status === "breach_threat") return t("frontline.subtitleDanger", { amount: laneBreachValue(lane) });
+export function laneStatusSubtitle(
+  t: TranslateFn,
+  lane: FrontlineLane,
+  status: LaneInsight["status"],
+  breachAmount = laneBreachValue(lane),
+) {
+  if (status === "open_breach") return t("frontline.subtitleBreach", { amount: breachAmount });
+  if (status === "breach_threat") return t("frontline.subtitleDanger", { amount: breachAmount });
   if (status === "vacant") return t("frontline.subtitleVacant");
   if (status === "ally_edge") return t("frontline.subtitleAllyEdge");
   if (status === "enemy_edge") return t("frontline.subtitleEnemyEdge");
@@ -139,10 +152,10 @@ export function laneStatusSubtitle(t: TranslateFn, lane: FrontlineLane, status: 
 
 export function laneStatusMeta(t: TranslateFn, insight: LaneInsight) {
   if (insight.status === "open_breach") {
-    return { tone: "ally" as const, label: t("frontline.statusBreach"), detail: `${laneBreachValue(insight.lane)}` };
+    return { tone: "ally" as const, label: t("frontline.statusBreach"), detail: `${insight.breachAmount ?? laneBreachValue(insight.lane)}` };
   }
   if (insight.status === "breach_threat") {
-    return { tone: "enemy" as const, label: t("frontline.statusDanger"), detail: `${laneBreachValue(insight.lane)}` };
+    return { tone: "enemy" as const, label: t("frontline.statusDanger"), detail: `${insight.breachAmount ?? laneBreachValue(insight.lane)}` };
   }
   if (insight.status === "ally_edge") {
     return { tone: "ally" as const, label: t("frontline.statusEdge"), detail: "" };

@@ -35,6 +35,7 @@
 - [ ] 4.3 Respect reduced motion and keep browser validation evidence.
 - [x] 4.4 Tune stun contract and one-card draw pacing.
 - [x] 4.5 Clarify opening hand, leader-power core targeting, support visibility, and leader-power affordance.
+- [x] 4.6 Convert open-lane temporary attack buffs into extra breach pressure with matching UI preview.
 
 ## Phase 5: Arena light mutators
 

@@ -4,11 +4,25 @@ import {
   getResolutionPlaybackEvents,
   MAX_RESOLUTION_PLAYBACK_EVENTS,
 } from "@/components/game/frontline/FrontlineBattleDerivedState";
+import { analyzeLane, laneStatusMeta, laneStatusSubtitle } from "@/components/game/frontline/FrontlineLaneInsights";
+import { FRONTLINE_PRESETS } from "@/features/frontline/data";
+import { createDefaultFrontlineLoadout, createFrontlineBattleState } from "@/features/frontline/engine";
 import type { FrontlineEvent, FrontlineEventKind } from "@/features/frontline/types";
+import type { TranslateFn } from "@/lib/i18n/frontlineText";
 
 function event(kind: FrontlineEventKind, id: string): FrontlineEvent {
   return { id, kind, label: id };
 }
+
+function makeState() {
+  return createFrontlineBattleState({
+    seed: 77,
+    allyLoadout: createDefaultFrontlineLoadout(),
+    enemyPreset: FRONTLINE_PRESETS[0],
+  });
+}
+
+const t: TranslateFn = (key, params) => `${key}${params?.amount ? `:${params.amount}` : ""}`;
 
 describe("frontline battle derived state", () => {
   it("returns null when neither core loses hp", () => {
@@ -71,5 +85,21 @@ describe("frontline battle derived state", () => {
 
     expect(getResolutionPlaybackEvents(events)).toHaveLength(MAX_RESOLUTION_PLAYBACK_EVENTS);
     expect(getResolutionPlaybackEvents(events).at(-1)?.id).toBe(`damage-${MAX_RESOLUTION_PLAYBACK_EVENTS - 1}`);
+  });
+
+  it("surfaces boosted open-lane breach pressure in lane insights", () => {
+    const state = makeState();
+    state.lanes.left.enemyHero = null;
+    state.lanes.left.enemySupport = null;
+    state.lanes.left.allyHero!.tempAtk = 3;
+
+    const insight = analyzeLane(state, "left");
+
+    expect(insight.status).toBe("open_breach");
+    expect(insight.breachAmount).toBe(4);
+    expect(laneStatusMeta(t, insight).detail).toBe("4");
+    expect(laneStatusSubtitle(t, insight.lane, insight.status, insight.breachAmount ?? undefined)).toBe(
+      "frontline.subtitleBreach:4",
+    );
   });
 });

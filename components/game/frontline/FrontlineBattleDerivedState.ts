@@ -116,7 +116,7 @@ export function getSelectedBattleContext({
 
   return {
     title: `${laneLabel(t, displayLane)} ${t("frontline.front")}`,
-    body: laneStatusSubtitle(t, displayInsight.lane, displayInsight.status),
+    body: laneStatusSubtitle(t, displayInsight.lane, displayInsight.status, displayInsight.breachAmount ?? undefined),
   };
 }
 
