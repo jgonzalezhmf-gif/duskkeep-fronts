@@ -245,3 +245,55 @@ Status: complete.
 - Frontline active front, actor, breach and core damage feedback polish.
 - Arena light mutators.
 - Release candidate validation.
+
+
+## Batch 6 - Frontline targeting clarity and leader power affordance
+
+Status: complete.
+
+### Completed Tasks
+
+- [x] 4.5 Frontline starts with 5 cards again while normal turn refresh still draws exactly 1 card.
+- [x] 4.5 Beam leader powers can target open enemy lanes and burn the enemy core.
+- [x] 4.5 Empty lanes with a support now render that support token instead of looking fully vacant.
+- [x] 4.5 The player leader-power button now has an always-visible `Power` label, visible power name, command cost pill, and ready-state glow.
+
+### Rule Clarification
+
+- Hero orders and healing/shield cards require an allied hero in the target lane.
+- Field supports can be placed on any allied lane that has no support, even if no allied hero is there.
+- Lane-origin offensive cards still require an unstunned acting unit in the same lane.
+- Leader powers are commander-origin actions: beam powers can hit a unit/support if present or the enemy core through an open lane.
+
+### TDD Cycle Evidence
+
+| Task | RED | GREEN | REFACTOR |
+| --- | --- | --- | --- |
+| 4.5 | Updated Frontline engine tests failed for 5-card opening hand and beam leader power targeting an open lane. | Focused tests passed after initial draw was restored and beam targets included all lanes. | Kept normal draw at 1 in `frontlineTurnPreparation.ts`; reused existing direct-damage core fallback. |
+| 4.5 UI | Existing empty-lane rendering hid supports because `FrontlineHeroPiece` returned before `SupportToken`. | Browser smoke confirmed the battle route loads and the leader-power button reads as `POWER / SOLAR LANCE / 2` on desktop and mobile. | Reused `SupportToken`, `CombatIcon`, `ResourceIcon`, i18n `frontline.power`, and the existing ready-ring motion class. |
+
+### Validation
+
+- `npm.cmd run test -- tests/frontline.engine.test.ts -t "opening hand|normal turn refresh|beam leader power"` - failed first as expected, then passed.
+- `npm.cmd run test -- tests/frontline.engine.test.ts` - passed, 28 tests.
+- `npm.cmd run test -- tests/frontline.engine.test.ts tests/frontline.preview.test.ts tests/frontline.battleDerivedState.test.ts tests/frontline.resolutionFlow.test.ts` - passed, 4 files / 45 tests.
+- `npm.cmd run check` - passed.
+- `npm.cmd run test` - passed, 87 files / 615 tests.
+- `npm.cmd run build` - passed.
+- `npm.cmd run check:performance` - passed; `.next/static` remains at the 3.00 MB budget.
+- `npm.cmd run audit:build` - passed.
+- Focused Playwright production smoke on `http://127.0.0.1:3007/battle?start=1` passed for desktop and mobile: no 404s, no filtered console issues, leader-power and resolve buttons visible. Screenshots: `tmp/validation/combat-leader-power-desktop.png`, `tmp/validation/combat-leader-power-mobile.png`.
+
+### Files Changed in This Batch
+
+- `features/frontline/engine.ts` - restores the opening draw to 5-card hand and allows beam leader powers to target open lanes.
+- `components/game/frontline/FrontlineHeroPiece.tsx` - renders support tokens on open lanes.
+- `components/game/frontline/FrontlineBattleHeader.tsx` - improves leader-power button hierarchy and ready state.
+- `tests/frontline.engine.test.ts` - covers opening hand, one-card turn refresh, and open-lane leader power core damage.
+
+### Remaining Slices
+
+- Decide whether open-lane core damage from regular lane buffs/orders needs a separate scaling rule.
+- Frontline active front, actor, breach and core damage feedback polish.
+- Arena light mutators.
+- Release candidate validation.

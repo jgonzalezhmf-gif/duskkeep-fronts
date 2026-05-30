@@ -23,16 +23,17 @@ function makeState() {
 }
 
 describe("frontline engine", () => {
-  it("starts with 3 command and keeps the opening hand lean", () => {
+  it("starts with 3 command and a full 5-card opening hand", () => {
     const state = makeState();
 
     expect(state.turn).toBe("ally");
     expect(state.allyDeck.command).toBe(3);
-    expect(state.allyDeck.hand.length).toBe(3);
+    expect(state.allyDeck.hand.length).toBe(5);
   });
 
   it("draws only one card on a normal turn refresh", () => {
     const state = makeState();
+    state.allyDeck.hand = state.allyDeck.hand.slice(0, 3);
     const openingHandSize = state.allyDeck.hand.length;
     state.enemyDeck.deck = [];
     state.enemyDeck.hand = [];
@@ -74,6 +75,22 @@ describe("frontline engine", () => {
     expect(next.allyDeck.command).toBe(1);
     expect(next.allyDeck.powerCooldown).toBeGreaterThan(0);
     expect(next.events.some((entry) => entry.kind === "power")).toBe(true);
+  });
+
+  it("allows a beam leader power to target an open lane and burn the enemy core", () => {
+    const state = makeState();
+    state.lanes.left.enemyHero = null;
+    state.lanes.left.enemySupport = null;
+    state.allyDeck.command = 3;
+    const enemyCoreBefore = state.enemyCoreHp;
+
+    expect(validLeaderPowerTargets(state, "ally")).toContain("left");
+    const next = activateLeaderPower(state, "ally", "left");
+
+    expect(next.enemyCoreHp).toBeLessThan(enemyCoreBefore);
+    expect(
+      next.events.some((entry) => entry.kind === "damage" && entry.lane === "left" && entry.label.includes("core")),
+    ).toBe(true);
   });
 
   it("resolves the full round and hands initiative back to the player", () => {

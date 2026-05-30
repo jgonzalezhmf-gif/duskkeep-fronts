@@ -62,6 +62,12 @@ export function FrontlineBattleHeader({
 }: FrontlineBattleHeaderProps) {
   const { t } = useI18n();
   const enemyPreset = getEnemyPreset(enemyPresetId);
+  const leaderPowerDisabled =
+    actionsLocked ||
+    state.allyDeck.usedLeaderPower ||
+    state.allyDeck.powerCooldown > 0 ||
+    state.allyDeck.command < allyLeader.power.cost;
+  const leaderPowerReady = !leaderPowerDisabled && !state.selectedLeaderPower;
 
   return (
     <header className="grid gap-3 lg:grid-cols-[13rem_minmax(0,1fr)_13rem] xl:grid-cols-[15rem_minmax(0,1fr)_15rem]">
@@ -112,28 +118,36 @@ export function FrontlineBattleHeader({
         <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
           <button
             className={cn(
-              "relative isolate min-h-14 overflow-hidden rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition",
+              "relative isolate min-h-14 min-w-[9.5rem] overflow-hidden rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition",
               state.selectedLeaderPower
                 ? "border-[#ffe5a4]/70 bg-[radial-gradient(circle_at_28%_20%,rgba(255,248,214,0.9),rgba(245,196,81,0.78)_32%,rgba(86,45,17,0.94)_100%)] text-[#180c05] shadow-[0_0_38px_rgba(245,196,81,0.42)]"
                 : "border-[#f5c451]/42 bg-[radial-gradient(circle_at_26%_20%,rgba(255,248,214,0.36),rgba(245,196,81,0.2)_38%,rgba(44,24,12,0.88)_100%)] text-[#fff3c7] shadow-[0_12px_30px_rgba(245,196,81,0.24)] hover:-translate-y-0.5 hover:border-[#ffe5a4]/68 hover:shadow-[0_16px_38px_rgba(245,196,81,0.32)]",
+              leaderPowerReady &&
+                "border-[#ffe5a4]/72 shadow-[0_0_32px_rgba(245,196,81,0.34),0_16px_40px_rgba(245,196,81,0.24)]",
+              leaderPowerDisabled && "cursor-not-allowed opacity-45 saturate-75 hover:translate-y-0 hover:shadow-none",
             )}
-            disabled={
-              actionsLocked ||
-              state.allyDeck.usedLeaderPower ||
-              state.allyDeck.powerCooldown > 0 ||
-              state.allyDeck.command < allyLeader.power.cost
-            }
+            disabled={leaderPowerDisabled}
             onClick={onLeaderPowerClick}
             title={allyLeaderPowerDescription}
           >
             <span className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.32),transparent_36%)]" />
             <span className="inline-flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-[#ffe5a4]/48 bg-black/28 shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_0_24px_rgba(245,196,81,0.24)]">
+              <span
+                className={cn(
+                  "grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#ffe5a4]/48 bg-black/28 shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_0_24px_rgba(245,196,81,0.24)]",
+                  leaderPowerReady && "frontline-power-ready-ring-fx",
+                )}
+              >
                 <CombatIcon name="leader_power" size="lg" className="h-8 w-8" fallbackClassName="opacity-95" />
               </span>
-              <span className="hidden max-w-[10rem] truncate sm:inline">{allyLeaderPowerName}</span>
-              <ResourceIcon kind="command" size="small" className="h-5 w-5" />
-              {allyLeader.power.cost}
+              <span className="flex min-w-0 flex-col items-start gap-0.5 leading-none">
+                <span className="text-[9px] tracking-[0.22em] text-[#ffe5a4]/74">{t("frontline.power")}</span>
+                <span className="max-w-[8.5rem] truncate text-[11px] tracking-[0.12em]">{allyLeaderPowerName}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-black/24 px-1.5 py-1">
+                <ResourceIcon kind="command" size="small" className="h-5 w-5" />
+                <span>{allyLeader.power.cost}</span>
+              </span>
             </span>
           </button>
           {(selectedCard || state.selectedLeaderPower || focusedLaneActive) ? (

@@ -108,7 +108,7 @@ export function createFrontlineBattleState(input: {
     playerCardCostMod: 0,
     playerCardCostModTurnsLeft: 0,
   };
-  return prepareTurn(state, "ally", { drawAmount: 0 });
+  return prepareTurn(state, "ally", { drawAmount: 2 });
 }
 
 export function validLeaderPowerTargets(state: FrontlineBattleState, side: FrontlineSide): FrontlineLane[] {
@@ -116,7 +116,7 @@ export function validLeaderPowerTargets(state: FrontlineBattleState, side: Front
   const leader = leaderDefinition(deck.leaderId);
   if (deck.command < leader.power.cost || deck.powerCooldown > 0 || deck.usedLeaderPower) return [];
   if (leader.power.effect.type === "beam") {
-    return FRONTLINE_LANES.filter((lane) => Boolean(getHeroInLane(state, otherSide(side), lane) || getSupportInLane(state, otherSide(side), lane)));
+    return [...FRONTLINE_LANES];
   }
   return [...FRONTLINE_LANES];
 }

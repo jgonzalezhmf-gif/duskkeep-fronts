@@ -66,12 +66,27 @@ export function FrontlineHeroPiece({
   const { t } = useI18n();
 
   if (!actor) {
+    const supportName = support ? frontlineSupportName(t, support) : "";
+
     return (
-      <div className="grid h-[9.25rem] place-items-center rounded-[26px] border border-white/6 bg-[radial-gradient(circle_at_50%_55%,rgba(255,255,255,0.04),transparent_60%)] text-[10px] font-black uppercase tracking-[0.16em] text-white/32">
-        <span className="inline-flex items-center gap-1.5">
-          <CombatIcon name="breach" size="sm" fallbackClassName="opacity-55" />
-          {t("frontline.openFront")}
-        </span>
+      <div
+        title={supportName ? `${supportName} - ${t("frontline.openFront")}` : t("frontline.openFront")}
+        className={cn(
+          "relative grid h-[9.25rem] place-items-center overflow-hidden rounded-[26px] border border-white/6 bg-[radial-gradient(circle_at_50%_55%,rgba(255,255,255,0.04),transparent_60%)] px-3 text-[10px] font-black uppercase tracking-[0.16em] text-white/32",
+          support &&
+            (accent === "ally"
+              ? "border-cyan-200/18 bg-[radial-gradient(circle_at_50%_42%,rgba(101,210,200,0.12),transparent_58%)]"
+              : "border-rose-200/18 bg-[radial-gradient(circle_at_50%_42%,rgba(240,95,114,0.12),transparent_58%)]"),
+        )}
+      >
+        <div className="absolute left-1/2 top-1/2 h-24 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/18 blur-xl" />
+        <div className="relative z-[1] flex flex-col items-center gap-2">
+          {support ? <SupportToken support={support} side={accent} active={Boolean(visualState?.summoned)} /> : null}
+          <span className={cn("inline-flex items-center gap-1.5", support && "text-white/46")}>
+            <CombatIcon name="breach" size="sm" fallbackClassName="opacity-55" />
+            {t("frontline.openFront")}
+          </span>
+        </div>
       </div>
     );
   }

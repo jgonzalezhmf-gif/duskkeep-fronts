@@ -34,6 +34,7 @@
 - [ ] 4.2 Improve active front, actor, clash, breach, and core damage feedback.
 - [ ] 4.3 Respect reduced motion and keep browser validation evidence.
 - [x] 4.4 Tune stun contract and one-card draw pacing.
+- [x] 4.5 Clarify opening hand, leader-power core targeting, support visibility, and leader-power affordance.
 
 ## Phase 5: Arena light mutators
 

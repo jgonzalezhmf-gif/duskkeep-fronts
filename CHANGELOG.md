@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.43] - 2026-05-30
+
+### Changed
+- Restaurada la mano inicial de Frontline a 5 cartas, manteniendo el robo normal limitado a 1 carta por turno.
+- La habilidad de lider tipo beam puede apuntar a un carril enemigo abierto para daniar el core enemigo.
+- Mejorada la visibilidad del boton de poder de lider y la lectura de supports en carriles abiertos sin heroe.
+
 ## [0.37.42] - 2026-05-30
 
 ### Changed
