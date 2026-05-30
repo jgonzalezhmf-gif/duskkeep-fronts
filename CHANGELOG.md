@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.40] - 2026-05-30
+
+### Changed
+- Simplificado el feedback de cambio de pantalla: se mantiene el oscurecimiento y el spinner, pero se elimina el texto visible del centro.
+- Reubicado el spinner de navegacion por debajo del centro y mantenida la etiqueta accesible para lectores de pantalla.
+
 ## [0.37.39] - 2026-05-30
 
 ### Added

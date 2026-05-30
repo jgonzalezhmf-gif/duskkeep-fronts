@@ -58,12 +58,27 @@ export function PendingActionLabel({
   );
 }
 
-export function PendingActionOverlay({ label }: { label: ReactNode }) {
+export function PendingActionOverlay({
+  label,
+  showLabel = true,
+  yOffset,
+}: {
+  label: ReactNode;
+  showLabel?: boolean;
+  yOffset?: string;
+}) {
+  const contentStyle =
+    !showLabel || yOffset
+      ? { gap: showLabel ? undefined : 0, transform: yOffset ? `translateY(${yOffset})` : undefined }
+      : undefined;
   return (
     <div className="pointer-events-auto absolute inset-0 z-50 grid place-items-center bg-black/60" aria-live="polite" aria-busy="true">
-      <div className="inline-flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 text-xs font-black uppercase tracking-widest text-yellow-100 shadow-2xl">
+      <div
+        className="inline-flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 text-xs font-black uppercase tracking-widest text-yellow-100 shadow-2xl"
+        style={contentStyle}
+      >
         <PendingActionSpinner className="h-4 w-4" />
-        {label}
+        {showLabel ? label : <span className="sr-only">{label}</span>}
       </div>
     </div>
   );

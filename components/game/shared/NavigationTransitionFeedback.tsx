@@ -89,7 +89,11 @@ export default function NavigationTransitionFeedback() {
   if (!pending) return null;
   return (
     <div className="fixed inset-0 z-[90]">
-      <PendingActionOverlay label={t("navigation.opening", { destination: t(pending.labelKey) })} />
+      <PendingActionOverlay
+        label={t("navigation.opening", { destination: t(pending.labelKey) })}
+        showLabel={false}
+        yOffset="9rem"
+      />
     </div>
   );
 }

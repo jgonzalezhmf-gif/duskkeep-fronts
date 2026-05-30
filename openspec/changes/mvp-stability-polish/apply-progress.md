@@ -100,7 +100,7 @@ Status: complete.
 - [x] 3.1 Shared pending/loading helpers and UI components cover scoped async actions.
 - [x] 3.2 Shop purchases, reward/mission/daily claims, Adventure cache/node claims, Auth actions, Arena results and Frontline battle results now surface pending state.
 - [x] 3.3 Pending copy is localized in English and Spanish, with helper tests covering double-submit prevention.
-- [x] 3.4 Internal screen navigation now shows a localized transition overlay with destination feedback.
+- [x] 3.4 Internal screen navigation now shows a transition overlay; the destination label stays accessible but is no longer visible in the center.
 
 ### TDD Cycle Evidence
 
@@ -109,7 +109,7 @@ Status: complete.
 | 3.1 | Added `pendingActions` helper coverage for stable scoped keys, duplicate starts and clearing independent actions. | Focused pending helper tests passed after adding `lib/pendingActions.ts`. | Shared hook/spinner/label/overlay live in `components/game/shared/PendingActionFeedback.tsx`. |
 | 3.2 | Existing UI flows lacked shared pending guards and relied on local one-off busy flags or no visible wait state. | `npm.cmd run check` passed after wiring pending feedback across the selected async flows. | Kept economy, rewards and server-authoritative payloads unchanged; only UI pending state and duplicate-submit guards changed. |
 | 3.3 | New pending labels were missing from dictionaries. | English and Spanish dictionaries now include the new keys. | Reused existing i18n fallback behavior for other locales. |
-| 3.4 | Added `navigationTransition` tests before the helper existed. | Focused navigation transition tests passed after adding route detection helpers and the global overlay. | Kept route transition feedback bundle-light and reused `PendingActionOverlay`. |
+| 3.4 | Added `navigationTransition` tests before the helper existed. | Focused navigation transition tests passed after adding route detection helpers and the global overlay. | Kept route transition feedback bundle-light by reusing `PendingActionOverlay`; visible route text was removed after user feedback while preserving the sr-only label. |
 
 ### Validation
 
@@ -124,6 +124,7 @@ Status: complete.
 - `npm.cmd run check:performance` - passed; `.next/static` is 7,514 bytes under budget after adding navigation transition feedback.
 - One-off Playwright smoke on production start `3006` passed: Home `a[href="/arena"]` shows `Opening Arena` transition overlay and lands on `/arena` with no console/page errors.
 - `$env:SCREENSHOT_RUN_TIMEOUT_MS='600000'; npm.cmd run screenshots:auto` - passed, 24/24 desktop/mobile scenarios ok; screenshots written to `tmp/playwright-screenshots/2026-05-30T12-39-13-902Z`.
+- Follow-up navigation polish after user feedback passed: `npm.cmd run test -- tests/navigationTransition.test.ts`, `npm.cmd run check`, `npm.cmd run test`, `npm.cmd run clean:next; npm.cmd run build; npm.cmd run check:performance; npm.cmd run audit:build`, `git diff --check`, and a production Playwright smoke verifying Home -> Arena shows the overlay, no visible center text, and a spinner below center.
 - `git diff --check` - passed; Git only reported expected LF/CRLF working-copy warnings.
 
 ### Files Changed in This Batch
