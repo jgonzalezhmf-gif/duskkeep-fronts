@@ -4,6 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { chromium, devices } from "@playwright/test";
+import { resolveRunTimeoutMs, terminateProcessTree, withTimeout } from "./capture-screens-runtime.mjs";
 
 const STORAGE_KEY = "duskkeep-fronts:player:v1";
 const DEFAULT_BASE_URL = process.env.BASE_URL || "http://127.0.0.1:3000";
@@ -23,6 +24,7 @@ const outputRoot = path.resolve("tmp", "playwright-screenshots", timestamp);
 const requestedChannel = process.env.PLAYWRIGHT_CHANNEL || null;
 const requestedExecutablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH || null;
 const requestedHeadless = process.env.PLAYWRIGHT_HEADLESS !== "0";
+const runTimeoutMs = resolveRunTimeoutMs(process.env);
 
 const viewports = [
   {
@@ -85,7 +87,10 @@ const scenarios = [
   },
 ];
 
+let browser = null;
 let devServer = null;
+let activeCommand = null;
+let cleanupStarted = false;
 
 async function main() {
   await mkdir(outputRoot, { recursive: true });
@@ -94,7 +99,7 @@ async function main() {
     devServer = await bootDevServer(baseUrl);
   }
 
-  const browser = await launchBrowser();
+  browser = await launchBrowser();
   const manifest = {
     generatedAt: new Date().toISOString(),
     baseUrl,
@@ -163,14 +168,31 @@ async function main() {
       await context.close();
     }
   } finally {
-    await browser.close();
-    if (devServer) {
-      devServer.kill();
-    }
+    await cleanupRuntime();
   }
 
   await writeFile(path.join(outputRoot, "manifest.json"), JSON.stringify(manifest, null, 2), "utf8");
   console.log(`Screenshots written to ${outputRoot}`);
+}
+
+async function cleanupRuntime() {
+  if (cleanupStarted) return;
+  cleanupStarted = true;
+
+  if (browser) {
+    await browser.close().catch(() => {});
+    browser = null;
+  }
+
+  if (devServer) {
+    terminateProcessTree(devServer);
+    devServer = null;
+  }
+
+  if (activeCommand) {
+    terminateProcessTree(activeCommand);
+    activeCommand = null;
+  }
 }
 
 async function prepareFreshState(page) {
@@ -266,6 +288,7 @@ async function bootDevServer(url) {
   const child = spawn(npmCmd, ["run", "start"], {
     stdio: "inherit",
     shell: process.platform === "win32",
+    detached: process.platform !== "win32",
     env: {
       ...process.env,
       PORT: port,
@@ -273,7 +296,7 @@ async function bootDevServer(url) {
   });
 
   const shutdown = () => {
-    if (!child.killed) child.kill();
+    terminateProcessTree(child);
   };
   process.on("exit", shutdown);
   process.on("SIGINT", () => {
@@ -333,13 +356,19 @@ async function runCommand(command, args) {
     const child = spawn(command, args, {
       stdio: "inherit",
       shell: process.platform === "win32",
+      detached: process.platform !== "win32",
       env: process.env,
     });
+    activeCommand = child;
     child.on("exit", (code) => {
+      if (activeCommand === child) activeCommand = null;
       if (code === 0) resolve();
       else reject(new Error(`Command failed: ${command} ${args.join(" ")}`));
     });
-    child.on("error", reject);
+    child.on("error", (error) => {
+      if (activeCommand === child) activeCommand = null;
+      reject(error);
+    });
   });
 }
 
@@ -355,10 +384,12 @@ async function waitForServer(url, timeoutMs) {
   throw new Error(`Timed out waiting for dev server at ${url}`);
 }
 
-main().catch((error) => {
+withTimeout(main(), {
+  label: "Screenshot capture",
+  timeoutMs: runTimeoutMs,
+  onTimeout: cleanupRuntime,
+}).catch(async (error) => {
   console.error(error);
-  if (devServer && !devServer.killed) {
-    devServer.kill();
-  }
+  await cleanupRuntime();
   process.exit(1);
 });

@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.37] - 2026-05-30
+
+### Added
+- Aniadido workflow de calidad para ejecutar `check`, `test`, `build`, `audit:high`, auditoria de build y budgets de performance en CI.
+- Aniadidos tests para proteger que el workflow mantenga los gates MVP requeridos.
+
+### Changed
+- Endurecida la captura automatica de screenshots con timeout global configurable y cierre del arbol de procesos del servidor iniciado por el script.
+- Aniadidos helpers testeados para evitar que `screenshots:auto` deje procesos colgados si Playwright o el servidor quedan bloqueados.
+
 ## [0.37.36] - 2026-05-29
 
 ### Changed

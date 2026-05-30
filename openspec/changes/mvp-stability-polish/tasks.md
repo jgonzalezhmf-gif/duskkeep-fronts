@@ -17,9 +17,9 @@
 
 ## Phase 2: Quality validation hardening
 
-- [ ] 2.1 Add CI for check/test/build/audit high.
-- [ ] 2.2 Harden screenshot automation timeout and cleanup.
-- [ ] 2.3 Preserve performance budget gates.
+- [x] 2.1 Add CI for check/test/build/audit high.
+- [x] 2.2 Harden screenshot automation timeout and cleanup.
+- [x] 2.3 Preserve performance budget gates.
 
 ## Phase 3: Shared pending feedback
 

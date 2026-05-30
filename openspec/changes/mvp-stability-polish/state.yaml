@@ -14,8 +14,8 @@ artifacts:
 tasks_progress:
   completed:
     - stabilize-current-ladder-work
-  pending:
     - quality-validation-hardening
+  pending:
     - authoritative-pending-feedback
     - frontline-combat-readability
     - arena-light-mutators
