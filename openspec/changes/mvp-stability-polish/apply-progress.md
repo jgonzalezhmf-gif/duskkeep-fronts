@@ -197,3 +197,51 @@ Status: complete for task 4.1. Phase 4 remains open for deeper active front/core
 - Frontline active front, actor, breach and core damage feedback polish.
 - Arena light mutators.
 - Release candidate validation.
+
+
+## Batch 5 - Frontline stun and draw pacing
+
+Status: complete.
+
+### Completed Tasks
+
+- [x] 4.4 Stunned lane heroes no longer attack, trigger unit passives/aftermath, provide chant aura, breach the core, or originate offensive card abilities from that lane.
+- [x] 4.4 Frontline now keeps the opening hand at 3 cards and draws 1 card on normal turn refresh.
+- [x] 4.4 Enemy offensive card targeting respects stunned source lanes, while command economy, rewards and server payload shape remain unchanged.
+
+### Deferred Tasks
+
+- Open-lane core damage scaling remains a design follow-up; this batch only prevents stunned units from breaching.
+- Leader power cost/value should be reassessed after playtesting the lower draw rate rather than changed blindly.
+
+### TDD Cycle Evidence
+
+| Task | RED | GREEN | REFACTOR |
+| --- | --- | --- | --- |
+| 4.4 | Added failing tests for lean opening hand, one-card turn refresh, stunned source lanes being unable to play offensive cards, and stunned heroes not breaching. | Focused tests passed after separating initial draw from turn refresh and making stun disable unit-origin combat actions. | Kept the change inside existing pure Frontline rule helpers; no UI or store changes were needed. |
+
+### Validation
+
+- `npm.cmd run test -- tests/frontline.engine.test.ts -t "opening hand|normal turn refresh|stunned front|stunned heroes"` - failed first as expected, then passed, 1 file / 4 focused tests.
+- `npm.cmd run test -- tests/frontline.engine.test.ts tests/frontline.preview.test.ts tests/frontline.battleDerivedState.test.ts tests/frontline.resolutionFlow.test.ts tests/frontline.boss.test.ts` - passed, 5 files / 57 tests.
+- `npm.cmd run check` - passed.
+- `npm.cmd run test` - passed, 87 files / 614 tests.
+- `npm.cmd run clean:next; npm.cmd run build; npm.cmd run check:performance; npm.cmd run audit:build` - passed; `.next/static` remains within the 3.00 MB budget.
+- `git diff --check` - passed after docs/version updates; Git only reported expected LF/CRLF working-copy warnings.
+
+### Files Changed in This Batch
+
+- `features/frontline/engine.ts` - initial ally turn now starts without an extra draw on top of opening hand.
+- `features/frontline/frontlineTurnPreparation.ts` - normal turn draw reduced to 1 and initial draw can be configured.
+- `features/frontline/frontlineCardRules.ts` - offensive enemy-front cards require an unstunned acting hero in the source lane.
+- `features/frontline/frontlineActorStrike.ts` - stunned heroes remain unable to strike and no longer provide chant aura.
+- `features/frontline/frontlineClashEffects.ts` - stunned heroes no longer trigger unit aftermath passives.
+- `features/frontline/frontlineBreachRules.ts` - stunned heroes do not count as active breach pressure.
+- `tests/frontline.engine.test.ts` - coverage for draw pacing and stun contract.
+
+### Remaining Slices
+
+- Open-lane core damage scaling so buffs remain useful after a lane opens.
+- Frontline active front, actor, breach and core damage feedback polish.
+- Arena light mutators.
+- Release candidate validation.

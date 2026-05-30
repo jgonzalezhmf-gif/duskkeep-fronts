@@ -19,7 +19,7 @@ export function cleanupExpiredSupport(state: FrontlineBattleState, side: Frontli
 export function applyHeroAftermath(state: FrontlineBattleState, side: FrontlineSide) {
   for (const lane of FRONTLINE_LANES) {
     const hero = getHeroInLane(state, side, lane);
-    if (!hero?.alive) continue;
+    if (!hero?.alive || hero.stun > 0) continue;
     const trait = heroDefinition(hero).trait;
     if (trait.type === "bulwark") {
       addShield(hero, trait.shield);

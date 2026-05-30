@@ -36,6 +36,19 @@ export function getEffectiveCardCost(state: FrontlineBattleState, side: Frontlin
   return effectiveCardCost(state, side, getStateCard(state, side, cardId).cost);
 }
 
+function canActFromLane(state: FrontlineBattleState, side: FrontlineSide, lane: FrontlineLane) {
+  const hero = getHeroInLane(state, side, lane);
+  return Boolean(hero?.alive && hero.stun <= 0);
+}
+
+function requiresActiveSourceLane(card: FrontlineCardDef) {
+  return (
+    card.effect.type === "front_shot" ||
+    card.effect.type === "stun_front" ||
+    card.effect.type === "execute_front"
+  );
+}
+
 export function validCardTargets(state: FrontlineBattleState, side: FrontlineSide, cardId: string): FrontlineLane[] {
   const card = getStateCard(state, side, cardId);
   if (ownDeck(state, side).command < effectiveCardCost(state, side, card.cost)) return [];
@@ -48,11 +61,12 @@ export function validCardTargets(state: FrontlineBattleState, side: FrontlineSid
     });
   }
   if (card.target === "enemy_front") {
-    return FRONTLINE_LANES.filter((lane) =>
-      card.effect.type === "execute_front"
+    return FRONTLINE_LANES.filter((lane) => {
+      if (requiresActiveSourceLane(card) && !canActFromLane(state, side, lane)) return false;
+      return card.effect.type === "execute_front"
         ? true
-        : Boolean(getHeroInLane(state, otherSide(side), lane) || getSupportInLane(state, otherSide(side), lane)),
-    );
+        : Boolean(getHeroInLane(state, otherSide(side), lane) || getSupportInLane(state, otherSide(side), lane));
+    });
   }
   return [...FRONTLINE_LANES];
 }

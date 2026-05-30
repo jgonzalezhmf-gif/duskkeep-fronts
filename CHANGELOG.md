@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.42] - 2026-05-30
+
+### Changed
+- Ajustado el contrato de stun en Frontline: una unidad aturdida ya no ataca, no activa pasivas de unidad, no abre breach al core y no origina cartas ofensivas desde su carril.
+- Reducido el ritmo de robo en Frontline: mano inicial de 3 cartas y robo normal de 1 carta por turno.
+
 ## [0.37.41] - 2026-05-30
 
 ### Changed

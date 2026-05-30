@@ -23,12 +23,25 @@ function makeState() {
 }
 
 describe("frontline engine", () => {
-  it("starts with 3 command and draws up to 5 cards for the player", () => {
+  it("starts with 3 command and keeps the opening hand lean", () => {
     const state = makeState();
 
     expect(state.turn).toBe("ally");
     expect(state.allyDeck.command).toBe(3);
-    expect(state.allyDeck.hand.length).toBe(5);
+    expect(state.allyDeck.hand.length).toBe(3);
+  });
+
+  it("draws only one card on a normal turn refresh", () => {
+    const state = makeState();
+    const openingHandSize = state.allyDeck.hand.length;
+    state.enemyDeck.deck = [];
+    state.enemyDeck.hand = [];
+    state.enemyDeck.discard = [];
+
+    const afterRound = resolveTurn(state);
+
+    expect(afterRound.turn).toBe("ally");
+    expect(afterRound.allyDeck.hand.length).toBe(openingHandSize + 1);
   });
 
   it("plays an instant tactic and spends command immediately", () => {
@@ -247,6 +260,39 @@ describe("frontline engine", () => {
     );
     expect(stunPlay).toBeTruthy();
     expect(stunPlay?.lane).toBe("center");
+  });
+
+  it("prevents a stunned front from playing offensive card abilities from that lane", () => {
+    const state = makeState();
+    state.lanes.left.allyHero = null;
+    state.lanes.right.allyHero = null;
+    state.lanes.center.enemyHero!.stun = 1;
+    state.enemyDeck.hand = ["enemy_order_bone_arrow"];
+    state.enemyDeck.command = 3;
+    state.turn = "enemy";
+
+    const next = runEnemyTurn(state);
+
+    expect(next.events.some((entry) => entry.kind === "card" && entry.label.includes("Bone Arrow"))).toBe(false);
+    expect(next.enemyDeck.hand).toContain("enemy_order_bone_arrow");
+  });
+
+  it("prevents stunned heroes from breaching the core while control remains", () => {
+    const state = makeState();
+    state.lanes.left.enemyHero = null;
+    state.lanes.left.enemySupport = null;
+    state.lanes.left.allyHero!.stun = 1;
+    state.enemyDeck.deck = [];
+    state.enemyDeck.hand = [];
+    state.enemyDeck.discard = [];
+    const enemyCoreBefore = state.enemyCoreHp;
+
+    const afterRound = resolveTurn(state);
+
+    expect(afterRound.enemyCoreHp).toBe(enemyCoreBefore);
+    expect(
+      afterRound.events.some((entry) => entry.kind === "breach" && entry.side === "ally" && entry.lane === "left"),
+    ).toBe(false);
   });
 
   it("AI plays a rally buff before a damage card so the strike benefits", () => {

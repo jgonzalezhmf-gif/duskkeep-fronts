@@ -7,14 +7,22 @@ import { cloneState } from "./frontlineStateClone";
 import { consumeCinderMark, tickBossSignatures } from "./frontlineBossSignatures";
 
 const COMMAND_PER_TURN = 3;
-const DRAW_PER_TURN = 2;
+const DRAW_PER_TURN = 1;
 
-export function prepareTurn(state: FrontlineBattleState, side: FrontlineSide) {
+export function prepareTurn(
+  state: FrontlineBattleState,
+  side: FrontlineSide,
+  options: { drawAmount?: number } = {},
+) {
   const next = cloneState(state);
   next.turn = side;
   next.selectedCardId = null;
   next.selectedLeaderPower = false;
-  const deck = drawInto(ownDeck(next, side), DRAW_PER_TURN, next.seed + next.round * (side === "ally" ? 23 : 47));
+  const deck = drawInto(
+    ownDeck(next, side),
+    options.drawAmount ?? DRAW_PER_TURN,
+    next.seed + next.round * (side === "ally" ? 23 : 47),
+  );
   deck.command = COMMAND_PER_TURN;
   if (side === "enemy" && next.enemyStartCommandBonus > 0) {
     deck.command += next.enemyStartCommandBonus;

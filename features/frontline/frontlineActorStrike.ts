@@ -24,7 +24,7 @@ function chantAura(state: FrontlineBattleState, side: FrontlineSide) {
   let bonus = 0;
   for (const lane of FRONTLINE_LANES) {
     const hero = getHeroInLane(state, side, lane);
-    if (!hero?.alive) continue;
+    if (!hero?.alive || hero.stun > 0) continue;
     const trait = heroDefinition(hero).trait;
     if (trait.type === "chant") bonus += trait.atkAura;
   }

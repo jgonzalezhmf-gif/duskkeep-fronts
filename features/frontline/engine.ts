@@ -108,7 +108,7 @@ export function createFrontlineBattleState(input: {
     playerCardCostMod: 0,
     playerCardCostModTurnsLeft: 0,
   };
-  return prepareTurn(state, "ally");
+  return prepareTurn(state, "ally", { drawAmount: 0 });
 }
 
 export function validLeaderPowerTargets(state: FrontlineBattleState, side: FrontlineSide): FrontlineLane[] {
