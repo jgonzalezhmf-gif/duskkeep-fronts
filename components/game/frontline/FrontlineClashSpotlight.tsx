@@ -2,6 +2,7 @@
 
 import type { FrontlineEvent } from "@/features/frontline/types";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n/useI18n";
 import type { CombatAssetIconName } from "@/lib/iconAssets";
 import { CombatIcon } from "./FrontlineCombatIcon";
 import type { FrontlineVisualFxTone } from "./FrontlineLaneActionTrail";
@@ -21,23 +22,28 @@ export function ClashSpotlight({
   icon: CombatAssetIconName | null;
   targetSide: "ally" | "enemy" | null;
 }) {
+  const { t } = useI18n();
   if (!event || !tone || !icon) return null;
 
   const laneLabel = event.lane ? event.lane.toUpperCase() : "CORE";
   const headline =
-    event.kind === "breach"
-      ? "BREACH"
+    event.kind === "card"
+      ? t("frontline.card")
+      : event.kind === "power"
+        ? t("frontline.power")
+        : event.kind === "breach"
+          ? t("frontline.statusBreach")
       : event.kind === "ko"
         ? "KO"
         : event.kind === "heal"
-          ? "HEAL"
+          ? t("frontline.castHeal")
           : event.kind === "shield"
-            ? "SHIELD"
+            ? t("frontline.castShield")
             : event.kind === "summon"
-              ? "SUMMON"
+              ? t("frontline.castSummon")
               : event.kind === "stun"
-                ? "STUN"
-                : "HIT";
+                ? t("frontline.castStun")
+                : t("frontline.castStrike");
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-[8.8rem] z-[8] hidden justify-center px-4 md:flex">
@@ -63,7 +69,7 @@ export function ClashSpotlight({
             <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/62">
               <span>{laneLabel}</span>
               <span>{Math.min(index + 1, total)}/{Math.max(total, 1)}</span>
-              {targetSide ? <span>{targetSide === "ally" ? "ALLY" : "ENEMY"}</span> : null}
+              {targetSide ? <span>{targetSide === "ally" ? t("frontline.yourHero") : t("frontline.enemy")}</span> : null}
             </div>
             <div className="mt-1 flex items-center gap-3">
               <div className="text-2xl font-black uppercase leading-none text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.5)]">{headline}</div>

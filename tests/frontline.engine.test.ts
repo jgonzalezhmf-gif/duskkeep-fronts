@@ -8,6 +8,7 @@ import {
   resolveTurn,
   resolveTurnTraced,
   runEnemyTurn,
+  runEnemyTurnTraced,
   validLeaderPowerTargets,
 } from "@/features/frontline/engine";
 import { getFrontlineHeroProfileById } from "@/features/frontline/heroProfile";
@@ -173,6 +174,21 @@ describe("frontline engine", () => {
       expect(snap.state).toBeTruthy();
       expect(snap.state).not.toBe(final);
     }
+  });
+
+  it("emits enemy intent snapshots for readable enemy-turn playback", () => {
+    const state = makeState();
+    state.enemyDeck.hand = ["enemy_tactic_war_howl"];
+    state.enemyDeck.command = 3;
+    state.turn = "enemy";
+
+    const { final, snapshots } = runEnemyTurnTraced(state);
+    const enemyIntentIds = final.events
+      .filter((entry) => entry.side === "enemy" && (entry.kind === "card" || entry.kind === "power"))
+      .map((entry) => entry.id);
+
+    expect(enemyIntentIds.length).toBeGreaterThan(0);
+    expect(snapshots.map((entry) => entry.eventId)).toEqual(expect.arrayContaining(enemyIntentIds));
   });
 
   it("uses progressed Frontline card effects for player cards", () => {

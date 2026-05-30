@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.41] - 2026-05-30
+
+### Changed
+- Clarificada la lectura del turno enemigo en Frontline: las cartas y poderes enemigos aparecen como beats visibles antes del impacto del choque.
+- Ralentizados ligeramente los beats de cartas/poderes enemigos sin cambiar reglas, economia de command, resultados ni recompensas.
+
 ## [0.37.40] - 2026-05-30
 
 ### Changed

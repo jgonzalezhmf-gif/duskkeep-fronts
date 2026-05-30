@@ -17,6 +17,7 @@ export function pushEvent(state: FrontlineBattleState, event: Omit<FrontlineEven
 }
 
 function isVisibleEventKind(event: FrontlineEvent) {
+  if (event.side === "enemy" && (event.kind === "card" || event.kind === "power")) return true;
   if (event.kind === "boss_signature") return event.signature === "cast";
   return (
     event.kind === "damage" ||

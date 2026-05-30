@@ -3,6 +3,7 @@ import type { FrontlineDeathGhostFx } from "./FrontlineDeathGhost";
 import { eventPrimaryTargetSide } from "./FrontlineVisualState";
 
 export function isResolutionEvent(event: FrontlineEvent) {
+  if (event.side === "enemy" && (event.kind === "card" || event.kind === "power")) return true;
   return (
     event.kind === "damage" ||
     event.kind === "breach" ||
@@ -35,6 +36,8 @@ export function collectNewEvents(previous: FrontlineBattleState, next: Frontline
 }
 
 export function eventDuration(event: FrontlineEvent) {
+  if (event.side === "enemy" && event.kind === "power") return 1050;
+  if (event.side === "enemy" && event.kind === "card") return 980;
   if (event.kind === "breach") return 1100;
   if (event.kind === "ko") return 950;
   if (event.kind === "summon") return 850;

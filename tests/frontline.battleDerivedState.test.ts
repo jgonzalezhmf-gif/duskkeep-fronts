@@ -51,6 +51,21 @@ describe("frontline battle derived state", () => {
     expect(getResolutionPlaybackEvents(events).map((entry) => entry.id)).toEqual(["damage-1", "breach-1"]);
   });
 
+  it("keeps enemy card and power beats in resolution playback", () => {
+    const events: FrontlineEvent[] = [
+      { ...event("card", "ally-card"), side: "ally", lane: "left" },
+      { ...event("card", "enemy-card"), side: "enemy", lane: "center" },
+      { ...event("power", "enemy-power"), side: "enemy", lane: "right" },
+      event("damage", "damage-1"),
+    ];
+
+    expect(getResolutionPlaybackEvents(events).map((entry) => entry.id)).toEqual([
+      "enemy-card",
+      "enemy-power",
+      "damage-1",
+    ]);
+  });
+
   it("caps resolution playback events", () => {
     const events = Array.from({ length: MAX_RESOLUTION_PLAYBACK_EVENTS + 3 }, (_, index) => event("damage", `damage-${index}`));
 

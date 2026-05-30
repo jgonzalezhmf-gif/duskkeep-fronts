@@ -30,7 +30,7 @@
 
 ## Phase 4: Frontline combat readability
 
-- [ ] 4.1 Slow and clarify enemy turn presentation without changing combat rules.
+- [x] 4.1 Slow and clarify enemy turn presentation without changing combat rules.
 - [ ] 4.2 Improve active front, actor, clash, breach, and core damage feedback.
 - [ ] 4.3 Respect reduced motion and keep browser validation evidence.
 

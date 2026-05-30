@@ -147,3 +147,53 @@ Status: complete.
 - Frontline combat readability.
 - Arena light mutators.
 - Release candidate validation.
+
+
+## Batch 4 - Frontline enemy-turn readability
+
+Status: complete for task 4.1. Phase 4 remains open for deeper active front/core damage feedback.
+
+### Completed Tasks
+
+- [x] 4.1 Enemy card and power intent beats are visible in the resolution playback before clash impact.
+- [x] 4.1 Enemy intent beats are slower than regular damage beats, giving the player time to read each enemy action.
+- [x] 4.1 Combat rules, card effects, command economy, rewards and outcomes remain unchanged.
+
+### Partial Tasks
+
+- 4.2 partial: Clash spotlight labels now localize card/power/action side labels and show enemy card beats, but broader active front/core damage polish is still a follow-up.
+- 4.3 partial: Browser evidence was captured for this slice; full Phase 4 should keep validating future visual feedback changes.
+
+### TDD Cycle Evidence
+
+| Task | RED | GREEN | REFACTOR |
+| --- | --- | --- | --- |
+| 4.1 | Added failing coverage for enemy-side card/power events missing from resolution playback and traced enemy-turn snapshots. | Focused Frontline tests passed after surfacing enemy card/power events and increasing their playback duration. | Reused the existing `ClashSpotlight` and resolution flow instead of adding a separate enemy-turn UI system. |
+| 4.2 | Added duration coverage to protect the readability pacing distinction. | Clash spotlight now uses existing i18n keys for card, power and side labels. | No new user-facing dictionary keys were needed. |
+
+### Validation
+
+- `npm.cmd run test -- tests/frontline.battleDerivedState.test.ts tests/frontline.resolutionFlow.test.ts` - failed first as expected, then passed, 2 files / 9 tests.
+- `npm.cmd run test -- tests/frontline.engine.test.ts tests/frontline.battleDerivedState.test.ts tests/frontline.resolutionFlow.test.ts` - passed, 3 files / 33 tests.
+- `npm.cmd run check` - passed.
+- `npm.cmd run test` - passed, 87 files / 611 tests.
+- `npm.cmd run clean:next; npm.cmd run build; npm.cmd run check:performance; npm.cmd run audit:build` - passed; `.next/static` was 6,915 bytes under the 3.00 MB budget.
+- One-off production Playwright smoke on `http://127.0.0.1:3007/battle?start=1` passed: `Resolve clash` showed `CENTER 1/12 CARD Enemy Plague Spit`, no console errors, no page errors and no failed requests. Screenshot: `tmp/playwright-screenshots/frontline-enemy-intent-2026-05-30T14-15-19-668Z.png`.
+- `npm.cmd run check` - passed again after docs/version updates.
+- `npm.cmd run test -- tests/frontline.engine.test.ts tests/frontline.battleDerivedState.test.ts tests/frontline.resolutionFlow.test.ts` - passed again after docs/version updates, 3 files / 33 tests.
+- `git diff --check` - passed after docs/version updates; Git only reported expected LF/CRLF working-copy warnings.
+
+### Files Changed in This Batch
+
+- `features/frontline/frontlineEvents.ts` - enemy card/power events are now visible trace events for playback snapshots.
+- `components/game/frontline/FrontlineResolutionFlow.ts` - enemy card/power events are included in resolution playback and receive longer readability durations.
+- `components/game/frontline/FrontlineClashSpotlight.tsx` - card/power/action-side labels reuse existing i18n keys.
+- `tests/frontline.battleDerivedState.test.ts` - covers enemy card/power playback inclusion.
+- `tests/frontline.resolutionFlow.test.ts` - covers enemy intent beat pacing.
+- `tests/frontline.engine.test.ts` - covers traced enemy-turn intent snapshots.
+
+### Remaining Slices
+
+- Frontline active front, actor, breach and core damage feedback polish.
+- Arena light mutators.
+- Release candidate validation.
