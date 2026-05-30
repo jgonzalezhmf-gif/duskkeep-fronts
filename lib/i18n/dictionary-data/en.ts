@@ -91,6 +91,10 @@ export const enDictionary = {
       level: "Lv",
       power: "Power",
     },
+    navigation: {
+      destination: "next screen",
+      opening: "Opening {destination}",
+    },
     resources: {
       gold: "Gold",
       dust: "Dust",

@@ -9,6 +9,7 @@ import OnboardingTour from "@/components/game/OnboardingTour";
 import RouteAudioDirector from "@/components/game/RouteAudioDirector";
 import SessionSecurityMonitor from "@/components/game/auth/SessionSecurityMonitor";
 import I18nHtmlSync from "@/components/game/options/I18nHtmlSync";
+import NavigationTransitionFeedback from "@/components/game/shared/NavigationTransitionFeedback";
 import Hydrator from "@/components/ui/Hydrator";
 import { cn } from "@/lib/cn";
 
@@ -38,6 +39,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <I18nHtmlSync />
       <RouteAudioDirector />
       <SessionSecurityMonitor />
+      <NavigationTransitionFeedback />
       <div
         className={cn(
           "flex min-h-dvh w-full flex-col",

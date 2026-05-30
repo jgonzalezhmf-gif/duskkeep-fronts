@@ -91,6 +91,10 @@ export const esDictionary = {
       level: "Nv",
       power: "Poder",
     },
+    navigation: {
+      destination: "siguiente pantalla",
+      opening: "Abriendo {destination}",
+    },
     resources: {
       gold: "Oro",
       dust: "Polvo",

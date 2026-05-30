@@ -21,6 +21,7 @@ import { getAdventureUnlockedLevelIds, isAdventureChapterDemoLocked } from "@/fe
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
 import { usePendingActions } from "@/components/game/shared/PendingActionFeedback";
 import { createPendingActionKey } from "@/lib/pendingActions";
+import { announceNavigationTransition } from "@/lib/navigationTransition";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "./adventureMapLayout";
 import { getLocalizedChapterMeta } from "./AdventureChapterMeta";
@@ -191,7 +192,9 @@ export function useAdventureMapPageState(t: TranslateFn) {
       }, true);
       return;
     }
-    router.push(`/adventure/${selected.lvl.id}`);
+    const href = `/adventure/${selected.lvl.id}`;
+    announceNavigationTransition(href);
+    router.push(href);
   }
 
   async function resolveSelectedInteraction() {

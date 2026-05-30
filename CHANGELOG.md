@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.39] - 2026-05-30
+
+### Added
+- Añadido feedback global de transición entre pantallas para navegación interna, con overlay de espera y destino localizado.
+- Añadidos helpers testeados para detectar navegación interna, ignorar enlaces externos/hash-only y etiquetar destinos principales.
+
+### Changed
+- La navegación programática desde Adventure al pre-combate también anuncia el cambio de pantalla para evitar sensación de bloqueo.
+
 ## [0.37.38] - 2026-05-30
 
 ### Added

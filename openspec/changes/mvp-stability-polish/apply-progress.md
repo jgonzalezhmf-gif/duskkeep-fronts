@@ -100,6 +100,7 @@ Status: complete.
 - [x] 3.1 Shared pending/loading helpers and UI components cover scoped async actions.
 - [x] 3.2 Shop purchases, reward/mission/daily claims, Adventure cache/node claims, Auth actions, Arena results and Frontline battle results now surface pending state.
 - [x] 3.3 Pending copy is localized in English and Spanish, with helper tests covering double-submit prevention.
+- [x] 3.4 Internal screen navigation now shows a localized transition overlay with destination feedback.
 
 ### TDD Cycle Evidence
 
@@ -108,24 +109,31 @@ Status: complete.
 | 3.1 | Added `pendingActions` helper coverage for stable scoped keys, duplicate starts and clearing independent actions. | Focused pending helper tests passed after adding `lib/pendingActions.ts`. | Shared hook/spinner/label/overlay live in `components/game/shared/PendingActionFeedback.tsx`. |
 | 3.2 | Existing UI flows lacked shared pending guards and relied on local one-off busy flags or no visible wait state. | `npm.cmd run check` passed after wiring pending feedback across the selected async flows. | Kept economy, rewards and server-authoritative payloads unchanged; only UI pending state and duplicate-submit guards changed. |
 | 3.3 | New pending labels were missing from dictionaries. | English and Spanish dictionaries now include the new keys. | Reused existing i18n fallback behavior for other locales. |
+| 3.4 | Added `navigationTransition` tests before the helper existed. | Focused navigation transition tests passed after adding route detection helpers and the global overlay. | Kept route transition feedback bundle-light and reused `PendingActionOverlay`. |
 
 ### Validation
 
 - `npm.cmd run test -- tests/pendingActions.test.ts` - passed, 1 file / 3 tests.
+- `npm.cmd run test -- tests/navigationTransition.test.ts` - failed first before implementation, then passed, 1 file / 4 tests.
+- `npm.cmd run test -- tests/navigationTransition.test.ts tests/pendingActions.test.ts` - passed, 2 files / 7 tests.
 - `npm.cmd run check` - passed.
-- `npm.cmd run test` - passed, 85 files / 603 tests.
+- `npm.cmd run test` - passed, 86 files / 607 tests.
 - `npm.cmd run build` - passed.
 - `npm.cmd run audit:high` - passed, 0 vulnerabilities.
 - `npm.cmd run audit:build` - passed; `.next/static` remains within the 3.00 MB budget after simplifying the shared pending overlay.
-- `npm.cmd run check:performance` - passed after reducing the overlay/helper bundle footprint; `.next/static` is 1,282 bytes under budget.
-- `$env:SCREENSHOT_RUN_TIMEOUT_MS='600000'; npm.cmd run screenshots:auto` - passed, 24/24 desktop/mobile scenarios ok; screenshots written to `tmp/playwright-screenshots/2026-05-30T12-11-50-234Z`.
+- `npm.cmd run check:performance` - passed; `.next/static` is 7,514 bytes under budget after adding navigation transition feedback.
+- One-off Playwright smoke on production start `3006` passed: Home `a[href="/arena"]` shows `Opening Arena` transition overlay and lands on `/arena` with no console/page errors.
+- `$env:SCREENSHOT_RUN_TIMEOUT_MS='600000'; npm.cmd run screenshots:auto` - passed, 24/24 desktop/mobile scenarios ok; screenshots written to `tmp/playwright-screenshots/2026-05-30T12-39-13-902Z`.
 - `git diff --check` - passed; Git only reported expected LF/CRLF working-copy warnings.
 
 ### Files Changed in This Batch
 
 - `lib/pendingActions.ts` - pure helpers for pending action keys, start/finish state and duplicate-start prevention.
 - `components/game/shared/PendingActionFeedback.tsx` - reusable pending hook, spinner, inline label and overlay.
+- `components/game/shared/NavigationTransitionFeedback.tsx` - global internal-navigation overlay driven by link clicks and announced programmatic transitions.
 - `tests/pendingActions.test.ts` - focused coverage for pending helper behavior.
+- `tests/navigationTransition.test.ts` - focused coverage for internal navigation target detection, route labels and modified-click filtering.
+- `lib/navigationTransition.ts` - pure route transition helpers and custom event for programmatic navigation.
 - `app/shop/page.tsx`, `app/shop/ShopOfferCards.tsx` - purchase pending state and disabled duplicate buys.
 - `app/missions/page.tsx`, `app/missions/MissionContracts.tsx`, `components/game/home/DailyLoginCharm.tsx` - claim pending feedback.
 - `components/game/adventure/useAdventureMapPageState.ts`, `app/adventure/page.tsx`, `components/game/adventure/AdventureMissionPanels.tsx`, `components/game/adventure/AdventureMapInteractionPanel.tsx` - Adventure node/cache pending feedback.

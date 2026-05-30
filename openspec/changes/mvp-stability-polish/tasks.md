@@ -26,6 +26,7 @@
 - [x] 3.1 Add shared pending/loading pattern for authoritative actions.
 - [x] 3.2 Apply it to Shop, rewards/claims, Adventure, Auth, and Arena/Ladder submissions.
 - [x] 3.3 Add i18n keys and tests for double-submit prevention where applicable.
+- [x] 3.4 Extend pending feedback to internal screen navigation transitions.
 
 ## Phase 4: Frontline combat readability
 
