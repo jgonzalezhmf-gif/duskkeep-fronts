@@ -26,6 +26,7 @@ supabase/.branches/
 supabase/.temp/
 
 .agents
+.atl
 .skills
 .claude
 .continue

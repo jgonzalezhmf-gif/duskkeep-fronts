@@ -1,0 +1,29 @@
+schema: spec-driven
+
+context: |
+  Project: duskkeep-fronts
+  Stack: Next.js App Router, React, TypeScript, Tailwind, Zustand, Zod, Supabase, Vitest.
+  SDD artifact mode: hybrid (Engram + OpenSpec files).
+  Strict TDD: true.
+  Primary goal: stabilize the MVP without adding Chapter 2 or broad new feature scope.
+
+rules:
+  proposal:
+    - Keep MVP stability ahead of new feature breadth.
+    - Avoid monetization, public competitive ladder, or Chapter 2 scope.
+  specs:
+    - Use Given/When/Then scenarios for behavior.
+    - Treat browser/server boundaries as explicit acceptance criteria.
+  design:
+    - Keep gameplay rules in features/* and presentation in components/*.
+    - Use shared visual primitives and manifests; no speculative asset paths.
+  tasks:
+    - Keep tasks reviewable and independently verifiable.
+    - Stop for a split/exception decision if estimated changed lines exceed 400.
+  apply:
+    tdd: true
+    test_command: "npm.cmd run test -- tests/name.test.ts"
+  verify:
+    test_command: "npm.cmd run test"
+    build_command: "npm.cmd run build"
+    coverage_threshold: 0

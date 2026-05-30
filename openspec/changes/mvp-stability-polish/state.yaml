@@ -1,0 +1,23 @@
+change: mvp-stability-polish
+phase: apply
+artifact_store: hybrid
+execution_mode: interactive
+delivery_strategy: ask-on-risk
+chain_strategy: pending
+artifacts:
+  proposal: true
+  specs: true
+  design: true
+  tasks: true
+  apply_progress: true
+  verify_report: false
+tasks_progress:
+  completed:
+    - stabilize-current-ladder-work
+  pending:
+    - quality-validation-hardening
+    - authoritative-pending-feedback
+    - frontline-combat-readability
+    - arena-light-mutators
+    - release-candidate-validation
+last_updated: 2026-05-30
