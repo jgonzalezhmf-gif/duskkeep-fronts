@@ -62,7 +62,9 @@ function sideMatchesTarget(side: "ally" | "enemy", targetSide: FrontlineCardPlay
 
 export function eventPrimaryTargetSide(event: FrontlineEvent): "ally" | "enemy" | null {
   if (!event.side) return null;
-  if (event.kind === "damage" || event.kind === "ko" || event.kind === "stun") return oppositeSide(event.side);
+  if (event.kind === "damage" || event.kind === "ko" || event.kind === "stun" || event.kind === "breach") {
+    return oppositeSide(event.side);
+  }
   if (event.kind === "heal" || event.kind === "shield" || event.kind === "summon") return event.side;
   return null;
 }

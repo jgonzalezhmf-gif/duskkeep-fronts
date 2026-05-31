@@ -7,6 +7,11 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.45] - 2026-05-31
+
+### Changed
+- Mejorada la lectura visual de brecha y danio al core: el trail de brecha apunta al core defensor, el spotlight nombra el core objetivo y el impacto del core muestra icono, etiqueta y cantidad.
+
 ## [0.37.44] - 2026-05-30
 
 ### Changed

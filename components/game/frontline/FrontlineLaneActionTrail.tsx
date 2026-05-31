@@ -20,7 +20,7 @@ export function LaneActionTrail({
 }) {
   if (!event || !event.side || !targetSide || !tone || !icon) return null;
 
-  const isAttack = event.kind === "damage" || event.kind === "stun" || event.kind === "ko";
+  const isAttack = event.kind === "damage" || event.kind === "stun" || event.kind === "ko" || event.kind === "breach";
   const direction = isAttack && event.side === "ally" ? "up" : "down";
   const targetTop = targetSide === "enemy" ? "top-[25%]" : "top-[72%]";
   const trailClass =

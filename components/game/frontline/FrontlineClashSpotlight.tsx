@@ -26,6 +26,16 @@ export function ClashSpotlight({
   if (!event || !tone || !icon) return null;
 
   const laneLabel = event.lane ? event.lane.toUpperCase() : "CORE";
+  const targetLabel =
+    targetSide && event.kind === "breach"
+      ? targetSide === "ally"
+        ? t("frontline.yourCore")
+        : t("frontline.enemyCore")
+      : targetSide
+        ? targetSide === "ally"
+          ? t("frontline.yourHero")
+          : t("frontline.enemy")
+        : null;
   const headline =
     event.kind === "card"
       ? t("frontline.card")
@@ -69,7 +79,7 @@ export function ClashSpotlight({
             <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/62">
               <span>{laneLabel}</span>
               <span>{Math.min(index + 1, total)}/{Math.max(total, 1)}</span>
-              {targetSide ? <span>{targetSide === "ally" ? t("frontline.yourHero") : t("frontline.enemy")}</span> : null}
+              {targetLabel ? <span>{targetLabel}</span> : null}
             </div>
             <div className="mt-1 flex items-center gap-3">
               <div className="text-2xl font-black uppercase leading-none text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.5)]">{headline}</div>

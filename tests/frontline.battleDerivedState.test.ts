@@ -9,6 +9,7 @@ import { FRONTLINE_PRESETS } from "@/features/frontline/data";
 import { createDefaultFrontlineLoadout, createFrontlineBattleState } from "@/features/frontline/engine";
 import type { FrontlineEvent, FrontlineEventKind } from "@/features/frontline/types";
 import type { TranslateFn } from "@/lib/i18n/frontlineText";
+import { eventPrimaryTargetSide } from "@/components/game/frontline/FrontlineVisualState";
 
 function event(kind: FrontlineEventKind, id: string): FrontlineEvent {
   return { id, kind, label: id };
@@ -101,5 +102,10 @@ describe("frontline battle derived state", () => {
     expect(laneStatusSubtitle(t, insight.lane, insight.status, insight.breachAmount ?? undefined)).toBe(
       "frontline.subtitleBreach:4",
     );
+  });
+
+  it("targets the defending core side for breach visual trails", () => {
+    expect(eventPrimaryTargetSide({ ...event("breach", "ally-breach"), side: "ally", lane: "left" })).toBe("enemy");
+    expect(eventPrimaryTargetSide({ ...event("breach", "enemy-breach"), side: "enemy", lane: "right" })).toBe("ally");
   });
 });

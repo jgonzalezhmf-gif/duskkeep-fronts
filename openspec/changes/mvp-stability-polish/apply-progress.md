@@ -350,3 +350,46 @@ Status: complete.
 - Frontline active front, actor, breach and core damage visual feedback polish.
 - Arena light mutators.
 - Release candidate validation.
+
+
+## Batch 8 - Breach/core damage visual feedback
+
+Status: complete for task 4.7. Phase 4 remains open only if a later pass decides to polish broader active-front or actor emphasis.
+
+### Completed Tasks
+
+- [x] 4.7 Breach events now target the defending core side in visual state derivation.
+- [x] 4.7 Breach feedback uses the same attack-style lane trail as damage, stun and KO events.
+- [x] 4.7 Clash spotlight labels breach targets as the relevant core instead of a generic hero/enemy target.
+- [x] 4.7 Core shock feedback now shows a breach icon, localized core label and damage amount instead of a raw floating number.
+
+### TDD Cycle Evidence
+
+| Task | RED | GREEN | REFACTOR |
+| --- | --- | --- | --- |
+| 4.7 | Added failing derived-state coverage proving breach had no defending core target side. | Focused test passed after `eventPrimaryTargetSide` returned the opposite side for breach events. | Reused existing lane trail, clash spotlight, combat icon and i18n core labels; combat rules stayed untouched. |
+
+### Validation
+
+- `npm.cmd run test -- tests/frontline.battleDerivedState.test.ts -t "defending core side"` - failed first as expected, then passed.
+- `npm.cmd run test -- tests/frontline.battleDerivedState.test.ts tests/frontline.engine.test.ts tests/frontline.resolutionFlow.test.ts` - passed, 3 files / 40 tests.
+- `npm.cmd run check` - passed.
+- `npm.cmd run test` - passed, 87 files / 618 tests.
+- `npm.cmd run build` - passed.
+- `npm.cmd run check:performance` - passed.
+- `npm.cmd run audit:build` - passed.
+- Focused production Playwright smoke on `http://127.0.0.1:3007/battle?start=1` passed for desktop and mobile: battle route loads, leader-power/resolve/core text is visible, no 404s, no filtered console issues and no page errors. Screenshots: `tmp/validation/combat-breach-core-feedback-desktop.png`, `tmp/validation/combat-breach-core-feedback-mobile.png`.
+- `git diff --check` - passed after docs/version updates; Git only reported expected LF/CRLF working-copy warnings.
+
+### Files Changed in This Batch
+
+- `components/game/frontline/FrontlineVisualState.ts` - breach events now derive the defending side as their visual target.
+- `components/game/frontline/FrontlineLaneActionTrail.tsx` - breach events receive attack-style lane trail feedback.
+- `components/game/frontline/FrontlineClashSpotlight.tsx` - breach target labels name the defending core.
+- `components/game/frontline/FrontlineBattleMeters.tsx` - core damage shock shows icon, core label and amount.
+- `tests/frontline.battleDerivedState.test.ts` - focused regression for breach visual targeting.
+
+### Remaining Slices
+
+- Arena light mutators.
+- Release candidate validation.
