@@ -1489,9 +1489,9 @@ export const enDictionary = {
     },
     arenaScreen: {
       rivals: {
-        arena_bonewood: { rank: "Bronze II", style: "Fast breach patrol", modifier: "Breach weather: enemy left front starts aggressive." },
-        arena_plague: { rank: "Silver III", style: "Sustain pressure", modifier: "Plague mist: sustain-focused enemy pressure." },
-        arena_ember: { rank: "Gold I", style: "Heavy core threat", modifier: "Storm oath: heavier core threat and slower trading." },
+        arena_bonewood: { rank: "Bronze II", style: "Fast breach patrol" },
+        arena_plague: { rank: "Silver III", style: "Sustain pressure" },
+        arena_ember: { rank: "Gold I", style: "Heavy core threat" },
       },
       ladderOpponents: {
         ladder_bronze_iii_iron_vow: { style: "Balanced recruit commander" },
@@ -1616,6 +1616,20 @@ export const enDictionary = {
         specialChallenge: "Special trial",
         modifier: "Modifier",
         challenge: "Start Trial",
+      },
+      trialMutators: {
+        breach_weather: {
+          label: "Breach Weather",
+          description: "The rival starts the first clash with +1 command.",
+        },
+        plague_mist: {
+          label: "Plague Mist",
+          description: "The rival core starts with +2 HP.",
+        },
+        storm_oath: {
+          label: "Storm Oath",
+          description: "The rival core starts with +4 HP and the first clash starts with +1 enemy command.",
+        },
       },
       card: {
         left: "Left",

@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.47] - 2026-05-31
+
+### Added
+- Anadidos mutadores ligeros para Arena Trials con catalogo data-driven, preview visual de efectos y banner propio dentro de combate.
+
+### Changed
+- Los combates de Arena Trials aplican modificadores Frontline existentes por rival (`core` enemigo o command inicial), mientras Ladder queda sin mutadores.
+- La validacion defensiva de replay autoritativo resuelve los mutadores de Arena desde el `opponentId` confiable del servidor.
+
 ## [0.37.46] - 2026-05-31
 
 ### Changed

@@ -22,6 +22,7 @@ import { useGameStore } from "@/lib/store";
 import { audio } from "@/lib/audio";
 import type { AudioThemeName } from "@/lib/audio-score";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
+import { getArenaTrialMutatorForRival } from "@/features/arena/trialMutators";
 import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   getLadderOpponentForPoints,
@@ -37,7 +38,7 @@ import { ArenaMetric, ArenaRankPlate, GateLine, LadderRankPlate, ResultMetric, R
 import { ArenaTopChrome, ModeSelectCard } from "./ArenaHubChrome";
 import { ArenaRivalCard } from "./ArenaRivalCard";
 import { LadderQueueCard } from "./LadderQueueCard";
-import { FRONTLINE_ARENA_RIVALS, rivalText, tx, type ArenaRival } from "./arenaPageHelpers";
+import { arenaModifierLabel, FRONTLINE_ARENA_RIVALS, rivalText, tx, type ArenaRival } from "./arenaPageHelpers";
 
 const FrontlineBattle = dynamic(() => import("@/components/game/frontline/FrontlineBattle"), {
   ssr: false,
@@ -251,12 +252,16 @@ export default function ArenaPage() {
   }
 
   if (phase === "battle" && picked) {
+    const trialMutator = picked.mode === "trials" ? getArenaTrialMutatorForRival(picked.rival.id) : null;
     return (
       <div className="relative mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
         <FrontlineBattle
           seed={seed}
           loadout={frontlineLoadout}
           enemyPresetId={picked.rival.presetId}
+          modifiers={trialMutator?.modifiers}
+          encounterKind={trialMutator ? "arena" : null}
+          encounterTitle={trialMutator ? tx(t, trialMutator.labelKey, arenaModifierLabel(t, picked.rival as ArenaRival)) : null}
           battleBackgroundSrc={getFrontlineBattleBackgroundSrc(
             picked.mode === "ladder" ? "ladder_duel_arena" : "arena_trials_coliseum",
           )}

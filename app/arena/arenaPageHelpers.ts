@@ -1,4 +1,5 @@
 import type { GameIconTone } from "@/components/game/shared/GameIcon";
+import { getArenaTrialMutatorForRival } from "@/features/arena/trialMutators";
 import { FRONTLINE_ARENA_PRESET_BY_OPPONENT_ID } from "@/features/frontline/encounterPresets";
 import type { Rewards } from "@/lib/types";
 
@@ -13,7 +14,6 @@ export type ArenaRival = {
   power: number;
   rewards: Rewards;
   tone: GameIconTone;
-  modifier: string;
 };
 
 export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
@@ -26,7 +26,6 @@ export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
     power: 110,
     rewards: { gold: 120, gems: 3, accountXp: 8 },
     tone: "ember",
-    modifier: "Breach weather: enemy left front starts aggressive.",
   },
   {
     id: "arena_plague",
@@ -37,7 +36,6 @@ export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
     power: 175,
     rewards: { gold: 180, gems: 5, dust: 20, accountXp: 10 },
     tone: "emerald",
-    modifier: "Plague mist: sustain-focused enemy pressure.",
   },
   {
     id: "arena_ember",
@@ -48,7 +46,6 @@ export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
     power: 260,
     rewards: { gold: 260, gems: 8, dust: 35, accountXp: 14 },
     tone: "gold",
-    modifier: "Storm oath: heavier core threat and slower trading.",
   },
 ];
 
@@ -62,5 +59,11 @@ export function rivalText(t: TranslateFn, rival: ArenaRival, field: "rank" | "st
 }
 
 export function arenaModifierText(t: TranslateFn, rival: ArenaRival) {
-  return tx(t, `arenaScreen.rivals.${rival.id}.modifier`, rival.modifier);
+  const mutator = getArenaTrialMutatorForRival(rival.id);
+  return tx(t, mutator?.descriptionKey ?? `arenaScreen.rivals.${rival.id}.style`, rival.style);
+}
+
+export function arenaModifierLabel(t: TranslateFn, rival: ArenaRival) {
+  const mutator = getArenaTrialMutatorForRival(rival.id);
+  return tx(t, mutator?.labelKey ?? `arenaScreen.rivals.${rival.id}.style`, rival.style);
 }

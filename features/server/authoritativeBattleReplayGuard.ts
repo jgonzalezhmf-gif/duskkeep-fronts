@@ -1,3 +1,4 @@
+import { arenaTrialModifiersForRival } from "@/features/arena/trialMutators";
 import { createFrontlineCardProfileMap, createFrontlineSupportProfileMap } from "@/features/frontline/cardProgression";
 import {
   getFrontlineBattleReplayMismatches,
@@ -87,6 +88,7 @@ export function validateFrontlineBattleReplayPayload(
     allyHeroProfiles: createFrontlineHeroProfileMap(context.playerHeroes),
     allyCardProfiles: createFrontlineCardProfileMap(context.cardLevels),
     allySupportProfiles: createFrontlineSupportProfileMap(context.cardLevels),
+    modifiers: resolveFrontlineBattleModifiersForOperation(operationType, payload),
   });
   if (!replay.ok) {
     return replayFailure("invalid_request", "Battle replay validation failed.");
@@ -100,6 +102,17 @@ export function validateFrontlineBattleReplayPayload(
   }
 
   return { ok: true };
+}
+
+export function resolveFrontlineBattleModifiersForOperation(
+  operationType: FrontlineBattleServerOperation,
+  payload: ServerOperationPayload<FrontlineBattleServerOperation>,
+) {
+  if (operationType === "recordArenaResult") {
+    const arenaPayload = payload as ServerOperationPayload<"recordArenaResult">;
+    return arenaTrialModifiersForRival(arenaPayload.opponentId);
+  }
+  return undefined;
 }
 
 export function resolveFrontlineBattlePresetForOperation(

@@ -41,9 +41,9 @@
 
 ## Phase 5: Arena light mutators
 
-- [ ] 5.1 Add data-driven Arena Trial mutator definitions.
-- [ ] 5.2 Show mutator preview before battle.
-- [ ] 5.3 Apply lightweight Arena-only effects with focused tests.
+- [x] 5.1 Add data-driven Arena Trial mutator definitions.
+- [x] 5.2 Show mutator preview before battle.
+- [x] 5.3 Apply lightweight Arena-only effects with focused tests.
 
 ## Phase 6: Release candidate validation
 

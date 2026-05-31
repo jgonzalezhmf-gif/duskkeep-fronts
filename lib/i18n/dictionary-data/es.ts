@@ -1471,9 +1471,9 @@ export const esDictionary = {
     },
     arenaScreen: {
       rivals: {
-        arena_bonewood: { rank: "Bronce II", style: "Patrulla de brecha rapida", modifier: "Clima de brecha: el frente izquierdo enemigo empieza agresivo." },
-        arena_plague: { rank: "Plata III", style: "Presion de sustain", modifier: "Niebla de plaga: presion enemiga centrada en aguante." },
-        arena_ember: { rank: "Oro I", style: "Amenaza pesada al nucleo", modifier: "Juramento de tormenta: amenaza al nucleo mas pesada y trades mas lentos." },
+        arena_bonewood: { rank: "Bronce II", style: "Patrulla de brecha rapida" },
+        arena_plague: { rank: "Plata III", style: "Presion de sustain" },
+        arena_ember: { rank: "Oro I", style: "Amenaza pesada al nucleo" },
       },
       ladderOpponents: {
         ladder_bronze_iii_iron_vow: { style: "Comandante recluta equilibrado" },
@@ -1598,6 +1598,20 @@ export const esDictionary = {
         specialChallenge: "Desafio especial",
         modifier: "Modificador",
         challenge: "Iniciar Prueba",
+      },
+      trialMutators: {
+        breach_weather: {
+          label: "Clima de brecha",
+          description: "El rival empieza el primer choque con +1 command.",
+        },
+        plague_mist: {
+          label: "Niebla de plaga",
+          description: "El nucleo rival empieza con +2 PV.",
+        },
+        storm_oath: {
+          label: "Juramento de tormenta",
+          description: "El nucleo rival empieza con +4 PV y el primer choque empieza con +1 command enemigo.",
+        },
       },
       card: {
         left: "Izquierda",

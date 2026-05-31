@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultFrontlineLoadout } from "@/features/frontline/engine";
+import { arenaTrialModifiersForRival } from "@/features/arena/trialMutators";
+import { replayFrontlineBattleFromActionLog } from "@/features/frontline/battleReplay";
 import {
   getFrontlinePresetForArenaOpponent,
 } from "@/features/frontline/encounterPresets";
@@ -36,6 +38,36 @@ function validArenaPayload(): ServerOperationPayload<"recordArenaResult"> {
         { seq: 2, round: 1, side: "ally", action: "resolve_turn" },
       ],
     },
+  };
+}
+
+function replayReadyArenaPayload(opponentId: string): ServerOperationPayload<"recordArenaResult"> {
+  const loadout = createDefaultFrontlineLoadout();
+  const enemyPreset = getFrontlinePresetForArenaOpponent(opponentId);
+  if (!enemyPreset) throw new Error(`Missing arena preset for ${opponentId}`);
+  const actionLog = Array.from({ length: 5 }, (_, index) => ({
+    seq: index + 1,
+    round: index + 1,
+    side: "ally" as const,
+    action: "resolve_turn" as const,
+  }));
+  const replay = replayFrontlineBattleFromActionLog({
+    seed: 77,
+    loadout,
+    enemyPreset,
+    actionLog,
+    modifiers: arenaTrialModifiersForRival(opponentId),
+  });
+  expect(replay.ok).toBe(true);
+  if (!replay.ok) throw new Error("Replay setup failed");
+  expect(replay.summary.winner).toBeTruthy();
+
+  return {
+    opponentId,
+    battleSeed: 77,
+    winner: replay.summary.winner!,
+    turns: replay.summary.round,
+    battleSummary: replay.summary,
   };
 }
 
@@ -101,6 +133,25 @@ describe("authoritative battle replay guard", () => {
     expect(validateFrontlineBattleReplayPayload("recordArenaResult", payload, context)).toMatchObject({
       ok: false,
       code: "invalid_request",
+    });
+  });
+
+  it("validates Arena trial replays with server-known mutators", () => {
+    const context = normalizeFrontlineReplayContext({
+      loadoutRow: {
+        leader_id: "leader_aurora",
+        squad: ["bran", "kara", "mira"],
+        deck: createDefaultFrontlineLoadout().deck,
+      },
+      heroRows: [],
+      cardRows: [],
+      enemyPreset: getFrontlinePresetForArenaOpponent("arena_plague"),
+    });
+    expect(context).not.toBeNull();
+    if (!context) return;
+
+    expect(validateFrontlineBattleReplayPayload("recordArenaResult", replayReadyArenaPayload("arena_plague"), context)).toEqual({
+      ok: true,
     });
   });
 

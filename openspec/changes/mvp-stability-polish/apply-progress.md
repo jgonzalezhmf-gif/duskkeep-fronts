@@ -397,6 +397,55 @@ Status: complete for task 4.7. Phase 4 remains open only if a later pass decides
 - Release candidate validation.
 
 
+## Batch 10 - Arena Trial light mutators
+
+Status: complete. Phase 5 is closed for MVP stability/polish.
+
+### Completed Tasks
+
+- [x] 5.1 Arena Trials now have data-driven mutator definitions keyed by rival id.
+- [x] 5.2 Arena rival cards preview the mutator name, gameplay effect chips and localized description before battle.
+- [x] 5.3 Arena Trial battles apply lightweight Frontline modifiers and show an in-battle Arena Trial banner; Ladder remains unmodified.
+- [x] 5.3 Server-side replay validation resolves Arena Trial modifiers from the trusted opponent id so replay checks still match when enabled.
+
+### TDD Cycle Evidence
+
+| Task | RED | GREEN | REFACTOR |
+| --- | --- | --- | --- |
+| 5.1 | Added `arenaTrialMutators` coverage before the catalog existed. | Focused tests passed after adding the catalog and rival mapping. | Removed unused legacy modifier strings/keys to keep the static bundle inside budget. |
+| 5.2 | Existing Arena cards only showed flavor text and did not surface concrete effects. | Arena cards now show localized mutator labels plus effect chips using existing Frontline modifier copy. | Reused `ModeIcon`, `FrontlineHeroStandee`, `RewardChips`, `SceneButton` and existing Arena card structure. |
+| 5.3 | Added replay-guard coverage proving server validation failed when it replayed Arena results without mutators. | Server replay guard now applies Arena modifiers from `opponentId`; focused and full tests passed. | Kept effects on existing `FrontlineBattleModifiers` fields instead of adding new combat rules. |
+
+### Validation
+
+- `npm.cmd run test -- tests/arenaTrialMutators.test.ts` - failed first before implementation, then passed.
+- `npm.cmd run test -- tests/server.authoritativeBattleReplayGuard.test.ts` - failed first for Arena mutator replay mismatch, then passed.
+- `npm.cmd run test -- tests/arenaTrialMutators.test.ts tests/server.authoritativeBattleReplayGuard.test.ts` - passed, 2 files / 8 tests.
+- `npm.cmd run check` - passed.
+- `npm.cmd run test` - passed, 88 files / 626 tests.
+- `npm.cmd run build` - passed.
+- `npm.cmd run check:performance` - passed after trimming unused modifier metadata; `.next/static` remains at the 3.00 MB budget.
+- `npm.cmd run audit:build` - passed.
+- `git diff --check` - passed; Git only reported expected LF/CRLF working-copy warnings.
+- Agent-browser production smoke on `http://127.0.0.1:3007/arena` passed for desktop and mobile: Arena Trials tab renders mutator preview/effect chips, assets return 200/304/206 only, and a Trial battle shows the `Arena Trial / Breach Weather` combat banner with no captured page errors. Screenshots: `tmp/validation/arena-mutators-preview-desktop.png`, `tmp/validation/arena-mutators-preview-mobile.png`, `tmp/validation/arena-mutators-battle-banner-desktop.png`.
+
+### Files Changed in This Batch
+
+- `features/arena/trialMutators.ts` - Arena Trial mutator catalog and trusted rival-to-mutator mapping.
+- `app/arena/arenaPageHelpers.ts` - Arena modifier label/description helpers now use the mutator catalog.
+- `app/arena/ArenaRivalCard.tsx` - pre-battle mutator preview with concrete effect chips.
+- `app/arena/page.tsx` - passes Trial-only modifiers and Arena encounter banner metadata into FrontlineBattle.
+- `components/game/frontline/FrontlineEncounterBanner.tsx` - adds Arena Trial banner styling using existing combat icon assets and Arena copy.
+- `features/server/authoritativeBattleReplayGuard.ts` - replay validation applies server-known Arena modifiers from opponent id.
+- `tests/arenaTrialMutators.test.ts` - catalog, mapping and engine integration coverage.
+- `tests/server.authoritativeBattleReplayGuard.test.ts` - replay validation coverage for Arena Trial mutators.
+- `lib/i18n/dictionary-data/en.ts`, `lib/i18n/dictionary-data/es.ts` - localized mutator copy.
+
+### Remaining Slices
+
+- Release candidate validation.
+
+
 ## Batch 9 - Turn playback pacing and float deduplication
 
 Status: complete. Phase 4 combat readability is now closed for alpha unless a new concrete combat readability bug appears.

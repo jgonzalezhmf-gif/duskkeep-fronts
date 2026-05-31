@@ -5,7 +5,7 @@ import type { CombatAssetIconName } from "@/lib/iconAssets";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { CombatIcon } from "./FrontlineCombatIcon";
 
-export type FrontlineEncounterBadgeKind = "elite" | "boss" | "danger";
+export type FrontlineEncounterBadgeKind = "elite" | "boss" | "danger" | "arena";
 
 const ENCOUNTER_KIND_META: Record<FrontlineEncounterBadgeKind, { labelKey: string; tone: string; icon: CombatAssetIconName }> = {
   boss: {
@@ -22,6 +22,11 @@ const ENCOUNTER_KIND_META: Record<FrontlineEncounterBadgeKind, { labelKey: strin
     labelKey: "frontline.encounterDanger",
     tone: "border-rose-300/42 bg-[linear-gradient(180deg,rgba(240,95,114,0.22),rgba(54,12,20,0.8))] text-rose-50 shadow-[0_18px_48px_rgba(240,95,114,0.22)]",
     icon: "danger",
+  },
+  arena: {
+    labelKey: "arenaScreen.trials.badge",
+    tone: "border-[#f5c451]/46 bg-[linear-gradient(180deg,rgba(245,196,81,0.18),rgba(54,34,17,0.78))] text-[#fff0bd] shadow-[0_18px_48px_rgba(245,196,81,0.18)]",
+    icon: "advantage",
   },
 };
 
