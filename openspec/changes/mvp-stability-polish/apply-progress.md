@@ -378,6 +378,8 @@ Status: complete for task 4.7. Phase 4 remains open only if a later pass decides
 - `npm.cmd run build` - passed.
 - `npm.cmd run check:performance` - passed.
 - `npm.cmd run audit:build` - passed.
+- Focused production Playwright smoke on `http://127.0.0.1:3007/battle?start=1` passed for desktop and mobile after pressing `Resolve clash`: route stayed healthy, no 404s, no filtered console issues, no page errors, and sampled resolution floats had no duplicate labels. Screenshots: `tmp/validation/combat-turn-readability-desktop.png`, `tmp/validation/combat-turn-readability-mobile.png`.
+- `git diff --check` - passed after docs/version updates; Git only reported expected LF/CRLF working-copy warnings.
 - Focused production Playwright smoke on `http://127.0.0.1:3007/battle?start=1` passed for desktop and mobile: battle route loads, leader-power/resolve/core text is visible, no 404s, no filtered console issues and no page errors. Screenshots: `tmp/validation/combat-breach-core-feedback-desktop.png`, `tmp/validation/combat-breach-core-feedback-mobile.png`.
 - `git diff --check` - passed after docs/version updates; Git only reported expected LF/CRLF working-copy warnings.
 
@@ -388,6 +390,49 @@ Status: complete for task 4.7. Phase 4 remains open only if a later pass decides
 - `components/game/frontline/FrontlineClashSpotlight.tsx` - breach target labels name the defending core.
 - `components/game/frontline/FrontlineBattleMeters.tsx` - core damage shock shows icon, core label and amount.
 - `tests/frontline.battleDerivedState.test.ts` - focused regression for breach visual targeting.
+
+### Remaining Slices
+
+- Arena light mutators.
+- Release candidate validation.
+
+
+## Batch 9 - Turn playback pacing and float deduplication
+
+Status: complete. Phase 4 combat readability is now closed for alpha unless a new concrete combat readability bug appears.
+
+### Completed Tasks
+
+- [x] 4.2 Active turn beats now hold longer, so strikes and support events do not advance before their visible animation has finished.
+- [x] 4.3 Reduced-motion handling remains on the existing Frontline animation classes and browser evidence was captured for the changed battle route.
+- [x] 4.8 Resolution lane floats now show intent/core-level beats only; unit damage, healing, shields, stuns, summons and KOs use the local target feedback instead of duplicating the same message at lane level.
+- [x] 4.8 Core-targeted events no longer appear as hero-local float badges.
+
+### TDD Cycle Evidence
+
+| Task | RED | GREEN | REFACTOR |
+| --- | --- | --- | --- |
+| 4.8 pacing | Added failing duration coverage requiring unit impact beats to outlast the visible float/attack feedback. | Focused resolution-flow tests passed after increasing per-event playback durations and the max sequence cap. | Kept the change in pure playback timing; no combat rules, command, damage, healing or rewards changed. |
+| 4.8 deduplication | Added failing float-selection coverage showing unit hits/heals/shields still produced lane-level floats and core-targeted events still produced hero badges. | Focused derived-state and resolution-flow tests passed after classifying core-targeted events and filtering duplicated unit-level lane floats. | Reused existing hero-local badges, clash spotlight and core/intent lane floats instead of adding another message layer. |
+
+### Validation
+
+- `npm.cmd run test -- tests/frontline.resolutionFlow.test.ts -t "holds unit impact|lane floats"` - failed first as expected, then passed.
+- `npm.cmd run test -- tests/frontline.battleDerivedState.test.ts -t "duplicate core-targeted|target-local badge"` - failed first as expected, then passed.
+- `npm.cmd run test -- tests/frontline.resolutionFlow.test.ts tests/frontline.battleDerivedState.test.ts tests/frontline.engine.test.ts` - passed, 3 files / 44 tests.
+- `npm.cmd run check` - passed.
+- `npm.cmd run test` - passed, 87 files / 622 tests.
+- `npm.cmd run build` - passed.
+- `npm.cmd run check:performance` - passed.
+- `npm.cmd run audit:build` - passed.
+
+### Files Changed in This Batch
+
+- `components/game/frontline/FrontlineResolutionFlow.ts` - longer readable playback timings and larger sequence cap.
+- `components/game/frontline/FrontlineEventFloats.ts` - lane-level float filtering for intent/core beats only.
+- `components/game/frontline/FrontlineVisualState.ts` - core-targeted events no longer trigger hero-local float badges.
+- `tests/frontline.resolutionFlow.test.ts` - pacing and lane-float deduplication coverage.
+- `tests/frontline.battleDerivedState.test.ts` - hero-local core-target deduplication coverage.
 
 ### Remaining Slices
 

@@ -36,21 +36,21 @@ export function collectNewEvents(previous: FrontlineBattleState, next: Frontline
 }
 
 export function eventDuration(event: FrontlineEvent) {
-  if (event.side === "enemy" && event.kind === "power") return 1050;
-  if (event.side === "enemy" && event.kind === "card") return 980;
-  if (event.kind === "breach") return 1100;
-  if (event.kind === "ko") return 950;
-  if (event.kind === "summon") return 850;
-  if (event.kind === "boss_signature" && event.signature === "cast") return 1100;
-  if (event.kind === "heal" || event.kind === "shield" || event.kind === "stun") return 720;
-  return 700;
+  if (event.side === "enemy" && event.kind === "power") return 1580;
+  if (event.side === "enemy" && event.kind === "card") return 1500;
+  if (event.kind === "breach") return 1500;
+  if (event.kind === "ko") return 1450;
+  if (event.kind === "summon") return 1320;
+  if (event.kind === "boss_signature" && event.signature === "cast") return 1500;
+  if (event.kind === "heal" || event.kind === "shield" || event.kind === "stun") return 1320;
+  return 1420;
 }
 
 export function resolutionSequenceDuration(events: FrontlineEvent[]) {
   const meaningfulEvents = events.filter(isResolutionEvent).slice(0, 12);
   if (!meaningfulEvents.length) return 1800;
   return Math.min(
-    15000,
+    22000,
     meaningfulEvents.reduce((total, event) => total + eventDuration(event), 0) + 2300,
   );
 }

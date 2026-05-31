@@ -9,7 +9,7 @@ import { FRONTLINE_PRESETS } from "@/features/frontline/data";
 import { createDefaultFrontlineLoadout, createFrontlineBattleState } from "@/features/frontline/engine";
 import type { FrontlineEvent, FrontlineEventKind } from "@/features/frontline/types";
 import type { TranslateFn } from "@/lib/i18n/frontlineText";
-import { eventPrimaryTargetSide } from "@/components/game/frontline/FrontlineVisualState";
+import { eventPrimaryTargetSide, heroVisualState } from "@/components/game/frontline/FrontlineVisualState";
 
 function event(kind: FrontlineEventKind, id: string): FrontlineEvent {
   return { id, kind, label: id };
@@ -107,5 +107,43 @@ describe("frontline battle derived state", () => {
   it("targets the defending core side for breach visual trails", () => {
     expect(eventPrimaryTargetSide({ ...event("breach", "ally-breach"), side: "ally", lane: "left" })).toBe("enemy");
     expect(eventPrimaryTargetSide({ ...event("breach", "enemy-breach"), side: "enemy", lane: "right" })).toBe("ally");
+  });
+
+  it("does not duplicate core-targeted events as hero float badges", () => {
+    const breachSource = heroVisualState({
+      side: "ally",
+      focused: false,
+      targeted: false,
+      activeEvent: { ...event("breach", "ally-breach"), side: "ally", lane: "left", amount: 2 },
+      cardFx: null,
+      cardEvent: null,
+    });
+    const coreHealTarget = heroVisualState({
+      side: "ally",
+      focused: false,
+      targeted: false,
+      activeEvent: { ...event("heal", "core-heal"), side: "ally", lane: "left", amount: 3, label: "Sanctuary steadies the core" },
+      cardFx: null,
+      cardEvent: null,
+    });
+
+    expect(breachSource.attacking).toBe(true);
+    expect(breachSource.floatLabel).toBeUndefined();
+    expect(coreHealTarget.healed).toBe(false);
+    expect(coreHealTarget.floatLabel).toBeUndefined();
+  });
+
+  it("keeps one target-local badge for unit damage", () => {
+    const target = heroVisualState({
+      side: "enemy",
+      focused: false,
+      targeted: false,
+      activeEvent: { ...event("damage", "unit-damage"), side: "ally", lane: "left", amount: 4, label: "Bran hits Rotmaw" },
+      cardFx: null,
+      cardEvent: null,
+    });
+
+    expect(target.hit).toBe(true);
+    expect(target.floatLabel).toBe("-4");
   });
 });

@@ -39,8 +39,17 @@ export function eventFloatClass(event: FrontlineEvent) {
     : "top-[70%] bg-[#ff6f7d] text-white shadow-[0_0_24px_rgba(240,95,114,0.38)]";
 }
 
+export function eventTargetsCore(event: FrontlineEvent) {
+  return event.kind === "breach" || /\bcore\b/i.test(event.label);
+}
+
+export function eventUsesResolutionLaneFloat(event: FrontlineEvent) {
+  if (event.kind === "card" || event.kind === "power" || event.kind === "boss_signature") return true;
+  return eventTargetsCore(event);
+}
+
 export function toResolutionFloatItems(events: FrontlineEvent[]): ResolutionFloatItem[] {
-  return events.slice(0, 5).map((event) => ({
+  return events.filter(eventUsesResolutionLaneFloat).slice(0, 5).map((event) => ({
     id: event.id,
     icon: combatIconForEvent(event),
     label: eventFloatLabel(event),

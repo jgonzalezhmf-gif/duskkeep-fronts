@@ -1,7 +1,7 @@
 import type { FrontlineCardDef, FrontlineEvent } from "@/features/frontline/types";
 import type { FrontlineLane } from "@/lib/types";
 import type { FrontlineCardPlayFx } from "./FrontlineCardCastFx";
-import { eventFloatLabel } from "./FrontlineEventFloats";
+import { eventFloatLabel, eventTargetsCore } from "./FrontlineEventFloats";
 import type { HeroVisualState } from "./FrontlineHeroPiece";
 import type { FrontlineVisualFxTone } from "./FrontlineLaneActionTrail";
 
@@ -11,6 +11,7 @@ export function oppositeSide(side: "ally" | "enemy") {
 
 function eventImpactsSide(event: FrontlineEvent, side: "ally" | "enemy") {
   if (!event.side) return false;
+  if (eventTargetsCore(event)) return false;
   if (event.kind === "damage" || event.kind === "ko" || event.kind === "stun") return event.side !== side;
   if (event.kind === "heal" || event.kind === "shield") return event.side === side;
   return false;
@@ -23,6 +24,7 @@ function eventSourcesSide(event: FrontlineEvent, side: "ally" | "enemy") {
 
 function eventBoostsSide(event: FrontlineEvent | null, side: "ally" | "enemy") {
   if (!event?.side) return false;
+  if (eventTargetsCore(event)) return false;
   return event.side === side && (event.kind === "heal" || event.kind === "shield" || event.kind === "summon");
 }
 
@@ -100,7 +102,7 @@ export function heroVisualState(input: {
       (cardFx?.lane && cardFx.targetSide === "enemy" && side === "ally"),
   );
   const floatEvent =
-    eventHit || eventBoostsSide(activeEvent, side) || breachSource
+    eventHit || eventBoostsSide(activeEvent, side)
       ? activeEvent
       : cardHit || eventBoostsSide(cardEvent, side)
         ? cardEvent

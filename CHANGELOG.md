@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.46] - 2026-05-31
+
+### Changed
+- Ralentizada la reproduccion de turnos de Frontline para que golpes, curas, escudos, stuns, summons, KOs y brechas sean mas legibles.
+- Reducidos mensajes flotantes duplicados: los impactos sobre unidades se muestran en el objetivo local, mientras que intentos enemigos y golpes al core mantienen el float de carril.
+
 ## [0.37.45] - 2026-05-31
 
 ### Changed

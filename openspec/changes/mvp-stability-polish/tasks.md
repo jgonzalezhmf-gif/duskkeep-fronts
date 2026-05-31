@@ -31,12 +31,13 @@
 ## Phase 4: Frontline combat readability
 
 - [x] 4.1 Slow and clarify enemy turn presentation without changing combat rules.
-- [ ] 4.2 Improve active front, actor, clash, breach, and core damage feedback.
-- [ ] 4.3 Respect reduced motion and keep browser validation evidence.
+- [x] 4.2 Improve active front, actor, clash, breach, and core damage feedback.
+- [x] 4.3 Respect reduced motion and keep browser validation evidence.
 - [x] 4.4 Tune stun contract and one-card draw pacing.
 - [x] 4.5 Clarify opening hand, leader-power core targeting, support visibility, and leader-power affordance.
 - [x] 4.6 Convert open-lane temporary attack buffs into extra breach pressure with matching UI preview.
 - [x] 4.7 Improve breach/core-damage visual targeting and impact readability.
+- [x] 4.8 Slow turn playback and deduplicate resolution float feedback.
 
 ## Phase 5: Arena light mutators
 
