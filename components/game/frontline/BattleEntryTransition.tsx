@@ -22,7 +22,15 @@ type BattleEntryTransitionProps = {
   allyHeroes?: Array<FrontlineHeroDef | null>;
   enemyHeroes?: Array<FrontlineHeroDef | null>;
   battleBackgroundSrc?: string | null;
+  battleBackgroundFallbackSrc?: string | null;
+  detailCards?: BattleEntryDetailCard[];
   onComplete: () => void;
+};
+
+export type BattleEntryDetailCard = {
+  label: string;
+  value: string;
+  tone?: "gold" | "sky" | "ember" | "violet";
 };
 
 const MODE_ICON: Record<BattleEntryMode, ModeIconName> = {
@@ -32,6 +40,7 @@ const MODE_ICON: Record<BattleEntryMode, ModeIconName> = {
   ladder: "ladder",
   arena: "arena_draft",
   event: "daily_event",
+  fortress: "fortress_raid",
 };
 
 export function BattleEntryTransition({
@@ -41,6 +50,8 @@ export function BattleEntryTransition({
   allyHeroes = [],
   enemyHeroes = [],
   battleBackgroundSrc,
+  battleBackgroundFallbackSrc,
+  detailCards = [],
   onComplete,
 }: BattleEntryTransitionProps) {
   const { t } = useI18n();
@@ -53,6 +64,8 @@ export function BattleEntryTransition({
   const ariaLabel = t("battleEntry.ariaLabel", { name: headline });
   const visibleAllies = useMemo(() => normalizeHeroSlots(allyHeroes), [allyHeroes]);
   const visibleEnemies = useMemo(() => normalizeHeroSlots(enemyHeroes), [enemyHeroes]);
+  const resolvedBackgroundSrc = battleBackgroundSrc && !backgroundFailed ? battleBackgroundSrc : battleBackgroundFallbackSrc;
+  const showDetails = detailCards.length > 0;
 
   useEffect(() => {
     const timer = window.setTimeout(onComplete, durationMs);
@@ -68,9 +81,9 @@ export function BattleEntryTransition({
       role="region"
     >
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-        {battleBackgroundSrc && !backgroundFailed ? (
+        {resolvedBackgroundSrc ? (
           <img
-            src={battleBackgroundSrc}
+            src={resolvedBackgroundSrc}
             alt=""
             loading="eager"
             decoding="async"
@@ -105,21 +118,25 @@ export function BattleEntryTransition({
           {t("battleEntry.beginNow")}
         </button>
 
-        <div className="mx-auto grid w-full max-w-[70rem] gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
-          <HeroLineup label={t("battleEntry.allies")} heroes={visibleAllies} side="ally" />
-          <div className="battle-entry-presentation__versus mx-auto grid h-14 w-14 place-items-center rounded-full border border-[#f5c451]/28 bg-[#150f08]/88 text-base font-black text-[#f5d498] shadow-[0_18px_38px_rgba(0,0,0,0.4),0_0_34px_rgba(245,196,81,0.18)] md:h-20 md:w-20 md:text-lg">
-            {t("battleEntry.versus")}
+        {showDetails ? (
+          <BattleEntryDetails cards={detailCards} />
+        ) : (
+          <div className="mx-auto grid w-full max-w-[74rem] gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+            <HeroLineup label={t("battleEntry.allies")} heroes={visibleAllies} side="ally" />
+            <div className="battle-entry-presentation__versus mx-auto grid h-14 w-14 place-items-center rounded-full border border-[#f5c451]/28 bg-[#150f08]/88 text-base font-black text-[#f5d498] shadow-[0_18px_38px_rgba(0,0,0,0.4),0_0_34px_rgba(245,196,81,0.18)] md:h-20 md:w-20 md:text-lg">
+              {t("battleEntry.versus")}
+            </div>
+            <HeroLineup label={t("battleEntry.enemies")} heroes={visibleEnemies} side="enemy" />
           </div>
-          <HeroLineup label={t("battleEntry.enemies")} heroes={visibleEnemies} side="enemy" />
-        </div>
+        )}
       </div>
 
       <style jsx global>{`
         .battle-entry-presentation__backdrop {
-          animation: battleEntryBackdrop 1550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: battleEntryBackdrop 2550ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         .battle-entry-presentation__slash {
-          animation: battleEntrySlash 1550ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          animation: battleEntrySlash 2550ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
         .battle-entry-presentation__versus {
           animation: battleEntryVersus 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -181,6 +198,39 @@ export function BattleEntryTransition({
   );
 }
 
+function BattleEntryDetails({ cards }: { cards: BattleEntryDetailCard[] }) {
+  return (
+    <div className="mx-auto grid w-full max-w-[70rem] gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {cards.map((card) => (
+        <div
+          key={`${card.label}-${card.value}`}
+          className={cn(
+            "relative overflow-hidden rounded-[24px] border bg-black/34 p-4 text-center shadow-[0_24px_48px_rgba(0,0,0,0.28)]",
+            detailToneClasses(card.tone ?? "gold"),
+          )}
+        >
+          <div className="text-[9px] font-black uppercase tracking-[0.2em] text-white/48">{card.label}</div>
+          <div className="mt-2 text-base font-black leading-tight text-white md:text-xl">{card.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function detailToneClasses(tone: NonNullable<BattleEntryDetailCard["tone"]>) {
+  switch (tone) {
+    case "sky":
+      return "border-cyan-200/14 bg-[radial-gradient(circle_at_50%_0%,rgba(103,232,249,0.16),transparent_48%),rgba(4,12,18,0.78)]";
+    case "ember":
+      return "border-rose-200/16 bg-[radial-gradient(circle_at_50%_0%,rgba(240,95,114,0.18),transparent_50%),rgba(18,7,10,0.78)]";
+    case "violet":
+      return "border-violet-200/16 bg-[radial-gradient(circle_at_50%_0%,rgba(192,132,252,0.18),transparent_50%),rgba(13,8,20,0.8)]";
+    case "gold":
+    default:
+      return "border-[#f5c451]/18 bg-[radial-gradient(circle_at_50%_0%,rgba(245,196,81,0.18),transparent_50%),rgba(19,13,5,0.78)]";
+  }
+}
+
 function HeroLineup({
   label,
   heroes,
@@ -214,7 +264,7 @@ function BattleEntryHeroTile({ hero, side }: { hero: FrontlineHeroDef | null; si
 
   if (!hero) {
     return (
-      <div className="grid min-h-[6.4rem] place-items-center rounded-[18px] border border-dashed border-white/10 bg-black/20 md:min-h-[8.5rem] md:rounded-[22px]">
+      <div className="grid min-h-[7.4rem] place-items-center rounded-[18px] border border-dashed border-white/10 bg-black/20 md:min-h-[10.25rem] md:rounded-[22px]">
         <GameIcon kind="heroes" tone="steel" size="md" />
       </div>
     );
@@ -226,14 +276,14 @@ function BattleEntryHeroTile({ hero, side }: { hero: FrontlineHeroDef | null; si
   const src = visual.standeeSrc ?? visual.portraitFallbackSrc;
 
   return (
-    <div className="relative min-h-[6.4rem] overflow-hidden rounded-[18px] border border-white/10 bg-black/24 p-1.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:min-h-[8.5rem] md:rounded-[22px] md:p-2">
+    <div className="relative min-h-[7.4rem] overflow-hidden rounded-[18px] border border-white/10 bg-black/24 p-1.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:min-h-[10.25rem] md:rounded-[22px] md:p-2">
       <div
         className={cn(
           "pointer-events-none absolute inset-x-2 bottom-8 h-5 rounded-full blur-sm",
           side === "ally" ? "bg-cyan-200/18" : "bg-rose-300/18",
         )}
       />
-      <div className="relative mx-auto h-14 w-14 md:h-20 md:w-20">
+      <div className="relative mx-auto h-16 w-16 md:h-24 md:w-24">
         {src ? (
           <img
             src={src}
@@ -249,8 +299,8 @@ function BattleEntryHeroTile({ hero, side }: { hero: FrontlineHeroDef | null; si
           </div>
         )}
       </div>
-      <div className="relative mt-1 truncate text-[10px] font-black text-white md:text-[11px]">{name}</div>
-      <div className="relative truncate text-[7px] font-black uppercase tracking-[0.14em] text-white/48 md:text-[8px]">{role}</div>
+      <div className="relative mt-1 truncate text-[11px] font-black text-white md:text-[13px]">{name}</div>
+      <div className="relative truncate text-[8px] font-black uppercase tracking-[0.14em] text-white/48 md:text-[9px]">{role}</div>
     </div>
   );
 }

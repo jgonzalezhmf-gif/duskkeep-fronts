@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.50] - 2026-06-01
+
+### Changed
+- Aumentada la duracion de la presentacion de entrada a batalla y ampliado el tamano visual de heroes/nombres para mejorar lectura.
+- Fortress Defense usa ahora la presentacion compartida de entrada con fondo de combate, oleadas, guarnicion, defensa y pronostico antes de iniciar la defensa.
+
 ## [0.37.49] - 2026-06-01
 
 ### Added

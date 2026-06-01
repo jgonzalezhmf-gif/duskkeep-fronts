@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import BattleEntryTransition, { type BattleEntryDetailCard } from "@/components/game/frontline/BattleEntryTransition";
 import { LazyRewardFlightOverlay } from "@/components/game/shared/LazyRewardFlightOverlay";
 import { ScreenScaffold } from "@/components/game/screens/ScreenChrome";
 import {
@@ -19,9 +20,12 @@ import {
   type FortressDefenseActionId,
   type FortressDefenseState,
 } from "@/features/fortress-defense/engine";
+import { FORTRESS_DEFENSE_SCENE_ASSETS } from "@/features/fortress-defense/assets";
 import {
   createFrontlineHeroProfileMap,
 } from "@/features/frontline/heroProfile";
+import { battleEntryTheme } from "@/features/frontline/battleEntryPresentation";
+import { frontlineHeroName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { audio } from "@/lib/audio";
 import { useGameStore } from "@/lib/store";
@@ -29,7 +33,7 @@ import type { FrontlineFortressBuildingId } from "@/lib/types";
 import {
   formatRaidCountdown,
   integrityMeta,
-  type TranslateFn,
+  outcomeMeta,
 } from "./fortressPageHelpers";
 import { BuildingInspector } from "./FortressBuildingInspector";
 import { CastleStage } from "./FortressCastleStage";
@@ -40,8 +44,6 @@ import { FortressTopChrome } from "./FortressChrome";
 import { GarrisonPanel } from "./FortressGarrisonPanel";
 import { FortressHero } from "./FortressRaidOverview";
 import { FortressStatus, RaidHistoryPanel } from "./FortressStatusPanels";
-
-const FORTRESS_DEFENSE_START_TRANSITION_MS = 1320;
 
 export default function FortressPage() {
   const { t } = useI18n();
@@ -58,7 +60,6 @@ export default function FortressPage() {
   const [defenseState, setDefenseState] = useState<FortressDefenseState | null>(null);
   const [claimPending, setClaimPending] = useState(false);
   const [defenseTransition, setDefenseTransition] = useState(false);
-  const defenseTransitionTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setNow(Date.now());
@@ -72,14 +73,6 @@ export default function FortressPage() {
     return () => window.clearTimeout(timeout);
   }, [reportPulse]);
 
-  useEffect(() => {
-    return () => {
-      if (defenseTransitionTimerRef.current !== null) {
-        window.clearTimeout(defenseTransitionTimerRef.current);
-      }
-    };
-  }, []);
-
   const currentTime = useMemo(() => new Date(now ?? 0), [now]);
   const heroProfiles = useMemo(() => createFrontlineHeroProfileMap(playerHeroes), [playerHeroes]);
   const raidReady = now === null ? false : frontlineFortressRaidReady(fortress, currentTime);
@@ -92,17 +85,44 @@ export default function FortressPage() {
   const selectedAffordable = resources.gold >= selectedCost.gold && resources.dust >= (selectedCost.dust ?? 0);
   const garrisonFilled = fortress.garrison.filter(Boolean).length;
   const defenseRewards = defenseState && defenseState.status !== "active" ? frontlineFortressRewardsForOutcome(fortress, getFortressDefenseOutcome(defenseState)) : undefined;
+  const forecastMeta = outcomeMeta(forecast.outcome, t);
+  const fortressBattleEntryDetails = useMemo<BattleEntryDetailCard[]>(() => {
+    const garrisonNames = fortress.garrison
+      .flatMap((heroId) => {
+        if (!heroId) return [];
+        const profile = heroProfiles[heroId];
+        return profile ? [frontlineHeroName(t, profile)] : [heroId];
+      });
+
+    return [
+      {
+        label: t("battleEntry.fortress.waves"),
+        value: t("fortressScreen.defense.ruleWaves"),
+        tone: "ember",
+      },
+      {
+        label: t("battleEntry.fortress.garrison"),
+        value: garrisonNames.length > 0 ? garrisonNames.join(" · ") : t("battleEntry.fortress.noGarrison"),
+        tone: "sky",
+      },
+      {
+        label: t("battleEntry.fortress.defense"),
+        value: `${defenseRating}`,
+        tone: "gold",
+      },
+    ];
+  }, [defenseRating, fortress.garrison, heroProfiles, t]);
 
   function handleStartDefense() {
     if (!raidReady || defenseTransition) return;
-    audio.setTheme("fortress_defense", { immediate: true, assetOnly: true });
+    audio.setTheme(battleEntryTheme("fortress"), { immediate: true, assetOnly: true });
     setDefenseTransition(true);
-    defenseTransitionTimerRef.current = window.setTimeout(() => {
-      setDefenseState(createFortressDefenseState({ fortress, accountLevel: account.level, heroProfiles, now: currentTime }));
-      setDefenseTransition(false);
-      defenseTransitionTimerRef.current = null;
-    }, FORTRESS_DEFENSE_START_TRANSITION_MS);
   }
+
+  const enterDefenseBattle = useCallback(() => {
+    setDefenseState(createFortressDefenseState({ fortress, accountLevel: account.level, heroProfiles, now: currentTime }));
+    setDefenseTransition(false);
+  }, [account.level, currentTime, fortress, heroProfiles]);
 
   function handleDefenseAction(actionId: FortressDefenseActionId, targetId?: string) {
     setDefenseState((state) => (state ? resolveFortressDefenseTurn(state, actionId, targetId) : state));
@@ -122,7 +142,6 @@ export default function FortressPage() {
     return (
       <ScreenScaffold scene="fortress" dock={false} hud={false} homeNav={false}>
         <FortressTopChrome resources={resources} />
-        {defenseTransition ? <FortressDefenseStartTransition t={t} /> : null}
         <main className="mx-auto grid w-full max-w-[1500px] gap-3 px-3 pb-16 pt-36 sm:pt-[7.5rem] md:px-6 md:pt-[5.75rem] xl:grid-cols-[minmax(0,1fr)_21rem] xl:px-8" aria-busy="true">
           <section className="relative isolate min-h-[45rem] overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_16%,rgba(255,219,143,0.08),transparent_30%),linear-gradient(180deg,rgba(14,18,28,0.24),rgba(6,8,14,0.74))] shadow-[0_24px_62px_rgba(0,0,0,0.32)] backdrop-blur-sm md:min-h-[34rem]">
             <SceneLight />
@@ -142,6 +161,27 @@ export default function FortressPage() {
           </aside>
         </main>
       </ScreenScaffold>
+    );
+  }
+
+  if (defenseTransition) {
+    return (
+      <BattleEntryTransition
+        mode="fortress"
+        title={t("fortressScreen.defense.battleTitle")}
+        subtitle={t("battleEntry.fortress.subtitle")}
+        detailCards={[
+          ...fortressBattleEntryDetails,
+          {
+            label: t("battleEntry.fortress.forecast"),
+            value: forecastMeta.label,
+            tone: forecast.outcome === "breach" ? "ember" : forecast.outcome === "full_repel" ? "sky" : "gold",
+          },
+        ]}
+        battleBackgroundSrc={FORTRESS_DEFENSE_SCENE_ASSETS.lastBastionBackdrop.src}
+        battleBackgroundFallbackSrc={FORTRESS_DEFENSE_SCENE_ASSETS.lastBastionBackdrop.fallbackSrc}
+        onComplete={enterDefenseBattle}
+      />
     );
   }
 
@@ -170,7 +210,6 @@ export default function FortressPage() {
     <ScreenScaffold scene="fortress" dock={false} hud={false} homeNav={false}>
       <FortressTopChrome resources={resources} />
       <LazyRewardFlightOverlay rewards={fortress.lastReport?.rewards} active={reportPulse} nonce={fortress.raidsResolved} origin="center" />
-      {defenseTransition ? <FortressDefenseStartTransition t={t} /> : null}
 
       <main className="mx-auto grid w-full max-w-[1500px] gap-3 px-3 pb-16 pt-36 sm:pt-[7.5rem] md:px-6 md:pt-[5.75rem] xl:grid-cols-[minmax(0,1fr)_21rem] xl:px-8">
         <section className="relative isolate min-h-[45rem] overflow-hidden rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_16%,rgba(255,219,143,0.08),transparent_30%),linear-gradient(180deg,rgba(14,18,28,0.26),rgba(6,8,14,0.76))] shadow-[0_24px_62px_rgba(0,0,0,0.32)] backdrop-blur-sm md:min-h-[35rem]">
@@ -244,59 +283,5 @@ export default function FortressPage() {
         </aside>
       </main>
     </ScreenScaffold>
-  );
-}
-
-function FortressDefenseStartTransition({ t }: { t: TranslateFn }) {
-  return (
-    <div className="fortress-defense-start-overlay pointer-events-none fixed inset-0 z-[90] overflow-hidden bg-black/0" aria-live="polite" aria-label={t("fortressScreen.defense.start")}>
-      <div className="fortress-defense-start-veil absolute inset-0 bg-black" />
-      <div className="fortress-defense-start-ember absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,rgba(245,196,81,0.2),transparent_25%),linear-gradient(90deg,rgba(12,9,8,0.92),rgba(55,24,18,0.48),rgba(5,7,12,0.92))]" />
-      <div className="fortress-defense-start-gate-left absolute inset-y-0 left-0 w-1/2 border-r border-[#f5c451]/20 bg-[linear-gradient(90deg,rgba(3,4,8,0.98),rgba(22,17,14,0.7))]" />
-      <div className="fortress-defense-start-gate-right absolute inset-y-0 right-0 w-1/2 border-l border-[#f5c451]/20 bg-[linear-gradient(270deg,rgba(3,4,8,0.98),rgba(22,17,14,0.7))]" />
-      <div className="fortress-defense-start-title absolute left-1/2 top-1/2 w-[min(34rem,84vw)] -translate-x-1/2 -translate-y-1/2 rounded-[28px] border border-[#f5c451]/24 bg-[linear-gradient(180deg,rgba(245,196,81,0.18),rgba(6,7,12,0.58))] px-6 py-5 text-center shadow-[0_30px_90px_rgba(0,0,0,0.56)]">
-        <div className="text-[10px] font-black uppercase tracking-[0.26em] text-[#f5d498]/78">{t("fortressScreen.defense.start")}</div>
-        <div className="mt-2 text-2xl font-black uppercase tracking-[0.04em] text-white sm:text-4xl">{t("fortressScreen.defense.battleTitle")}</div>
-        <div className="mx-auto mt-4 h-px w-40 bg-[linear-gradient(90deg,transparent,#f5c451,transparent)]" />
-      </div>
-      <style>{`
-        @keyframes fortress-defense-start-veil {
-          0% { opacity: 0; }
-          58% { opacity: 0.78; }
-          100% { opacity: 0.96; }
-        }
-        @keyframes fortress-defense-start-ember {
-          0% { opacity: 0; transform: scale(1.04); filter: blur(2px) brightness(1.15); }
-          36% { opacity: 0.92; transform: scale(1.01); filter: blur(0) brightness(1.04); }
-          100% { opacity: 0.42; transform: scale(1); filter: blur(1px) brightness(0.82); }
-        }
-        @keyframes fortress-defense-start-gate-left {
-          0% { transform: translateX(-24%); opacity: 0; }
-          42% { transform: translateX(0); opacity: 1; }
-          100% { transform: translateX(-4%); opacity: 0.88; }
-        }
-        @keyframes fortress-defense-start-gate-right {
-          0% { transform: translateX(24%); opacity: 0; }
-          42% { transform: translateX(0); opacity: 1; }
-          100% { transform: translateX(4%); opacity: 0.88; }
-        }
-        @keyframes fortress-defense-start-title {
-          0% { opacity: 0; transform: translate(-50%, -46%) scale(0.94); filter: brightness(1.2); }
-          34% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); filter: brightness(1.08); }
-          76% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
-          100% { opacity: 0.28; transform: translate(-50%, -51%) scale(0.985); filter: brightness(0.74); }
-        }
-        .fortress-defense-start-veil { animation: fortress-defense-start-veil ${FORTRESS_DEFENSE_START_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1) both; }
-        .fortress-defense-start-ember { animation: fortress-defense-start-ember ${FORTRESS_DEFENSE_START_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1) both; }
-        .fortress-defense-start-gate-left { animation: fortress-defense-start-gate-left ${FORTRESS_DEFENSE_START_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1) both; }
-        .fortress-defense-start-gate-right { animation: fortress-defense-start-gate-right ${FORTRESS_DEFENSE_START_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1) both; }
-        .fortress-defense-start-title { animation: fortress-defense-start-title ${FORTRESS_DEFENSE_START_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1) both; }
-        html[data-motion="reduced"] .fortress-defense-start-veil,
-        html[data-motion="reduced"] .fortress-defense-start-ember,
-        html[data-motion="reduced"] .fortress-defense-start-gate-left,
-        html[data-motion="reduced"] .fortress-defense-start-gate-right,
-        html[data-motion="reduced"] .fortress-defense-start-title { animation-duration: 120ms !important; }
-      `}</style>
-    </div>
   );
 }

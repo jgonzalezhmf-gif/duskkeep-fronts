@@ -133,7 +133,7 @@ Validar:
 
 ### 2. Transicion compartida de entrada a batalla
 
-Estado: cerrado en `0.37.49` para las rutas Frontline principales; Fortress conserva su transicion propia ya existente.
+Estado: cerrado en `0.37.50` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
 
 Objetivo: todas las batallas deben tener una presentacion previa reusable, con mensaje/audio por modo y sin entrar de golpe al combate.
 
@@ -272,7 +272,7 @@ Aplicacion al estado actual:
 - Refactorizacion de store/reglas puras: tanda cerrada en `0.37.31`; no seguir extrayendo helpers por inercia.
 - Pulido no-combat: tanda cerrada tras Team, Arena y Events; no seguir pantalla por pantalla sin una incidencia concreta.
 - Intro por sesion: cerrado en `0.37.48`.
-- Transicion compartida de entrada a batalla: cerrada en `0.37.49` para Adventure/direct battle, Ladder, Arena Trial y Events.
+- Transicion compartida de entrada a batalla: cerrada en `0.37.50` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
 - Siguiente recomendado: ejecutar la validacion browser de release candidate.
 
 ## Gates Generales Antes de Release Presentable

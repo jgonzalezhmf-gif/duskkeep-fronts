@@ -1,9 +1,9 @@
 import type { AudioThemeName } from "@/lib/audio-score";
 
-export type BattleEntryMode = "adventure" | "boss" | "direct" | "ladder" | "arena" | "event";
+export type BattleEntryMode = "adventure" | "boss" | "direct" | "ladder" | "arena" | "event" | "fortress";
 
-export const BATTLE_ENTRY_NORMAL_DURATION_MS = 1550;
-export const BATTLE_ENTRY_REDUCED_MOTION_DURATION_MS = 620;
+export const BATTLE_ENTRY_NORMAL_DURATION_MS = 2550;
+export const BATTLE_ENTRY_REDUCED_MOTION_DURATION_MS = 900;
 
 export const BATTLE_ENTRY_THEME_BY_MODE = {
   adventure: "battle",
@@ -12,6 +12,7 @@ export const BATTLE_ENTRY_THEME_BY_MODE = {
   ladder: "ladder",
   arena: "arena_trials",
   event: "event",
+  fortress: "fortress_defense",
 } as const satisfies Record<BattleEntryMode, AudioThemeName>;
 
 export type BattleEntryCopyKeys = {
@@ -50,6 +51,11 @@ const BATTLE_ENTRY_COPY_KEYS: Record<BattleEntryMode, BattleEntryCopyKeys> = {
     eyebrowKey: "battleEntry.event.eyebrow",
     fallbackTitleKey: "battleEntry.event.title",
     subtitleKey: "battleEntry.event.subtitle",
+  },
+  fortress: {
+    eyebrowKey: "battleEntry.fortress.eyebrow",
+    fallbackTitleKey: "battleEntry.fortress.title",
+    subtitleKey: "battleEntry.fortress.subtitle",
   },
 };
 

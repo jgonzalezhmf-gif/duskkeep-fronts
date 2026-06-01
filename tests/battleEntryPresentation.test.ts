@@ -20,6 +20,7 @@ describe("battle entry presentation", () => {
     expect(battleEntryTheme("ladder")).toBe("ladder");
     expect(battleEntryTheme("arena")).toBe("arena_trials");
     expect(battleEntryTheme("event")).toBe("event");
+    expect(battleEntryTheme("fortress")).toBe("fortress_defense");
   });
 
   it("keeps battle-entry copy grouped by mode", () => {
@@ -29,5 +30,6 @@ describe("battle entry presentation", () => {
       subtitleKey: "battleEntry.adventure.subtitle",
     });
     expect(battleEntryCopyKeys("direct").fallbackTitleKey).toBe("battleEntry.direct.title");
+    expect(battleEntryCopyKeys("fortress").fallbackTitleKey).toBe("battleEntry.fortress.title");
   });
 });

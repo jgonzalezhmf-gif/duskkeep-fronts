@@ -421,6 +421,16 @@ export const enDictionary = {
         title: "Daily front",
         subtitle: "{name} is live now. Clear the operation before the reward window closes.",
       },
+      fortress: {
+        eyebrow: "Fortress defense",
+        title: "Last Bastion Defense",
+        subtitle: "The walls are braced. Spend castle orders, hold the waves and keep the gate standing.",
+        waves: "Waves",
+        garrison: "Garrison",
+        defense: "Defense",
+        forecast: "Forecast",
+        noGarrison: "No guards assigned",
+      },
     },
     frontline: {
       command: "Duskkeep Fronts",

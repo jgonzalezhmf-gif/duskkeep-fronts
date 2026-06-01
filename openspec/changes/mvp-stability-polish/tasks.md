@@ -60,7 +60,7 @@ Chain strategy: pending
 
 - [x] 7.1 Define shared battle-entry metadata for Adventure, Ladder, Arena Trial, Events, and Fortress-style messaging/audio.
 - [x] 7.2 Build a reusable transition UI with mode copy, reduced-motion support, and hero/enemy presentation when data exists.
-- [x] 7.3 Wire Adventure/direct battle, Arena/Ladder, and Events so Frontline battles do not start abruptly.
+- [x] 7.3 Wire Adventure/direct battle, Arena/Ladder, Events, and Fortress Defense so battles do not start abruptly.
 - [x] 7.4 Validate desktop/mobile battle entry, mode-specific copy, and battle music timing.
 
 ## Phase 8: Release candidate validation

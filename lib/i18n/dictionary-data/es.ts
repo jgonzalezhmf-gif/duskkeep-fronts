@@ -403,6 +403,16 @@ export const esDictionary = {
         title: "Frente diario",
         subtitle: "{name} esta activo. Limpia la operacion antes de que cierre la ventana de recompensas.",
       },
+      fortress: {
+        eyebrow: "Defensa de fortaleza",
+        title: "Defensa del ultimo bastion",
+        subtitle: "Los muros estan preparados. Usa ordenes del castillo, aguanta las oleadas y manten la puerta en pie.",
+        waves: "Oleadas",
+        garrison: "Guarnicion",
+        defense: "Defensa",
+        forecast: "Pronostico",
+        noGarrison: "Sin guardias asignados",
+      },
     },
     frontline: {
       command: "Duskkeep Fronts",
