@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.48] - 2026-06-01
+
+### Fixed
+- La Intro queda marcada por sesion de pestana: no reaparece al volver a Home ni al usar Back dentro de la misma sesion, pero vuelve a mostrarse en una pestana nueva.
+
+### Changed
+- Actualizado el plan SDD/prioridades para ejecutar primero la politica de Intro, despues la transicion compartida de entrada a batalla y finalmente la validacion RC.
+
 ## [0.37.47] - 2026-05-31
 
 ### Added

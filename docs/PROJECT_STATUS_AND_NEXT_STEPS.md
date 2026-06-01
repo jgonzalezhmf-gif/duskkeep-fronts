@@ -114,7 +114,37 @@ No seguir salvo:
 
 ## Bloques Pendientes Priorizados
 
-### 1. Validacion browser de release candidate
+### 1. Politica de Intro por sesion de pestana
+
+Objetivo: la Intro debe aparecer al entrar al juego en una pestana nueva, pero no al volver a Home ni al usar Back dentro de la misma sesion.
+
+Cuándo hacerlo:
+
+- Antes de la validacion browser de release candidate.
+- Cuando la Intro reaparezca tras login, invitado, navegacion interna o boton Back.
+
+Validar:
+
+- Entrada fresca al juego muestra Intro si corresponde.
+- Intro/Auth/invitado -> Home -> ruta principal -> Back no vuelve a mostrar Intro.
+- Cerrar y reabrir pestana permite volver a mostrar Intro como entrada fresca.
+
+### 2. Transicion compartida de entrada a batalla
+
+Objetivo: todas las batallas deben tener una presentacion previa reusable, con mensaje/audio por modo y sin entrar de golpe al combate.
+
+Cuándo hacerlo:
+
+- Antes de la validacion browser de release candidate.
+- Cuando se toque Adventure, Arena, Ladder, Events o Fortress battle entry.
+
+Validar:
+
+- Adventure/direct battle, Arena Trial, Ladder y Events muestran transicion antes de `FrontlineBattle`.
+- La transicion usa copy/audio especifico del modo y respeta reduced motion.
+- Si hay datos suficientes, presenta heroes/enemigos; si no, usa un banner visual seguro.
+
+### 3. Validacion browser de release candidate
 
 Objetivo: comprobar la experiencia real de usuario tras intro/login/Home y rutas principales.
 
@@ -131,7 +161,7 @@ Validar:
 - Rutas principales sin 404, overflow ni errores consola.
 - Reward/Shop/Adventure/Combat smoke visual.
 
-### 2. Supabase remoto y entorno operativo
+### 4. Supabase remoto y entorno operativo
 
 Estado: validado manualmente para alpha con cuenta de prueba.
 
@@ -165,7 +195,7 @@ No seguir salvo:
 - Preparacion de produccion publica.
 - Monetizacion, pagos, ladder real o necesidad de rate limit distribuido.
 
-### 3. Pulido de pantallas no-combat bajo demanda
+### 5. Pulido de pantallas no-combat bajo demanda
 
 Objetivo: mejorar pantallas todavia menos fuertes sin tocar Combat.
 
@@ -186,7 +216,7 @@ Regla:
 - Validar.
 - Cerrar o pasar a la siguiente.
 
-### 4. Ladder/Arena competitiva
+### 6. Ladder/Arena competitiva
 
 Objetivo: no aceptar ranking real desde datos confiados del cliente.
 
@@ -197,7 +227,7 @@ Tareas:
 - Anadir rate limit distribuido si hay trafico real.
 - Auditar abuso de resultados.
 
-### 5. Monetizacion y pagos
+### 7. Monetizacion y pagos
 
 Objetivo: preparar moneda premium y pagos sin confiar en cliente.
 
@@ -210,7 +240,7 @@ Tareas:
 - Entorno sandbox del proveedor.
 - Observabilidad y alertas.
 
-### 6. Canvas/stage global fijo
+### 8. Canvas/stage global fijo
 
 Objetivo: estabilizar layout visual del juego completo.
 
@@ -237,7 +267,7 @@ Aplicacion al estado actual:
 - Backend/Auth/Data-driven: cerrado como MVP estable; no reabrir salvo bug, remoto, monetizacion o ladder real.
 - Refactorizacion de store/reglas puras: tanda cerrada en `0.37.31`; no seguir extrayendo helpers por inercia.
 - Pulido no-combat: tanda cerrada tras Team, Arena y Events; no seguir pantalla por pantalla sin una incidencia concreta.
-- Siguiente recomendado: validacion browser de release candidate, QA funcional de la demo o preparacion de Supabase remoto, segun si se prioriza demo local o persistencia online real.
+- Siguiente recomendado: corregir la politica de Intro por sesion, despues anadir la transicion compartida de entrada a batalla, y recien entonces ejecutar la validacion browser de release candidate.
 
 ## Gates Generales Antes de Release Presentable
 

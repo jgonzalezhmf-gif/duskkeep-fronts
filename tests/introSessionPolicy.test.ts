@@ -1,0 +1,85 @@
+import { describe, expect, it } from "vitest";
+import {
+  INTRO_SEEN_SESSION_KEY,
+  markIntroSeenForSession,
+  readIntroSeenForSession,
+  shouldShowEntryIntro,
+} from "@/lib/introSessionPolicy";
+
+class MemoryStorage {
+  private readonly values = new Map<string, string>();
+
+  getItem(key: string) {
+    return this.values.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string) {
+    this.values.set(key, value);
+  }
+}
+
+describe("intro session policy", () => {
+  it("shows the entry intro once per browser tab session", () => {
+    expect(
+      shouldShowEntryIntro({
+        hydrated: true,
+        introEligible: true,
+        forceIntro: false,
+        introDismissed: false,
+        introSeenThisSession: false,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldShowEntryIntro({
+        hydrated: true,
+        introEligible: true,
+        forceIntro: false,
+        introDismissed: false,
+        introSeenThisSession: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps force-intro available without showing behind hydration or QA gates", () => {
+    expect(
+      shouldShowEntryIntro({
+        hydrated: true,
+        introEligible: true,
+        forceIntro: true,
+        introDismissed: false,
+        introSeenThisSession: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowEntryIntro({
+        hydrated: false,
+        introEligible: true,
+        forceIntro: true,
+        introDismissed: false,
+        introSeenThisSession: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowEntryIntro({
+        hydrated: true,
+        introEligible: false,
+        forceIntro: true,
+        introDismissed: false,
+        introSeenThisSession: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("records intro completion in tab-scoped storage", () => {
+    const storage = new MemoryStorage();
+
+    expect(readIntroSeenForSession(storage)).toBe(false);
+
+    markIntroSeenForSession(storage);
+
+    expect(storage.getItem(INTRO_SEEN_SESSION_KEY)).toBe("1");
+    expect(readIntroSeenForSession(storage)).toBe(true);
+  });
+
+});

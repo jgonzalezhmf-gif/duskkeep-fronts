@@ -10,9 +10,10 @@ Al abrir la URL del juego:
 2. Al terminar o saltar la intro, se muestra la pantalla de autenticacion si el jugador todavia no ha tomado una decision en esta carga.
 3. El jugador puede iniciar sesion, registrarse o jugar como invitado.
 4. Si el jugador elige invitado y recarga/cierra la pagina, la pantalla de autenticacion vuelve a aparecer tras la intro para permitir iniciar sesion con una cuenta existente o continuar como invitado.
-5. Si el jugador navega dentro del juego y vuelve a Home sin recargar la aplicacion, la intro no vuelve a aparecer.
+5. Si el jugador navega dentro del juego y vuelve a Home, incluso con el boton Back del navegador, la intro no vuelve a aparecer dentro de la misma sesion de pestana.
+6. Si se cierra la pestana/juego y se abre de nuevo, la intro puede volver a mostrarse como nueva entrada.
 
-La intro no debe depender de si el usuario ya vio la intro en una sesion anterior. El objetivo es que aparezca al entrar a la web, no cada vez que se vuelve a Home por navegacion interna.
+La intro no debe depender de si el usuario ya vio la intro en una sesion anterior persistida. El objetivo es que aparezca al entrar a la web en una nueva sesion de pestana, no cada vez que se vuelve a Home por navegacion interna.
 
 ## Login y Registro
 

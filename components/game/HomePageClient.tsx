@@ -7,6 +7,11 @@ import { signInSupabaseAnonymously } from "@/features/server/supabaseBrowserSess
 import { shouldShowEntryAuthGate } from "@/features/server/sessionSecurity";
 import { HOME_LANDMARK_LAYOUT, toPx } from "@/components/game/home/homeComposition";
 import { GameIntro } from "@/components/game/intro/GameIntro";
+import {
+  markIntroSeenForSession,
+  readIntroSeenForSession,
+  shouldShowEntryIntro,
+} from "@/lib/introSessionPolicy";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 
@@ -42,16 +47,22 @@ export default function HomePageClient({
   const syncLocalSnapshotOnlineFirst = useGameStore((state) => state.syncLocalSnapshotOnlineFirst);
   const loadServerSnapshotOnlineFirst = useGameStore((state) => state.loadServerSnapshotOnlineFirst);
   const [introDismissed, setIntroDismissed] = useState(false);
-  const [introSeenThisPageLoad, setIntroSeenThisPageLoad] = useState(() => introSeenInPageRuntime);
+  const [introSeenThisSession, setIntroSeenThisSession] = useState(() => introSeenInPageRuntime || readIntroSeenForSession());
   const [guestChoiceResolvedThisPageLoad, setGuestChoiceResolvedThisPageLoad] = useState(() => guestChoiceResolvedInPageRuntime);
   const introEligible = !qaClean && !qaEffects;
-  const showIntro = store.hydrated && !introDismissed && introEligible && (forceIntro || !introSeenThisPageLoad);
+  const showIntro = shouldShowEntryIntro({
+    hydrated: store.hydrated,
+    introEligible,
+    forceIntro,
+    introDismissed,
+    introSeenThisSession,
+  });
   // Until the persisted store has hydrated we don't know whether to show
   // the intro yet. If we render Home behind it we get a visible flash of
   // HUD before the cinematic mounts (the user reported this). Cover the
   // viewport with a solid black layer while we wait so the first frame is
   // always either black or the intro itself.
-  const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed;
+  const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed && (forceIntro || !introSeenThisSession);
   const showAuthGate = shouldShowEntryAuthGate({
     hydrated: store.hydrated,
     introEligible,
@@ -62,10 +73,21 @@ export default function HomePageClient({
   const showHomeWorld = !showIntro && !showPreHydrationVeil;
 
   function handleIntroDone() {
-    introSeenInPageRuntime = true;
-    setIntroSeenThisPageLoad(true);
-    setIntroDismissed(true);
+    markIntroCompleteForSession();
     markIntroSeen();
+  }
+
+  function markIntroCompleteForSession() {
+    introSeenInPageRuntime = true;
+    markIntroSeenForSession();
+    setIntroSeenThisSession(true);
+    setIntroDismissed(true);
+  }
+
+  function markEntryChoiceResolvedForCurrentSession() {
+    guestChoiceResolvedInPageRuntime = true;
+    setGuestChoiceResolvedThisPageLoad(true);
+    markIntroCompleteForSession();
   }
 
   const hotspots: HomeHotspot[] = [
@@ -158,22 +180,22 @@ export default function HomePageClient({
         onGuest={async () => {
           const result = await signInSupabaseAnonymously();
           if (result.ok && result.session.status === "authenticated" && !result.session.isAnonymous) {
+            markEntryChoiceResolvedForCurrentSession();
             setAccountLinkMode("linked");
             return;
           }
-          guestChoiceResolvedInPageRuntime = true;
-          setGuestChoiceResolvedThisPageLoad(true);
+          markEntryChoiceResolvedForCurrentSession();
           setAccountLinkMode("guest");
         }}
         onLinked={() => {
-          guestChoiceResolvedInPageRuntime = true;
-          setGuestChoiceResolvedThisPageLoad(true);
+          markEntryChoiceResolvedForCurrentSession();
           setAccountLinkMode("linked");
           void loadServerSnapshotOnlineFirst();
         }}
       />
       <PasswordRecoveryGate
         onRecovered={async ({ source }) => {
+          markEntryChoiceResolvedForCurrentSession();
           setAccountLinkMode("linked");
           if (source === "guestUpgrade") {
             await syncLocalSnapshotOnlineFirst();
