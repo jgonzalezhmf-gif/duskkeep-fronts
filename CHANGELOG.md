@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.49] - 2026-06-01
+
+### Added
+- Anadida una presentacion compartida de entrada a batalla para Adventure/direct battle, Ladder, Arena Trial y Events, con modo visual, enfrentamiento de heroes/enemigos, CTA y soporte de reduced motion.
+- Anadido mapping testeado de metadata de entrada a batalla: duraciones, temas de audio y claves i18n por modo.
+
+### Changed
+- Las batallas Frontline principales arrancan con transicion y musica del modo antes de entrar en combate, evitando que el combate aparezca de golpe.
+- Actualizado el estado SDD/prioridades: la transicion de entrada a batalla queda cerrada y el siguiente bloque es la validacion browser RC.
+
 ## [0.37.48] - 2026-06-01
 
 ### Fixed

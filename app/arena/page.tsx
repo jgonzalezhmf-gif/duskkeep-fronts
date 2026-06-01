@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import BattleEntryTransition from "@/components/game/frontline/BattleEntryTransition";
 import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameIcon from "@/components/game/shared/GameIcon";
 import { LazyRewardBurstOverlay } from "@/components/game/shared/LazyRewardBurstOverlay";
@@ -20,9 +21,14 @@ import { isServerAuthoritativePersistenceEnabled } from "@/lib/persistedGameStat
 import { createPendingActionKey } from "@/lib/pendingActions";
 import { useGameStore } from "@/lib/store";
 import { audio } from "@/lib/audio";
-import type { AudioThemeName } from "@/lib/audio-score";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
+import {
+  battleEntryTheme,
+  type BattleEntryMode,
+} from "@/features/frontline/battleEntryPresentation";
 import { getArenaTrialMutatorForRival } from "@/features/arena/trialMutators";
+import { FRONTLINE_PRESET_BY_ID, FRONTLINE_UNIT_BY_ID } from "@/features/frontline/data";
+import { getFrontlineHeroProfileById } from "@/features/frontline/heroProfile";
 import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import {
   getLadderOpponentForPoints,
@@ -45,17 +51,12 @@ const FrontlineBattle = dynamic(() => import("@/components/game/frontline/Frontl
   loading: FrontlineBattleLoadingShell,
 });
 
-type ArenaPhase = "browse" | "battle" | "post";
+type ArenaPhase = "browse" | "intro" | "battle" | "post";
 type ArenaMode = "ladder" | "trials";
 type LadderMatchmakingState = "idle" | "finding" | "found";
 type BattlePick =
   | { mode: "trials"; rival: ArenaRival }
   | { mode: "ladder"; rival: LadderOpponent };
-
-const ARENA_BATTLE_THEME_BY_MODE = {
-  ladder: "ladder",
-  trials: "arena_trials",
-} satisfies Record<ArenaMode, AudioThemeName>;
 
 type ArenaResult = {
   winner: "ally" | "enemy" | "draw";
@@ -81,6 +82,7 @@ export default function ArenaPage() {
   const ladder = useGameStore((state) => state.ladder);
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
+  const playerHeroes = useGameStore((state) => state.heroes);
   const nextSeed = useGameStore((state) => state.nextSeed);
   const spend = useGameStore((state) => state.spend);
   const recordArenaResult = useGameStore((state) => state.recordArenaResultOnlineFirst);
@@ -113,8 +115,8 @@ export default function ArenaPage() {
   }, []);
 
   useEffect(() => {
-    if (phase === "battle" && pickedMode) {
-      audio.setTheme(ARENA_BATTLE_THEME_BY_MODE[pickedMode]);
+    if ((phase === "intro" || phase === "battle") && pickedMode) {
+      audio.setTheme(battleEntryTheme(pickedMode === "ladder" ? "ladder" : "arena"));
       return;
     }
     if (phase === "post") {
@@ -137,6 +139,20 @@ export default function ArenaPage() {
       : 100;
   const currentLadderOpponent = useMemo(() => getLadderOpponentForPoints(ladder.points), [ladder.points]);
   const currentLadderOpponentPool = useMemo(() => getLadderOpponentsForPoints(ladder.points), [ladder.points]);
+  const playerHeroById = useMemo(() => new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)), [playerHeroes]);
+  const battleEntryAllyHeroes = useMemo(
+    () => frontlineLoadout.squad.map((heroId) => (heroId ? getFrontlineHeroProfileById(heroId, playerHeroById.get(heroId)) : null)),
+    [frontlineLoadout.squad, playerHeroById],
+  );
+  const battleEntryEnemyHeroes = useMemo(() => {
+    if (!picked) return [];
+    const preset = FRONTLINE_PRESET_BY_ID[picked.rival.presetId];
+    return preset?.squad.map((heroId) => FRONTLINE_UNIT_BY_ID[heroId] ?? null) ?? [];
+  }, [picked]);
+  const battleEntryBackgroundSrc = picked
+    ? getFrontlineBattleBackgroundSrc(picked.mode === "ladder" ? "ladder_duel_arena" : "arena_trials_coliseum")
+    : null;
+  const battleEntryMode: BattleEntryMode | null = picked ? (picked.mode === "ladder" ? "ladder" : "arena") : null;
 
   function startArenaBattle(rival: ArenaRival) {
     if (tickets <= 0 || !loadoutReady) return;
@@ -147,7 +163,7 @@ export default function ArenaPage() {
     setSeed(nextSeed());
     setResult(null);
     setTicketSpentLocally(ticketSpent);
-    setPhase("battle");
+    setPhase("intro");
   }
 
   function startLadderBattle(rival: LadderOpponent) {
@@ -156,8 +172,12 @@ export default function ArenaPage() {
     setSeed(nextSeed());
     setResult(null);
     setTicketSpentLocally(false);
-    setPhase("battle");
+    setPhase("intro");
   }
+
+  const enterBattle = useCallback(() => {
+    setPhase("battle");
+  }, []);
 
   function startLadderMatchmaking() {
     if (!loadoutReady || ladderMatchmaking !== "idle") return;
@@ -249,6 +269,19 @@ export default function ArenaPage() {
     });
     setPhase("post");
     }, true);
+  }
+
+  if (phase === "intro" && picked && battleEntryMode) {
+    return (
+      <BattleEntryTransition
+        mode={battleEntryMode}
+        title={picked.rival.ownerName}
+        allyHeroes={battleEntryAllyHeroes}
+        enemyHeroes={battleEntryEnemyHeroes}
+        battleBackgroundSrc={battleEntryBackgroundSrc}
+        onComplete={enterBattle}
+      />
+    );
   }
 
   if (phase === "battle" && picked) {

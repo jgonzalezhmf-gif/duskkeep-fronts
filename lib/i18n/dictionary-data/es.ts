@@ -367,6 +367,43 @@ export const esDictionary = {
         },
       },
     },
+    battleEntry: {
+      ariaLabel: "Combate iniciando: {name}",
+      versus: "VS",
+      allies: "Aliados",
+      enemies: "Enemigos",
+      beginNow: "Empezar ahora",
+      adventure: {
+        eyebrow: "Batalla de aventura",
+        title: "Brecha Frontline",
+        subtitle: "Tu escuadra avanza por {name}. Aguanta los frentes y rompe el nucleo enemigo.",
+      },
+      boss: {
+        eyebrow: "Encuentro de jefe",
+        title: "Jefe en la puerta",
+        subtitle: "{name} te espera. Compromete la escuadra y sobrevive al primer choque.",
+      },
+      direct: {
+        eyebrow: "Prueba Frontline",
+        title: "Duskkeep Fronts",
+        subtitle: "Se forma un choque tactico. Lee las lineas, gasta Command y busca la brecha.",
+      },
+      ladder: {
+        eyebrow: "Duelo Ladder",
+        title: "Choque ranked",
+        subtitle: "{name} ha sido emparejado contra ti. Hay puntos y progreso de llaves en juego.",
+      },
+      arena: {
+        eyebrow: "Arena Trial",
+        title: "Rival de prueba",
+        subtitle: "{name} entra con presion especial de arena. Gana al publico y reclama la bolsa.",
+      },
+      event: {
+        eyebrow: "Operacion de evento",
+        title: "Frente diario",
+        subtitle: "{name} esta activo. Limpia la operacion antes de que cierre la ventana de recompensas.",
+      },
+    },
     frontline: {
       command: "Duskkeep Fronts",
       adventureGate: "Puerta de aventura - Capítulo {chapter}",

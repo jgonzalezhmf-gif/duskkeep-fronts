@@ -385,6 +385,43 @@ export const enDictionary = {
         },
       },
     },
+    battleEntry: {
+      ariaLabel: "Battle starting: {name}",
+      versus: "VS",
+      allies: "Allies",
+      enemies: "Enemies",
+      beginNow: "Begin now",
+      adventure: {
+        eyebrow: "Adventure battle",
+        title: "Frontline breach",
+        subtitle: "Your squad advances through {name}. Hold the fronts and break the enemy core.",
+      },
+      boss: {
+        eyebrow: "Boss encounter",
+        title: "Boss at the gate",
+        subtitle: "{name} is waiting. Commit the squad and survive the opening clash.",
+      },
+      direct: {
+        eyebrow: "Frontline drill",
+        title: "Duskkeep Fronts",
+        subtitle: "A tactical clash is forming. Read the lanes, spend Command and push for breach.",
+      },
+      ladder: {
+        eyebrow: "Ladder duel",
+        title: "Ranked clash",
+        subtitle: "{name} is matched against you. Points and key progress are on the line.",
+      },
+      arena: {
+        eyebrow: "Arena Trial",
+        title: "Trial rival",
+        subtitle: "{name} enters with a special arena pressure. Win the crowd and claim the purse.",
+      },
+      event: {
+        eyebrow: "Event operation",
+        title: "Daily front",
+        subtitle: "{name} is live now. Clear the operation before the reward window closes.",
+      },
+    },
     frontline: {
       command: "Duskkeep Fronts",
       adventureGate: "Adventure gate - Chapter {chapter}",

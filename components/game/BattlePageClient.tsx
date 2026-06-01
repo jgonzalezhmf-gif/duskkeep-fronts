@@ -8,6 +8,7 @@ import { BattlePagePackagePanel } from "@/components/game/frontline/BattlePagePa
 import { BattlePageSetupHero } from "@/components/game/frontline/BattlePageSetupHero";
 import { BattlePageSetupLayout } from "@/components/game/frontline/BattlePageSetupLayout";
 import { BattlePageSetupSidebar } from "@/components/game/frontline/BattlePageSetupSidebar";
+import BattleEntryTransition from "@/components/game/frontline/BattleEntryTransition";
 import { PendingActionOverlay, usePendingActions } from "@/components/game/shared/PendingActionFeedback";
 import { useBattlePageEnemySelection } from "@/components/game/frontline/useBattlePageEnemySelection";
 import { useBattlePageLoadoutPreview } from "@/components/game/frontline/useBattlePageLoadoutPreview";
@@ -37,6 +38,10 @@ import {
 import { shouldPersistBattleOutcome, shouldRecordLocalBattleOutcome } from "@/components/game/frontline/frontlineBattleRewardPolicy";
 import type { BattlePageResultContext } from "@/components/game/frontline/BattlePageResultPanel";
 import { getFrontlineEnemyLeaderPortraitForPreset } from "@/lib/frontlineLeaderPortraitAssets";
+import {
+  battleEntryTheme,
+  type BattleEntryMode,
+} from "@/features/frontline/battleEntryPresentation";
 
 type Props = {
   autostart?: boolean;
@@ -44,7 +49,7 @@ type Props = {
   adventureLevelId?: string | null;
 };
 
-type BattlePhase = "setup" | "battle" | "result";
+type BattlePhase = "setup" | "intro" | "battle" | "result";
 
 export default function BattlePageClient({ autostart = false, enemyPresetId, adventureLevelId }: Props) {
   const { t } = useI18n();
@@ -82,6 +87,16 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const animatedAccountProgress = resultContext
     ? accountProgressPercent(resultContext.accountAfter.level, resultContext.accountAfter.xp)
     : 0;
+  const encounterKind = deriveEncounterBadge(adventureLevel);
+  const modifiers = encounterModifiers(encounterKind);
+  const battleBackgroundSrc = getFrontlineBattleBackgroundSrc(
+    resolveBattleBackgroundKey(adventureLevel, encounterKind, selectedPreset.bossId),
+  );
+  const battleEntryMode: BattleEntryMode = selectedPreset.bossId || encounterKind === "boss"
+    ? "boss"
+    : adventureLevel
+      ? "adventure"
+      : "direct";
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;
   const deckReady = frontlineLoadout.deck.filter(Boolean).length === 8;
   const {
@@ -107,8 +122,8 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
   const selectedPresetName = frontlinePresetName(t, selectedPreset);
 
   useEffect(() => {
-    if (phase === "battle") {
-      audio.setTheme(selectedPreset.bossId ? "boss" : "battle");
+    if (phase === "intro" || phase === "battle") {
+      audio.setTheme(battleEntryTheme(battleEntryMode));
       return;
     }
     if (phase === "result") {
@@ -120,15 +135,19 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
       return;
     }
     audio.setTheme("prebattle");
-  }, [adventureLevel, phase, selectedPreset.bossId]);
+  }, [adventureLevel, battleEntryMode, phase]);
 
   const startBattle = useCallback(() => {
     if (!squadReady || !deckReady) return;
     setBattleSeed(nextSeed());
-    setPhase("battle");
+    setPhase("intro");
     setResultContext(null);
     resetRewardReveal();
   }, [deckReady, nextSeed, resetRewardReveal, squadReady]);
+
+  const enterBattle = useCallback(() => {
+    setPhase("battle");
+  }, []);
 
   useEffect(() => {
     if (autostart && phase === "setup" && squadReady && deckReady) {
@@ -230,12 +249,20 @@ export default function BattlePageClient({ autostart = false, enemyPresetId, adv
     }, true);
   }
 
-  if (phase === "battle") {
-    const encounterKind = deriveEncounterBadge(adventureLevel);
-    const modifiers = encounterModifiers(encounterKind);
-    const battleBackgroundSrc = getFrontlineBattleBackgroundSrc(
-      resolveBattleBackgroundKey(adventureLevel, encounterKind, selectedPreset.bossId),
+  if (phase === "intro") {
+    return (
+      <BattleEntryTransition
+        mode={battleEntryMode}
+        title={adventureLevel?.name ?? selectedPresetName}
+        allyHeroes={allyHeroes}
+        enemyHeroes={enemyHeroes}
+        battleBackgroundSrc={battleBackgroundSrc}
+        onComplete={enterBattle}
+      />
     );
+  }
+
+  if (phase === "battle") {
     return (
       <div className="relative min-h-dvh">
         <BattlePageBattleView

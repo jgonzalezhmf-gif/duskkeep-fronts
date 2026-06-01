@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import BattleEntryTransition from "@/components/game/frontline/BattleEntryTransition";
 import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon from "@/components/game/shared/GameIcon";
@@ -15,6 +16,11 @@ import {
   ScreenPanel,
   ScreenScaffold,
 } from "@/components/game/screens/ScreenChrome";
+import { audio } from "@/lib/audio";
+import { battleEntryTheme } from "@/features/frontline/battleEntryPresentation";
+import { FRONTLINE_PRESET_BY_ID, FRONTLINE_UNIT_BY_ID } from "@/features/frontline/data";
+import { getFrontlineHeroProfileById } from "@/features/frontline/heroProfile";
+import { getFrontlineBattleBackgroundSrc } from "@/components/game/frontline/frontlineVisualAssets";
 import { createFrontlineBattleSummary } from "@/features/frontline/battleSummary";
 import { translate, useI18n } from "@/lib/i18n/useI18n";
 import { hasRewardEntries } from "@/lib/rewardVisibility";
@@ -32,7 +38,7 @@ const FrontlineBattle = dynamic(() => import("@/components/game/frontline/Frontl
   loading: FrontlineBattleLoadingShell,
 });
 
-type EventPhase = "list" | "battle" | "post";
+type EventPhase = "list" | "intro" | "battle" | "post";
 
 type EventResult = {
   winner: "ally" | "enemy" | "draw";
@@ -50,6 +56,7 @@ export default function EventsPage() {
   const resources = useGameStore((state) => state.resources);
   const level = useGameStore((state) => state.account.level);
   const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
+  const playerHeroes = useGameStore((state) => state.heroes);
   const nextSeed = useGameStore((state) => state.nextSeed);
   const recordEventResult = useGameStore((state) => state.recordEventResultOnlineFirst);
   const eventCompletions = useGameStore((state) => state.eventCompletions);
@@ -64,10 +71,35 @@ export default function EventsPage() {
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;
   const deckReady = frontlineLoadout.deck.filter(Boolean).length === 8;
   const loadoutReady = squadReady && deckReady;
+  const playerHeroById = useMemo(() => new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)), [playerHeroes]);
+  const battleEntryAllyHeroes = useMemo(
+    () => frontlineLoadout.squad.map((heroId) => (heroId ? getFrontlineHeroProfileById(heroId, playerHeroById.get(heroId)) : null)),
+    [frontlineLoadout.squad, playerHeroById],
+  );
+  const battleEntryEnemyHeroes = useMemo(() => {
+    if (!activeOperation) return [];
+    const preset = FRONTLINE_PRESET_BY_ID[activeOperation.presetId];
+    return preset?.squad.map((heroId) => FRONTLINE_UNIT_BY_ID[heroId] ?? null) ?? [];
+  }, [activeOperation]);
+  const battleEntryBackgroundSrc = activeOperation
+    ? getFrontlineBattleBackgroundSrc(activeOperation.threat === "epic" ? "ch1_boss_eclipse_gate" : "ch1_battle_ruins")
+    : null;
 
   useEffect(() => {
     setClientReady(true);
   }, []);
+
+  useEffect(() => {
+    if (phase === "intro" || phase === "battle") {
+      audio.setTheme(battleEntryTheme("event"));
+      return;
+    }
+    if (phase === "post") {
+      audio.setTheme("postbattle");
+      return;
+    }
+    audio.setTheme("event");
+  }, [phase]);
 
   useEffect(() => {
     if (!activeOperation && operations[0]) setActiveOperation(operations[0]);
@@ -82,8 +114,12 @@ export default function EventsPage() {
     setActiveOperation(operation);
     setSeed(nextSeed());
     setResult(null);
-    setPhase("battle");
+    setPhase("intro");
   }
+
+  const enterBattle = useCallback(() => {
+    setPhase("battle");
+  }, []);
 
   async function finishOperation(winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) {
     if (!activeOperation) return;
@@ -116,6 +152,20 @@ export default function EventsPage() {
     setPhase("post");
   }
 
+  if (phase === "intro" && activeOperation) {
+    return (
+      <BattleEntryTransition
+        mode="event"
+        title={activeOperation.name}
+        subtitle={activeOperation.mutator}
+        allyHeroes={battleEntryAllyHeroes}
+        enemyHeroes={battleEntryEnemyHeroes}
+        battleBackgroundSrc={battleEntryBackgroundSrc}
+        onComplete={enterBattle}
+      />
+    );
+  }
+
   if (phase === "battle" && activeOperation) {
     return (
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
@@ -123,6 +173,7 @@ export default function EventsPage() {
           seed={seed}
           loadout={frontlineLoadout}
           enemyPresetId={activeOperation.presetId}
+          battleBackgroundSrc={battleEntryBackgroundSrc}
           onFinished={finishOperation}
         />
       </div>

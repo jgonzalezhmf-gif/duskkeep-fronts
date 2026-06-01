@@ -116,6 +116,8 @@ No seguir salvo:
 
 ### 1. Politica de Intro por sesion de pestana
 
+Estado: cerrado en `0.37.48`.
+
 Objetivo: la Intro debe aparecer al entrar al juego en una pestana nueva, pero no al volver a Home ni al usar Back dentro de la misma sesion.
 
 Cuándo hacerlo:
@@ -130,6 +132,8 @@ Validar:
 - Cerrar y reabrir pestana permite volver a mostrar Intro como entrada fresca.
 
 ### 2. Transicion compartida de entrada a batalla
+
+Estado: cerrado en `0.37.49` para las rutas Frontline principales; Fortress conserva su transicion propia ya existente.
 
 Objetivo: todas las batallas deben tener una presentacion previa reusable, con mensaje/audio por modo y sin entrar de golpe al combate.
 
@@ -267,7 +271,9 @@ Aplicacion al estado actual:
 - Backend/Auth/Data-driven: cerrado como MVP estable; no reabrir salvo bug, remoto, monetizacion o ladder real.
 - Refactorizacion de store/reglas puras: tanda cerrada en `0.37.31`; no seguir extrayendo helpers por inercia.
 - Pulido no-combat: tanda cerrada tras Team, Arena y Events; no seguir pantalla por pantalla sin una incidencia concreta.
-- Siguiente recomendado: corregir la politica de Intro por sesion, despues anadir la transicion compartida de entrada a batalla, y recien entonces ejecutar la validacion browser de release candidate.
+- Intro por sesion: cerrado en `0.37.48`.
+- Transicion compartida de entrada a batalla: cerrada en `0.37.49` para Adventure/direct battle, Ladder, Arena Trial y Events.
+- Siguiente recomendado: ejecutar la validacion browser de release candidate.
 
 ## Gates Generales Antes de Release Presentable
 

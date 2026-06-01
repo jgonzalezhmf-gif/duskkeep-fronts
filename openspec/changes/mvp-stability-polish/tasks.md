@@ -3,9 +3,9 @@
 ## Review Workload Forecast
 
 - Estimated changed lines for full program: High.
-- 400-line budget risk: High for full program; Low for the current Intro session-policy slice.
-- Chained PRs recommended: Yes for the full program; not required for the current Intro fix.
-- Decision needed before apply: No for `home-intro-session-policy`; ask-on-risk remains active for battle-transition and RC slices.
+- 400-line budget risk: High for full program; Low for the current battle-entry transition slice.
+- Chained PRs recommended: Yes for the full program; not required for the current battle-entry transition work unit.
+- Decision needed before apply: No for `shared-battle-entry-presentation`; ask-on-risk remains active for the RC validation slice.
 
 Decision needed before apply: No
 Chained PRs recommended: Yes
@@ -58,10 +58,10 @@ Chain strategy: pending
 
 ## Phase 7: Shared battle entry presentation
 
-- [ ] 7.1 Define shared battle-entry metadata for Adventure, Ladder, Arena Trial, Events, and Fortress-style messaging/audio.
-- [ ] 7.2 Build a reusable transition UI with mode copy, reduced-motion support, and hero/enemy presentation when data exists.
-- [ ] 7.3 Wire Adventure/direct battle, Arena/Ladder, and Events so Frontline battles do not start abruptly.
-- [ ] 7.4 Validate desktop/mobile battle entry, mode-specific copy, and battle music timing.
+- [x] 7.1 Define shared battle-entry metadata for Adventure, Ladder, Arena Trial, Events, and Fortress-style messaging/audio.
+- [x] 7.2 Build a reusable transition UI with mode copy, reduced-motion support, and hero/enemy presentation when data exists.
+- [x] 7.3 Wire Adventure/direct battle, Arena/Ladder, and Events so Frontline battles do not start abruptly.
+- [x] 7.4 Validate desktop/mobile battle entry, mode-specific copy, and battle music timing.
 
 ## Phase 8: Release candidate validation
 
