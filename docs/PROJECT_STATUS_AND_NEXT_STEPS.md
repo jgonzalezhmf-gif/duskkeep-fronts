@@ -133,9 +133,11 @@ Validar:
 
 ### 2. Transicion compartida de entrada a batalla
 
-Estado: cerrado en `0.37.50` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
+Estado: cerrado en `0.37.51` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
 
 Objetivo: todas las batallas deben tener una presentacion previa reusable, con mensaje/audio por modo y sin entrar de golpe al combate.
+
+Nota de cierre: la entrada ya no muestra CTA manual de inicio; avanza automaticamente tras la transicion. Fortress Defense usa la guarnicion con imagenes de heroes y datos claros de oleadas, objetivo y ordenes.
 
 Cuándo hacerlo:
 
@@ -147,6 +149,7 @@ Validar:
 - Adventure/direct battle, Arena Trial, Ladder y Events muestran transicion antes de `FrontlineBattle`.
 - La transicion usa copy/audio especifico del modo y respeta reduced motion.
 - Si hay datos suficientes, presenta heroes/enemigos; si no, usa un banner visual seguro.
+- Fortress Defense entra automaticamente tras la transicion y no muestra `Defensa`/`Pronostico` en la pantalla previa.
 
 ### 3. Validacion browser de release candidate
 

@@ -409,6 +409,8 @@ export const esDictionary = {
         subtitle: "Los muros estan preparados. Usa ordenes del castillo, aguanta las oleadas y manten la puerta en pie.",
         waves: "Oleadas",
         garrison: "Guarnicion",
+        objective: "Objetivo",
+        orders: "Ordenes",
         defense: "Defensa",
         forecast: "Pronostico",
         noGarrison: "Sin guardias asignados",

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FrontlineHeroDef } from "@/features/frontline/types";
 import {
+  BATTLE_ENTRY_NORMAL_DURATION_MS,
   battleEntryCopyKeys,
   battleEntryDurationMs,
   type BattleEntryMode,
@@ -21,6 +22,8 @@ type BattleEntryTransitionProps = {
   subtitle?: string | null;
   allyHeroes?: Array<FrontlineHeroDef | null>;
   enemyHeroes?: Array<FrontlineHeroDef | null>;
+  allyLabel?: string;
+  enemyLabel?: string;
   battleBackgroundSrc?: string | null;
   battleBackgroundFallbackSrc?: string | null;
   detailCards?: BattleEntryDetailCard[];
@@ -49,6 +52,8 @@ export function BattleEntryTransition({
   subtitle,
   allyHeroes = [],
   enemyHeroes = [],
+  allyLabel,
+  enemyLabel,
   battleBackgroundSrc,
   battleBackgroundFallbackSrc,
   detailCards = [],
@@ -66,6 +71,8 @@ export function BattleEntryTransition({
   const visibleEnemies = useMemo(() => normalizeHeroSlots(enemyHeroes), [enemyHeroes]);
   const resolvedBackgroundSrc = battleBackgroundSrc && !backgroundFailed ? battleBackgroundSrc : battleBackgroundFallbackSrc;
   const showDetails = detailCards.length > 0;
+  const hasAllies = visibleAllies.some(Boolean);
+  const hasEnemies = visibleEnemies.some(Boolean);
 
   useEffect(() => {
     const timer = window.setTimeout(onComplete, durationMs);
@@ -110,44 +117,45 @@ export function BattleEntryTransition({
           <p className="mt-2 max-w-[42rem] text-sm font-semibold leading-5 text-white/68 md:mt-3 md:text-base md:leading-6">{body}</p>
         </div>
 
-        <button
-          type="button"
-          onClick={onComplete}
-          className="battle-entry-presentation__button mx-auto rounded-[20px] border border-[#f5c451]/30 bg-[#f5c451]/16 px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.18em] text-[#f5d498] shadow-[0_18px_34px_rgba(245,196,81,0.12)] transition hover:border-[#f5c451]/52 hover:bg-[#f5c451]/22 md:py-3"
-        >
-          {t("battleEntry.beginNow")}
-        </button>
+        <div className="battle-entry-presentation__countdown mx-auto h-px w-40 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
+          <div className="h-full w-full origin-left bg-[#f5c451]/78" />
+        </div>
 
-        {showDetails ? (
+        {showDetails && hasAllies && !hasEnemies ? (
+          <div className="mx-auto grid w-full max-w-[72rem] gap-3 md:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)] md:items-stretch">
+            <HeroLineup label={allyLabel ?? t("battleEntry.allies")} heroes={visibleAllies} side="ally" />
+            <BattleEntryDetails cards={detailCards} compact />
+          </div>
+        ) : showDetails ? (
           <BattleEntryDetails cards={detailCards} />
         ) : (
           <div className="mx-auto grid w-full max-w-[74rem] gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
-            <HeroLineup label={t("battleEntry.allies")} heroes={visibleAllies} side="ally" />
+            <HeroLineup label={allyLabel ?? t("battleEntry.allies")} heroes={visibleAllies} side="ally" />
             <div className="battle-entry-presentation__versus mx-auto grid h-14 w-14 place-items-center rounded-full border border-[#f5c451]/28 bg-[#150f08]/88 text-base font-black text-[#f5d498] shadow-[0_18px_38px_rgba(0,0,0,0.4),0_0_34px_rgba(245,196,81,0.18)] md:h-20 md:w-20 md:text-lg">
               {t("battleEntry.versus")}
             </div>
-            <HeroLineup label={t("battleEntry.enemies")} heroes={visibleEnemies} side="enemy" />
+            <HeroLineup label={enemyLabel ?? t("battleEntry.enemies")} heroes={visibleEnemies} side="enemy" />
           </div>
         )}
       </div>
 
       <style jsx global>{`
         .battle-entry-presentation__backdrop {
-          animation: battleEntryBackdrop 2550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: battleEntryBackdrop ${BATTLE_ENTRY_NORMAL_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         .battle-entry-presentation__slash {
-          animation: battleEntrySlash 2550ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          animation: battleEntrySlash ${BATTLE_ENTRY_NORMAL_DURATION_MS}ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
         .battle-entry-presentation__versus {
           animation: battleEntryVersus 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
-        .battle-entry-presentation__button {
-          animation: battleEntryButton 520ms cubic-bezier(0.22, 1, 0.36, 1) 420ms both;
+        .battle-entry-presentation__countdown > div {
+          animation: battleEntryCountdown ${BATTLE_ENTRY_NORMAL_DURATION_MS}ms linear both;
         }
         [data-battle-entry-motion="reduced"] .battle-entry-presentation__backdrop,
         [data-battle-entry-motion="reduced"] .battle-entry-presentation__slash,
         [data-battle-entry-motion="reduced"] .battle-entry-presentation__versus,
-        [data-battle-entry-motion="reduced"] .battle-entry-presentation__button {
+        [data-battle-entry-motion="reduced"] .battle-entry-presentation__countdown > div {
           animation: none;
         }
         @keyframes battleEntryBackdrop {
@@ -183,14 +191,12 @@ export function BattleEntryTransition({
             opacity: 1;
           }
         }
-        @keyframes battleEntryButton {
+        @keyframes battleEntryCountdown {
           from {
-            transform: translateY(8px);
-            opacity: 0;
+            transform: scaleX(0);
           }
           to {
-            transform: translateY(0);
-            opacity: 1;
+            transform: scaleX(1);
           }
         }
       `}</style>
@@ -198,9 +204,9 @@ export function BattleEntryTransition({
   );
 }
 
-function BattleEntryDetails({ cards }: { cards: BattleEntryDetailCard[] }) {
+function BattleEntryDetails({ cards, compact = false }: { cards: BattleEntryDetailCard[]; compact?: boolean }) {
   return (
-    <div className="mx-auto grid w-full max-w-[70rem] gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className={cn("mx-auto grid w-full gap-3", compact ? "content-center sm:grid-cols-2 md:grid-cols-1" : "max-w-[70rem] sm:grid-cols-2 lg:grid-cols-4")}>
       {cards.map((card) => (
         <div
           key={`${card.label}-${card.value}`}

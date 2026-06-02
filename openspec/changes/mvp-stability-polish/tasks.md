@@ -62,6 +62,7 @@ Chain strategy: pending
 - [x] 7.2 Build a reusable transition UI with mode copy, reduced-motion support, and hero/enemy presentation when data exists.
 - [x] 7.3 Wire Adventure/direct battle, Arena/Ladder, Events, and Fortress Defense so battles do not start abruptly.
 - [x] 7.4 Validate desktop/mobile battle entry, mode-specific copy, and battle music timing.
+- [x] 7.5 Remove manual battle-entry CTA, fix Fortress auto-advance, and clarify Fortress transition information with hero garrison visuals.
 
 ## Phase 8: Release candidate validation
 

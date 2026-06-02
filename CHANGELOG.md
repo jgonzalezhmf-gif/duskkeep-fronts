@@ -7,6 +7,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.51] - 2026-06-02
+
+### Fixed
+- Eliminada la opcion manual de inicio en la presentacion de entrada a batalla: ahora la transicion dura su tiempo y avanza automaticamente.
+- Corregido el autoavance de Fortress Defense al congelar el momento de inicio de la transicion, evitando que el timer se reinicie con el reloj de la pantalla.
+
+### Changed
+- Fortress Defense presenta la guarnicion con imagenes de heroes y sustituye `Defensa`/`Pronostico` por datos mas claros: oleadas, objetivo y ordenes.
+
 ## [0.37.50] - 2026-06-01
 
 ### Changed

@@ -25,7 +25,6 @@ import {
   createFrontlineHeroProfileMap,
 } from "@/features/frontline/heroProfile";
 import { battleEntryTheme } from "@/features/frontline/battleEntryPresentation";
-import { frontlineHeroName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { audio } from "@/lib/audio";
 import { useGameStore } from "@/lib/store";
@@ -33,7 +32,6 @@ import type { FrontlineFortressBuildingId } from "@/lib/types";
 import {
   formatRaidCountdown,
   integrityMeta,
-  outcomeMeta,
 } from "./fortressPageHelpers";
 import { BuildingInspector } from "./FortressBuildingInspector";
 import { CastleStage } from "./FortressCastleStage";
@@ -60,6 +58,7 @@ export default function FortressPage() {
   const [defenseState, setDefenseState] = useState<FortressDefenseState | null>(null);
   const [claimPending, setClaimPending] = useState(false);
   const [defenseTransition, setDefenseTransition] = useState(false);
+  const [defenseTransitionStartedAt, setDefenseTransitionStartedAt] = useState<Date | null>(null);
 
   useEffect(() => {
     setNow(Date.now());
@@ -85,15 +84,11 @@ export default function FortressPage() {
   const selectedAffordable = resources.gold >= selectedCost.gold && resources.dust >= (selectedCost.dust ?? 0);
   const garrisonFilled = fortress.garrison.filter(Boolean).length;
   const defenseRewards = defenseState && defenseState.status !== "active" ? frontlineFortressRewardsForOutcome(fortress, getFortressDefenseOutcome(defenseState)) : undefined;
-  const forecastMeta = outcomeMeta(forecast.outcome, t);
+  const fortressBattleEntryGarrison = useMemo(
+    () => fortress.garrison.map((heroId) => (heroId ? heroProfiles[heroId] ?? null : null)),
+    [fortress.garrison, heroProfiles],
+  );
   const fortressBattleEntryDetails = useMemo<BattleEntryDetailCard[]>(() => {
-    const garrisonNames = fortress.garrison
-      .flatMap((heroId) => {
-        if (!heroId) return [];
-        const profile = heroProfiles[heroId];
-        return profile ? [frontlineHeroName(t, profile)] : [heroId];
-      });
-
     return [
       {
         label: t("battleEntry.fortress.waves"),
@@ -101,28 +96,30 @@ export default function FortressPage() {
         tone: "ember",
       },
       {
-        label: t("battleEntry.fortress.garrison"),
-        value: garrisonNames.length > 0 ? garrisonNames.join(" · ") : t("battleEntry.fortress.noGarrison"),
-        tone: "sky",
-      },
-      {
-        label: t("battleEntry.fortress.defense"),
-        value: `${defenseRating}`,
+        label: t("battleEntry.fortress.objective"),
+        value: t("fortressScreen.defense.ruleCastle"),
         tone: "gold",
       },
+      {
+        label: t("battleEntry.fortress.orders"),
+        value: t("fortressScreen.defense.ruleGuards"),
+        tone: "sky",
+      },
     ];
-  }, [defenseRating, fortress.garrison, heroProfiles, t]);
+  }, [t]);
 
   function handleStartDefense() {
     if (!raidReady || defenseTransition) return;
     audio.setTheme(battleEntryTheme("fortress"), { immediate: true, assetOnly: true });
+    setDefenseTransitionStartedAt(currentTime);
     setDefenseTransition(true);
   }
 
   const enterDefenseBattle = useCallback(() => {
-    setDefenseState(createFortressDefenseState({ fortress, accountLevel: account.level, heroProfiles, now: currentTime }));
+    setDefenseState(createFortressDefenseState({ fortress, accountLevel: account.level, heroProfiles, now: defenseTransitionStartedAt ?? new Date() }));
     setDefenseTransition(false);
-  }, [account.level, currentTime, fortress, heroProfiles]);
+    setDefenseTransitionStartedAt(null);
+  }, [account.level, defenseTransitionStartedAt, fortress, heroProfiles]);
 
   function handleDefenseAction(actionId: FortressDefenseActionId, targetId?: string) {
     setDefenseState((state) => (state ? resolveFortressDefenseTurn(state, actionId, targetId) : state));
@@ -170,14 +167,9 @@ export default function FortressPage() {
         mode="fortress"
         title={t("fortressScreen.defense.battleTitle")}
         subtitle={t("battleEntry.fortress.subtitle")}
-        detailCards={[
-          ...fortressBattleEntryDetails,
-          {
-            label: t("battleEntry.fortress.forecast"),
-            value: forecastMeta.label,
-            tone: forecast.outcome === "breach" ? "ember" : forecast.outcome === "full_repel" ? "sky" : "gold",
-          },
-        ]}
+        allyLabel={t("battleEntry.fortress.garrison")}
+        allyHeroes={fortressBattleEntryGarrison}
+        detailCards={fortressBattleEntryDetails}
         battleBackgroundSrc={FORTRESS_DEFENSE_SCENE_ASSETS.lastBastionBackdrop.src}
         battleBackgroundFallbackSrc={FORTRESS_DEFENSE_SCENE_ASSETS.lastBastionBackdrop.fallbackSrc}
         onComplete={enterDefenseBattle}

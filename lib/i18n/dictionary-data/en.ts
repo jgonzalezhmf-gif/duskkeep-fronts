@@ -427,6 +427,8 @@ export const enDictionary = {
         subtitle: "The walls are braced. Spend castle orders, hold the waves and keep the gate standing.",
         waves: "Waves",
         garrison: "Garrison",
+        objective: "Objective",
+        orders: "Orders",
         defense: "Defense",
         forecast: "Forecast",
         noGarrison: "No guards assigned",
