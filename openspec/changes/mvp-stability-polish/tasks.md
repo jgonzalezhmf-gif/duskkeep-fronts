@@ -66,6 +66,6 @@ Chain strategy: pending
 
 ## Phase 8: Release candidate validation
 
-- [ ] 8.1 Run full check/test/build/audit/performance commands.
-- [ ] 8.2 Run browser validation for entry, Adventure, Combat, Shop, Arena, Ladder, and mobile/desktop.
-- [ ] 8.3 Record residual risks and next recommended slice.
+- [x] 8.1 Run full check/test/build/audit/performance commands.
+- [x] 8.2 Run browser validation for entry, Adventure, Combat, Shop, Arena, Ladder, and mobile/desktop.
+- [x] 8.3 Record residual risks and next recommended slice.

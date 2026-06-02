@@ -153,7 +153,25 @@ Validar:
 
 ### 3. Validacion browser de release candidate
 
+Estado: pasada localmente en `0.37.52`.
+
 Objetivo: comprobar la experiencia real de usuario tras intro/login/Home y rutas principales.
+
+Evidencia:
+
+- `npm.cmd run check`
+- `npm.cmd run test`
+- `npm.cmd run clean:next && npm.cmd run build`
+- `npm.cmd run audit:high`
+- `npm.cmd run audit:assets`
+- `npm.cmd run audit:asset-refs`
+- `npm.cmd run audit:build`
+- `npm.cmd run check:performance`
+- Browser local en `http://127.0.0.1:3000` con screenshots en `tmp/rc-validation/screens`: Intro/Auth invitado, Home, Adventure, pre-combat `c1l1`, Deck, Roster, Missions, Events, Arena, Shop, Fortress y Battle en desktop/mobile.
+
+Riesgo residual:
+
+- Esta pasada fue local/offline. Supabase remoto sigue siendo un bloque separado cuando se quiera demo con login real, sincronizacion entre dispositivos o persistencia online.
 
 Cuándo hacerlo:
 

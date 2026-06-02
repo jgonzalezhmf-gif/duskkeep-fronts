@@ -61,9 +61,9 @@ type RpcClient = {
 };
 
 export async function loadServerPlayerSnapshot(options: {
-  clientProvider?: () => RpcClient | null;
+  clientProvider?: () => RpcClient | null | Promise<RpcClient | null>;
 } = {}): Promise<ServerPlayerSnapshotResult> {
-  const supabase = options.clientProvider?.() ?? getSupabaseBrowserClient();
+  const supabase = options.clientProvider ? await options.clientProvider() : await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
   const { data, error } = await supabase.rpc("get_player_snapshot");

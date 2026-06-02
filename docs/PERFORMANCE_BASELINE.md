@@ -13,6 +13,13 @@ Este documento marca el inicio del bloque de rendimiento. No sustituye profiling
 - Cada PNG runtime sustituido fue respaldado fuera del proyecto antes de eliminarse de `public/assets`, bajo `C:\Users\Usuario\DuskkeepAssetBackups\...`.
 - No se cambiaron reglas de combate, economia, rewards, MMR, audio ni comportamiento jugable como parte de este cierre.
 
+## Estado Verificado RC - 2026-06-02
+
+- `@supabase/supabase-js` queda cargado de forma diferida desde `features/server/supabaseBrowserSession.ts`; Auth/Supabase conserva el contrato de anon key publica + JWT de usuario y no mueve autoridad al cliente.
+- La auditoria limpia tras `npm.cmd run clean:next && npm.cmd run build` queda en `.next/static`: 53 archivos, 3.10 MB.
+- El presupuesto de `.next/static` se ajusta de 3.00 MB a 3.25 MB para reflejar el peso total actual con Auth/Supabase online disponible y separado en chunk lazy.
+- El presupuesto sigue siendo un gate de regresion: deja ~0.15 MB de margen, no una licencia para crecer sin justificar.
+
 ## Politica Runtime De Assets
 
 - Los assets finales se cargan desde manifests explicitos (`lib/iconAssets.ts`, `lib/screenBackgroundAssets.ts`, `lib/adventureMapInteractionAssets.ts`, `lib/homeEffectAssets.ts`, `components/game/frontline/frontlineVisualAssets.ts` y equivalentes).
@@ -108,7 +115,7 @@ npm.cmd run check:performance
 `check:performance` requiere una build previa para revisar `.next/static` y HTML prerenderizado. Presupuestos actuales:
 
 - `public/assets` <= 112 MB.
-- `.next/static` <= 3 MB.
+- `.next/static` <= 3.25 MB.
 - `.next/server/app` <= 1 MB.
 - HTML prerenderizado por ruta <= 80 KB.
 

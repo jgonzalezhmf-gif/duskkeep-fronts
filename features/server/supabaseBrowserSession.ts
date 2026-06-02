@@ -1,8 +1,9 @@
-import { createClient, type AuthChangeEvent, type Session, type SupabaseClient } from "@supabase/supabase-js";
+import type { AuthChangeEvent, Session, SupabaseClient } from "@supabase/supabase-js";
 import { isRegistrationPasswordFormatValid } from "@/features/server/authPasswordPolicy";
 import { getSupabasePublicConfig } from "@/features/server/supabasePublicConfig";
 
 let browserClient: SupabaseClient | null = null;
+let browserClientPromise: Promise<SupabaseClient | null> | null = null;
 
 export const SUPABASE_AUTH_EMAIL_MAX_LENGTH = 254;
 export const SUPABASE_AUTH_PASSWORD_MAX_LENGTH = 1_024;
@@ -43,25 +44,30 @@ export type PreparedSupabasePasswordCredentials = {
   password: string;
 };
 
-export function getSupabaseBrowserClient() {
+export async function getSupabaseBrowserClient() {
   if (typeof window === "undefined") return null;
 
   const publicConfig = getSupabasePublicConfig();
   if (!publicConfig.ok) return null;
 
-  browserClient ??= createClient(publicConfig.config.url, publicConfig.config.anonKey, {
-    auth: {
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      persistSession: true,
-    },
+  if (browserClient) return browserClient;
+
+  browserClientPromise ??= import("@supabase/supabase-js").then(({ createClient }) => {
+    browserClient = createClient(publicConfig.config.url, publicConfig.config.anonKey, {
+      auth: {
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        persistSession: true,
+      },
+    });
+    return browserClient;
   });
 
-  return browserClient;
+  return browserClientPromise;
 }
 
 export async function getSupabaseSessionSnapshot(): Promise<SupabaseSessionSnapshot> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { status: "unconfigured" };
 
   const { data, error } = await supabase.auth.getSession();
@@ -74,7 +80,7 @@ export async function getSupabaseSessionSnapshot(): Promise<SupabaseSessionSnaps
 }
 
 export async function getSupabaseAccessToken() {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase.auth.getSession();
@@ -90,7 +96,7 @@ export async function signInSupabaseWithPassword({
   email,
   password,
 }: SupabasePasswordCredentials): Promise<SupabaseAuthResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const credentials = prepareSupabasePasswordCredentials({ email, password });
   if (!credentials) return { ok: false, reason: "invalid_credentials" };
@@ -111,7 +117,7 @@ export async function signUpSupabaseWithPassword({
   email,
   password,
 }: SupabasePasswordCredentials): Promise<SupabaseAuthResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const credentials = prepareSupabasePasswordCredentials({ email, password });
   if (!credentials || !isRegistrationPasswordFormatValid(credentials.password)) return { ok: false, reason: "auth_error" };
@@ -129,7 +135,7 @@ export async function signUpSupabaseWithPassword({
 }
 
 export async function signInSupabaseAnonymously(): Promise<SupabaseAuthResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
   const current = await getSupabaseSessionSnapshot();
@@ -150,7 +156,7 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
   email,
   password,
 }: SupabasePasswordCredentials): Promise<SupabaseAuthResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const credentials = prepareSupabasePasswordCredentials({ email, password });
   if (!credentials) return { ok: false, reason: "auth_error" };
@@ -182,7 +188,7 @@ export async function upgradeAnonymousSupabaseUserWithPassword({
 }
 
 export async function requestAnonymousSupabaseEmailLink(email: string, redirectTo?: string): Promise<SupabaseGuestUpgradeEmailResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const normalizedEmail = normalizeSupabaseAuthEmail(email);
   if (!normalizedEmail) return { ok: false, reason: "auth_error" };
@@ -213,7 +219,7 @@ export async function requestAnonymousSupabaseEmailLink(email: string, redirectT
 }
 
 export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<SupabaseOAuthResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const safeRedirectTo = normalizeSupabaseAuthRedirectTo(redirectTo);
 
@@ -227,7 +233,7 @@ export async function signInSupabaseWithGoogle(redirectTo?: string): Promise<Sup
 }
 
 export async function requestSupabasePasswordRecovery(email: string, redirectTo?: string): Promise<SupabasePasswordRecoveryResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   const normalizedEmail = normalizeSupabaseAuthEmail(email);
   if (!normalizedEmail) return { ok: true };
@@ -245,7 +251,7 @@ export async function requestSupabasePasswordRecovery(email: string, redirectTo?
 }
 
 export async function updateSupabasePassword(password: string): Promise<SupabasePasswordUpdateResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   if (!isSupabaseAuthPasswordWithinBounds(password)) return { ok: false, reason: "auth_error" };
 
@@ -259,7 +265,7 @@ export async function updateSupabasePassword(password: string): Promise<Supabase
 }
 
 export async function completeSupabasePasswordSetupRedirect(): Promise<SupabasePasswordSetupRedirectResult> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   if (typeof window === "undefined") return { ok: false, reason: "auth_error" };
 
@@ -289,7 +295,7 @@ export async function completeSupabasePasswordSetupRedirect(): Promise<SupabaseP
 }
 
 export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "auth_error" }> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
   const { error } = await supabase.auth.signOut();
@@ -304,25 +310,49 @@ export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; rea
 export function subscribeToSupabaseSession(
   listener: (session: SupabaseSessionSnapshot) => void,
 ): { unsubscribe: () => void } | null {
-  const supabase = getSupabaseBrowserClient();
-  if (!supabase) return null;
+  if (typeof window === "undefined" || !getSupabasePublicConfig().ok) return null;
 
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-    listener(toSupabaseSessionSnapshot(session));
+  let cancelled = false;
+  let subscription: { unsubscribe: () => void } | null = null;
+  void getSupabaseBrowserClient().then((supabase) => {
+    if (!supabase || cancelled) return;
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      listener(toSupabaseSessionSnapshot(session));
+    });
+    subscription = data.subscription;
+    if (cancelled) subscription.unsubscribe();
   });
-  return data.subscription;
+
+  return {
+    unsubscribe: () => {
+      cancelled = true;
+      subscription?.unsubscribe();
+    },
+  };
 }
 
 export function subscribeToSupabaseAuthEvents(
   listener: (event: AuthChangeEvent, session: SupabaseSessionSnapshot) => void,
 ): { unsubscribe: () => void } | null {
-  const supabase = getSupabaseBrowserClient();
-  if (!supabase) return null;
+  if (typeof window === "undefined" || !getSupabasePublicConfig().ok) return null;
 
-  const { data } = supabase.auth.onAuthStateChange((event, session) => {
-    listener(event, toSupabaseSessionSnapshot(session));
+  let cancelled = false;
+  let subscription: { unsubscribe: () => void } | null = null;
+  void getSupabaseBrowserClient().then((supabase) => {
+    if (!supabase || cancelled) return;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      listener(event, toSupabaseSessionSnapshot(session));
+    });
+    subscription = data.subscription;
+    if (cancelled) subscription.unsubscribe();
   });
-  return data.subscription;
+
+  return {
+    unsubscribe: () => {
+      cancelled = true;
+      subscription?.unsubscribe();
+    },
+  };
 }
 
 export function toSupabaseSessionSnapshot(session: Session | null): SupabaseSessionSnapshot {

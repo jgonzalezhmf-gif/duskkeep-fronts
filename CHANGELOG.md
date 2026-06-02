@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.52] - 2026-06-02
+
+### Changed
+- Supabase Auth se carga ahora de forma diferida desde el cliente, evitando meter `@supabase/supabase-js` en el chunk inicial cuando no se usa Auth online.
+- Actualizado el baseline de `.next/static` a 3.25 MB tras auditoria RC limpia; el total actual queda en 3.10 MB con margen controlado.
+- Cerrada la validacion RC local con checks, tests, build, auditorias y browser desktop/mobile de Intro/Auth invitado, Home, Adventure, Deck, Roster, Missions, Events, Arena, Shop, Fortress y Combat.
+
 ## [0.37.51] - 2026-06-02
 
 ### Fixed

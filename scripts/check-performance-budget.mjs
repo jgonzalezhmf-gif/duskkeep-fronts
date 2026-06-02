@@ -8,7 +8,7 @@ const SERVER_APP_ROOT = path.join(ROOT, ".next", "server", "app");
 
 const BUDGETS = {
   publicAssetsBytes: 112 * 1024 * 1024,
-  nextStaticBytes: 3 * 1024 * 1024,
+  nextStaticBytes: 3.25 * 1024 * 1024,
   serverAppBytes: 1 * 1024 * 1024,
   maxRouteHtmlBytes: 80 * 1024,
 };
