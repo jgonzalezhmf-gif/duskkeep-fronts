@@ -1268,6 +1268,11 @@ export const esDictionary = {
         eyebrow: "Bucle del castillo",
         awaiting: "Esperando primera raid",
         copy: "Fortaleza debe sentirse util de revisar, no punitiva. Una brecha reduce eficiencia, pero el jugador sigue progresando y puede recuperarse con mejoras y mejores guardias.",
+        garrison: "Guarnicion",
+        upgrade: "Mejorar",
+        raid: "Repeler",
+        upgradeReady: "Mejora lista",
+        gatherResources: "Juntar recursos",
       },
       integrityStates: {
         stable: "Muros estables",

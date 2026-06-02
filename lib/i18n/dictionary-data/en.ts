@@ -1286,6 +1286,11 @@ export const enDictionary = {
         eyebrow: "Castle loop",
         awaiting: "Awaiting first raid",
         copy: "Fortress should feel worth checking, not punishing. A breach reduces efficiency, but the player keeps progressing and can recover through upgrades and better guards.",
+        garrison: "Garrison",
+        upgrade: "Upgrade",
+        raid: "Repel",
+        upgradeReady: "Upgrade ready",
+        gatherResources: "Gather resources",
       },
       integrityStates: {
         stable: "Stable walls",

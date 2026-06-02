@@ -3,6 +3,17 @@ import type { FrontlineFortressBuildingId, FrontlineFortressOutcome } from "@/li
 
 export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
+export type FortressLoopStepTone = "ready" | "waiting" | "attention";
+
+export type FortressLoopStep = {
+  id: "garrison" | "upgrade" | "raid";
+  icon: FortressIconName;
+  labelKey: string;
+  value?: string;
+  valueKey?: string;
+  tone: FortressLoopStepTone;
+};
+
 export const BUILDING_META: Record<
   FrontlineFortressBuildingId,
   {
@@ -114,4 +125,41 @@ export function outcomeMeta(outcome: FrontlineFortressOutcome, t: TranslateFn) {
 export function firstOpenSlot(garrison: [string | null, string | null, string | null]) {
   const open = garrison.findIndex((entry) => !entry);
   return open >= 0 ? open : 0;
+}
+
+export function buildFortressLoopSteps({
+  raidReady,
+  garrisonFilled,
+  upgradeReady,
+  nextAttackLabel,
+}: {
+  raidReady: boolean;
+  garrisonFilled: number;
+  upgradeReady: boolean;
+  nextAttackLabel: string;
+}): FortressLoopStep[] {
+  const safeGarrisonFilled = Math.min(3, Math.max(0, garrisonFilled));
+  return [
+    {
+      id: "garrison",
+      icon: "garrison",
+      labelKey: "fortressScreen.loop.garrison",
+      value: `${safeGarrisonFilled}/3`,
+      tone: safeGarrisonFilled >= 3 ? "ready" : "attention",
+    },
+    {
+      id: "upgrade",
+      icon: "keep",
+      labelKey: "fortressScreen.loop.upgrade",
+      valueKey: upgradeReady ? "fortressScreen.loop.upgradeReady" : "fortressScreen.loop.gatherResources",
+      tone: upgradeReady ? "ready" : "waiting",
+    },
+    {
+      id: "raid",
+      icon: "raid",
+      labelKey: "fortressScreen.loop.raid",
+      value: nextAttackLabel,
+      tone: raidReady ? "ready" : "waiting",
+    },
+  ];
 }

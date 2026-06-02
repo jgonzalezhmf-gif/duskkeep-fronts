@@ -1,10 +1,11 @@
 "use client";
 
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
+import { FortressIcon } from "@/components/game/shared/FortressIcon";
 import { ScreenBadge } from "@/components/game/screens/ScreenChrome";
 import { cn } from "@/lib/cn";
 import type { FrontlineFortressOutcome, Rewards } from "@/lib/types";
-import { outcomeMeta, type TranslateFn } from "./fortressPageHelpers";
+import { buildFortressLoopSteps, outcomeMeta, type FortressLoopStepTone, type TranslateFn } from "./fortressPageHelpers";
 import { HeroMetric, PressureBar, RewardRow } from "./FortressPrimitives";
 
 export function FortressHero({
@@ -14,6 +15,7 @@ export function FortressHero({
   integrity,
   defenseRating,
   garrisonFilled,
+  upgradeReady,
   t,
 }: {
   raidReady: boolean;
@@ -22,9 +24,11 @@ export function FortressHero({
   integrity: number;
   defenseRating: number;
   garrisonFilled: number;
+  upgradeReady: boolean;
   t: TranslateFn;
 }) {
   const state = outcomeMeta(forecast, t);
+  const loopSteps = buildFortressLoopSteps({ raidReady, garrisonFilled, upgradeReady, nextAttackLabel });
   return (
     <div className="max-w-[44rem]">
       <div className="flex flex-wrap items-center gap-2">
@@ -44,9 +48,39 @@ export function FortressHero({
         <HeroMetric icon="garrison" label={t("fortressScreen.metrics.guards")} value={`${garrisonFilled}/3`} />
         <HeroMetric icon="raid" label={t("fortressScreen.metrics.nextRaid")} value={nextAttackLabel} />
       </div>
+
+      <div className="mt-2.5 grid gap-1.5 sm:grid-cols-3">
+        {loopSteps.map((step, index) => (
+          <div
+            key={step.id}
+            className={cn(
+              "relative overflow-hidden rounded-[17px] border px-2 py-2 backdrop-blur-xl",
+              LOOP_TONE_CLASSES[step.tone],
+            )}
+          >
+            <div className="flex items-center gap-1.5">
+              <FortressIcon name={step.icon} size="sm" className="h-8 w-8" />
+              <div className="min-w-0">
+                <div className="text-[8px] font-black uppercase tracking-[0.13em] text-white/42">
+                  {index + 1}. {t(step.labelKey)}
+                </div>
+                <div className="mt-0.5 truncate text-[10px] font-black uppercase tracking-[0.1em] text-white">
+                  {step.value ?? (step.valueKey ? t(step.valueKey) : "")}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
+
+const LOOP_TONE_CLASSES: Record<FortressLoopStepTone, string> = {
+  ready: "border-[#f5c451]/20 bg-[#f5c451]/10",
+  waiting: "border-white/10 bg-black/22",
+  attention: "border-orange-200/18 bg-orange-300/10",
+};
 
 export function RaidActionPanel({
   raidReady,

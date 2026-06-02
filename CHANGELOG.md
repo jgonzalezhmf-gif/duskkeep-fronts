@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.56] - 2026-06-02
+
+### Changed
+- Pulida Fortress con un loop visual compacto en el hero que resume guarnicion, mejora y proxima raid sin tocar economia, rewards ni reglas de defensa.
+- Ajustada la lectura responsive del loop para que mobile priorice claridad sobre densidad y no trunque el estado de mejora.
+- Anadida cobertura del helper de estado del loop de Fortress.
+
 ## [0.37.55] - 2026-06-02
 
 ### Changed

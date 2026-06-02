@@ -82,6 +82,10 @@ export default function FortressPage() {
   const selectedBuildingData = FRONTLINE_FORTRESS_BUILDINGS.find((entry) => entry.id === selectedBuilding)!;
   const selectedCost = frontlineFortressUpgradeCost(fortress, selectedBuilding);
   const selectedAffordable = resources.gold >= selectedCost.gold && resources.dust >= (selectedCost.dust ?? 0);
+  const upgradeReady = FRONTLINE_FORTRESS_BUILDINGS.some((building) => {
+    const cost = frontlineFortressUpgradeCost(fortress, building.id);
+    return resources.gold >= cost.gold && resources.dust >= (cost.dust ?? 0);
+  });
   const garrisonFilled = fortress.garrison.filter(Boolean).length;
   const defenseRewards = defenseState && defenseState.status !== "active" ? frontlineFortressRewardsForOutcome(fortress, getFortressDefenseOutcome(defenseState)) : undefined;
   const fortressBattleEntryGarrison = useMemo(
@@ -215,6 +219,7 @@ export default function FortressPage() {
               integrity={fortress.integrity}
               defenseRating={defenseRating}
               garrisonFilled={garrisonFilled}
+              upgradeReady={upgradeReady}
               t={t}
             />
 
