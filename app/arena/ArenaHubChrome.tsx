@@ -3,6 +3,9 @@
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
+import { ScreenBadge } from "@/components/game/screens/ScreenChrome";
+import { cn } from "@/lib/cn";
+import type { ArenaModeIntel, TranslateFn } from "./arenaPageHelpers";
 
 export function ArenaTopChrome({
   resources,
@@ -62,5 +65,48 @@ export function ModeSelectCard({
         </span>
       </span>
     </button>
+  );
+}
+
+export function ModeIntelPanel({ intel, t }: { intel: ArenaModeIntel; t: TranslateFn }) {
+  const resolveValue = (value?: string, valueKey?: string) => value ?? (valueKey ? t(valueKey) : "");
+
+  return (
+    <div
+      className={cn(
+        "mt-3 overflow-hidden rounded-[24px] border p-3",
+        intel.ready
+          ? "border-[#f5c451]/20 bg-[radial-gradient(circle_at_18%_16%,rgba(245,196,81,0.15),transparent_34%),rgba(245,196,81,0.07)]"
+          : "border-white/10 bg-white/[0.04]",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-[17px] border", intel.ready ? "border-[#f5c451]/22 bg-[#f5c451]/10" : "border-white/10 bg-black/18")}>
+            <ModeIcon name={intel.icon} size="md" />
+          </span>
+          <div>
+            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[#f5d498]/72">{t("arenaScreen.modeIntel.eyebrow")}</div>
+            <div className="mt-1 text-sm font-black text-white">{t(intel.statusKey)}</div>
+          </div>
+        </div>
+        <ScreenBadge tone={intel.ready ? "gold" : "neutral"}>{intel.ready ? t("arenaScreen.gate.ready") : t(intel.statusKey)}</ScreenBadge>
+      </div>
+
+      <div className="mt-3 grid gap-2">
+        <ModeIntelLine label={t(intel.primaryLabelKey)} value={resolveValue(intel.primaryValue, intel.primaryValueKey)} active={intel.ready} />
+        <ModeIntelLine label={t(intel.secondaryLabelKey)} value={resolveValue(intel.secondaryValue, intel.secondaryValueKey)} />
+        <ModeIntelLine label={t(intel.tertiaryLabelKey)} value={resolveValue(intel.tertiaryValue, intel.tertiaryValueKey)} />
+      </div>
+    </div>
+  );
+}
+
+function ModeIntelLine({ label, value, active }: { label: string; value: string; active?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-[16px] border border-white/10 bg-black/18 px-3 py-2">
+      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-white/42">{label}</span>
+      <span className={cn("text-[11px] font-black uppercase tracking-[0.12em]", active ? "text-[#f5d498]" : "text-white/72")}>{value}</span>
+    </div>
   );
 }

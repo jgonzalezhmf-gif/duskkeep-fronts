@@ -41,10 +41,10 @@ import {
 import type { FrontlineBattleState } from "@/features/frontline/types";
 import type { Rewards } from "@/lib/types";
 import { ArenaMetric, ArenaRankPlate, GateLine, LadderRankPlate, ResultMetric, RewardChips } from "./ArenaPrimitives";
-import { ArenaTopChrome, ModeSelectCard } from "./ArenaHubChrome";
+import { ArenaTopChrome, ModeIntelPanel, ModeSelectCard } from "./ArenaHubChrome";
 import { ArenaRivalCard } from "./ArenaRivalCard";
 import { LadderQueueCard } from "./LadderQueueCard";
-import { arenaModifierLabel, FRONTLINE_ARENA_RIVALS, rivalText, tx, type ArenaRival } from "./arenaPageHelpers";
+import { arenaModifierLabel, buildArenaModeIntel, FRONTLINE_ARENA_RIVALS, rivalText, tx, type ArenaRival } from "./arenaPageHelpers";
 
 const FrontlineBattle = dynamic(() => import("@/components/game/frontline/FrontlineBattle"), {
   ssr: false,
@@ -139,6 +139,17 @@ export default function ArenaPage() {
       : 100;
   const currentLadderOpponent = useMemo(() => getLadderOpponentForPoints(ladder.points), [ladder.points]);
   const currentLadderOpponentPool = useMemo(() => getLadderOpponentsForPoints(ladder.points), [ladder.points]);
+  const modeIntel = useMemo(
+    () =>
+      buildArenaModeIntel({
+        mode,
+        tickets,
+        loadoutReady,
+        ladderDailyWins: ladder.dailyRewardedWins,
+        ladderKeyProgress: ladder.keyProgress,
+      }),
+    [ladder.dailyRewardedWins, ladder.keyProgress, loadoutReady, mode, tickets],
+  );
   const playerHeroById = useMemo(() => new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)), [playerHeroes]);
   const battleEntryAllyHeroes = useMemo(
     () => frontlineLoadout.squad.map((heroId) => (heroId ? getFrontlineHeroProfileById(heroId, playerHeroById.get(heroId)) : null)),
@@ -469,6 +480,7 @@ export default function ArenaPage() {
                 <GateLine label={t("arenaScreen.gate.cards")} value={`${frontlineLoadout.deck.filter(Boolean).length}/8`} ok={deckReady} />
                 {mode === "trials" ? <GateLine label={t("arenaScreen.gate.ticket")} value={`${tickets}`} ok={tickets > 0} /> : null}
               </div>
+              <ModeIntelPanel intel={modeIntel} t={t} />
               {!loadoutReady ? (
                 <a href="/deck" className="mt-4 block rounded-[20px] border border-[#f5c451]/22 bg-[#f5c451]/12 px-4 py-3 text-center text-[11px] font-black uppercase tracking-[0.16em] text-[#f5d498]">
                   {t("arenaScreen.gate.fixDeck")}

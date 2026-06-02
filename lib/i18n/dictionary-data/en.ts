@@ -1603,6 +1603,13 @@ export const enDictionary = {
         ticket: "Ticket",
         fixDeck: "Fix deck",
       },
+      modeIntel: {
+        eyebrow: "Mode briefing",
+        queueReady: "Queue ready",
+        entry: "Entry",
+        rules: "Rules",
+        payoff: "Payoff",
+      },
       floor: {
         eyebrow: "Arena rites",
         title: "Choose an Arena Trial",

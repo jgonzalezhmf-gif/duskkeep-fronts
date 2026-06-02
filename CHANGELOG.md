@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.55] - 2026-06-02
+
+### Changed
+- Pulida Arena con un informe visual de modo en el gate de entrada, reforzando la diferencia entre Ladder sin ticket y Arena Trials con tickets/mutadores/recompensa especial.
+- Anadida cobertura del helper de intel de modo para mantener Ladder como cola persistente sin coste y bloquear Trials si faltan tickets.
+
 ## [0.37.54] - 2026-06-02
 
 ### Changed

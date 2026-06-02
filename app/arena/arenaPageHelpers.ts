@@ -16,6 +16,31 @@ export type ArenaRival = {
   tone: GameIconTone;
 };
 
+export type ArenaMode = "ladder" | "trials";
+
+export type ArenaModeIntelInput = {
+  mode: ArenaMode;
+  tickets: number;
+  loadoutReady: boolean;
+  ladderDailyWins: number;
+  ladderKeyProgress: number;
+};
+
+export type ArenaModeIntel = {
+  icon: "ladder" | "arena_draft";
+  ready: boolean;
+  statusKey: string;
+  primaryLabelKey: string;
+  primaryValue?: string;
+  primaryValueKey?: string;
+  secondaryLabelKey: string;
+  secondaryValue?: string;
+  secondaryValueKey?: string;
+  tertiaryLabelKey: string;
+  tertiaryValue?: string;
+  tertiaryValueKey?: string;
+};
+
 export const FRONTLINE_ARENA_RIVALS: ArenaRival[] = [
   {
     id: "arena_bonewood",
@@ -66,4 +91,39 @@ export function arenaModifierText(t: TranslateFn, rival: ArenaRival) {
 export function arenaModifierLabel(t: TranslateFn, rival: ArenaRival) {
   const mutator = getArenaTrialMutatorForRival(rival.id);
   return tx(t, mutator?.labelKey ?? `arenaScreen.rivals.${rival.id}.style`, rival.style);
+}
+
+export function buildArenaModeIntel({
+  mode,
+  tickets,
+  loadoutReady,
+  ladderDailyWins,
+  ladderKeyProgress,
+}: ArenaModeIntelInput): ArenaModeIntel {
+  if (mode === "ladder") {
+    return {
+      icon: "ladder",
+      ready: loadoutReady,
+      statusKey: loadoutReady ? "arenaScreen.modeIntel.queueReady" : "arenaScreen.gate.deckNeeded",
+      primaryLabelKey: "arenaScreen.modeIntel.entry",
+      primaryValueKey: "arenaScreen.ladder.noTicketCost",
+      secondaryLabelKey: "arenaScreen.ladder.dailyWins",
+      secondaryValue: `${ladderDailyWins}/5`,
+      tertiaryLabelKey: "arenaScreen.ladder.keyProgress",
+      tertiaryValue: `${ladderKeyProgress}%`,
+    };
+  }
+
+  const hasTicket = tickets > 0;
+  return {
+    icon: "arena_draft",
+    ready: loadoutReady && hasTicket,
+    statusKey: !loadoutReady ? "arenaScreen.gate.deckNeeded" : hasTicket ? "arenaScreen.floor.entryReady" : "arenaScreen.floor.noTickets",
+    primaryLabelKey: "arenaScreen.gate.ticket",
+    primaryValue: String(tickets),
+    secondaryLabelKey: "arenaScreen.modeIntel.rules",
+    secondaryValueKey: "arenaScreen.trials.modeMeta",
+    tertiaryLabelKey: "arenaScreen.modeIntel.payoff",
+    tertiaryValueKey: "arenaScreen.trials.specialReward",
+  };
 }

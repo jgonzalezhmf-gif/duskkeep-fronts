@@ -1585,6 +1585,13 @@ export const esDictionary = {
         ticket: "Ticket",
         fixDeck: "Ajustar mazo",
       },
+      modeIntel: {
+        eyebrow: "Informe de modo",
+        queueReady: "Cola lista",
+        entry: "Entrada",
+        rules: "Reglas",
+        payoff: "Pago",
+      },
       floor: {
         eyebrow: "Ritos de Arena",
         title: "Elige una Prueba de Arena",
