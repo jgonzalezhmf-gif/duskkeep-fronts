@@ -12,7 +12,7 @@ import {
   missionNeedsReset,
 } from "@/lib/missionProgress";
 import { isAdventureFirstClearRewardAvailable } from "@/lib/rewardVisibility";
-import { METRIC_META } from "@/app/missions/missionsPageHelpers";
+import { METRIC_META, buildMissionRouteSummaries } from "@/app/missions/missionsPageHelpers";
 import type { Mission, MissionProgress } from "@/lib/types";
 
 const missions: Mission[] = [
@@ -171,5 +171,62 @@ describe("mission route helpers", () => {
     expect(progress.d_arena_1.progress).toBe(1);
     expect(progress.w_battles_20.progress).toBe(1);
     expect(progress.d_adv_2?.progress ?? 0).toBe(0);
+  });
+
+  it("summarizes open contracts by route and prioritizes ready routes", () => {
+    const resetAt = new Date(2026, 4, 22, 12).toISOString();
+    const summaries = buildMissionRouteSummaries(
+      [
+        {
+          id: "daily-arena",
+          kind: "daily",
+          name: "Arena",
+          description: "Play arena.",
+          goal: 2,
+          metric: "arena_battles",
+          rewards: { gold: 100 },
+        },
+        {
+          id: "daily-claimed",
+          kind: "daily",
+          name: "Claimed",
+          description: "Already done.",
+          goal: 1,
+          metric: "arena_battles",
+          rewards: { gold: 100 },
+        },
+        {
+          id: "weekly-adventure",
+          kind: "weekly",
+          name: "Adventure",
+          description: "Clear nodes.",
+          goal: 4,
+          metric: "adventure_levels_cleared",
+          rewards: { gems: 5 },
+        },
+      ],
+      {
+        "daily-arena": { progress: 2, claimed: false, resetAt },
+        "daily-claimed": { progress: 1, claimed: true, resetAt },
+        "weekly-adventure": { progress: 1, claimed: false, resetAt },
+      },
+    );
+
+    expect(summaries).toMatchObject([
+      {
+        metric: "arena_battles",
+        route: "/arena",
+        active: 1,
+        ready: 1,
+        progress: 1,
+      },
+      {
+        metric: "adventure_levels_cleared",
+        route: "/adventure",
+        active: 1,
+        ready: 0,
+        progress: 0.25,
+      },
+    ]);
   });
 });

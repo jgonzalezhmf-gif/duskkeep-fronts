@@ -227,7 +227,7 @@ Objetivo: mejorar pantallas todavia menos fuertes sin tocar Combat.
 
 Candidatas:
 
-- Missions.
+- Missions: iteracion acotada cerrada en `0.37.54` con mapa visual de rutas en escritorio, prioridad responsive y test de resumen de rutas.
 - Arena.
 - Events.
 - Fortress.
@@ -297,7 +297,8 @@ Aplicacion al estado actual:
 - Transicion compartida de entrada a batalla: cerrada en `0.37.51` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
 - Validacion browser de release candidate: cerrada localmente en `0.37.52`.
 - Supabase remoto: preflight de entorno pasado el 2026-06-02; no ejecutar migraciones remotas, reset ni smokes con email real sin ventana de prueba aprobada.
-- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir una unica pantalla no-combat para una iteracion acotada de pulido.
+- Missions: iteracion no-combat cerrada en `0.37.54`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
+- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir la siguiente pantalla no-combat por prioridad contextual, probablemente Fortress o Arena.
 
 ## Gates Generales Antes de Release Presentable
 

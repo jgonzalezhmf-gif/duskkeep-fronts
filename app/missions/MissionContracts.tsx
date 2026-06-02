@@ -10,6 +10,7 @@ import { createPendingActionKey, isPendingAction } from "@/lib/pendingActions";
 import type { Mission, MissionProgress, Rewards } from "@/lib/types";
 import {
   METRIC_META,
+  buildMissionRouteSummaries,
   freshProgress,
   formatResetLabel,
   metricText,
@@ -24,6 +25,66 @@ export type ClaimFx = {
   rewards: Rewards;
   nonce: number;
 };
+
+export function MissionRouteMap({
+  missions,
+  progress,
+  t,
+}: {
+  missions: Mission[];
+  progress: Record<string, MissionProgress>;
+  t: TranslateFn;
+}) {
+  const summaries = buildMissionRouteSummaries(missions, progress);
+  if (!summaries.length) return null;
+
+  return (
+    <div className="mt-3 hidden gap-2 md:grid md:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+      {summaries.map((summary) => {
+        const ready = summary.ready > 0;
+        return (
+          <Link
+            key={summary.metric}
+            href={summary.route}
+            className={cn(
+              "frontline-motion-action group relative overflow-hidden rounded-[18px] border p-2.5 transition hover:-translate-y-0.5 md:p-3",
+              ready
+                ? "border-[#f5c451]/24 bg-[#f5c451]/10 shadow-[0_16px_34px_rgba(245,196,81,0.08)]"
+                : "border-white/10 bg-white/[0.045] hover:border-white/18 hover:bg-white/[0.065]",
+            )}
+          >
+            <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/10 blur-2xl opacity-0 transition group-hover:opacity-100" />
+            <div className="relative z-[1] flex items-center gap-2.5">
+              <GameIcon kind={summary.icon} tone={summary.tone} size="sm" className="h-10 w-10 rounded-[14px]" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="truncate text-[11px] font-black uppercase tracking-[0.16em] text-white/76">
+                    {metricText(summary.metric, "source", t)}
+                  </div>
+                  <span className={cn("shrink-0 text-[10px] font-black uppercase tracking-[0.12em]", ready ? "text-[#f5d498]" : "text-white/42")}>
+                    {summary.ready}/{summary.active}
+                  </span>
+                </div>
+                <div className="mt-1 text-[11px] font-black uppercase tracking-[0.12em] text-white/42">
+                  {metricText(summary.metric, "short", t)}
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/35">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      ready ? "bg-[linear-gradient(90deg,#f5c451,#fff0bc)]" : "bg-[linear-gradient(90deg,#5dd39e,#8bdfff)]",
+                    )}
+                    style={{ width: `${Math.max(8, summary.progress * 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 export function NextContract({
   mission,

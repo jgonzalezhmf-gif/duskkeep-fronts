@@ -8,6 +8,13 @@ export type MissionMeta = {
   route: string;
 };
 
+export type MissionRouteSummary = MissionMeta & {
+  metric: MissionMetric;
+  active: number;
+  ready: number;
+  progress: number;
+};
+
 export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 export const METRIC_META: Record<MissionMetric, MissionMeta> = {
@@ -65,6 +72,36 @@ export function buildMissionStats(missions: Mission[], progress: Record<string, 
     if (p.progress >= mission.goal) ready += 1;
   }
   return { ready, active };
+}
+
+export function buildMissionRouteSummaries(missions: Mission[], progress: Record<string, MissionProgress>): MissionRouteSummary[] {
+  const summaries = new Map<MissionMetric, MissionRouteSummary & { progressTotal: number }>();
+
+  for (const mission of missions) {
+    const missionProgress = progress[mission.id] ?? freshProgress();
+    if (missionProgress.claimed) continue;
+
+    const meta = METRIC_META[mission.metric] ?? METRIC_META.battles_won;
+    const current = summaries.get(mission.metric) ?? {
+      ...meta,
+      metric: mission.metric,
+      active: 0,
+      ready: 0,
+      progress: 0,
+      progressTotal: 0,
+    };
+
+    const pct = mission.goal > 0 ? Math.min(1, missionProgress.progress / mission.goal) : 0;
+    current.active += 1;
+    current.ready += missionProgress.progress >= mission.goal ? 1 : 0;
+    current.progressTotal += pct;
+    current.progress = current.progressTotal / current.active;
+    summaries.set(mission.metric, current);
+  }
+
+  return [...summaries.values()]
+    .map(({ progressTotal: _progressTotal, ...summary }) => summary)
+    .sort((a, b) => b.ready - a.ready || b.progress - a.progress || b.active - a.active);
 }
 
 export function pickNextMission(missions: Mission[], progress: Record<string, MissionProgress>) {

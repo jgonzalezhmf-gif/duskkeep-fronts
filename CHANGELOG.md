@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.54] - 2026-06-02
+
+### Changed
+- Pulida la pantalla de Missions con un mapa visual de rutas en escritorio que resume contratos abiertos por modo, progreso agregado y rutas directas sin alargar la vista movil.
+- Anadida cobertura para el nuevo resumen de rutas de misiones y su prioridad cuando hay contratos listos para reclamar.
+
 ## [0.37.53] - 2026-06-02
 
 ### Changed

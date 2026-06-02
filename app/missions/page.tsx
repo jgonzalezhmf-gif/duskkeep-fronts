@@ -12,7 +12,7 @@ import { sfx } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { createPendingActionKey } from "@/lib/pendingActions";
 import { useGameStore } from "@/lib/store";
-import { MissionColumn, NextContract, type ClaimFx } from "./MissionContracts";
+import { MissionColumn, MissionRouteMap, NextContract, type ClaimFx } from "./MissionContracts";
 import {
   buildMissionStats,
   getNearestResetLabel,
@@ -107,6 +107,7 @@ export default function MissionsPage() {
                 <LogMetric icon="missions" label={t("missionsScreen.metrics.active")} value={String(stats.active)} tone="emerald" />
                 <LogMetric icon="events" label={t("missionsScreen.metrics.reset")} value={nextReset} tone="sky" />
               </div>
+              <MissionRouteMap missions={allMissions} progress={progress} t={t} />
             </div>
 
             <NextContract mission={nextMission} progress={progress} claim={claim} claimFx={claimFx} pendingClaimKeys={pendingClaimKeys} t={t} />
