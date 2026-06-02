@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.53] - 2026-06-02
+
+### Changed
+- Documentada la evidencia de `check:supabase:remote` contra el entorno remoto configurado, incluyendo el riesgo alpha de rate limit en memoria y sink de eventos en consola.
+- Anadida una guia de rollback/reset seguro para Supabase remoto, evitando resets o migraciones remotas sin ventana de prueba aprobada.
+- Actualizado el estado del plan: la validacion RC local queda cerrada y el siguiente paso depende de demo online real o de elegir una pantalla no-combat para pulido acotado.
+
 ## [0.37.52] - 2026-06-02
 
 ### Changed

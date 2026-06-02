@@ -188,7 +188,7 @@ Validar:
 
 ### 4. Supabase remoto y entorno operativo
 
-Estado: validado manualmente para alpha con cuenta de prueba.
+Estado: validado para alpha con cuenta de prueba y preflight automatizado de entorno remoto.
 
 Objetivo: mantener una instancia remota segura sin activar todavia monetizacion.
 
@@ -211,6 +211,7 @@ Estado operativo:
 
 - Existe `docs/SUPABASE_REMOTE_OPERATIONS.md` como guia de preparacion y validacion remota.
 - Existe `npm.cmd run check:supabase:remote` para comprobar variables publicas, URL remota, anon key, persistencia, proxy autoritativo, rate limit y observabilidad sin imprimir secretos.
+- El 2026-06-02 `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co` con `NEXT_PUBLIC_PERSISTENCE=supabase` y `SERVER_AUTHORITATIVE_API_ENABLED=true`. Riesgo residual informado: rate limit en memoria y sink de eventos en consola, aceptables solo para alpha/single instance.
 - Las pruebas manuales remotas recientes cubrieron login, Adventure, recompensas, Shop, Arena, logout/login e incognito sin perdida aparente de snapshot.
 - El checklist manual queda definido en `docs/QUALITY_AND_RELEASE.md`.
 
@@ -293,8 +294,10 @@ Aplicacion al estado actual:
 - Refactorizacion de store/reglas puras: tanda cerrada en `0.37.31`; no seguir extrayendo helpers por inercia.
 - Pulido no-combat: tanda cerrada tras Team, Arena y Events; no seguir pantalla por pantalla sin una incidencia concreta.
 - Intro por sesion: cerrado en `0.37.48`.
-- Transicion compartida de entrada a batalla: cerrada en `0.37.50` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
-- Siguiente recomendado: ejecutar la validacion browser de release candidate.
+- Transicion compartida de entrada a batalla: cerrada en `0.37.51` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
+- Validacion browser de release candidate: cerrada localmente en `0.37.52`.
+- Supabase remoto: preflight de entorno pasado el 2026-06-02; no ejecutar migraciones remotas, reset ni smokes con email real sin ventana de prueba aprobada.
+- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir una unica pantalla no-combat para una iteracion acotada de pulido.
 
 ## Gates Generales Antes de Release Presentable
 

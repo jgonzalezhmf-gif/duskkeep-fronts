@@ -58,6 +58,12 @@ El comando comprueba:
 
 El comando no imprime secretos. Solo muestra el host de Supabase.
 
+Evidencia reciente:
+
+- 2026-06-02: `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co`.
+- Configuracion detectada: `NEXT_PUBLIC_PERSISTENCE=supabase`, `SERVER_AUTHORITATIVE_API_ENABLED=true`, rate limit `memory` y sink de eventos `console`.
+- El aviso de rate limit en memoria queda aceptado solo para alpha/single instance; no es valido para monetizacion, pagos o ladder publico.
+
 ## Preparar Proyecto Remoto
 
 Pasos recomendados:
@@ -123,6 +129,7 @@ Notas:
 - Tras pulsar el enlace de verificacion del email, la app abre el flujo de definicion de password y sincroniza el snapshot local validado.
 - En remoto puede requerir ajustar politica de confirmacion de email para entorno de prueba.
 - No debe ejecutarse contra produccion publica con emails reales sin una estrategia de limpieza.
+- No ejecutar este smoke con el email sintetico por defecto contra remoto: el script lo bloquea porque necesita una bandeja real para completar el flujo de verificacion.
 
 ## Smoke Local de Snapshot Server-Owned
 
@@ -164,6 +171,20 @@ Para validar el proxy autoritativo contra remoto:
 El smoke usa Supabase Auth y JWT real. No usa service-role.
 
 Si una operacion sensible muestra en consola `stage:"request_validation"`, `status:404`, `code:"not_found"` y `reason` interno de API desactivada, el proceso de Next se arranco sin `SERVER_AUTHORITATIVE_API_ENABLED=true`. En cuentas vinculadas esto no debe caer a progreso local, porque el siguiente snapshot servidor sobrescribiria ese resultado.
+
+## Rollback y Reset Seguros
+
+Para alpha remoto, separar tres casos:
+
+1. **Rollback de app**: desactivar `SERVER_AUTHORITATIVE_API_ENABLED` en el entorno afectado o volver al despliegue anterior. No cambiar cuentas vinculadas a fallback local como "solucion", porque el snapshot servidor volvera a ser la fuente de verdad.
+2. **Rollback de datos**: preferir una migracion correctiva hacia delante. Evitar resetear remoto salvo que el proyecto sea desechable, no tenga usuarios reales y exista una ventana de prueba aprobada.
+3. **Reset de pruebas**: antes de borrar datos, pausar la demo, confirmar que solo hay usuarios de prueba, guardar evidencia minima del fallo y despues repetir migraciones, seed necesario, `check:supabase:remote` y smokes aplicables.
+
+Reglas de seguridad:
+
+- No usar service-role key en el navegador ni en scripts compartidos.
+- No commitear `.env`, `.env.local`, dumps, exports ni logs de reset.
+- Si hay duda sobre ownership/RLS, bloquear la demo online antes de tocar el frontend.
 
 ## Checklist de Seguridad
 
