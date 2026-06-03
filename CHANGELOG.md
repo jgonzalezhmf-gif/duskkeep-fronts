@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.58] - 2026-06-03
+
+### Changed
+- Pulida Events con una banda de operacion recomendada en el hero, mostrando el siguiente evento relevante, estado, motivo y recompensa sin tocar reglas ni economia.
+- Anadida cobertura del helper que decide si Events debe guiar al jugador a completar mazo, jugar una operacion disponible, mirar un desbloqueo o practicar tras limpiar pagos diarios.
+
 ## [0.37.57] - 2026-06-03
 
 ### Changed

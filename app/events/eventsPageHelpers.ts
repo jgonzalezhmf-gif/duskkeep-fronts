@@ -24,6 +24,14 @@ export type FrontlineEventOperation = {
   threat: "common" | "rare" | "epic";
 };
 
+export type EventFocusState = "ready" | "deck" | "locked" | "cleared";
+
+export type EventFocus = {
+  operation: FrontlineEventOperation | null;
+  state: EventFocusState;
+  reasonKey: string;
+};
+
 const EVENT_TONES: Record<string, { tone: GameIconTone; icon: FrontlineEventOperation["icon"] }> = {
   gold_rush: {
     tone: "gold",
@@ -88,4 +96,49 @@ export function eventOperations(t: TranslateFn): FrontlineEventOperation[] {
   }));
 
   return [...normal, ...sieges];
+}
+
+export function buildEventFocus({
+  operations,
+  loadoutReady,
+  level,
+  isDoneToday,
+}: {
+  operations: readonly FrontlineEventOperation[];
+  loadoutReady: boolean;
+  level: number;
+  isDoneToday: (id: string) => boolean;
+}): EventFocus {
+  const firstOperation = operations[0] ?? null;
+  if (!loadoutReady) {
+    return {
+      operation: firstOperation,
+      state: "deck",
+      reasonKey: "eventsScreen.focus.deckReason",
+    };
+  }
+
+  const readyOperation = operations.find((operation) => level >= operation.unlockLevel && !isDoneToday(operation.id));
+  if (readyOperation) {
+    return {
+      operation: readyOperation,
+      state: "ready",
+      reasonKey: "eventsScreen.focus.readyReason",
+    };
+  }
+
+  const lockedOperation = operations.find((operation) => level < operation.unlockLevel);
+  if (lockedOperation) {
+    return {
+      operation: lockedOperation,
+      state: "locked",
+      reasonKey: "eventsScreen.focus.lockedReason",
+    };
+  }
+
+  return {
+    operation: firstOperation,
+    state: "cleared",
+    reasonKey: "eventsScreen.focus.clearedReason",
+  };
 }

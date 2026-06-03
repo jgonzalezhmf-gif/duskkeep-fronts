@@ -31,7 +31,14 @@ import type { Rewards } from "@/lib/types";
 import { EventMetric, ResultMetric, RewardChips } from "./EventsPrimitives";
 import { EventEntryPanel } from "./EventEntryPanel";
 import { EventOperationCard } from "./EventOperationCard";
-import { eventOperations, todayKey, type FrontlineEventOperation, type TranslateFn } from "./eventsPageHelpers";
+import {
+  buildEventFocus,
+  eventOperations,
+  todayKey,
+  type EventFocus,
+  type FrontlineEventOperation,
+  type TranslateFn,
+} from "./eventsPageHelpers";
 
 const FrontlineBattle = dynamic(() => import("@/components/game/frontline/FrontlineBattle"), {
   ssr: false,
@@ -71,6 +78,16 @@ export default function EventsPage() {
   const squadReady = frontlineLoadout.squad.filter(Boolean).length === 3;
   const deckReady = frontlineLoadout.deck.filter(Boolean).length === 8;
   const loadoutReady = squadReady && deckReady;
+  const eventFocus = useMemo(
+    () =>
+      buildEventFocus({
+        operations,
+        loadoutReady,
+        level,
+        isDoneToday: (id) => eventCompletions[id] === today,
+      }),
+    [eventCompletions, level, loadoutReady, operations, today],
+  );
   const playerHeroById = useMemo(() => new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)), [playerHeroes]);
   const battleEntryAllyHeroes = useMemo(
     () => frontlineLoadout.squad.map((heroId) => (heroId ? getFrontlineHeroProfileById(heroId, playerHeroById.get(heroId)) : null)),
@@ -285,6 +302,7 @@ export default function EventsPage() {
                   <EventMetric icon="power" label={t("eventsScreen.metrics.level")} value={level} tone="gold" />
                   <EventMetric icon="deck" label={t("eventsScreen.metrics.deck")} value={loadoutReady ? t("eventsScreen.metrics.ready") : t("eventsScreen.metrics.fix")} tone={loadoutReady ? "sky" : "ember"} />
                 </div>
+                <EventFocusBanner focus={eventFocus} t={t} />
               </div>
             </ScreenPanel>
 
@@ -311,6 +329,30 @@ export default function EventsPage() {
     </ScreenScaffold>
   );
 }
+
+function EventFocusBanner({ focus, t }: { focus: EventFocus; t: TranslateFn }) {
+  if (!focus.operation) return null;
+  const badgeTone = focus.state === "ready" ? "gold" : focus.state === "deck" ? "ember" : focus.state === "locked" ? "neutral" : "emerald";
+  return (
+    <div className="mt-2.5 overflow-hidden rounded-[22px] border border-violet-200/16 bg-black/24 p-2.5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <ModeIcon name={focus.operation.icon} size="md" />
+          <div className="min-w-0">
+            <div className="text-[9px] font-black uppercase tracking-[0.18em] text-violet-100/52">{t("eventsScreen.focus.eyebrow")}</div>
+            <div className="mt-0.5 truncate text-base font-black text-white">{focus.operation.name}</div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ScreenBadge tone={badgeTone}>{t(`eventsScreen.focus.${focus.state}`)}</ScreenBadge>
+          <RewardChips rewards={focus.operation.rewards} compact t={t} />
+        </div>
+      </div>
+      <div className="mt-2 text-[11px] leading-4 text-violet-50/62">{t(focus.reasonKey, { level: focus.operation.unlockLevel })}</div>
+    </div>
+  );
+}
+
 function EventsTopChrome({ resources, t }: { resources: { gold: number; dust: number; gems: number }; t: TranslateFn }) {
   return (
     <>

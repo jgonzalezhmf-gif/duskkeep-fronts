@@ -1508,6 +1508,17 @@ export const enDictionary = {
         ready: "Ready",
         fix: "Fix",
       },
+      focus: {
+        eyebrow: "Recommended operation",
+        ready: "ready",
+        deck: "deck check",
+        locked: "locked",
+        cleared: "cleared",
+        readyReason: "Best live payout not cleared today. Break the core and claim the daily reward.",
+        deckReason: "Finish your event squad and deck first; this operation is waiting once the loadout is legal.",
+        lockedReason: "Next milestone operation unlocks at account level {level}.",
+        clearedReason: "All available daily payouts are claimed. Replays stay open for practice.",
+      },
       entry: {
         eyebrow: "Entry check",
         title: "Squad status",

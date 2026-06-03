@@ -246,7 +246,7 @@ Candidatas:
 - Missions: iteracion acotada cerrada en `0.37.54` con mapa visual de rutas en escritorio, prioridad responsive y test de resumen de rutas.
 - Arena: iteracion acotada cerrada en `0.37.55` con informe visual de modo en el gate de entrada, diferenciando Ladder sin ticket y Trials con tickets/mutadores.
 - Fortress: iteracion acotada cerrada en `0.37.56` con loop visual guarnicion -> mejora -> raid en el hero, responsive mobile legible y helper testeado.
-- Events.
+- Events: iteracion acotada cerrada en `0.37.58` con banda de operacion recomendada, motivo contextual y helper testeado sin tocar reglas ni economia.
 - Team/Roster.
 - Deck.
 - Shop contenido futuro.
@@ -317,7 +317,8 @@ Aplicacion al estado actual:
 - Arena: iteracion no-combat cerrada en `0.37.55`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Fortress: iteracion no-combat cerrada en `0.37.56`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Localizacion MVP: cerrada en `0.37.57`; solo ingles/espanol se exponen en opciones y ambos diccionarios deben mantener la misma estructura.
-- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir la siguiente pantalla no-combat por prioridad contextual, probablemente Events, Team/Roster o Deck.
+- Events: iteracion no-combat cerrada en `0.37.58`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
+- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir la siguiente pantalla no-combat por prioridad contextual, probablemente Team/Roster o Deck.
 
 ## Gates Generales Antes de Release Presentable
 

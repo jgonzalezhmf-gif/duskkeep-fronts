@@ -1508,6 +1508,17 @@ export const esDictionary = {
         ready: "Listo",
         fix: "Ajustar",
       },
+      focus: {
+        eyebrow: "Operación recomendada",
+        ready: "lista",
+        deck: "revisar mazo",
+        locked: "bloqueada",
+        cleared: "cerrada",
+        readyReason: "Mejor pago activo no completado hoy. Rompe el núcleo y reclama la recompensa diaria.",
+        deckReason: "Termina la escuadra y el mazo de eventos primero; esta operación espera cuando el loadout sea válido.",
+        lockedReason: "La siguiente operación clave se desbloquea en nivel de cuenta {level}.",
+        clearedReason: "Todos los pagos diarios disponibles están reclamados. Las repeticiones quedan abiertas para practicar.",
+      },
       entry: {
         eyebrow: "Chequeo de entrada",
         title: "Estado de escuadra",
