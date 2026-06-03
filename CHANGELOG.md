@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.57] - 2026-06-03
+
+### Changed
+- Recortado el alcance de localizacion MVP a ingles y espanol: el menu de opciones solo ofrece idiomas mantenidos y se eliminaron diccionarios no mantenidos.
+- Alineada la estructura de claves entre ingles y espanol, incluyendo traducciones faltantes de Adventure.
+- Actualizada la guia de localizacion y producto para impedir reintroducir locales no mantenidos sin mantenimiento real.
+
 ## [0.37.56] - 2026-06-02
 
 ### Changed

@@ -31,7 +31,7 @@ export const enDictionary = {
       title: "Options",
       subtitle: "Tune language, audio and comfort.",
       language: "Language",
-      languageHint: "UI text updates immediately. Full content migration is progressive.",
+      languageHint: "MVP languages are maintained in English and Spanish.",
       audio: "Audio",
       music: "Music",
       effects: "Effects",

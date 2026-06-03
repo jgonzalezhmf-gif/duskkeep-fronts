@@ -44,6 +44,6 @@ Tone should be direct and compact. Use visual symbols, characters, rewards and s
 
 ## Accessibility & Inclusion
 
-Duskkeep Fronts should support readable contrast on dark backgrounds, mobile touch targets, reduced motion, visual effect reduction, text scaling and multilingual UI. The current i18n baseline supports English, Spanish, Simplified Chinese, Japanese, Korean, Brazilian Portuguese, French and German with English fallback.
+Duskkeep Fronts should support readable contrast on dark backgrounds, mobile touch targets, reduced motion, visual effect reduction, text scaling and multilingual UI. For the MVP, the maintained i18n baseline is English and Spanish only, with English fallback. Additional locales should not be exposed until they can be maintained to the same quality bar.
 
 Avoid relying only on color for critical state. Pair color with iconography, labels, shape, glow or placement. Keep player-facing language compact and avoid hiding essential actions below long scroll sections.

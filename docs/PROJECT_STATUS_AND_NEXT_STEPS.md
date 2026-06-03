@@ -95,6 +95,22 @@ No seguir salvo:
 - Documento en ingles pendiente de traduccion.
 - Documento obsoleto o contradictorio con el codigo.
 
+### Localizacion MVP
+
+Estado: cerrado en `0.37.57` para alcance MVP.
+
+Evidencia:
+
+- `lib/i18n/locales.ts` expone solo `en` y `es`.
+- `lib/i18n/dictionaries.ts` carga solo diccionarios mantenidos.
+- `tests/i18nMvpLocales.test.ts` bloquea reintroducir locales no mantenidos y exige paridad estructural entre ingles y espanol.
+
+No seguir salvo:
+
+- Nueva clave visible sin traduccion EN/ES.
+- QA de copy por pantalla detecta texto malo, truncado o sin traducir.
+- Decision explicita de reabrir soporte de un nuevo idioma con mantenimiento real.
+
 ### Pulido no-combat reciente
 
 Estado: tanda cerrada para alpha presentable.
@@ -300,6 +316,7 @@ Aplicacion al estado actual:
 - Missions: iteracion no-combat cerrada en `0.37.54`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Arena: iteracion no-combat cerrada en `0.37.55`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Fortress: iteracion no-combat cerrada en `0.37.56`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
+- Localizacion MVP: cerrada en `0.37.57`; solo ingles/espanol se exponen en opciones y ambos diccionarios deben mantener la misma estructura.
 - Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir la siguiente pantalla no-combat por prioridad contextual, probablemente Events, Team/Roster o Deck.
 
 ## Gates Generales Antes de Release Presentable

@@ -17,15 +17,11 @@ Use the lightweight local i18n system:
 - Language preference: `useGameStore((s) => s.language)`.
 - Options UI: `components/game/options/GameOptionsButton.tsx`.
 
-Supported initial locales:
+Supported MVP locales:
 - `en`
 - `es`
-- `zh-CN`
-- `ja`
-- `ko`
-- `pt-BR`
-- `fr`
-- `de`
+
+Do not expose additional locales in options or dictionaries until they are actively maintained to the same quality bar as English and Spanish.
 
 ## Rules
 

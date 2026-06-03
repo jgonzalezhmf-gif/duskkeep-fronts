@@ -34,7 +34,6 @@ export default function GameOptionsButton({ className }: { className?: string })
   const [accountSyncBusy, setAccountSyncBusy] = useState(false);
   const [accountSignOutBusy, setAccountSignOutBusy] = useState(false);
   const [accountSyncNotice, setAccountSyncNotice] = useState<string | null>(null);
-  const language = useGameStore((state) => state.language);
   const setLanguage = useGameStore((state) => state.setLanguage);
   const muted = useGameStore((state) => state.audioMuted);
   const musicVolume = useGameStore((state) => state.musicVolume);
@@ -110,7 +109,7 @@ export default function GameOptionsButton({ className }: { className?: string })
                 <OptionPanel title={t("options.language")} hint={t("options.languageHint")}>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {SUPPORTED_LOCALES.map((item) => {
-                      const active = item.code === language;
+                      const active = item.code === locale;
                       return (
                         <button
                           key={item.code}
