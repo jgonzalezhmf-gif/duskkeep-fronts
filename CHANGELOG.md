@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.61] - 2026-06-04
+
+### Changed
+- Pulida Roster con un salon de heroes mas visual: sello de compania, resumen de tropas, sigilos por rol y banco Frontline con standees destacados.
+- Reducido el texto visible del hero de Roster para que la pantalla se lea como gestion de compania y no como panel informativo.
+- Anadida cobertura del helper de resumen del roster para proteger owned/locked/frontline-ready y cobertura por roles.
+
 ## [0.37.60] - 2026-06-04
 
 ### Changed

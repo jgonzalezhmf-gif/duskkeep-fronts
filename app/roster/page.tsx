@@ -15,7 +15,8 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import type { Rarity, Role } from "@/lib/types";
-import { Chip, FilterRow, HeroMetric, RosterTag } from "./RosterPrimitives";
+import { buildRosterOverview } from "./rosterPageHelpers";
+import { Chip, CompanySeal, FilterRow, HeroMetric, RoleSigil, RosterTag } from "./RosterPrimitives";
 
 type RarityFilter = "all" | Rarity;
 type RoleFilter = "all" | Role;
@@ -60,8 +61,15 @@ export default function RosterPage() {
   const [owned, setOwned] = useState<OwnedFilter>("all");
 
   const playerByHero = useMemo(() => new Map(heroes.map((hero) => [hero.heroId, hero] as const)), [heroes]);
-  const ownedCount = heroes.filter((hero) => hero.stars > 0).length;
-  const frontlineReadyCount = HEROES.filter((hero) => isFrontlineReadyHero(hero.id)).length;
+  const rosterOverview = useMemo(
+    () =>
+      buildRosterOverview({
+        heroes: HEROES,
+        playerByHero,
+        isFrontlineReady: isFrontlineReadyHero,
+      }),
+    [playerByHero],
+  );
 
   const filtered = useMemo(() => {
     return HEROES.filter((hero) => {
@@ -82,6 +90,7 @@ export default function RosterPage() {
         .slice(0, 6),
     [playerByHero],
   );
+  const featuredBench = featured.slice(0, 4);
 
   useEffect(() => {
     setClientReady(true);
@@ -120,35 +129,62 @@ export default function RosterPage() {
               <h1 className="mt-4 max-w-[52rem] text-[2.25rem] font-black leading-[0.92] tracking-[-0.045em] text-white md:text-[4rem]">
                 {t("rosterScreen.title")}
               </h1>
-              <p className="mt-4 max-w-[44rem] text-[13px] leading-7 text-white/66 md:text-[15px]">
-                {t("rosterScreen.copy")}
-              </p>
               <div className="mt-5 grid gap-2 sm:grid-cols-3">
-                <HeroMetric icon="heroes" label={t("rosterScreen.metrics.owned")} value={`${ownedCount}/${HEROES.length}`} />
-                <HeroMetric icon="battle" label={t("rosterScreen.metrics.frontlineReady")} value={`${frontlineReadyCount}`} tone="sky" />
-                <HeroMetric progressionIcon="tier_up" label={t("rosterScreen.metrics.futureTiers")} value={t("rosterScreen.metrics.staged")} tone="violet" />
+                <HeroMetric icon="heroes" label={t("rosterScreen.metrics.owned")} value={`${rosterOverview.ownedCount}/${rosterOverview.total}`} />
+                <HeroMetric icon="battle" label={t("rosterScreen.metrics.frontlineReady")} value={`${rosterOverview.frontlineOwnedCount}/${rosterOverview.frontlineReadyCount}`} tone="sky" />
+                <HeroMetric progressionIcon="tier_up" label={t("rosterScreen.metrics.locked")} value={`${rosterOverview.lockedCount}`} tone="violet" />
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {rosterOverview.roles.map((entry) => (
+                  <RoleSigil
+                    key={entry.role}
+                    role={entry.role}
+                    label={t(`rosterScreen.roles.${entry.role}`)}
+                    owned={entry.owned}
+                    total={entry.total}
+                  />
+                ))}
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-2">
-              {featured.slice(0, 4).map(({ hero, playerHero }) => (
-                <button
-                  key={`featured-${hero.id}`}
-                  type="button"
-                  onClick={() => {
-                    sfx.tap();
-                    setSelected(hero.id);
-                  }}
-                  className="frontline-motion-action text-left transition"
-                >
-                  <FrontlineHeroStandee
-                    hero={getFrontlineHeroProfile(hero, playerHero)}
-                    compact
-                    selected={Boolean(playerHero?.stars)}
-                    label={playerHero?.stars ? heroProgressLabel({ owned: true, level: playerHero.level, stars: playerHero.stars, t }) : t("rosterScreen.labels.lockedTier")}
-                  />
-                </button>
-              ))}
+            <div className="grid gap-3">
+              <CompanySeal
+                eyebrow={t("rosterScreen.company.eyebrow")}
+                title={t("rosterScreen.company.title")}
+                value={t("rosterScreen.company.value", {
+                  owned: rosterOverview.frontlineOwnedCount,
+                  total: rosterOverview.frontlineReadyCount,
+                })}
+                ready={rosterOverview.frontlineOwnedCount >= 3}
+              />
+              <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-3">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
+                    {t("rosterScreen.company.bench")}
+                  </div>
+                  <RosterTag tone="gold">{`${featuredBench.length}/${rosterOverview.frontlineReadyCount}`}</RosterTag>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-2">
+                  {featuredBench.map(({ hero, playerHero }) => (
+                    <button
+                      key={`featured-${hero.id}`}
+                      type="button"
+                      onClick={() => {
+                        sfx.tap();
+                        setSelected(hero.id);
+                      }}
+                      className="frontline-motion-action text-left transition"
+                    >
+                      <FrontlineHeroStandee
+                        hero={getFrontlineHeroProfile(hero, playerHero)}
+                        compact
+                        selected={Boolean(playerHero?.stars)}
+                        label={playerHero?.stars ? heroProgressLabel({ owned: true, level: playerHero.level, stars: playerHero.stars, t }) : t("rosterScreen.labels.lockedTier")}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>

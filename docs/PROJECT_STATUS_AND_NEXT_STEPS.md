@@ -250,7 +250,8 @@ Candidatas:
 - Fortress: iteracion acotada cerrada en `0.37.56` con loop visual guarnicion -> mejora -> raid en el hero, responsive mobile legible y helper testeado.
 - Events: iteracion acotada cerrada en `0.37.58` con banda de operacion recomendada, motivo contextual y helper testeado sin tocar reglas ni economia.
 - Deck: iteracion acotada cerrada en `0.37.60` con mesa de guerra visual, readiness de lider/escuadra/cartas y ranuras 8/8 del paquete para reducir texto sin cambiar reglas.
-- Team/Roster.
+- Roster: iteracion acotada cerrada en `0.37.61` con salon de heroes visual, sigilos por rol, sello de compania y banco Frontline sin tocar reglas.
+- Team/Squad si se decide separar la configuracion de escuadra del Deck actual.
 - Shop contenido futuro.
 
 Regla:
@@ -320,7 +321,9 @@ Aplicacion al estado actual:
 - Fortress: iteracion no-combat cerrada en `0.37.56`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Localizacion MVP: cerrada en `0.37.57`; solo ingles/espanol se exponen en opciones y ambos diccionarios deben mantener la misma estructura.
 - Events: iteracion no-combat cerrada en `0.37.58`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
-- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir la siguiente pantalla no-combat por prioridad contextual, probablemente Team/Roster o Deck.
+- Deck: iteracion no-combat cerrada en `0.37.60`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
+- Roster: iteracion no-combat cerrada en `0.37.61`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
+- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir la siguiente pantalla no-combat por prioridad contextual, probablemente Shop o Team/Squad.
 
 ## Gates Generales Antes de Release Presentable
 

@@ -1336,12 +1336,19 @@ export const enDictionary = {
     },
     rosterScreen: {
       heroHall: "Hero Hall",
-      title: "Build a roster that feels like a squad, not a spreadsheet.",
+      title: "Muster the company",
       copy: "Heroes now share the same standee language as Frontline and Deck. Tiers are staged visually for future evolution without adding more rules yet.",
+      company: {
+        eyebrow: "Frontline company",
+        title: "Combat roster",
+        value: "{owned}/{total} armed",
+        bench: "Frontline bench",
+      },
       metrics: {
         owned: "Owned",
-        frontlineReady: "Frontline ready",
+        frontlineReady: "Frontline",
         futureTiers: "Future tiers",
+        locked: "Locked",
         staged: "Staged",
       },
       filters: {

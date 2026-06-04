@@ -1336,12 +1336,19 @@ export const esDictionary = {
     },
     rosterScreen: {
       heroHall: "Salon de heroes",
-      title: "Construye un roster que parezca una escuadra, no una hoja de calculo.",
+      title: "Reune la compania",
       copy: "Los heroes comparten el lenguaje de standees de Frontline y Deck. Los tiers quedan preparados visualmente para futura evolucion sin anadir reglas todavia.",
+      company: {
+        eyebrow: "Compania Frontline",
+        title: "Roster de combate",
+        value: "{owned}/{total} armados",
+        bench: "Banco Frontline",
+      },
       metrics: {
         owned: "En propiedad",
-        frontlineReady: "Listos Frontline",
+        frontlineReady: "Frontline",
         futureTiers: "Tiers futuros",
+        locked: "Bloqueados",
         staged: "Preparado",
       },
       filters: {
