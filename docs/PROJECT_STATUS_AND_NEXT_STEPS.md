@@ -19,11 +19,16 @@ Reglas de alcance:
 
 Siguiente foco:
 
-1. Crear/importar proyecto production en Vercel.
+1. Crear/importar/enlazar proyecto production en Vercel.
 2. Configurar variables production seguras.
 3. Ejecutar deploy production.
 4. Ejecutar smoke post-deploy.
 5. Documentar evidencia, riesgos residuales y recorrido de demo.
+
+Estado operativo `0.37.67`:
+
+- Gates locales pre-deploy pasados tras los fixes de progresion y Roster: `check`, `test`, `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build`, `check:performance` y `check:supabase:remote`.
+- `.vercel/` no existe y la cuenta Vercel conectada aun no muestra un proyecto Duskkeep; el deploy production queda bloqueado hasta crear/importar/enlazar el proyecto y configurar variables.
 
 ## Bloques Estables Para Alpha
 

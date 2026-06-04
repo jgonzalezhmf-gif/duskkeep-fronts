@@ -20,10 +20,11 @@ No incluye:
 
 ## Estado Actual
 
-- RC local cerrada en `0.37.63`.
+- RC local cerrada en `0.37.63`; gates pre-deploy repetidos en `0.37.67` tras los fixes de progresion y Roster.
 - `npm.cmd run check:supabase:remote` pasa contra el proyecto remoto configurado.
 - Desde `0.37.65`, aplicar la migracion `20260604211500_normalize_account_progress.sql` antes del smoke online para reparar XP/nivel acumulado y mantener el snapshot como fuente de verdad.
 - No hay proyecto Vercel de Duskkeep enlazado en el repo (`.vercel/` no existe y esta ignorado por Git).
+- La cuenta Vercel conectada aun no muestra un proyecto Duskkeep; solo debe continuarse con deploy cuando el proyecto production exista y sus variables esten configuradas.
 - Vercel no debe desplegarse hasta configurar variables production; un deploy sin Supabase seria una demo online incompleta.
 
 ## Variables Production
@@ -78,7 +79,7 @@ Antes de desplegar:
 
 ```powershell
 npm.cmd run check
-npm.cmd test
+npm.cmd run test
 npm.cmd run build
 $env:NODE_OPTIONS="--use-system-ca"; npm.cmd run audit:high
 npm.cmd run audit:assets
@@ -87,6 +88,22 @@ npm.cmd run audit:build
 npm.cmd run check:performance
 npm.cmd run check:supabase:remote
 ```
+
+Evidencia `0.37.67` del 2026-06-04:
+
+- `npm.cmd run check` paso: ESLint, `tsc --noEmit` y `check:store-boundaries`.
+- `npm.cmd run test` paso: 98 archivos, 659 tests.
+- `npm.cmd run build` paso con Next.js 16.2.6.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run audit:high` paso: 0 vulnerabilidades high o superiores.
+- `npm.cmd run audit:assets` paso: 292 assets publicos, 41.68 MB.
+- `npm.cmd run audit:asset-refs` paso: 0 candidatos no referenciados.
+- `npm.cmd run audit:build` paso: `.next/static` 3.12 MB, `.next/server/app` 0.88 MB.
+- `npm.cmd run check:performance` paso todos los presupuestos.
+- `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co`.
+
+Bloqueante actual:
+
+- Crear/importar/enlazar el proyecto Duskkeep en Vercel y configurar variables production antes de ejecutar `vercel build --prod` / `vercel deploy --prebuilt --prod`.
 
 ## Post-Deploy Smoke
 

@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.67] - 2026-06-04
+
+### Changed
+- Registrada evidencia pre-deploy actualizada tras los fixes de progresion y Roster: checks, tests, build, auditorias, presupuesto de rendimiento y preflight Supabase remoto en verde.
+- Documentado el bloqueante actual de production: falta crear/importar/enlazar el proyecto Duskkeep en Vercel y configurar variables production antes del deploy.
+- Corregido el comando de test del runbook de despliegue a `npm.cmd run test`.
+
 ## [0.37.66] - 2026-06-04
 
 ### Fixed
