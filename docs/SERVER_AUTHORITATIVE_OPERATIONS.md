@@ -60,7 +60,7 @@ Tablas y funciones:
 
 - `server_reward_definitions`: catalogo interno de recompensas reutilizables. No tiene policies de lectura/escritura para cliente.
 - `jsonb_reward_payload_is_valid`: valida el shape permitido de rewards server-side.
-- `grant_reward_bundle`: aplica un payload validado a `player_resources`, `profiles`, `player_heroes`, `player_frontline_cards` y `resource_ledger`.
+- `grant_reward_bundle`: aplica un payload validado a `player_resources`, `profiles`, `player_heroes`, `player_frontline_cards` y `resource_ledger`. La XP de cuenta se normaliza siempre en servidor como `account_level` + XP sobrante antes de devolver el snapshot.
 - `grant_reward_definition`: resuelve un `reward_id` del catalogo y llama a `grant_reward_bundle`.
 - `server_mission_definitions`: define ciclo, metrica, target y `reward_id` de misiones server-side.
 - `server_adventure_node_rewards`: define nodos Adventure no-combate reclamables, prerequisitos y `reward_id`.

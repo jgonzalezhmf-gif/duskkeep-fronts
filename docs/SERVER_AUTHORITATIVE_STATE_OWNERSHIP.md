@@ -31,6 +31,7 @@ El cliente puede mantener copias temporales para renderizar rapido, pero deben p
 - Estado de panels, seleccion actual, pending flags y feedback.
 
 Si una accion sensible termina correctamente y puede tocar varios dominios, refrescar snapshot servidor.
+El cliente no debe proyectar como verdad cambios de nivel, XP, heroes o cartas tras rewards autoritativos; puede mostrar feedback solo cuando el snapshot servidor confirma el nuevo estado.
 
 ### Client-only
 

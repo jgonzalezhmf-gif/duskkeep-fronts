@@ -22,6 +22,7 @@ No incluye:
 
 - RC local cerrada en `0.37.63`.
 - `npm.cmd run check:supabase:remote` pasa contra el proyecto remoto configurado.
+- Desde `0.37.65`, aplicar la migracion `20260604211500_normalize_account_progress.sql` antes del smoke online para reparar XP/nivel acumulado y mantener el snapshot como fuente de verdad.
 - No hay proyecto Vercel de Duskkeep enlazado en el repo (`.vercel/` no existe y esta ignorado por Git).
 - Vercel no debe desplegarse hasta configurar variables production; un deploy sin Supabase seria una demo online incompleta.
 

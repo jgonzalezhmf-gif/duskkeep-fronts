@@ -37,6 +37,7 @@ Evidencia:
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`
 - Smokes Supabase y tests server-authoritative.
+- `0.37.65` corrige la normalizacion server-side de XP/nivel de cuenta y evita que el cliente anuncie subidas no confirmadas por snapshot.
 
 No seguir salvo:
 

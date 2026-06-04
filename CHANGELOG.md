@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.65] - 2026-06-04
+
+### Fixed
+- Corregida la progresion de cuenta autoritativa para que Supabase normalice `account_xp` en `account_level` + XP sobrante al conceder recompensas, evitando que el cliente vuelva a anunciar el mismo nivel.
+- El cliente ya no proyecta progresion sensible de cuenta/heroes/cartas en rewards autoritativos: refresca snapshot servidor y solo muestra el level-up cuando el servidor confirma subida de nivel.
+
 ## [0.37.64] - 2026-06-04
 
 ### Changed

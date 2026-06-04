@@ -1104,7 +1104,7 @@ export const useGameStore = create<GameState & GameActions>()(
 
         return { ok: true, authoritative: true };
       },
-      loadServerSnapshotOnlineFirst: async () => {
+      loadServerSnapshotOnlineFirst: async (options) => {
         const result = await loadServerPlayerSnapshot();
         if (!result.ok) {
           if (
@@ -1119,7 +1119,7 @@ export const useGameStore = create<GameState & GameActions>()(
           return { ok: false, reason: result.reason, authoritative: result.reason !== "unconfigured" };
         }
 
-        set((state) => createServerPlayerSnapshotPatch(state, result.result));
+        set((state) => createServerPlayerSnapshotPatch(state, result.result, options));
         return { ok: true, authoritative: true };
       },
       setOnboardingStep: (step) =>

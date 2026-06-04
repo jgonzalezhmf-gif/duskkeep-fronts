@@ -847,6 +847,109 @@ describe("store authoritative fallback policy", () => {
     expect(useGameStore.getState().arenaLosses).toBe(0);
   });
 
+  it("announces an authoritative account level-up once after the server snapshot confirms it", async () => {
+    useGameStore.setState({
+      accountLinkMode: "linked",
+      account: { ...useGameStore.getState().account, level: 1, xp: 90 },
+      resources: { gold: 1, dust: 1, gems: 1, arenaTickets: 99, adventureKeys: 0 },
+    });
+
+    mockedArenaResult
+      .mockResolvedValueOnce({
+        ok: true,
+        mode: "authoritative",
+        opponentId: "arena_bonewood",
+        winner: "ally",
+        rewards: { gold: 120, gems: 3, accountXp: 10 },
+        resources: { gold: 620, dust: 50, gems: 53, arenaTickets: 4, adventureKeys: 0 },
+        arenaWins: 1,
+        arenaLosses: 0,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        mode: "authoritative",
+        opponentId: "arena_bonewood",
+        winner: "ally",
+        rewards: { gold: 120, gems: 3, accountXp: 5 },
+        resources: { gold: 740, dust: 50, gems: 56, arenaTickets: 3, adventureKeys: 0 },
+        arenaWins: 2,
+        arenaLosses: 0,
+      });
+    vi.mocked(loadServerPlayerSnapshot)
+      .mockResolvedValueOnce({
+        ok: true,
+        authoritative: true,
+        result: {
+          profileId: "profile-1",
+          snapshot: {
+            account: { name: "Commander", level: 2, xp: 0 },
+            resources: { gold: 620, dust: 50, gems: 53, arenaTickets: 4, adventureKeys: 0 },
+            heroes: [],
+            frontlineCardUnlocks: {},
+            frontlineCardLevels: {},
+            frontlineLoadout: null,
+            frontlineFortress: null,
+            adventureProgress: {},
+            adventureMapClaims: {},
+            missionsProgress: {},
+            dailyLoginClaims: {},
+            shopPurchases: [],
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        authoritative: true,
+        result: {
+          profileId: "profile-1",
+          snapshot: {
+            account: { name: "Commander", level: 2, xp: 5 },
+            resources: { gold: 740, dust: 50, gems: 56, arenaTickets: 3, adventureKeys: 0 },
+            heroes: [],
+            frontlineCardUnlocks: {},
+            frontlineCardLevels: {},
+            frontlineLoadout: null,
+            frontlineFortress: null,
+            adventureProgress: {},
+            adventureMapClaims: {},
+            missionsProgress: {},
+            dailyLoginClaims: {},
+            shopPurchases: [],
+          },
+        },
+      });
+
+    await useGameStore.getState().recordArenaResultOnlineFirst({
+      opponentId: "arena_bonewood",
+      battleSeed: 123,
+      winner: "ally",
+      turns: 6,
+      battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      rewards: { gold: 9999 },
+      source: "Arena",
+      ticketAlreadySpent: false,
+    });
+
+    expect(useGameStore.getState().account).toMatchObject({ level: 2, xp: 0 });
+    expect(useGameStore.getState().pendingUnlockLevel).toBe(2);
+
+    useGameStore.getState().ackPendingUnlock();
+
+    await useGameStore.getState().recordArenaResultOnlineFirst({
+      opponentId: "arena_bonewood",
+      battleSeed: 456,
+      winner: "ally",
+      turns: 6,
+      battleSummary: { allyCoreHp: 12, enemyCoreHp: 0 },
+      rewards: { gold: 9999 },
+      source: "Arena",
+      ticketAlreadySpent: false,
+    });
+
+    expect(useGameStore.getState().account).toMatchObject({ level: 2, xp: 5 });
+    expect(useGameStore.getState().pendingUnlockLevel).toBeNull();
+  });
+
   it("applies authoritative Event results without trusting local rewards", async () => {
     useGameStore.setState({
       accountLinkMode: "linked",

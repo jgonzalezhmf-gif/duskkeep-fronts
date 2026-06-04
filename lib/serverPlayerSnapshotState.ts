@@ -8,10 +8,15 @@ import { localDayKey } from "@/lib/rewardVisibility";
 import type { GameState } from "@/lib/storeTypes";
 import type { FrontlineLoadout, MissionProgress, PlayerHero, Resources, Rewards } from "@/lib/types";
 
+export type ServerPlayerSnapshotPatchOptions = {
+  announceAccountLevelUp?: boolean;
+};
+
 type ServerSnapshotPatch = Pick<GameState, "account" | "resources"> &
   Partial<
     Pick<
       GameState,
+      | "pendingUnlockLevel"
       | "heroes"
       | "frontlineCardUnlocks"
       | "frontlineCardLevels"
@@ -32,7 +37,11 @@ type ServerSnapshotPatch = Pick<GameState, "account" | "resources"> &
     >
   >;
 
-export function createServerPlayerSnapshotPatch(state: GameState, serverSnapshot: ServerPlayerSnapshot): ServerSnapshotPatch {
+export function createServerPlayerSnapshotPatch(
+  state: GameState,
+  serverSnapshot: ServerPlayerSnapshot,
+  options: ServerPlayerSnapshotPatchOptions = {},
+): ServerSnapshotPatch {
   const snapshot = serverSnapshot.snapshot;
   const heroes = normalizeHeroes(snapshot.heroes);
   const frontlineLoadout = normalizeFrontlineLoadout(snapshot.frontlineLoadout);
@@ -40,16 +49,20 @@ export function createServerPlayerSnapshotPatch(state: GameState, serverSnapshot
   const adventureMapClaims = normalizeAdventureMapClaims(snapshot.adventureMapClaims);
   const shopPurchases = normalizeShopPurchases(snapshot.shopPurchases);
   const battleStats = snapshot.battleStats ?? { battlesWon: 0, arenaWins: 0, arenaLosses: 0 };
+  const nextAccount = {
+    ...state.account,
+    name: snapshot.account.name,
+    level: snapshot.account.level,
+    xp: snapshot.account.xp,
+    createdAt: snapshot.account.createdAt ?? state.account.createdAt,
+  };
 
   return {
-    account: {
-      ...state.account,
-      name: snapshot.account.name,
-      level: snapshot.account.level,
-      xp: snapshot.account.xp,
-      createdAt: snapshot.account.createdAt ?? state.account.createdAt,
-    },
+    account: nextAccount,
     resources: normalizeResources(snapshot.resources),
+    ...(options.announceAccountLevelUp && nextAccount.level > state.account.level
+      ? { pendingUnlockLevel: Math.max(state.pendingUnlockLevel ?? 0, nextAccount.level) }
+      : {}),
     ...(heroes.length > 0 ? { heroes } : {}),
     ...(Object.keys(snapshot.frontlineCardUnlocks).length > 0 ? { frontlineCardUnlocks: snapshot.frontlineCardUnlocks } : {}),
     ...(Object.keys(snapshot.frontlineCardLevels).length > 0 ? { frontlineCardLevels: snapshot.frontlineCardLevels } : {}),

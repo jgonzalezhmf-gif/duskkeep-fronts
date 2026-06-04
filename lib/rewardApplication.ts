@@ -51,12 +51,14 @@ export function applyRewardsToGameState(state: RewardApplicationState, rewards: 
 }
 
 export function applyAuthoritativeRewardsToGameState(
-  state: RewardApplicationState,
-  rewards: Rewards,
+  _state: RewardApplicationState,
+  _rewards: Rewards,
   resources: Resources,
 ): RewardApplicationPatch {
+  // Authoritative rewards may touch account XP/level, heroes, shards and cards.
+  // Those domains are server-owned online, so the client only applies the
+  // resources returned by the RPC and waits for get_player_snapshot for the rest.
   return {
-    ...applyRewardsToGameState(state, rewards),
     resources,
   };
 }

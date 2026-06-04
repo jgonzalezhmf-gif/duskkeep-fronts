@@ -43,6 +43,79 @@ describe("server player snapshot state patch", () => {
       xp: 900,
     });
     expect(patch.resources).toEqual({ gold: 900, dust: 120, gems: 60, arenaTickets: 3, adventureKeys: 2 });
+    expect(patch).not.toHaveProperty("pendingUnlockLevel");
+  });
+
+  it("announces account level-ups only when an authoritative mutation refresh confirms the level increase", () => {
+    const state = {
+      ...currentState(),
+      account: { ...currentState().account, level: 1, xp: 90 },
+    };
+
+    const patch = createServerPlayerSnapshotPatch(
+      state,
+      {
+        profileId: "profile-1",
+        snapshot: {
+          account: { name: "Commander", level: 2, xp: 5 },
+          resources: { gold: 500, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+          heroes: [],
+          frontlineCardUnlocks: {},
+          frontlineCardLevels: {},
+          frontlineLoadout: null,
+          frontlineFortress: null,
+          adventureProgress: {},
+          adventureMapClaims: {},
+          missionsProgress: {},
+          dailyLoginClaims: {},
+          shopPurchases: [],
+          battleStats: { battlesWon: 0, arenaWins: 0, arenaLosses: 0 },
+          eventsPlayed: {},
+          eventCompletions: {},
+        },
+      },
+      { announceAccountLevelUp: true },
+    );
+
+    expect(patch.account.level).toBe(2);
+    expect(patch.account.xp).toBe(5);
+    expect(patch.pendingUnlockLevel).toBe(2);
+  });
+
+  it("does not re-announce the same account level from an authoritative snapshot", () => {
+    const state = {
+      ...currentState(),
+      account: { ...currentState().account, level: 2, xp: 5 },
+      pendingUnlockLevel: null,
+    };
+
+    const patch = createServerPlayerSnapshotPatch(
+      state,
+      {
+        profileId: "profile-1",
+        snapshot: {
+          account: { name: "Commander", level: 2, xp: 20 },
+          resources: { gold: 500, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+          heroes: [],
+          frontlineCardUnlocks: {},
+          frontlineCardLevels: {},
+          frontlineLoadout: null,
+          frontlineFortress: null,
+          adventureProgress: {},
+          adventureMapClaims: {},
+          missionsProgress: {},
+          dailyLoginClaims: {},
+          shopPurchases: [],
+          battleStats: { battlesWon: 0, arenaWins: 0, arenaLosses: 0 },
+          eventsPlayed: {},
+          eventCompletions: {},
+        },
+      },
+      { announceAccountLevelUp: true },
+    );
+
+    expect(patch.account.level).toBe(2);
+    expect(patch).not.toHaveProperty("pendingUnlockLevel");
   });
 
   it("does not wipe starter heroes or loadout when the server has not provisioned those rows yet", () => {

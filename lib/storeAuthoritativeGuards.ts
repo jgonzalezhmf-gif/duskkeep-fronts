@@ -43,5 +43,5 @@ export function shouldRefreshServerSnapshotAfterMutation(get: StoreGetState) {
 
 export async function refreshServerSnapshotAfterAuthoritativeMutation(get: StoreGetState) {
   if (!shouldRefreshServerSnapshotAfterMutation(get)) return;
-  await get().loadServerSnapshotOnlineFirst();
+  await get().loadServerSnapshotOnlineFirst({ announceAccountLevelUp: true });
 }

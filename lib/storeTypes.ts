@@ -24,6 +24,7 @@ export type NotificationKind = "success" | "error" | "info";
 export type Notification = { id: string; kind: NotificationKind; message: string };
 export type TextScale = "normal" | "large";
 export type AccountLinkMode = "undecided" | "guest" | "linked";
+export type LoadServerSnapshotOptions = { announceAccountLevelUp?: boolean };
 export type AdventureBattleWinner = "ally" | "enemy" | "draw";
 export type AdventureBattleResultClaim = {
   rewards: Rewards;
@@ -189,7 +190,7 @@ export type GameActions = {
   setVisualEffects: (enabled: boolean) => void;
   setTextScale: (scale: TextScale) => void;
   syncLocalSnapshotOnlineFirst: () => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
-  loadServerSnapshotOnlineFirst: () => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
+  loadServerSnapshotOnlineFirst: (options?: LoadServerSnapshotOptions) => Promise<{ ok: boolean; reason?: string; authoritative?: boolean }>;
   setOnboardingStep: (step: number) => void;
   completeOnboarding: () => void;
   markIntroSeen: () => void;
