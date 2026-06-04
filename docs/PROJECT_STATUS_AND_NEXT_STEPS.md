@@ -19,10 +19,9 @@ Reglas de alcance:
 
 Siguiente foco:
 
-1. Cerrar checklist de Release Candidate local.
-2. Preparar despliegue production con Supabase remoto.
-3. Ejecutar smoke post-deploy.
-4. Documentar evidencia, riesgos residuales y recorrido de demo.
+1. Preparar despliegue production con Supabase remoto.
+2. Ejecutar smoke post-deploy.
+3. Documentar evidencia, riesgos residuales y recorrido de demo.
 
 ## Bloques Estables Para Alpha
 
@@ -191,7 +190,7 @@ Validar:
 
 ### 3. Validacion browser de release candidate
 
-Estado: pasada localmente en `0.37.52`.
+Estado: pasada localmente en `0.37.63` para cierre TFM/RC.
 
 Objetivo: comprobar la experiencia real de usuario tras intro/login/Home y rutas principales.
 
@@ -206,10 +205,11 @@ Evidencia:
 - `npm.cmd run audit:build`
 - `npm.cmd run check:performance`
 - Browser local en `http://127.0.0.1:3000` con screenshots en `tmp/rc-validation/screens`: Intro/Auth invitado, Home, Adventure, pre-combat `c1l1`, Deck, Roster, Missions, Events, Arena, Shop, Fortress y Battle en desktop/mobile.
+- El 2026-06-04 se repitio la RC local en `0.37.62`: `check`, `test` completo, `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build` y `check:performance` pasaron. Evidencia browser final: `tmp/playwright-screenshots/2026-06-04T16-56-25-860Z/manifest.json` con 24/24 escenarios OK y `tmp/rc-route-validation/20260604-190306/manifest.json` con 24/24 rutas desktop/mobile OK, incluyendo `/team`, `/events`, `/adventure/c1l1` y checks de overflow/HTTP.
 
 Riesgo residual:
 
-- Esta pasada fue local/offline. Supabase remoto sigue siendo un bloque separado cuando se quiera demo con login real, sincronizacion entre dispositivos o persistencia online.
+- Esta pasada fue local/offline. Supabase remoto y deploy production siguen siendo bloques separados para demo online con login real, sincronizacion entre dispositivos o persistencia online.
 
 Cuándo hacerlo:
 
@@ -336,7 +336,7 @@ Aplicacion al estado actual:
 - Pulido no-combat: tanda cerrada tras Team, Arena y Events; no seguir pantalla por pantalla sin una incidencia concreta.
 - Intro por sesion: cerrado en `0.37.48`.
 - Transicion compartida de entrada a batalla: cerrada en `0.37.51` para Adventure/direct battle, Ladder, Arena Trial, Events y Fortress Defense.
-- Validacion browser de release candidate: cerrada localmente en `0.37.52`.
+- Validacion browser de release candidate: cerrada localmente en `0.37.63`.
 - Supabase remoto: preflight de entorno pasado el 2026-06-02; no ejecutar migraciones remotas, reset ni smokes con email real sin ventana de prueba aprobada.
 - Missions: iteracion no-combat cerrada en `0.37.54`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Arena: iteracion no-combat cerrada en `0.37.55`; no seguir tocandola salvo bug visual concreto o feedback del usuario.

@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.63] - 2026-06-04
+
+### Changed
+- Cerrada la RC QA local para entrega TFM: checks, test suite completa, build, audits, presupuesto de rendimiento, screenshots y validacion complementaria de rutas quedaron en verde.
+- Registrada la evidencia local de release candidate y el riesgo residual: la siguiente fase sigue siendo deploy production con Supabase remoto y smoke post-deploy.
+
 ## [0.37.62] - 2026-06-04
 
 ### Changed

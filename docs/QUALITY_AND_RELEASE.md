@@ -30,6 +30,23 @@ Una RC no queda lista si:
 - La URL production no puede completar Intro/Auth -> Home -> Adventure -> Combat -> Rewards.
 - No existe evidencia reproducible de los checks ejecutados.
 
+## Evidencia RC Local Actual
+
+Ultima pasada local registrada: `0.37.63` / 2026-06-04.
+
+- `npm.cmd run check`: pasa.
+- `npm.cmd test`: pasa con 97 test files y 652 tests.
+- `npm.cmd run build`: pasa.
+- `npm.cmd run audit:high`: 0 vulnerabilidades.
+- `npm.cmd run audit:assets`: 292 assets publicos, 41.68 MB.
+- `npm.cmd run audit:asset-refs`: 0 candidatos no referenciados.
+- `npm.cmd run audit:build`: `.next/static` 3.12 MB; server app 0.88 MB.
+- `npm.cmd run check:performance`: pasa todos los presupuestos.
+- `npm.cmd run screenshots:auto`: 24/24 escenarios OK en `tmp/playwright-screenshots/2026-06-04T16-56-25-860Z/manifest.json`.
+- Validacion complementaria de rutas: 24/24 rutas desktop/mobile OK en `tmp/rc-route-validation/20260604-190306/manifest.json`.
+
+Nota: esta evidencia es local/offline. El cierre de demo online requiere deploy production y smoke Supabase remoto post-deploy.
+
 ## Comandos Requeridos
 
 Si algun comando o flujo falla, revisar primero `docs/OPERATIONS_TROUBLESHOOTING.md`.
