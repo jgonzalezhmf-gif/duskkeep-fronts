@@ -130,6 +130,7 @@ Notas:
 - En remoto puede requerir ajustar politica de confirmacion de email para entorno de prueba.
 - No debe ejecutarse contra produccion publica con emails reales sin una estrategia de limpieza.
 - No ejecutar este smoke con el email sintetico por defecto contra remoto: el script lo bloquea porque necesita una bandeja real para completar el flujo de verificacion.
+- Si un email base ya fue usado en un flujo previo, usar un alias de la misma bandeja, por ejemplo `tu_correo+smoke-yyyymmdd@example.com`.
 
 ## Smoke Local de Snapshot Server-Owned
 
@@ -165,10 +166,10 @@ Para validar el proxy autoritativo contra remoto:
 2. Ejecutar, apuntando al puerto donde este escuchando Next:
 
    ```powershell
-   npm.cmd run smoke:authoritative-api -- --base-url http://127.0.0.1:3000
+   npm.cmd run smoke:authoritative-api -- --base-url http://127.0.0.1:3000 --auth anonymous
    ```
 
-El smoke usa Supabase Auth y JWT real. No usa service-role.
+El smoke usa Supabase Auth y JWT real. No usa service-role. En remoto se recomienda `--auth anonymous` para validar el mismo trust boundary que el modo invitado real sin depender de una cuenta email/password ya confirmada. El modo por defecto sigue siendo email/password para compatibilidad con smokes locales o cuentas remotas confirmadas.
 
 Si una operacion sensible muestra en consola `stage:"request_validation"`, `status:404`, `code:"not_found"` y `reason` interno de API desactivada, el proceso de Next se arranco sin `SERVER_AUTHORITATIVE_API_ENABLED=true`. En cuentas vinculadas esto no debe caer a progreso local, porque el siguiente snapshot servidor sobrescribiria ese resultado.
 

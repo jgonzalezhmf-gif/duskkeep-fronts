@@ -2,6 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  buildSmokeAdventureBattleRequest,
+  parseSmokeAuthoritativeApiArgs,
+  resolveSmokeAuthMode,
+} from "./smoke-authoritative-api-options.mjs";
 
 const DEFAULT_BASE_URL = "http://127.0.0.1:3000";
 const DEFAULT_EMAIL = "api-smoke@duskkeep.local";
@@ -11,7 +16,8 @@ loadEnvFile(".env");
 loadEnvFile(".env.local");
 loadSupabaseCliEnvIfMissing();
 
-const args = parseArgs(process.argv.slice(2));
+const args = parseSmokeAuthoritativeApiArgs(process.argv.slice(2));
+const authMode = resolveSmokeAuthMode(args);
 const baseUrl = args["base-url"] ?? DEFAULT_BASE_URL;
 const email = args.email ?? DEFAULT_EMAIL;
 const password = args.password ?? DEFAULT_PASSWORD;
@@ -29,7 +35,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-const session = await getSession({ email, password });
+const session = await getSession({ authMode, email, password });
 const token = session.access_token;
 const idempotencyKey = `api-smoke-${Date.now()}`;
 const endpoint = new URL("/api/server/authoritative", baseUrl).toString();
@@ -51,17 +57,10 @@ const loadoutRequestBody = {
     ],
   },
 };
-const battleRequestBody = {
-  operationType: "claimAdventureBattleResult",
+const battleRequestBody = buildSmokeAdventureBattleRequest({
   idempotencyKey: `${idempotencyKey}-battle`,
-  payload: {
-    nodeId: "c1l1",
-    battleSeed: Date.now(),
-    winner: "ally",
-    turns: 6,
-    battleSummary: { smoke: true, lanes: [] },
-  },
-};
+  battleSeed: Date.now(),
+});
 
 const loadoutFirst = await postAuthoritative(endpoint, token, loadoutRequestBody);
 assertOk(loadoutFirst, "loadout save");
@@ -85,10 +84,22 @@ if (JSON.stringify(battleFirst.body) !== JSON.stringify(battleReplay.body)) {
 
 console.log("Authoritative API smoke passed.");
 console.log(`Endpoint: ${endpoint}`);
+console.log(`Auth mode: ${authMode}`);
 console.log(`Operations: ${loadoutRequestBody.operationType}, ${battleRequestBody.operationType}`);
-console.log(`User: ${email}`);
+console.log(`User: ${authMode === "anonymous" ? "anonymous" : email}`);
 
-async function getSession({ email, password }) {
+async function getSession({ authMode, email, password }) {
+  if (authMode === "anonymous") {
+    const anonymous = await supabase.auth.signInAnonymously();
+    if (anonymous.error) {
+      fail(`Supabase anonymous sign-in failed: ${anonymous.error.message}`);
+    }
+    if (!anonymous.data.session) {
+      fail("Supabase anonymous sign-in did not return a session. Check that Anonymous Sign-Ins are enabled.");
+    }
+    return anonymous.data.session;
+  }
+
   const signUp = await supabase.auth.signUp({
     email,
     password,
@@ -192,19 +203,6 @@ function parseEnvLines(raw) {
     values[trimmed.slice(0, separator)] = trimmed.slice(separator + 1).trim().replace(/^["']|["']$/g, "");
   }
   return values;
-}
-
-function parseArgs(rawArgs) {
-  const parsed = {};
-  for (let index = 0; index < rawArgs.length; index += 1) {
-    const arg = rawArgs[index];
-    if (!arg.startsWith("--")) continue;
-
-    const [key, inlineValue] = arg.slice(2).split("=", 2);
-    parsed[key] = inlineValue ?? rawArgs[index + 1];
-    if (!inlineValue) index += 1;
-  }
-  return parsed;
 }
 
 function fail(message) {

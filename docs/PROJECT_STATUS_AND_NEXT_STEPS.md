@@ -228,6 +228,7 @@ Estado operativo:
 - Existe `docs/SUPABASE_REMOTE_OPERATIONS.md` como guia de preparacion y validacion remota.
 - Existe `npm.cmd run check:supabase:remote` para comprobar variables publicas, URL remota, anon key, persistencia, proxy autoritativo, rate limit y observabilidad sin imprimir secretos.
 - El 2026-06-02 `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co` con `NEXT_PUBLIC_PERSISTENCE=supabase` y `SERVER_AUTHORITATIVE_API_ENABLED=true`. Riesgo residual informado: rate limit en memoria y sink de eventos en consola, aceptables solo para alpha/single instance.
+- El 2026-06-03 `npm.cmd run check:supabase:remote` volvio a pasar contra el mismo proyecto remoto; `smoke:supabase:guest-upgrade` paso con un alias unico de inbox real y `smoke:authoritative-api -- --auth anonymous` paso contra Next local apuntando al remoto.
 - Las pruebas manuales remotas recientes cubrieron login, Adventure, recompensas, Shop, Arena, logout/login e incognito sin perdida aparente de snapshot.
 - El checklist manual queda definido en `docs/QUALITY_AND_RELEASE.md`.
 

@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.59] - 2026-06-03
+
+### Changed
+- Preparada la validacion de demo con persistencia real: el smoke del proxy autoritativo ahora soporta `--auth anonymous` para entornos remotos con email confirmation activa.
+- Corregido el payload de batalla del smoke autoritativo para cumplir el contrato `strict()` actual y evitar falsos negativos en `claimAdventureBattleResult`.
+- Documentada la evidencia remota actual: preflight Supabase, guest upgrade con inbox real y proxy autoritativo con JWT anónimo.
+
 ## [0.37.58] - 2026-06-03
 
 ### Changed
