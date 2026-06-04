@@ -1,6 +1,7 @@
 "use client";
 
 import { FrontlineCardView } from "@/components/game/frontline/FrontlineVisualPrimitives";
+import { CardTypeIcon } from "@/components/game/shared/CardTypeIcon";
 import {
   FRONTLINE_CARD_BY_ID,
   FRONTLINE_CARD_POOL,
@@ -51,7 +52,11 @@ export function DeckCardPoolSection({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d498]">{t("deckScreen.pool.eyebrow")}</div>
-          <div className="mt-1 text-sm text-white/62">{t("deckScreen.pool.copy")}</div>
+          <div className="mt-1 flex items-center gap-2">
+            <CardTypeIcon type="order" size="xs" className="h-6 w-6" />
+            <CardTypeIcon type="tactic" size="xs" className="h-6 w-6" />
+            <CardTypeIcon type="summon" size="xs" className="h-6 w-6" />
+          </div>
         </div>
         <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/62">
           {t("deckScreen.pool.selected", { count: selectedDeck.length })}

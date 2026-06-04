@@ -249,8 +249,8 @@ Candidatas:
 - Arena: iteracion acotada cerrada en `0.37.55` con informe visual de modo en el gate de entrada, diferenciando Ladder sin ticket y Trials con tickets/mutadores.
 - Fortress: iteracion acotada cerrada en `0.37.56` con loop visual guarnicion -> mejora -> raid en el hero, responsive mobile legible y helper testeado.
 - Events: iteracion acotada cerrada en `0.37.58` con banda de operacion recomendada, motivo contextual y helper testeado sin tocar reglas ni economia.
+- Deck: iteracion acotada cerrada en `0.37.60` con mesa de guerra visual, readiness de lider/escuadra/cartas y ranuras 8/8 del paquete para reducir texto sin cambiar reglas.
 - Team/Roster.
-- Deck.
 - Shop contenido futuro.
 
 Regla:

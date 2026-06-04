@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.60] - 2026-06-04
+
+### Changed
+- Pulida Deck con una mesa de guerra mas visual: sello de preparacion, runas de readiness, frente activo y ranuras de paquete 8/8 para leer el loadout como videojuego y no como formulario.
+- Reducido el texto visible del pool de cartas en favor de iconos de tipo, estado visual y seleccion escaneable.
+- Anadida cobertura de helpers de readiness/perfil del paquete para proteger la lectura del loadout.
+
 ## [0.37.59] - 2026-06-03
 
 ### Changed

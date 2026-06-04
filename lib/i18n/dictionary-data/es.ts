@@ -910,6 +910,20 @@ export const esDictionary = {
       frontlineLoadout: "Carga Frontline",
       heroTitle: "Forma un trio, afila el paquete y dale a la escuadra un plan real.",
       heroCopy: "La pantalla de mazo se lee como fantasia de build: doctrina de lider, trio Frontline y paquete de 8 cartas como un solo plan de escuadra.",
+      warTable: {
+        eyebrow: "Mesa de guerra",
+        title: "Prepara el frente",
+      },
+      readiness: {
+        battleReady: "Lista para batalla",
+        arming: "Armando escuadra",
+        leader: "Lider",
+        squad: "Escuadra",
+        deck: "Cartas",
+        readyMark: "OK",
+        missing: "Falta",
+        readyCue: "Escuadra lista",
+      },
       metrics: {
         leader: "Lider",
         squad: "Escuadra",
@@ -969,8 +983,16 @@ export const esDictionary = {
       package: {
         inPackage: "En paquete",
         empty: "Anade cartas desde el pool inferior para dar a tu escuadra un patron real de turnos.",
+        emptySlot: "Hueco libre",
+        command: "Mando",
         tapToAdd: "Toca para anadir",
         locked: "Bloqueada",
+      },
+      packageFocus: {
+        orders: "Kit de asalto",
+        tactics: "Kit de control",
+        summons: "Kit de invocacion",
+        mixed: "Kit mixto",
       },
       cardUpgrade: {
         level: "Nv {level}",

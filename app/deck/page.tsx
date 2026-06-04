@@ -11,19 +11,19 @@ import {
   FRONTLINE_HEROES,
   FRONTLINE_LEADERS,
 } from "@/features/frontline/data";
+import type { FrontlineCardDef } from "@/features/frontline/types";
 import {
   createFrontlineCardProfileMap,
 } from "@/features/frontline/cardProgression";
 import { getFrontlineHeroProfileById } from "@/features/frontline/heroProfile";
-import { frontlineLeaderName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import { DeckCardPoolSection } from "./DeckCardPoolSection";
 import { HeroRosterButton } from "./DeckHeroRosterButton";
 import { DeckLoadoutSyncButton } from "./DeckLoadoutSyncButton";
 import { LeaderDoctrinePanel } from "./DeckLeaderDoctrinePanel";
-import { BuildPill, Metric, Panel, SelectedPackageRow } from "./DeckPrimitives";
-import { buildPlan } from "./deckPageHelpers";
+import { BuildPill, PackageSlotGrid, Panel, ReadinessRune, WarTableSeal } from "./DeckPrimitives";
+import { buildDeckReadiness, buildPackageProfile, FRONTLINE_DECK_TARGET_SIZE } from "./deckPageHelpers";
 
 export default function DeckPage() {
   const { t } = useI18n();
@@ -43,10 +43,17 @@ export default function DeckPage() {
   const playerHeroById = useMemo(() => new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)), [playerHeroes]);
   const squadHeroes = loadout.squad.map((id) => (id ? getFrontlineHeroProfileById(id, playerHeroById.get(id)) : null));
   const leader = FRONTLINE_LEADERS.find((entry) => entry.id === loadout.leaderId) ?? FRONTLINE_LEADERS[0];
-  const leaderName = frontlineLeaderName(t, leader);
-  const squadReady = squadHeroes.filter(Boolean).length === 3;
-  const deckReady = selectedDeck.length === 8;
-  const plan = buildPlan(loadout.leaderId, loadout.squad, selectedDeck, t);
+  const selectedCards = selectedDeck
+    .map((cardId) => cardProfiles[cardId] ?? FRONTLINE_CARD_BY_ID[cardId])
+    .filter((card): card is FrontlineCardDef => Boolean(card));
+  const readiness = buildDeckReadiness({
+    leaderId: loadout.leaderId,
+    squadIds: loadout.squad,
+    deckIds: selectedDeck,
+    t,
+  });
+  const packageProfile = buildPackageProfile(selectedDeck);
+  const focusLabel = t(`deckScreen.packageFocus.${packageProfile.focus}`);
 
   useEffect(() => {
     setClientReady(true);
@@ -75,28 +82,28 @@ export default function DeckPage() {
           <>
           <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(45,34,29,0.68),rgba(15,18,28,0.82)_36%,rgba(8,10,16,0.9)_76%)] shadow-[0_22px_56px_rgba(0,0,0,0.3)]">
         <div className="relative z-[1] px-3 py-3 md:px-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="max-w-[46rem]">
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.42fr)]">
+            <div className="min-w-0">
               <div className="inline-flex rounded-full border border-[#f5c451]/20 bg-[#f5c451]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
-                {t("deckScreen.frontlineLoadout")}
+                {t("deckScreen.warTable.eyebrow")}
               </div>
-              <div className="mt-2 text-[1.7rem] font-black leading-[0.94] text-white md:text-[2.55rem]">
-                {t("deckScreen.frontlineLoadout")}
+              <div className="mt-2 text-[1.9rem] font-black leading-[0.88] tracking-[-0.04em] text-white md:text-[3rem]">
+                {t("deckScreen.warTable.title")}
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 md:max-w-[38rem]">
+                <ReadinessRune kind="battle" label={readiness.checks[0].label} value={readiness.checks[0].value} ready={readiness.checks[0].ready} />
+                <ReadinessRune kind="heroes" label={readiness.checks[1].label} value={readiness.checks[1].value} ready={readiness.checks[1].ready} />
+                <ReadinessRune kind="deck" label={readiness.checks[2].label} value={readiness.checks[2].value} ready={readiness.checks[2].ready} />
               </div>
             </div>
 
-            <div className="flex flex-wrap items-start justify-end gap-2">
+            <div className="flex flex-col gap-2">
+              <WarTableSeal ready={readiness.ready} label={readiness.label} nextAction={readiness.ready ? t("deckScreen.readiness.readyCue") : readiness.nextAction} />
               <DeckLoadoutSyncButton loadout={loadout} />
-              <div className="grid gap-1.5 sm:grid-cols-4">
-                <Metric label={t("deckScreen.metrics.leader")} value={leaderName} ok t={t} />
-                <Metric label={t("deckScreen.metrics.squad")} value={`${squadHeroes.filter(Boolean).length}/3`} ok={squadReady} t={t} />
-                <Metric label={t("deckScreen.metrics.deck")} value={`${selectedDeck.length}/8`} ok={deckReady} t={t} />
-                <Metric label={t("deckScreen.metrics.package")} value={`${plan.counts.orders} / ${plan.counts.tactics} / ${plan.counts.summons}`} ok t={t} />
-              </div>
             </div>
           </div>
 
-          <div className="mt-3 grid items-start gap-3 xl:grid-cols-[12rem_minmax(0,1fr)_17rem]">
+          <div className="mt-3 grid items-start gap-3 xl:grid-cols-[12rem_minmax(0,1fr)_24rem]">
             <LeaderDoctrinePanel leader={leader} onSelectLeader={setLeader} t={t} />
 
             <Panel title={t("deckScreen.panels.frontSquad")}>
@@ -116,27 +123,30 @@ export default function DeckPage() {
 
               <div className="mt-3 rounded-[18px] border border-white/10 bg-white/[0.035] p-2.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="mr-auto text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{t("deckScreen.buildPlan.eyebrow")}</div>
-                  <BuildPill icon="order" label={t("deckScreen.cardTypes.orders")} value={plan.counts.orders} />
-                  <BuildPill icon="tactic" label={t("deckScreen.cardTypes.tactics")} value={plan.counts.tactics} />
-                  <BuildPill icon="summon" label={t("deckScreen.cardTypes.summons")} value={plan.counts.summons} />
+                  <div className="mr-auto text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">{focusLabel}</div>
+                  <BuildPill icon="order" label={t("deckScreen.cardTypes.orders")} value={packageProfile.counts.orders} />
+                  <BuildPill icon="tactic" label={t("deckScreen.cardTypes.tactics")} value={packageProfile.counts.tactics} />
+                  <BuildPill icon="summon" label={t("deckScreen.cardTypes.summons")} value={packageProfile.counts.summons} />
+                  <BuildPill icon="gear" label={t("deckScreen.package.command")} value={packageProfile.commandCost} />
                 </div>
               </div>
 
             </Panel>
 
             <Panel title={t("deckScreen.panels.selectedPackage")}>
-              <div className="grid gap-1.5">
-                {selectedDeck.length ? (
-                  selectedDeck.map((cardId) => {
-                    const card = cardProfiles[cardId] ?? FRONTLINE_CARD_BY_ID[cardId];
-                    return <SelectedPackageRow key={`selected-${card.id}`} card={card} t={t} />;
-                  })
-                ) : (
-                  <div className="rounded-[18px] border border-dashed border-white/10 bg-white/[0.03] px-4 py-4 text-[13px] leading-6 text-white/54">
-                    {t("deckScreen.package.empty")}
+              <div className="grid gap-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-white/46">{focusLabel}</div>
+                  <div className="rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1 text-[10px] font-black text-white">
+                    {selectedDeck.length}/{FRONTLINE_DECK_TARGET_SIZE}
                   </div>
-                )}
+                </div>
+                <PackageSlotGrid
+                  cards={selectedCards}
+                  targetSize={FRONTLINE_DECK_TARGET_SIZE}
+                  emptyLabel={t("deckScreen.package.emptySlot")}
+                  t={t}
+                />
               </div>
             </Panel>
           </div>

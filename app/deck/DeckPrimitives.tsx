@@ -1,7 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { CardTypeIcon, type CardTypeIconName } from "@/components/game/shared/CardTypeIcon";
+import GameIcon from "@/components/game/shared/GameIcon";
 import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { ResourceIcon } from "@/components/game/shared/ResourceIcon";
 import { FRONTLINE_CARD_MAX_LEVEL } from "@/features/frontline/cardProgression";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/cn";
 import { frontlineCardEffectSummary, frontlineCardKindLabel, frontlineCardName } from "@/lib/i18n/frontlineText";
 
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+type GameIconKind = ComponentProps<typeof GameIcon>["kind"];
 
 export function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -32,6 +34,72 @@ export function Metric({ label, value, ok, t }: { label: string; value: string |
   );
 }
 
+export function WarTableSeal({
+  ready,
+  label,
+  nextAction,
+}: {
+  ready: boolean;
+  label: string;
+  nextAction: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative isolate overflow-hidden rounded-[28px] border p-3 shadow-[0_24px_52px_rgba(0,0,0,0.3)]",
+        ready
+          ? "border-emerald-200/24 bg-[radial-gradient(circle_at_50%_0%,rgba(167,243,208,0.2),transparent_38%),linear-gradient(180deg,rgba(16,185,129,0.18),rgba(8,15,14,0.86))]"
+          : "border-[#f5c451]/24 bg-[radial-gradient(circle_at_50%_0%,rgba(245,196,81,0.22),transparent_38%),linear-gradient(180deg,rgba(245,196,81,0.14),rgba(18,14,9,0.88))]",
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_38%,rgba(0,0,0,0.28))]" />
+      <div className="relative z-[1] flex items-center gap-3">
+        <GameIcon kind="battle" tone={ready ? "emerald" : "gold"} size="lg" />
+        <div className="min-w-0">
+          <div className={cn("text-[10px] font-black uppercase tracking-[0.2em]", ready ? "text-emerald-100/80" : "text-[#f5d498]/82")}>
+            {label}
+          </div>
+          <div className="mt-1 truncate text-[1.45rem] font-black leading-none text-white md:text-[1.75rem]">
+            {nextAction}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ReadinessRune({
+  kind,
+  label,
+  value,
+  ready,
+}: {
+  kind: GameIconKind;
+  label: string;
+  value: string | number;
+  ready: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative isolate overflow-hidden rounded-[20px] border px-3 py-2",
+        ready
+          ? "border-emerald-200/18 bg-emerald-400/10"
+          : "border-orange-200/18 bg-orange-500/10",
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.12),transparent_34%)]" />
+      <div className="relative z-[1] flex items-center gap-2">
+        <GameIcon kind={kind} tone={ready ? "emerald" : "ember"} size="sm" />
+        <div className="min-w-0">
+          <div className="text-[9px] font-black uppercase tracking-[0.15em] text-white/42">{label}</div>
+          <div className="mt-0.5 truncate text-sm font-black text-white">{value}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function BuildPill({ icon, label, value }: { icon: CardTypeIconName; label: string; value: number }) {
   return (
     <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1.5">
@@ -40,6 +108,57 @@ export function BuildPill({ icon, label, value }: { icon: CardTypeIconName; labe
         <span>{label}</span>
       </div>
       <div className="text-sm font-black text-white">{value}</div>
+    </div>
+  );
+}
+
+export function PackageSlotGrid({
+  cards,
+  targetSize,
+  emptyLabel,
+  t,
+}: {
+  cards: FrontlineCardDef[];
+  targetSize: number;
+  emptyLabel: string;
+  t: TranslateFn;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
+      {Array.from({ length: targetSize }).map((_, index) => {
+        const card = cards[index];
+        if (!card) {
+          return (
+            <div
+              key={`empty-${index}`}
+              className="grid min-h-[5.35rem] place-items-center rounded-[18px] border border-dashed border-white/12 bg-white/[0.025] px-2 text-center text-[9px] font-black uppercase tracking-[0.12em] text-white/30"
+            >
+              {emptyLabel}
+            </div>
+          );
+        }
+
+        return (
+          <div
+            key={card.id}
+            className="group relative isolate min-h-[5.35rem] overflow-hidden rounded-[18px] border border-[#f5c451]/18 bg-[linear-gradient(180deg,rgba(245,196,81,0.11),rgba(8,10,16,0.82))] p-2"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.14),transparent_34%)]" />
+            <div className="relative z-[1] flex h-full flex-col justify-between gap-2">
+              <div className="flex items-start justify-between gap-2">
+                <CardTypeIcon type={card.kind as CardTypeIconName} size="sm" className="h-8 w-8" />
+                <div className="rounded-full border border-white/10 bg-black/26 px-2 py-1 text-[10px] font-black text-white">{card.cost}</div>
+              </div>
+              <div>
+                <div className="truncate text-[12px] font-black text-white">{frontlineCardName(t, card)}</div>
+                <div className="mt-0.5 text-[9px] font-black uppercase tracking-[0.1em] text-white/42">
+                  {frontlineCardKindLabel(t, card)}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

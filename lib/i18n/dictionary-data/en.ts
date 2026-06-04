@@ -910,6 +910,20 @@ export const enDictionary = {
       frontlineLoadout: "Frontline loadout",
       heroTitle: "Shape a trio, sharpen a package, and give the squad a real plan.",
       heroCopy: "The deck screen now leans into build fantasy: leader doctrine, frontline trio and 8-card pressure package are read as one squad plan.",
+      warTable: {
+        eyebrow: "War table",
+        title: "Ready the frontline",
+      },
+      readiness: {
+        battleReady: "Battle ready",
+        arming: "Arming squad",
+        leader: "Leader",
+        squad: "Squad",
+        deck: "Cards",
+        readyMark: "Set",
+        missing: "Missing",
+        readyCue: "Squad armed",
+      },
       metrics: {
         leader: "Leader",
         squad: "Squad",
@@ -969,8 +983,16 @@ export const enDictionary = {
       package: {
         inPackage: "In package",
         empty: "Add cards from the pool below to give your squad a real turn pattern.",
+        emptySlot: "Empty slot",
+        command: "Command",
         tapToAdd: "Tap to add",
         locked: "Locked",
+      },
+      packageFocus: {
+        orders: "Assault kit",
+        tactics: "Control kit",
+        summons: "Summon kit",
+        mixed: "Mixed kit",
       },
       cardUpgrade: {
         level: "Lv {level}",
