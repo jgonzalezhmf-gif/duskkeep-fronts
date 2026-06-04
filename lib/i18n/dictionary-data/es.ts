@@ -1339,10 +1339,10 @@ export const esDictionary = {
       title: "Reune la compania",
       copy: "Los heroes comparten el lenguaje de standees de Frontline y Deck. Los tiers quedan preparados visualmente para futura evolucion sin anadir reglas todavia.",
       company: {
-        eyebrow: "Compania Frontline",
-        title: "Roster de combate",
-        value: "{owned}/{total} armados",
-        bench: "Banco Frontline",
+        eyebrow: "Frente activo",
+        title: "Escuadra de combate",
+        value: "{owned}/{total} desplegados",
+        bench: "Escuadra activa",
       },
       metrics: {
         owned: "En propiedad",
@@ -1376,6 +1376,9 @@ export const esDictionary = {
       labels: {
         levelStar: "Nv {level} / {stars} estrella",
         lockedTier: "Tier bloqueado",
+        lockedHero: "Heroe bloqueado",
+        hiddenUntilUnlock: "Identidad sellada",
+        emptySquadSlot: "Hueco de combate",
         unlockLevel: "Desbloquea Nv {level}",
         shards: "{current}/{target} fragmentos",
         frontline: "Frontline",

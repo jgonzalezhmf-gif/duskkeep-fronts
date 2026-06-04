@@ -1339,10 +1339,10 @@ export const enDictionary = {
       title: "Muster the company",
       copy: "Heroes now share the same standee language as Frontline and Deck. Tiers are staged visually for future evolution without adding more rules yet.",
       company: {
-        eyebrow: "Frontline company",
-        title: "Combat roster",
-        value: "{owned}/{total} armed",
-        bench: "Frontline bench",
+        eyebrow: "Active Frontline",
+        title: "Combat squad",
+        value: "{owned}/{total} deployed",
+        bench: "Active squad",
       },
       metrics: {
         owned: "Owned",
@@ -1376,6 +1376,9 @@ export const enDictionary = {
       labels: {
         levelStar: "Lv {level} / {stars} star",
         lockedTier: "Locked tier",
+        lockedHero: "Locked hero",
+        hiddenUntilUnlock: "Identity sealed",
+        emptySquadSlot: "Empty combat slot",
         unlockLevel: "Unlock Lv {level}",
         shards: "{current}/{target} shards",
         frontline: "Frontline",

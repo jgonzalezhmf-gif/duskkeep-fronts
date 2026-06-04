@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.66] - 2026-06-04
+
+### Fixed
+- Ajustada la pantalla de Heroes para que la escuadra Frontline activa muestre exactamente los 3 heroes del loadout de combate, no una lista generica de 4 candidatos.
+- El filtro por defecto de Heroes ahora muestra heroes en propiedad; los bloqueados quedan como cartas selladas sin ilustracion de personaje cuando se consulta el filtro de bloqueados.
+- Renombrado el texto de `Banco Frontline` a `Escuadra activa` / `Active squad` para mejorar la lectura del MVP.
+
 ## [0.37.65] - 2026-06-04
 
 ### Fixed

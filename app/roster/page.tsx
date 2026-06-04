@@ -6,6 +6,7 @@ import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
 import { FrontlineHeroStandee } from "@/components/game/frontline/FrontlineVisualPrimitives";
 import HeroDetailModal from "@/components/game/HeroDetailModal";
+import { ProgressionIcon } from "@/components/game/shared/ProgressionIcon";
 import { HEROES } from "@/data/heroes";
 import { heroUnlockLevel } from "@/data/unlocks";
 import { getFrontlineHeroProfile, isFrontlineReadyHero } from "@/features/frontline/heroProfile";
@@ -15,7 +16,12 @@ import { useI18n } from "@/lib/i18n/useI18n";
 import { useGameStore } from "@/lib/store";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import type { Rarity, Role } from "@/lib/types";
-import { buildRosterOverview } from "./rosterPageHelpers";
+import {
+  buildRosterCombatSquadSlots,
+  buildRosterOverview,
+  DEFAULT_ROSTER_OWNED_FILTER,
+  FRONTLINE_COMBAT_SLOT_COUNT,
+} from "./rosterPageHelpers";
 import { Chip, CompanySeal, FilterRow, HeroMetric, RoleSigil, RosterTag } from "./RosterPrimitives";
 
 type RarityFilter = "all" | Rarity;
@@ -49,16 +55,62 @@ function heroProgressLabel({
   return t("rosterScreen.labels.shards", { current: shards ?? 0, target: 10 });
 }
 
+function LockedHeroCard({
+  progress,
+  rarity,
+  role,
+  frontline,
+  t,
+}: {
+  progress: string;
+  rarity: string;
+  role: string;
+  frontline: boolean;
+  t: TranslateFn;
+}) {
+  return (
+    <div
+      className="group/locked relative isolate min-h-[14rem] overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_50%_14%,rgba(148,163,184,0.16),transparent_34%),linear-gradient(180deg,rgba(27,31,42,0.84),rgba(7,9,14,0.98))] p-3 text-left shadow-[0_20px_44px_rgba(0,0,0,0.26)]"
+      aria-label={`${t("rosterScreen.labels.lockedHero")} - ${progress}`}
+    >
+      <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(0,0,0,0.42))]" />
+      <span className="pointer-events-none absolute inset-x-6 top-1/2 h-px bg-white/10" />
+      <span className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/12 bg-black/24" />
+      <div className="relative z-[1] flex items-start justify-between gap-2">
+        <div>
+          <div className="text-[9px] font-black uppercase tracking-[0.18em] text-white/40">{progress}</div>
+          <div className="mt-1 text-lg font-black leading-tight text-white/78">{t("rosterScreen.labels.lockedHero")}</div>
+          <div className="mt-1 text-[11px] font-black uppercase tracking-[0.12em] text-white/38">{t("rosterScreen.labels.hiddenUntilUnlock")}</div>
+        </div>
+        <ProgressionIcon name="unlock" size="sm" className="opacity-70 grayscale" />
+      </div>
+      <div className="relative z-[1] mt-5 grid place-items-center py-5">
+        <div className="grid h-20 w-20 place-items-center rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_42%_28%,rgba(255,255,255,0.16),rgba(0,0,0,0.34))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <ProgressionIcon name="unlock" size="lg" className="opacity-80 grayscale" />
+        </div>
+      </div>
+      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+        <RosterTag>{rarity}</RosterTag>
+        <RosterTag>{role}</RosterTag>
+        <RosterTag tone={frontline ? "gold" : "neutral"}>
+          {frontline ? t("rosterScreen.labels.frontline") : t("rosterScreen.labels.reserve")}
+        </RosterTag>
+      </div>
+    </div>
+  );
+}
+
 export default function RosterPage() {
   const { t } = useI18n();
   const [clientReady, setClientReady] = useState(false);
   const heroes = useGameStore((state) => state.heroes);
   const resources = useGameStore((state) => state.resources);
   const accountLevel = useGameStore((state) => state.account.level);
+  const frontlineLoadout = useGameStore((state) => state.frontlineLoadout);
   const [selected, setSelected] = useState<string | null>(null);
   const [rarity, setRarity] = useState<RarityFilter>("all");
   const [role, setRole] = useState<RoleFilter>("all");
-  const [owned, setOwned] = useState<OwnedFilter>("all");
+  const [owned, setOwned] = useState<OwnedFilter>(DEFAULT_ROSTER_OWNED_FILTER);
 
   const playerByHero = useMemo(() => new Map(heroes.map((hero) => [hero.heroId, hero] as const)), [heroes]);
   const rosterOverview = useMemo(
@@ -83,14 +135,16 @@ export default function RosterPage() {
     });
   }, [owned, playerByHero, rarity, role]);
 
-  const featured = useMemo(
+  const activeSquadSlots = useMemo(
     () =>
-      HEROES.filter((hero) => isFrontlineReadyHero(hero.id))
-        .map((hero) => ({ hero, playerHero: playerByHero.get(hero.id) }))
-        .slice(0, 6),
-    [playerByHero],
+      buildRosterCombatSquadSlots({
+        heroes: HEROES,
+        playerByHero,
+        squad: frontlineLoadout.squad,
+      }),
+    [frontlineLoadout.squad, playerByHero],
   );
-  const featuredBench = featured.slice(0, 4);
+  const activeSquadCount = activeSquadSlots.filter((slot) => slot.owned).length;
 
   useEffect(() => {
     setClientReady(true);
@@ -152,36 +206,45 @@ export default function RosterPage() {
                 eyebrow={t("rosterScreen.company.eyebrow")}
                 title={t("rosterScreen.company.title")}
                 value={t("rosterScreen.company.value", {
-                  owned: rosterOverview.frontlineOwnedCount,
-                  total: rosterOverview.frontlineReadyCount,
+                  owned: activeSquadCount,
+                  total: FRONTLINE_COMBAT_SLOT_COUNT,
                 })}
-                ready={rosterOverview.frontlineOwnedCount >= 3}
+                ready={activeSquadCount >= FRONTLINE_COMBAT_SLOT_COUNT}
               />
               <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-3">
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f5d498]">
                     {t("rosterScreen.company.bench")}
                   </div>
-                  <RosterTag tone="gold">{`${featuredBench.length}/${rosterOverview.frontlineReadyCount}`}</RosterTag>
+                  <RosterTag tone="gold">{`${activeSquadCount}/${FRONTLINE_COMBAT_SLOT_COUNT}`}</RosterTag>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-2">
-                  {featuredBench.map(({ hero, playerHero }) => (
-                    <button
-                      key={`featured-${hero.id}`}
-                      type="button"
-                      onClick={() => {
-                        sfx.tap();
-                        setSelected(hero.id);
-                      }}
-                      className="frontline-motion-action text-left transition"
-                    >
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {activeSquadSlots.map((slot) => (
+                    slot.hero && slot.playerHero ? (
+                      <button
+                        key={`squad-${slot.slot}-${slot.hero.id}`}
+                        type="button"
+                        onClick={() => {
+                          sfx.tap();
+                          setSelected(slot.hero?.id ?? null);
+                        }}
+                        className="frontline-motion-action text-left transition"
+                      >
+                        <FrontlineHeroStandee
+                          hero={getFrontlineHeroProfile(slot.hero, slot.playerHero)}
+                          compact
+                          selected
+                          label={heroProgressLabel({ owned: true, level: slot.playerHero.level, stars: slot.playerHero.stars, t })}
+                        />
+                      </button>
+                    ) : (
                       <FrontlineHeroStandee
-                        hero={getFrontlineHeroProfile(hero, playerHero)}
+                        key={`squad-${slot.slot}-empty`}
+                        hero={null}
                         compact
-                        selected={Boolean(playerHero?.stars)}
-                        label={playerHero?.stars ? heroProgressLabel({ owned: true, level: playerHero.level, stars: playerHero.stars, t }) : t("rosterScreen.labels.lockedTier")}
+                        emptyLabel={t("rosterScreen.labels.emptySquadSlot")}
                       />
-                    </button>
+                    )
                   ))}
                 </div>
               </div>
@@ -222,6 +285,28 @@ export default function RosterPage() {
             const gate = heroUnlockLevel(hero.id);
             const gated = Boolean(gate && accountLevel < gate);
             const profile = getFrontlineHeroProfile(hero, playerHero);
+            const progressLabel = heroProgressLabel({
+              owned: ownedHero,
+              level: playerHero?.level,
+              stars: playerHero?.stars,
+              gated,
+              gate,
+              shards: playerHero?.shards,
+              t,
+            });
+            if (!ownedHero) {
+              return (
+                <LockedHeroCard
+                  key={hero.id}
+                  progress={progressLabel}
+                  rarity={t(`rosterScreen.rarity.${hero.rarity}`)}
+                  role={t(`rosterScreen.roles.${hero.role}`)}
+                  frontline={isFrontlineReadyHero(hero.id)}
+                  t={t}
+                />
+              );
+            }
+
             return (
               <button
                 key={hero.id}
@@ -236,16 +321,8 @@ export default function RosterPage() {
                   <FrontlineHeroStandee
                     hero={profile}
                     compact
-                    selected={ownedHero}
-                    label={heroProgressLabel({
-                      owned: ownedHero,
-                      level: playerHero?.level,
-                      stars: playerHero?.stars,
-                      gated,
-                      gate,
-                      shards: playerHero?.shards,
-                      t,
-                    })}
+                    selected
+                    label={progressLabel}
                   />
                   <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
                     <RosterTag>{t(`rosterScreen.rarity.${hero.rarity}`)}</RosterTag>
