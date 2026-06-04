@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.62] - 2026-06-04
+
+### Changed
+- Cambiado el foco del backlog a cierre TFM/Release Candidate: alcance congelado, demo online, QA completa y documentacion operativa de evidencia/riesgos.
+- Documentado que la entrega se defendera como producto desarrollado con metodologia asistida por IA, SDD y agentes, sin introducir IA generativa dentro del gameplay.
+- Separada la documentacion operativa del repo de los documentos privados de TFM, que quedan fuera de Git hasta decision explicita.
+
 ## [0.37.61] - 2026-06-04
 
 ### Changed

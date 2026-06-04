@@ -2,6 +2,28 @@
 
 Este documento sirve para decidir que hacer cuando una sesion dice "sigamos", "siguiente" o "vamos alla". La regla es no seguir iterando sobre un bloque estable salvo bug real, validacion fallida o cambio explicito de alcance.
 
+## Modo Actual: Cierre TFM / Release Candidate
+
+Estado: activo desde `0.37.62`.
+
+Objetivo: cerrar Duskkeep Fronts como entrega estable de fin de master y demo online, defendible despues como MVP publico.
+
+Reglas de alcance:
+
+- No anadir Chapter 2.
+- No anadir IA generativa dentro del juego.
+- No anadir monetizacion, pagos, premium currency ni ladder competitivo publico.
+- No seguir puliendo pantallas salvo bug visual concreto, overflow, error de consola o feedback explicito.
+- Mantener los documentos especificos de TFM fuera de Git hasta decision explicita del usuario.
+- Si se documenta en el repo, debe ser documentacion operativa/producto: calidad, despliegue, demo, seguridad o estado.
+
+Siguiente foco:
+
+1. Cerrar checklist de Release Candidate local.
+2. Preparar despliegue production con Supabase remoto.
+3. Ejecutar smoke post-deploy.
+4. Documentar evidencia, riesgos residuales y recorrido de demo.
+
 ## Bloques Estables Para Alpha
 
 ### Seguridad y backend autoritativo
@@ -323,7 +345,7 @@ Aplicacion al estado actual:
 - Events: iteracion no-combat cerrada en `0.37.58`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Deck: iteracion no-combat cerrada en `0.37.60`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Roster: iteracion no-combat cerrada en `0.37.61`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
-- Siguiente recomendado: si la siguiente demo depende de online real, ejecutar el smoke remoto con inbox de prueba y el smoke del proxy autoritativo; si no, elegir la siguiente pantalla no-combat por prioridad contextual, probablemente Shop o Team/Squad.
+- Siguiente recomendado: no abrir mas polish por inercia. Ejecutar cierre TFM/Release Candidate: QA local completa, preparacion de despliegue production, smoke remoto post-deploy y documentacion operativa de evidencia/riesgos.
 
 ## Gates Generales Antes de Release Presentable
 

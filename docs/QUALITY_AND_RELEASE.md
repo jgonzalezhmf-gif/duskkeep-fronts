@@ -11,6 +11,25 @@ Este documento define el minimo de calidad para una build presentable de Duskkee
 - La persistencia local sigue siendo compatible.
 - Los checks estan en verde o los bloqueos quedan documentados.
 
+## Alcance Release Candidate TFM
+
+La candidata actual debe presentarse como producto desarrollado con metodologia asistida por IA, SDD, agentes y gates de calidad. No depende de anadir IA generativa dentro del juego.
+
+Para cerrar una entrega de fin de master:
+
+- Congelar funcionalidades jugables salvo bug o bloqueo de demo.
+- Mantener Chapter 2, monetizacion y ladder publico como trabajo futuro.
+- Usar Supabase remoto como persistencia real para demo online.
+- Documentar evidencia de checks, navegador, smokes y despliegue.
+- Mantener documentos privados de TFM fuera de Git hasta aprobacion explicita; este repo conserva solo documentacion operativa/producto.
+
+Una RC no queda lista si:
+
+- Hay errores criticos de consola en rutas principales.
+- Una accion sensible online cae a progreso local sin advertencia.
+- La URL production no puede completar Intro/Auth -> Home -> Adventure -> Combat -> Rewards.
+- No existe evidencia reproducible de los checks ejecutados.
+
 ## Comandos Requeridos
 
 Si algun comando o flujo falla, revisar primero `docs/OPERATIONS_TROUBLESHOOTING.md`.
