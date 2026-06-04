@@ -47,6 +47,19 @@ Ultima pasada local registrada: `0.37.63` / 2026-06-04.
 
 Nota: esta evidencia es local/offline. El cierre de demo online requiere deploy production y smoke Supabase remoto post-deploy.
 
+## Gate Production
+
+Antes de considerar lista la demo online:
+
+- Seguir `docs/PRODUCTION_DEPLOYMENT.md`.
+- Configurar variables production en el hosting antes del primer deploy util.
+- Confirmar `npm.cmd run check:supabase:remote`.
+- Ejecutar smoke autoritativo contra la URL production.
+- Ejecutar capturas o validacion browser contra la URL production.
+- Registrar URL, commit desplegado, fecha, comandos y riesgos residuales.
+
+Estado actual: Supabase remoto pasa preflight; falta crear/importar proyecto Vercel de Duskkeep, configurar variables y ejecutar smoke post-deploy.
+
 ## Comandos Requeridos
 
 Si algun comando o flujo falla, revisar primero `docs/OPERATIONS_TROUBLESHOOTING.md`.

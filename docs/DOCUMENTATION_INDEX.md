@@ -13,6 +13,7 @@ Leer primero estos documentos:
 - `docs/ENGINEERING_STANDARDS.md`: estandares de calidad, seguridad, rendimiento y desarrollo para futuros cambios.
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: estado de bloques, siguientes prioridades y regla para no iterar indefinidamente.
 - `docs/DEMO_GUIDE.md`: recorrido recomendado para demostrar la vertical slice y validar una demo de 10-15 minutos.
+- `docs/PRODUCTION_DEPLOYMENT.md`: runbook de despliegue production, variables, gates y smoke post-deploy.
 - `docs/SCREEN_UX_CHECKLIST.md`: checklist UX por pantalla para demo, release candidate y pasadas visuales acotadas.
 - `docs/OPERATIONS_TROUBLESHOOTING.md`: diagnostico operativo de Supabase/Auth, assets, navegador, audio, build y rendimiento.
 
@@ -80,6 +81,7 @@ Leer antes de:
 - `docs/AUTH_FLOW_AND_SESSION_POLICY.md`: flujo de intro, login, invitado, conversion de invitado a cuenta nueva y expiracion de sesion.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: fases objetivo de backend, operaciones sensibles y direccion Supabase.
 - `docs/SUPABASE_REMOTE_OPERATIONS.md`: pasos operativos para preparar y validar Supabase remoto sin commitear secretos.
+- `docs/PRODUCTION_DEPLOYMENT.md`: variables y gates de deploy production con Supabase remoto.
 - `docs/BACKEND_DATA_MODEL.md`: modelo de datos objetivo para cuenta, recursos, progreso, compras, claims, combate y ledger.
 - `docs/SERVER_AUTHORITATIVE_STATE_OWNERSHIP.md`: matriz de estado server-owned, client-cache y client-only.
 - `docs/SERVER_AUTHORITATIVE_OPERATIONS.md`: contratos de operaciones sensibles que deben ejecutarse en servidor.
@@ -92,6 +94,7 @@ Leer antes de:
 - anadir autenticacion
 - mover persistencia fuera de localStorage
 - validar Supabase remoto
+- desplegar production con Supabase remoto
 - anadir flujos de pago o premium
 - anadir ladder online o almacenamiento de cuenta
 - aceptar resultados de economia o batalla enviados por el cliente
@@ -103,6 +106,7 @@ Leer antes de:
 - `docs/QUALITY_AND_RELEASE.md`: checks de lanzamiento, rutas de validacion rapida y gates de calidad.
 - `docs/PROJECT_STATUS_AND_NEXT_STEPS.md`: matriz de bloques cerrados, backlog priorizado y gates por tipo de trabajo.
 - `docs/DEMO_GUIDE.md`: guia practica de preparacion, recorrido, persistencia online y troubleshooting para demo.
+- `docs/PRODUCTION_DEPLOYMENT.md`: pasos de despliegue production, rollback y smoke post-deploy.
 - `docs/SCREEN_UX_CHECKLIST.md`: criterios de aceptacion por pantalla y riesgos antes de tocar UI.
 - `docs/OPERATIONS_TROUBLESHOOTING.md`: guia de incidencias operativas recurrentes y comandos de recuperacion.
 
@@ -112,6 +116,7 @@ Leer antes de:
 - anadir CSS global o animaciones
 - cambiar comportamiento de carga de bundles
 - preparar una release candidate
+- publicar una demo online
 - investigar regresiones de Lighthouse
 
 ## Huecos Actuales de Documentacion

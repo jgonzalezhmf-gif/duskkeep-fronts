@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.64] - 2026-06-04
+
+### Changed
+- Anadido runbook de despliegue production con Supabase remoto, variables seguras, gates pre-deploy, smoke post-deploy, rollback y riesgos residuales.
+- Registrado el estado real de production readiness: Supabase remoto pasa preflight, pero todavia falta crear/importar el proyecto Vercel de Duskkeep y configurar variables production antes de desplegar.
+
 ## [0.37.63] - 2026-06-04
 
 ### Changed

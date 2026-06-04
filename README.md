@@ -5,7 +5,8 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 > Fuentes de referencia: `AGENTS.md`, `docs/DOCUMENTATION_INDEX.md`,
 > `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`, `docs/ARCHITECTURE.md`,
 > `docs/ENGINEERING_STANDARDS.md`, `docs/GAMEPLAY_GUIDE.md`,
-> `docs/QUALITY_AND_RELEASE.md` y `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
+> `docs/QUALITY_AND_RELEASE.md`, `docs/PRODUCTION_DEPLOYMENT.md` y
+> `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
 
 ## Stack
 
@@ -23,6 +24,7 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 - `docs/ENGINEERING_STANDARDS.md`: estandares de arquitectura, calidad, seguridad, rendimiento y lanzamiento.
 - `docs/GAMEPLAY_GUIDE.md`: loop jugable, pantallas y expectativas de gameplay.
 - `docs/DEMO_GUIDE.md`: recorrido recomendado para demostrar la vertical slice en 10-15 minutos.
+- `docs/PRODUCTION_DEPLOYMENT.md`: runbook para demo production con Supabase remoto, gates, rollback y smoke post-deploy.
 - `docs/OPERATIONS_TROUBLESHOOTING.md`: guia de diagnostico para Supabase/Auth, assets, navegador, audio, build y rendimiento.
 - `docs/QUALITY_AND_RELEASE.md`: checklist de lanzamiento, comandos de prueba, rutas de validacion rapida y gates de calidad.
 - `docs/SECURITY_AND_BACKEND_ROADMAP.md`: persistencia online, validacion backend y roadmap de seguridad.

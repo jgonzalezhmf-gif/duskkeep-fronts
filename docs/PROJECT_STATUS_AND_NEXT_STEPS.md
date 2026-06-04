@@ -19,9 +19,11 @@ Reglas de alcance:
 
 Siguiente foco:
 
-1. Preparar despliegue production con Supabase remoto.
-2. Ejecutar smoke post-deploy.
-3. Documentar evidencia, riesgos residuales y recorrido de demo.
+1. Crear/importar proyecto production en Vercel.
+2. Configurar variables production seguras.
+3. Ejecutar deploy production.
+4. Ejecutar smoke post-deploy.
+5. Documentar evidencia, riesgos residuales y recorrido de demo.
 
 ## Bloques Estables Para Alpha
 
@@ -248,10 +250,12 @@ Tareas:
 Estado operativo:
 
 - Existe `docs/SUPABASE_REMOTE_OPERATIONS.md` como guia de preparacion y validacion remota.
+- Existe `docs/PRODUCTION_DEPLOYMENT.md` como runbook de deploy production, variables, rollback y smoke post-deploy.
 - Existe `npm.cmd run check:supabase:remote` para comprobar variables publicas, URL remota, anon key, persistencia, proxy autoritativo, rate limit y observabilidad sin imprimir secretos.
 - El 2026-06-02 `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co` con `NEXT_PUBLIC_PERSISTENCE=supabase` y `SERVER_AUTHORITATIVE_API_ENABLED=true`. Riesgo residual informado: rate limit en memoria y sink de eventos en consola, aceptables solo para alpha/single instance.
 - El 2026-06-03 `npm.cmd run check:supabase:remote` volvio a pasar contra el mismo proyecto remoto; `smoke:supabase:guest-upgrade` paso con un alias unico de inbox real y `smoke:authoritative-api -- --auth anonymous` paso contra Next local apuntando al remoto.
 - El 2026-06-04 la validacion browser de demo contra Next local apuntando a Supabase/proxy real genero 24 capturas desktop/mobile sin errores de escenario, consola ni page errors. Evidencia local: `tmp/playwright-screenshots/2026-06-04T06-05-28-131Z/manifest.json`.
+- El 2026-06-04 `npm.cmd run check:supabase:remote` volvio a pasar durante la preparacion de production. Vercel conectado no tenia todavia proyecto Duskkeep ni `.vercel/` enlazado en repo; no desplegar hasta configurar variables production.
 - Las pruebas manuales remotas recientes cubrieron login, Adventure, recompensas, Shop, Arena, logout/login e incognito sin perdida aparente de snapshot.
 - El checklist manual queda definido en `docs/QUALITY_AND_RELEASE.md`.
 
