@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   classifySupabaseAuthError,
+  getSupabaseBrowserAuthOptions,
   isSupabaseAuthPasswordWithinBounds,
   isInvalidRefreshTokenError,
   normalizeSupabaseAuthEmail,
@@ -15,6 +16,14 @@ import {
 } from "@/features/server/supabaseBrowserSession";
 
 describe("Supabase browser session helpers", () => {
+  it("disables Supabase URL auto-detection because redirects are handled explicitly", () => {
+    expect(getSupabaseBrowserAuthOptions()).toMatchObject({
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      persistSession: true,
+    });
+  });
+
   it("does not expose access tokens in session snapshots", () => {
     const snapshot = toSupabaseSessionSnapshot({
       access_token: "secret-access-token",

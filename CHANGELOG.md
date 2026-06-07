@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.72] - 2026-06-07
+
+### Fixed
+- Corregido el doble procesamiento del retorno OAuth de Supabase: el cliente ya no auto-detecta sesiones en la URL porque la app gestiona explicitamente `code`/`access_token`/`refresh_token`.
+- Evitada una carrera que podia provocar `401 Unauthorized` contra `/auth/v1/user` tras Google OAuth al consumir el hash de autenticacion desde dos rutas distintas.
+
 ## [0.37.71] - 2026-06-07
 
 ### Fixed

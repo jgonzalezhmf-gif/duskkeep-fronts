@@ -61,16 +61,20 @@ export async function getSupabaseBrowserClient() {
 
   browserClientPromise ??= import("@supabase/supabase-js").then(({ createClient }) => {
     browserClient = createClient(publicConfig.config.url, publicConfig.config.anonKey, {
-      auth: {
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        persistSession: true,
-      },
+      auth: getSupabaseBrowserAuthOptions(),
     });
     return browserClient;
   });
 
   return browserClientPromise;
+}
+
+export function getSupabaseBrowserAuthOptions() {
+  return {
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    persistSession: true,
+  };
 }
 
 export async function getSupabaseSessionSnapshot(): Promise<SupabaseSessionSnapshot> {
