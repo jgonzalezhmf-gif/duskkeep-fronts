@@ -23,9 +23,9 @@ No incluye:
 - RC local cerrada en `0.37.63`; gates pre-deploy repetidos en `0.37.67` tras los fixes de progresion y Roster.
 - `npm.cmd run check:supabase:remote` pasa contra el proyecto remoto configurado.
 - Desde `0.37.65`, aplicar la migracion `20260604211500_normalize_account_progress.sql` antes del smoke online para reparar XP/nivel acumulado y mantener el snapshot como fuente de verdad.
-- No hay proyecto Vercel de Duskkeep enlazado en el repo (`.vercel/` no existe y esta ignorado por Git).
-- La cuenta Vercel conectada aun no muestra un proyecto Duskkeep; solo debe continuarse con deploy cuando el proyecto production exista y sus variables esten configuradas.
-- Vercel no debe desplegarse hasta configurar variables production; un deploy sin Supabase seria una demo online incompleta.
+- El proyecto Vercel `duskkeep-fronts` ya existe y esta asociado al repositorio correcto `jgonzalezhmf-gif/duskkeep-fronts`.
+- `.vercel/` no debe commitearse; si se enlaza localmente, queda ignorado por Git.
+- Vercel no debe validarse como demo hasta tener variables production y smoke post-deploy en verde.
 
 ## Variables Production
 
@@ -101,9 +101,14 @@ Evidencia `0.37.67` del 2026-06-04:
 - `npm.cmd run check:performance` paso todos los presupuestos.
 - `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co`.
 
-Bloqueante actual:
+Nota `0.37.68`:
 
-- Crear/importar/enlazar el proyecto Duskkeep en Vercel y configurar variables production antes de ejecutar `vercel build --prod` / `vercel deploy --prebuilt --prod`.
+- El primer deploy production real de Duskkeep en Vercel llego al repositorio correcto, pero fallo en `npm install` porque `eslint-config-next@16.2.6` exige `eslint >= 9` y el proyecto seguia declarando `eslint@8.57.0`.
+- Se corrigio migrando a ESLint 9 y `eslint.config.mjs`; antes de volver a desplegar pasaron `npm.cmd run check`, `npm.cmd run test` y `npm.cmd run build`.
+
+Siguiente paso:
+
+- Esperar el deploy production generado por el commit con el fix de ESLint 9 y ejecutar el smoke post-deploy contra la URL production.
 
 ## Post-Deploy Smoke
 

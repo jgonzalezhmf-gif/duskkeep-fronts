@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.68] - 2026-06-07
+
+### Fixed
+- Corregido el bloqueo de `npm install` en Vercel alineando ESLint con `eslint-config-next@16.2.6`: migrado a ESLint 9 con `eslint.config.mjs`.
+- Ajustado el alcance de lint para mantener el comportamiento historico del proyecto y no analizar artefactos temporales, skills locales ni scripts `.mjs/.cjs` fuera del gate de producto.
+
 ## [0.37.67] - 2026-06-04
 
 ### Changed

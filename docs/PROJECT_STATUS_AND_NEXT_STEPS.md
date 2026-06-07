@@ -28,7 +28,13 @@ Siguiente foco:
 Estado operativo `0.37.67`:
 
 - Gates locales pre-deploy pasados tras los fixes de progresion y Roster: `check`, `test`, `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build`, `check:performance` y `check:supabase:remote`.
-- `.vercel/` no existe y la cuenta Vercel conectada aun no muestra un proyecto Duskkeep; el deploy production queda bloqueado hasta crear/importar/enlazar el proyecto y configurar variables.
+- `.vercel/` no existe y no debe commitearse.
+
+Estado operativo `0.37.68`:
+
+- El proyecto Vercel `duskkeep-fronts` ya existe y apunta al repositorio correcto.
+- El primer deploy llego al commit correcto con autor GitHub valido, pero fallo en `npm install` por incompatibilidad `eslint@8.57.0` vs `eslint-config-next@16.2.6`.
+- Corregido el bloqueo migrando a ESLint 9 y `eslint.config.mjs`; `check`, `test` y `build` pasaron localmente antes de pushear.
 
 ## Bloques Estables Para Alpha
 
