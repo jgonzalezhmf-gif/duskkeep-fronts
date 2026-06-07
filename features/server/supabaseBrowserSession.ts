@@ -34,6 +34,11 @@ export type SupabasePasswordSetupRedirectResult =
   | { ok: true; session: SupabaseSessionSnapshot }
   | { ok: false; reason: SupabaseAuthFailureReason };
 export type SupabaseAuthRedirectResult = SupabasePasswordSetupRedirectResult;
+export type SupabaseAuthRedirectParams = {
+  code: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+};
 
 export type SupabasePasswordCredentials = {
   email: string;
@@ -266,37 +271,58 @@ export async function updateSupabasePassword(password: string): Promise<Supabase
 }
 
 export async function completeSupabaseAuthRedirect(): Promise<SupabaseAuthRedirectResult> {
+  if (typeof window === "undefined") return { ok: false, reason: "auth_error" };
+  const redirectParams = parseSupabaseAuthRedirectParams({
+    search: window.location.search,
+    hash: window.location.hash,
+  });
+
   const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
-  if (typeof window === "undefined") return { ok: false, reason: "auth_error" };
 
-  const code = new URLSearchParams(window.location.search).get("code");
-  if (code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  try {
+    if (redirectParams.code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(redirectParams.code);
+      if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+      return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
+    }
+
+    if (redirectParams.accessToken && redirectParams.refreshToken) {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: redirectParams.accessToken,
+        refresh_token: redirectParams.refreshToken,
+      });
+      if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+      return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
+    }
+
+    const { data, error } = await supabase.auth.getSession();
     if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
+    if (!data.session) return { ok: false, reason: "auth_error" };
     return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
+  } catch {
+    return { ok: false, reason: "auth_error" };
   }
-
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const accessToken = hashParams.get("access_token");
-  const refreshToken = hashParams.get("refresh_token");
-  if (accessToken && refreshToken) {
-    const { data, error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
-    return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
-  }
-
-  const { data, error } = await supabase.auth.getSession();
-  if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
-  if (!data.session) return { ok: false, reason: "auth_error" };
-  return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
 }
 
 export async function completeSupabasePasswordSetupRedirect(): Promise<SupabasePasswordSetupRedirectResult> {
   return completeSupabaseAuthRedirect();
+}
+
+export function parseSupabaseAuthRedirectParams({
+  search = "",
+  hash = "",
+}: {
+  search?: string;
+  hash?: string;
+}): SupabaseAuthRedirectParams {
+  const searchParams = new URLSearchParams(search.replace(/^\?/, ""));
+  const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+  return {
+    code: searchParams.get("code"),
+    accessToken: hashParams.get("access_token"),
+    refreshToken: hashParams.get("refresh_token"),
+  };
 }
 
 export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "auth_error" }> {

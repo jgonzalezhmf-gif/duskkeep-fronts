@@ -5,6 +5,7 @@ import {
   isInvalidRefreshTokenError,
   normalizeSupabaseAuthEmail,
   normalizeSupabaseAuthRedirectTo,
+  parseSupabaseAuthRedirectParams,
   prepareSupabasePasswordCredentials,
   SUPABASE_AUTH_EMAIL_MAX_LENGTH,
   SUPABASE_AUTH_PASSWORD_MAX_LENGTH,
@@ -137,5 +138,29 @@ describe("Supabase browser session helpers", () => {
     expect(normalizeSupabaseAuthRedirectTo("https://evil.example.test/phish", origin)).toBeUndefined();
     expect(normalizeSupabaseAuthRedirectTo("javascript:alert(1)", origin)).toBeUndefined();
     expect(normalizeSupabaseAuthRedirectTo("https://game.example.test", undefined)).toBeUndefined();
+  });
+
+  it("parses OAuth redirect tokens before Supabase client initialization", () => {
+    expect(
+      parseSupabaseAuthRedirectParams({
+        search: "?code=secret-code&next=%2Fdeck",
+        hash: "",
+      }),
+    ).toEqual({
+      code: "secret-code",
+      accessToken: null,
+      refreshToken: null,
+    });
+
+    expect(
+      parseSupabaseAuthRedirectParams({
+        search: "",
+        hash: "#access_token=secret-access-token&refresh_token=secret-refresh-token&type=bearer",
+      }),
+    ).toEqual({
+      code: null,
+      accessToken: "secret-access-token",
+      refreshToken: "secret-refresh-token",
+    });
   });
 });

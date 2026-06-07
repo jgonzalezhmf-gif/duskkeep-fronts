@@ -184,8 +184,12 @@ export function shouldStripPasswordRecoveryUrl({ search = "", hash = "" }: Pick<
 }
 
 export function hasSupabaseAuthRedirectTokens({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
-  const marker = `${hash} ${search}`.toLowerCase();
-  return (marker.includes("access_token") && marker.includes("refresh_token")) || marker.includes("code=");
+  return (
+    hasUrlParam(search, "code") ||
+    hasUrlParam(hash, "access_token") ||
+    hasUrlParam(hash, "refresh_token") ||
+    hasUrlParam(hash, "token_hash")
+  );
 }
 
 export function hasSupabaseOAuthRedirectUrl(parts: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
@@ -213,6 +217,15 @@ export function createSupabaseAuthRedirectCleanPath({ pathname, search = "" }: A
   params.delete("type");
   const cleanSearch = params.toString();
   return `${pathname}${cleanSearch ? `?${cleanSearch}` : ""}`;
+}
+
+function hasUrlParam(rawParams: string, name: string) {
+  if (!rawParams) return false;
+  try {
+    return new URLSearchParams(rawParams.replace(/^[?#]/, "")).has(name);
+  } catch {
+    return false;
+  }
 }
 
 export function shouldShowEntryAuthGate({
