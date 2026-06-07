@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.69] - 2026-06-07
+
+### Fixed
+- Corregido el retorno de Google OAuth en produccion: la app procesa explicitamente los tokens `access_token`/`refresh_token` devueltos por Supabase, reconcilia la cuenta como vinculada y limpia la URL antes de volver al Home.
+- Anadida cobertura para distinguir redirects OAuth normales de enlaces de recuperacion/upgrade, evitando que el AuthGate reaparezca tras un login Google correcto.
+
 ## [0.37.68] - 2026-06-07
 
 ### Fixed

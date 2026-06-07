@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createPasswordRecoveryCleanPath,
+  createSupabaseAuthRedirectCleanPath,
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
   getPasswordRecoveryRequestNoticeKey,
@@ -9,11 +10,14 @@ import {
   hasGuestUpgradePasswordSetupUrlMarker,
   hasPasswordRecoveryUrlMarker,
   hasPasswordSetupUrlMarker,
+  hasSupabaseAuthRedirectTokens,
+  hasSupabaseOAuthRedirectUrl,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
   shouldBlockLocalAuthoritativeFallback,
   shouldBlockGuestUpgradeForSession,
   shouldStripPasswordRecoveryUrl,
+  shouldStripSupabaseAuthRedirectUrl,
   shouldUseGenericAccountRequestError,
   shouldRecordAuthActivity,
   shouldShowEntryAuthGate,
@@ -216,6 +220,43 @@ describe("auth session security helpers", () => {
       "/home?next=%2Fhome",
     );
     expect(createPasswordRecoveryCleanPath({ pathname: "/home", search: "?type=recovery", hash: "#refresh_token=secret" })).toBe("/home");
+  });
+
+  it("detects plain Supabase OAuth redirects separately from password setup links", () => {
+    expect(
+      hasSupabaseAuthRedirectTokens({
+        search: "",
+        hash: "#access_token=secret&refresh_token=secret&type=bearer",
+      }),
+    ).toBe(true);
+    expect(hasSupabaseAuthRedirectTokens({ search: "?code=secret", hash: "" })).toBe(true);
+    expect(hasSupabaseAuthRedirectTokens({ search: "?next=/home", hash: "#safe=1" })).toBe(false);
+
+    expect(
+      hasSupabaseOAuthRedirectUrl({
+        search: "",
+        hash: "#access_token=secret&refresh_token=secret&type=bearer",
+      }),
+    ).toBe(true);
+    expect(hasSupabaseOAuthRedirectUrl({ search: "?code=secret", hash: "" })).toBe(true);
+    expect(hasSupabaseOAuthRedirectUrl({ search: "?type=recovery&code=secret", hash: "" })).toBe(false);
+    expect(hasSupabaseOAuthRedirectUrl({ search: "?guestUpgrade=confirm&code=secret", hash: "" })).toBe(false);
+
+    expect(
+      shouldStripSupabaseAuthRedirectUrl({
+        search: "?next=/home",
+        hash: "#access_token=secret&refresh_token=secret&type=bearer",
+      }),
+    ).toBe(true);
+    expect(shouldStripSupabaseAuthRedirectUrl({ search: "?next=/home", hash: "#safe=1" })).toBe(false);
+
+    expect(
+      createSupabaseAuthRedirectCleanPath({
+        pathname: "/",
+        search: "?code=secret&next=%2Fdeck&type=bearer",
+        hash: "#access_token=secret&refresh_token=secret",
+      }),
+    ).toBe("/?next=%2Fdeck");
   });
 
   it("shows the entry auth gate for guests once per page load so they can choose login or continue guest", () => {

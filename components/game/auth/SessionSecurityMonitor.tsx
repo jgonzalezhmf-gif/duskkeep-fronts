@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  completeSupabaseAuthRedirect,
   getSupabaseSessionSnapshot,
   signOutSupabase,
   subscribeToSupabaseAuthEvents,
@@ -10,8 +11,11 @@ import {
 } from "@/features/server/supabaseBrowserSession";
 import {
   AUTH_IDLE_TIMEOUT_MS,
+  createSupabaseAuthRedirectCleanPath,
+  hasSupabaseOAuthRedirectUrl,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
+  shouldStripSupabaseAuthRedirectUrl,
   shouldRecordAuthActivity,
 } from "@/features/server/sessionSecurity";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -51,6 +55,29 @@ export function SessionSecurityMonitor() {
     lastActivityAtRef.current = now;
     lastRecordedAtRef.current = now;
   }, []);
+
+  useEffect(() => {
+    if (!hasCurrentSupabaseOAuthRedirectUrl()) return;
+
+    let cancelled = false;
+    void completeSupabaseAuthRedirect().then((result) => {
+      stripCurrentSupabaseAuthRedirectUrl();
+      if (cancelled || !result.ok) return;
+
+      const session = result.session;
+      if (session.status !== "authenticated") return;
+
+      lastActivityAtRef.current = Date.now();
+      lastRecordedAtRef.current = Date.now();
+      setExpired(false);
+      setAccountLinkMode(session.isAnonymous ? "guest" : "linked");
+      queueServerSnapshotLoad(session);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [queueServerSnapshotLoad, setAccountLinkMode]);
 
   useEffect(() => {
     const subscription = subscribeToSupabaseAuthEvents((event, session) => {
@@ -170,3 +197,23 @@ export function SessionSecurityMonitor() {
 }
 
 export default SessionSecurityMonitor;
+
+function hasCurrentSupabaseOAuthRedirectUrl() {
+  if (typeof window === "undefined") return false;
+  return hasSupabaseOAuthRedirectUrl({ search: window.location.search, hash: window.location.hash });
+}
+
+function stripCurrentSupabaseAuthRedirectUrl() {
+  if (typeof window === "undefined") return;
+  const parts = { search: window.location.search, hash: window.location.hash };
+  if (!shouldStripSupabaseAuthRedirectUrl(parts)) return;
+  window.history.replaceState(
+    null,
+    "",
+    createSupabaseAuthRedirectCleanPath({
+      pathname: window.location.pathname,
+      search: window.location.search,
+      hash: window.location.hash,
+    }),
+  );
+}

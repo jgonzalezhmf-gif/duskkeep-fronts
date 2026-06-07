@@ -33,6 +33,7 @@ export type SupabaseGuestUpgradeEmailResult =
 export type SupabasePasswordSetupRedirectResult =
   | { ok: true; session: SupabaseSessionSnapshot }
   | { ok: false; reason: SupabaseAuthFailureReason };
+export type SupabaseAuthRedirectResult = SupabasePasswordSetupRedirectResult;
 
 export type SupabasePasswordCredentials = {
   email: string;
@@ -264,7 +265,7 @@ export async function updateSupabasePassword(password: string): Promise<Supabase
   };
 }
 
-export async function completeSupabasePasswordSetupRedirect(): Promise<SupabasePasswordSetupRedirectResult> {
+export async function completeSupabaseAuthRedirect(): Promise<SupabaseAuthRedirectResult> {
   const supabase = await getSupabaseBrowserClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
   if (typeof window === "undefined") return { ok: false, reason: "auth_error" };
@@ -292,6 +293,10 @@ export async function completeSupabasePasswordSetupRedirect(): Promise<SupabaseP
   if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
   if (!data.session) return { ok: false, reason: "auth_error" };
   return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
+}
+
+export async function completeSupabasePasswordSetupRedirect(): Promise<SupabasePasswordSetupRedirectResult> {
+  return completeSupabaseAuthRedirect();
 }
 
 export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "auth_error" }> {

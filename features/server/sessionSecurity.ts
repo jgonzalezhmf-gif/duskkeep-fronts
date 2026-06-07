@@ -183,12 +183,34 @@ export function shouldStripPasswordRecoveryUrl({ search = "", hash = "" }: Pick<
   );
 }
 
+export function hasSupabaseAuthRedirectTokens({ search = "", hash = "" }: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
+  const marker = `${hash} ${search}`.toLowerCase();
+  return (marker.includes("access_token") && marker.includes("refresh_token")) || marker.includes("code=");
+}
+
+export function hasSupabaseOAuthRedirectUrl(parts: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
+  return hasSupabaseAuthRedirectTokens(parts) && !hasPasswordSetupUrlMarker(parts);
+}
+
+export function shouldStripSupabaseAuthRedirectUrl(parts: Pick<AuthRecoveryUrlParts, "search" | "hash">) {
+  return hasSupabaseAuthRedirectTokens(parts);
+}
+
 export function createPasswordRecoveryCleanPath({ pathname, search = "" }: AuthRecoveryUrlParts) {
   const params = new URLSearchParams(search);
   params.delete("type");
   params.delete("guestUpgrade");
   params.delete("code");
   params.delete("token_hash");
+  const cleanSearch = params.toString();
+  return `${pathname}${cleanSearch ? `?${cleanSearch}` : ""}`;
+}
+
+export function createSupabaseAuthRedirectCleanPath({ pathname, search = "" }: AuthRecoveryUrlParts) {
+  const params = new URLSearchParams(search);
+  params.delete("code");
+  params.delete("token_hash");
+  params.delete("type");
   const cleanSearch = params.toString();
   return `${pathname}${cleanSearch ? `?${cleanSearch}` : ""}`;
 }
