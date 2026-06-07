@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.73] - 2026-06-07
+
+### Fixed
+- Corregido el retorno de Google OAuth para que el login enlazado marque la intro como completada en la sesion de pestana y entre directamente al Home.
+- Anadida sincronizacion entre el monitor global de Auth y la pantalla Home para evitar que la intro reaparezca durante el callback OAuth.
+
 ## [0.37.72] - 2026-06-07
 
 ### Fixed

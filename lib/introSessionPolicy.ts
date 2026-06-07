@@ -1,6 +1,8 @@
 export const INTRO_SEEN_SESSION_KEY = "duskkeep:intro-seen-session";
+export const INTRO_SEEN_SESSION_EVENT = "duskkeep:intro-seen-session-updated";
 
 type IntroSessionStorage = Pick<Storage, "getItem" | "setItem">;
+type IntroSessionEventTarget = Pick<EventTarget, "dispatchEvent">;
 
 export function shouldShowEntryIntro({
   hydrated,
@@ -24,8 +26,10 @@ export function readIntroSeenForSession(storage = getSessionStorage()) {
   return readSessionFlag(INTRO_SEEN_SESSION_KEY, storage);
 }
 
-export function markIntroSeenForSession(storage = getSessionStorage()) {
-  return writeSessionFlag(INTRO_SEEN_SESSION_KEY, storage);
+export function markIntroSeenForSession(storage = getSessionStorage(), eventTarget = getWindowEventTarget()) {
+  const written = writeSessionFlag(INTRO_SEEN_SESSION_KEY, storage);
+  if (written) notifyIntroSeenForSession(eventTarget);
+  return written;
 }
 
 function readSessionFlag(key: string, storage: IntroSessionStorage | null) {
@@ -52,4 +56,19 @@ function writeSessionFlag(key: string, storage: IntroSessionStorage | null) {
 function getSessionStorage(): IntroSessionStorage | null {
   if (typeof window === "undefined") return null;
   return window.sessionStorage;
+}
+
+function notifyIntroSeenForSession(eventTarget: IntroSessionEventTarget | null) {
+  if (!eventTarget) return false;
+
+  try {
+    return eventTarget.dispatchEvent(new Event(INTRO_SEEN_SESSION_EVENT));
+  } catch {
+    return false;
+  }
+}
+
+function getWindowEventTarget(): IntroSessionEventTarget | null {
+  if (typeof window === "undefined") return null;
+  return window;
 }

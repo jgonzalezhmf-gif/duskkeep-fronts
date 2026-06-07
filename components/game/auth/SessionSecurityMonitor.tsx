@@ -19,6 +19,7 @@ import {
   shouldRecordAuthActivity,
 } from "@/features/server/sessionSecurity";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { markIntroSeenForSession } from "@/lib/introSessionPolicy";
 import { useGameStore } from "@/lib/store";
 
 const GameAuthGate = dynamic(() => import("@/components/game/auth/GameAuthGate").then((mod) => mod.GameAuthGate), {
@@ -70,6 +71,7 @@ export function SessionSecurityMonitor() {
       lastActivityAtRef.current = Date.now();
       lastRecordedAtRef.current = Date.now();
       setExpired(false);
+      if (!session.isAnonymous) markIntroSeenForSession();
       setAccountLinkMode(session.isAnonymous ? "guest" : "linked");
       queueServerSnapshotLoad(session);
     });

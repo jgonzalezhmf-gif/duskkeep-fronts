@@ -1,13 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HomeWorldMap, { type HomeHotspot } from "@/components/game/HomeWorldMap";
 import { signInSupabaseAnonymously } from "@/features/server/supabaseBrowserSession";
 import { shouldShowEntryAuthGate } from "@/features/server/sessionSecurity";
 import { HOME_LANDMARK_LAYOUT, toPx } from "@/components/game/home/homeComposition";
 import { GameIntro } from "@/components/game/intro/GameIntro";
 import {
+  INTRO_SEEN_SESSION_EVENT,
   markIntroSeenForSession,
   readIntroSeenForSession,
   shouldShowEntryIntro,
@@ -89,6 +90,21 @@ export default function HomePageClient({
     setGuestChoiceResolvedThisPageLoad(true);
     markIntroCompleteForSession();
   }
+
+  useEffect(() => {
+    if (!introEligible || forceIntro) return;
+
+    function syncIntroSeenForCurrentSession() {
+      if (!readIntroSeenForSession()) return;
+      introSeenInPageRuntime = true;
+      setIntroSeenThisSession(true);
+      setIntroDismissed(true);
+    }
+
+    syncIntroSeenForCurrentSession();
+    window.addEventListener(INTRO_SEEN_SESSION_EVENT, syncIntroSeenForCurrentSession);
+    return () => window.removeEventListener(INTRO_SEEN_SESSION_EVENT, syncIntroSeenForCurrentSession);
+  }, [forceIntro, introEligible]);
 
   const hotspots: HomeHotspot[] = [
     {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  INTRO_SEEN_SESSION_EVENT,
   INTRO_SEEN_SESSION_KEY,
   markIntroSeenForSession,
   readIntroSeenForSession,
@@ -15,6 +16,15 @@ class MemoryStorage {
 
   setItem(key: string, value: string) {
     this.values.set(key, value);
+  }
+}
+
+class MemoryEventTarget {
+  readonly events: string[] = [];
+
+  dispatchEvent(event: Event) {
+    this.events.push(event.type);
+    return true;
   }
 }
 
@@ -82,4 +92,12 @@ describe("intro session policy", () => {
     expect(readIntroSeenForSession(storage)).toBe(true);
   });
 
+  it("notifies the page when another auth flow marks the intro as completed", () => {
+    const storage = new MemoryStorage();
+    const eventTarget = new MemoryEventTarget();
+
+    markIntroSeenForSession(storage, eventTarget);
+
+    expect(eventTarget.events).toEqual([INTRO_SEEN_SESSION_EVENT]);
+  });
 });
