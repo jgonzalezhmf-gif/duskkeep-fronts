@@ -7,6 +7,7 @@ let browserClientPromise: Promise<SupabaseClient | null> | null = null;
 
 export const SUPABASE_AUTH_EMAIL_MAX_LENGTH = 254;
 export const SUPABASE_AUTH_PASSWORD_MAX_LENGTH = 1_024;
+const SUPABASE_AUTH_REDIRECT_SESSION_RETRY_DELAYS_MS = [80, 160, 320, 640] as const;
 
 export type SupabaseSessionSnapshot =
   | { status: "unconfigured" }
@@ -296,7 +297,9 @@ export async function completeSupabaseAuthRedirect(): Promise<SupabaseAuthRedire
       return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
     }
 
-    const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await getSessionAfterAuthRedirect(supabase, {
+      waitForMaterializedSession: shouldWaitForSupabaseAuthRedirectSession(redirectParams),
+    });
     if (error) return { ok: false, reason: classifySupabaseAuthError(error.message) };
     if (!data.session) return { ok: false, reason: "auth_error" };
     return { ok: true, session: toSupabaseSessionSnapshot(data.session) };
@@ -323,6 +326,10 @@ export function parseSupabaseAuthRedirectParams({
     accessToken: hashParams.get("access_token"),
     refreshToken: hashParams.get("refresh_token"),
   };
+}
+
+export function shouldWaitForSupabaseAuthRedirectSession(params: SupabaseAuthRedirectParams) {
+  return !params.code && (Boolean(params.accessToken) || Boolean(params.refreshToken));
 }
 
 export async function signOutSupabase(): Promise<{ ok: true } | { ok: false; reason: "unconfigured" | "auth_error" }> {
@@ -464,6 +471,26 @@ async function clearStaleSupabaseSession(supabase: SupabaseClient) {
   } catch {
     // Best-effort cleanup only. The caller still treats the session as anonymous.
   }
+}
+
+async function getSessionAfterAuthRedirect(
+  supabase: SupabaseClient,
+  { waitForMaterializedSession }: { waitForMaterializedSession: boolean },
+) {
+  const first = await supabase.auth.getSession();
+  if (first.error || first.data.session || !waitForMaterializedSession) return first;
+
+  for (const delayMs of SUPABASE_AUTH_REDIRECT_SESSION_RETRY_DELAYS_MS) {
+    await delay(delayMs);
+    const attempt = await supabase.auth.getSession();
+    if (attempt.error || attempt.data.session) return attempt;
+  }
+
+  return first;
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function getCurrentBrowserOrigin() {

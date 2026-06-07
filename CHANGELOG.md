@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.71] - 2026-06-07
+
+### Fixed
+- Corregida la carrera del retorno Google OAuth donde el gate de login podia seguir abierto aunque Supabase ya tuviese una sesion vinculada, auto-continuando al Home al detectar la sesion.
+- Endurecido el fallback de redirects OAuth con hash parcial para esperar brevemente a que Supabase materialice la sesion antes de tratar el retorno como fallo.
+
 ## [0.37.70] - 2026-06-07
 
 ### Fixed

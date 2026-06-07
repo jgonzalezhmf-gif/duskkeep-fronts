@@ -14,6 +14,7 @@ import {
   hasSupabaseOAuthRedirectUrl,
   hasAuthIdleSessionExpired,
   reconcileAuthSessionState,
+  shouldAutoContinueLinkedAuthGate,
   shouldBlockLocalAuthoritativeFallback,
   shouldBlockGuestUpgradeForSession,
   shouldStripPasswordRecoveryUrl,
@@ -276,6 +277,44 @@ describe("auth session security helpers", () => {
         showIntro: false,
         accountLinkMode: "guest",
         guestChoiceResolvedThisPageLoad: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("auto-continues the entry auth gate when Supabase already has a linked session", () => {
+    expect(
+      shouldAutoContinueLinkedAuthGate({
+        open: true,
+        intent: "entry",
+        sessionStatus: "authenticated",
+        sessionIsAnonymous: false,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldAutoContinueLinkedAuthGate({
+        open: true,
+        intent: "entry",
+        sessionStatus: "authenticated",
+        sessionIsAnonymous: true,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldAutoContinueLinkedAuthGate({
+        open: true,
+        intent: "guestUpgrade",
+        sessionStatus: "authenticated",
+        sessionIsAnonymous: false,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldAutoContinueLinkedAuthGate({
+        open: false,
+        intent: "entry",
+        sessionStatus: "authenticated",
+        sessionIsAnonymous: false,
       }),
     ).toBe(false);
   });

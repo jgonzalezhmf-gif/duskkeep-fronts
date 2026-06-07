@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import {
   doRegistrationPasswordsMatch,
   getRegistrationPasswordStrength,
@@ -23,6 +23,7 @@ import {
   getAuthFailureNoticeKey,
   getAuthGateModeForIntent,
   getPasswordRecoveryRequestNoticeKey,
+  shouldAutoContinueLinkedAuthGate,
   shouldBlockGuestUpgradeForSession,
 } from "@/features/server/sessionSecurity";
 import { sfx } from "@/lib/audio";
@@ -90,6 +91,7 @@ export function GameAuthGate({
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [session, setSession] = useState<SupabaseSessionSnapshot>({ status: "anonymous" });
+  const autoContinueLinkedRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -114,6 +116,29 @@ export function GameAuthGate({
       setNotice(initialNotice);
     }
   }, [initialNotice, open]);
+
+  useEffect(() => {
+    if (!open) {
+      autoContinueLinkedRef.current = false;
+      return;
+    }
+    if (
+      !shouldAutoContinueLinkedAuthGate({
+        open,
+        intent,
+        sessionStatus: session.status,
+        sessionIsAnonymous: session.status === "authenticated" ? session.isAnonymous : false,
+      })
+    ) {
+      return;
+    }
+    if (autoContinueLinkedRef.current) return;
+
+    autoContinueLinkedRef.current = true;
+    void Promise.resolve(onLinked()).catch(() => {
+      autoContinueLinkedRef.current = false;
+    });
+  }, [intent, onLinked, open, session]);
 
   if (!open) return null;
 

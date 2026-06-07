@@ -246,6 +246,20 @@ export function shouldShowEntryAuthGate({
   return accountLinkMode === "guest" && !guestChoiceResolvedThisPageLoad;
 }
 
+export function shouldAutoContinueLinkedAuthGate({
+  open,
+  intent,
+  sessionStatus,
+  sessionIsAnonymous = false,
+}: {
+  open: boolean;
+  intent: AuthGateIntent;
+  sessionStatus: AuthSessionStatus;
+  sessionIsAnonymous?: boolean;
+}) {
+  return open && intent === "entry" && sessionStatus === "authenticated" && !sessionIsAnonymous;
+}
+
 export function hasAuthIdleSessionExpired({
   linked,
   lastActivityAt,

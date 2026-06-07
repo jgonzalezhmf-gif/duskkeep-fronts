@@ -7,6 +7,7 @@ import {
   normalizeSupabaseAuthRedirectTo,
   parseSupabaseAuthRedirectParams,
   prepareSupabasePasswordCredentials,
+  shouldWaitForSupabaseAuthRedirectSession,
   SUPABASE_AUTH_EMAIL_MAX_LENGTH,
   SUPABASE_AUTH_PASSWORD_MAX_LENGTH,
   shouldAllowAnonymousUserUpgrade,
@@ -162,5 +163,36 @@ describe("Supabase browser session helpers", () => {
       accessToken: "secret-access-token",
       refreshToken: "secret-refresh-token",
     });
+  });
+
+  it("waits for Supabase to materialize sessions when OAuth hash tokens are present", () => {
+    expect(
+      shouldWaitForSupabaseAuthRedirectSession({
+        code: null,
+        accessToken: "secret-access-token",
+        refreshToken: null,
+      }),
+    ).toBe(true);
+    expect(
+      shouldWaitForSupabaseAuthRedirectSession({
+        code: null,
+        accessToken: null,
+        refreshToken: "secret-refresh-token",
+      }),
+    ).toBe(true);
+    expect(
+      shouldWaitForSupabaseAuthRedirectSession({
+        code: "secret-code",
+        accessToken: null,
+        refreshToken: null,
+      }),
+    ).toBe(false);
+    expect(
+      shouldWaitForSupabaseAuthRedirectSession({
+        code: null,
+        accessToken: null,
+        refreshToken: null,
+      }),
+    ).toBe(false);
   });
 });
