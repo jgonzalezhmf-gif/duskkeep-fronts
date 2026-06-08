@@ -7,6 +7,7 @@ import { getLocalizedChapterMeta } from "@/components/game/adventure/AdventureCh
 import { AdventureCacheRevealOverlay } from "@/components/game/adventure/AdventureCacheRevealOverlay";
 import { AdventureMapInteractionPanel } from "@/components/game/adventure/AdventureMapInteractionPanel";
 import { AdventureMissionPanel } from "@/components/game/adventure/AdventureMissionPanels";
+import { getAdventurePanelDockForY, getAdventureSelectedFocusY } from "@/components/game/adventure/adventurePanelDock";
 import { useAdventureMapPageState } from "@/components/game/adventure/useAdventureMapPageState";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
@@ -86,6 +87,14 @@ export default function AdventureMapPage() {
     setDetailsExpanded,
     setSelectedInteractionId,
   } = state;
+  const selectedPanelDock = getAdventurePanelDockForY(
+    getAdventureSelectedFocusY({
+      mapLayout,
+      selectedInteractionId,
+      selectedNodeId: selected.lvl.id,
+    }),
+    { expanded: detailsExpanded },
+  );
 
   return (
     <ScreenScaffold scene={meta.scene} dock={false} homeNav={false} hud={false}>
@@ -182,9 +191,14 @@ export default function AdventureMapPage() {
           {!qaMapEditor ? (
             <div
               className={cn(
-                "pointer-events-none absolute inset-x-0 mx-auto w-[min(62rem,calc(100vw-1.5rem))]",
-                detailsExpanded ? "top-[calc(100dvh-31rem)]" : "top-[calc(100dvh-19rem)]",
+                "pointer-events-none absolute inset-x-0 mx-auto w-[min(62rem,calc(100vw-1.5rem))] transition-[top] duration-300 ease-out",
+                selectedPanelDock === "top"
+                  ? "top-20 lg:top-0"
+                  : detailsExpanded
+                    ? "top-[calc(100dvh-31rem)]"
+                    : "top-[calc(100dvh-19rem)]",
               )}
+              data-adventure-panel-dock={selectedPanelDock}
             >
               {selectedInteraction && selectedInteractionStatus ? (
                 <AdventureMapInteractionPanel
