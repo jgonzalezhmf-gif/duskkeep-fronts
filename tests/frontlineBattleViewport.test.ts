@@ -35,4 +35,12 @@ describe("frontline battle viewport", () => {
       expect(source).not.toContain("max-w-[1480px]");
     }
   });
+
+  it("keeps the standard battle backdrop on a viewport-fixed cover plane", () => {
+    const source = readFileSync(resolve("components/game/frontline/FrontlineBattleShell.tsx"), "utf8");
+
+    expect(source).toContain("fixed inset-0");
+    expect(source).toContain("bg-cover bg-center");
+    expect(source).not.toContain("bg-contain");
+  });
 });

@@ -27,19 +27,38 @@ export function FrontlineBattleShell({
     >
       <FrontlineBattleStyles />
       <div
-        className="absolute inset-0 scale-[1.06] bg-cover bg-center opacity-[0.35] blur-sm"
-        style={{ backgroundImage: `url('${backdrop}')` }}
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#030406]"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute inset-0 scale-[1.06] bg-cover bg-center opacity-[0.38] blur-sm"
+          style={{ backgroundImage: `url('${backdrop}')` }}
+        />
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-90"
+          style={{ backgroundImage: `url('${backdrop}')` }}
+        />
+      </div>
+      <div
+        className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_50%_18%,rgba(245,196,81,0.07),transparent_34%),linear-gradient(180deg,rgba(7,9,12,0.08),rgba(7,9,12,0.26)_45%,rgba(7,9,12,0.52)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-95"
-        style={{ backgroundImage: `url('${backdrop}')` }}
+        className="absolute inset-x-0 top-0 z-[1] h-28 bg-[linear-gradient(180deg,rgba(255,213,128,0.1),transparent)]"
         aria-hidden="true"
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(245,196,81,0.07),transparent_34%),linear-gradient(180deg,rgba(7,9,12,0.08),rgba(7,9,12,0.26)_45%,rgba(7,9,12,0.52)_100%)]" />
-      <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,213,128,0.1),transparent)]" />
-      <div className="absolute inset-x-8 top-[39%] h-24 -skew-y-3 rounded-[999px] bg-[linear-gradient(90deg,rgba(101,210,200,0.04),rgba(245,196,81,0.1),rgba(240,95,114,0.04))] blur-xl" />
-      <div className="absolute inset-x-10 bottom-[13rem] h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.16),transparent)]" />
+      <div
+        className="absolute inset-x-8 top-[39%] z-[1] h-24 -skew-y-3 rounded-[999px] bg-[linear-gradient(90deg,rgba(101,210,200,0.04),rgba(245,196,81,0.1),rgba(240,95,114,0.04))] blur-xl"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-x-10 bottom-[13rem] z-[1] h-px bg-[linear-gradient(90deg,transparent,rgba(245,196,81,0.16),transparent)]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] rounded-[30px] ring-1 ring-white/[0.045]"
+        aria-hidden="true"
+      />
       {children}
     </section>
   );
