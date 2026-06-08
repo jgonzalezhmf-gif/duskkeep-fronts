@@ -89,15 +89,25 @@ export function BattleEntryTransition({
     >
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
         {resolvedBackgroundSrc ? (
-          <img
-            src={resolvedBackgroundSrc}
-            alt=""
-            loading="eager"
-            decoding="async"
-            draggable={false}
-            onError={() => setBackgroundFailed(true)}
-            className="battle-entry-presentation__backdrop h-full w-full object-cover opacity-66"
-          />
+          <div className="relative h-full w-full">
+            <img
+              src={resolvedBackgroundSrc}
+              alt=""
+              loading="eager"
+              decoding="async"
+              draggable={false}
+              className="battle-entry-presentation__backdrop absolute inset-0 h-full w-full scale-[1.06] object-cover opacity-[0.42] blur-sm"
+            />
+            <img
+              src={resolvedBackgroundSrc}
+              alt=""
+              loading="eager"
+              decoding="async"
+              draggable={false}
+              onError={() => setBackgroundFailed(true)}
+              className="battle-entry-presentation__backdrop-contained absolute inset-0 h-full w-full object-contain opacity-[0.82]"
+            />
+          </div>
         ) : (
           <div className="h-full w-full bg-[radial-gradient(circle_at_28%_24%,rgba(245,196,81,0.18),transparent_28%),radial-gradient(circle_at_72%_34%,rgba(240,95,114,0.18),transparent_32%),linear-gradient(135deg,#111827,#030407_66%)]" />
         )}
@@ -143,6 +153,9 @@ export function BattleEntryTransition({
         .battle-entry-presentation__backdrop {
           animation: battleEntryBackdrop ${BATTLE_ENTRY_NORMAL_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
+        .battle-entry-presentation__backdrop-contained {
+          animation: battleEntryBackdropContained ${BATTLE_ENTRY_NORMAL_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
         .battle-entry-presentation__slash {
           animation: battleEntrySlash ${BATTLE_ENTRY_NORMAL_DURATION_MS}ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
@@ -153,6 +166,7 @@ export function BattleEntryTransition({
           animation: battleEntryCountdown ${BATTLE_ENTRY_NORMAL_DURATION_MS}ms linear both;
         }
         [data-battle-entry-motion="reduced"] .battle-entry-presentation__backdrop,
+        [data-battle-entry-motion="reduced"] .battle-entry-presentation__backdrop-contained,
         [data-battle-entry-motion="reduced"] .battle-entry-presentation__slash,
         [data-battle-entry-motion="reduced"] .battle-entry-presentation__versus,
         [data-battle-entry-motion="reduced"] .battle-entry-presentation__countdown > div {
@@ -160,8 +174,18 @@ export function BattleEntryTransition({
         }
         @keyframes battleEntryBackdrop {
           from {
+            transform: scale(1.1);
+            filter: blur(7px) saturate(0.82) brightness(0.75);
+          }
+          to {
             transform: scale(1.06);
-            filter: saturate(0.82) brightness(0.75);
+            filter: blur(7px) saturate(1.05) brightness(1);
+          }
+        }
+        @keyframes battleEntryBackdropContained {
+          from {
+            transform: scale(1.02);
+            filter: saturate(0.9) brightness(0.8);
           }
           to {
             transform: scale(1);

@@ -27,7 +27,7 @@ export function FrontlineBattleShell({
     >
       <FrontlineBattleStyles />
       <div
-        className="absolute inset-0 scale-[1.03] bg-cover bg-center opacity-55"
+        className="absolute inset-0 scale-[1.06] bg-cover bg-center opacity-[0.35] blur-sm"
         style={{ backgroundImage: `url('${backdrop}')` }}
         aria-hidden="true"
       />

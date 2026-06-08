@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import BattleEntryTransition from "@/components/game/frontline/BattleEntryTransition";
+import { FrontlineBattleViewport } from "@/components/game/frontline/FrontlineBattleViewport";
 import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameIcon from "@/components/game/shared/GameIcon";
 import { LazyRewardBurstOverlay } from "@/components/game/shared/LazyRewardBurstOverlay";
@@ -298,7 +299,7 @@ export default function ArenaPage() {
   if (phase === "battle" && picked) {
     const trialMutator = picked.mode === "trials" ? getArenaTrialMutatorForRival(picked.rival.id) : null;
     return (
-      <div className="relative mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
+      <FrontlineBattleViewport>
         <FrontlineBattle
           seed={seed}
           loadout={frontlineLoadout}
@@ -312,7 +313,7 @@ export default function ArenaPage() {
           onFinished={finishBattle}
         />
         {resultPending ? <PendingActionOverlay label={t("arenaScreen.result.submitting")} /> : null}
-      </div>
+      </FrontlineBattleViewport>
     );
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import FrontlineBattle, { type FrontlineEncounterBadgeKind } from "./FrontlineBattle";
+import { FrontlineBattleViewport } from "./FrontlineBattleViewport";
 import type {
   FrontlineBattleModifiers,
   FrontlineBattleState,
@@ -36,7 +37,7 @@ export function BattlePageBattleView({
   onFinished: (winner: "ally" | "enemy" | "draw", battleState: FrontlineBattleState) => void;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-[1840px] flex-col gap-3 px-2 pb-3 pt-2 md:px-3 md:pb-4 md:pt-3 xl:px-4">
+    <FrontlineBattleViewport>
       <FrontlineBattle
         seed={seed}
         loadout={loadout}
@@ -50,6 +51,6 @@ export function BattlePageBattleView({
         battleBackgroundSrc={battleBackgroundSrc}
         onFinished={onFinished}
       />
-    </div>
+    </FrontlineBattleViewport>
   );
 }

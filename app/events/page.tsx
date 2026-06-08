@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import BattleEntryTransition from "@/components/game/frontline/BattleEntryTransition";
+import { FrontlineBattleViewport } from "@/components/game/frontline/FrontlineBattleViewport";
 import FrontlineBattleLoadingShell from "@/components/game/frontline/FrontlineBattleLoadingShell";
 import GameBackNav from "@/components/game/shared/GameBackNav";
 import GameIcon from "@/components/game/shared/GameIcon";
@@ -185,7 +186,7 @@ export default function EventsPage() {
 
   if (phase === "battle" && activeOperation) {
     return (
-      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-3 pb-8 pt-4 md:px-6 md:pb-10 md:pt-6 xl:px-8">
+      <FrontlineBattleViewport>
         <FrontlineBattle
           seed={seed}
           loadout={frontlineLoadout}
@@ -193,7 +194,7 @@ export default function EventsPage() {
           battleBackgroundSrc={battleEntryBackgroundSrc}
           onFinished={finishOperation}
         />
-      </div>
+      </FrontlineBattleViewport>
     );
   }
 

@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.74] - 2026-06-07
+
+### Changed
+- Unificado el viewport de combate Frontline estandar para Adventure/direct battle, Ladder, Arena Trials y Events mediante un wrapper compartido.
+- Normalizado el ancho, padding y altura de las batallas Frontline no-Fortress para que ocupen el mismo marco visual entre modos.
+- Ajustada la presentacion de fondos de batalla/transicion para mostrar la imagen completa como capa principal y usar el recorte solo como relleno ambiental desenfocado.
+
 ## [0.37.73] - 2026-06-07
 
 ### Fixed
