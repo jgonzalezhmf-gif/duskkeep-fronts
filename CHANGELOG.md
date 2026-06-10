@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.77] - 2026-06-10
+
+### Added
+- Anadido `GameFixedStage` para envolver rutas inmersivas en un marco visual tipo canvas 16:9 en escritorio ancho, estabilizando la presentacion del juego para demo/MVP sin reescribir las pantallas.
+- Anadido flag reversible `NEXT_PUBLIC_GAME_FIXED_STAGE` para poder desactivar el marco si no compensa tras probarlo.
+
 ## [0.37.76] - 2026-06-08
 
 ### Fixed
