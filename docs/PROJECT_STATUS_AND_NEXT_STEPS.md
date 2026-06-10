@@ -325,22 +325,14 @@ Tareas:
 
 ### 8. Canvas/stage global fijo
 
-Estado: primera version MVP en `0.37.77`.
-
 Objetivo: estabilizar layout visual del juego completo.
 
 Tareas:
 
-- Disenar `GameFixedStage` global. **Hecho en primera version reversible.**
-- Migrar Home/Adventure/Combat/pantallas clave por fases. **Primera pasada: rutas inmersivas envueltas desde `AppShell`.**
+- Disenar `GameFixedStage` global.
+- Migrar Home/Adventure/Combat/pantallas clave por fases.
 - Mantener accesibilidad y responsive.
 - No usarlo como medida de seguridad; es una solucion visual/layout, no anti-manipulacion.
-
-Validar:
-
-- Probar en escritorio ancho 16:9/16:10 que Home, Adventure, Combat y pantallas principales quedan dentro del marco.
-- Probar mobile/tablet: el marco fijo se mantiene fluido para no aplastar la UI vertical.
-- Si no convence, desactivar con `NEXT_PUBLIC_GAME_FIXED_STAGE=false` y redesplegar.
 
 ## Regla Para "Siguiente"
 
