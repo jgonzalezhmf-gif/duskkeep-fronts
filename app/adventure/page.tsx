@@ -58,6 +58,7 @@ export default function AdventureMapPage() {
 
   const {
     active,
+    canvasMapPresentation,
     cacheReveal,
     chapters,
     chaptersOpen,
@@ -116,6 +117,7 @@ export default function AdventureMapPage() {
           interactionStates={interactionStates}
           onSelect={selectNode}
           onSelectInteraction={setSelectedInteractionId}
+          canvasRuntimeEnabled={canvasMapPresentation.renderer === "canvas"}
           fullScreen
         />
         <div className="pointer-events-none absolute inset-0 z-[11] bg-[radial-gradient(circle_at_50%_42%,transparent_0%,rgba(4,7,13,0.06)_50%,rgba(4,7,13,0.62)_100%)]" />

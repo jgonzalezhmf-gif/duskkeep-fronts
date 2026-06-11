@@ -98,6 +98,7 @@ describe("Canvas Pixi init option resolution", () => {
       autoDensity: true,
       resolution: 1.5,
       antialias: false,
+      backgroundAlpha: 0,
     });
   });
 

@@ -9,6 +9,20 @@ export type CanvasRuntimeMode = {
   source: CanvasRuntimeBooleanSource;
 };
 
+export type AdventureCanvasMapPresentationReason =
+  | "enabled"
+  | "default"
+  | "disabled"
+  | "qa-editor"
+  | "reduced-capability";
+
+export type AdventureCanvasMapPresentation = {
+  renderer: "dom" | "canvas";
+  reason: AdventureCanvasMapPresentationReason;
+  modeSource: CanvasRuntimeBooleanSource;
+  canvasRequested: boolean;
+};
+
 export type CanvasRuntimeViewportInput = {
   cssWidth: number;
   cssHeight: number;
@@ -38,6 +52,11 @@ type AdventureCanvasRuntimeQuery = string | URLSearchParams | Record<string, str
 export type AdventureCanvasRuntimeModeInput = {
   query?: AdventureCanvasRuntimeQuery;
   envValue?: string | boolean | number | null;
+};
+
+export type AdventureCanvasMapPresentationInput = AdventureCanvasRuntimeModeInput & {
+  qaMapEditor?: boolean;
+  reducedCapability?: boolean;
 };
 
 const TRUE_VALUES = new Set(["1", "true", "on", "yes"]);
@@ -86,6 +105,49 @@ export function resolveAdventureCanvasRuntimeMode({
   }
 
   return { enabled: false, source: "default" };
+}
+
+export function resolveAdventureCanvasMapPresentation({
+  query,
+  envValue,
+  qaMapEditor = false,
+  reducedCapability = false,
+}: AdventureCanvasMapPresentationInput = {}): AdventureCanvasMapPresentation {
+  const mode = resolveAdventureCanvasRuntimeMode({ query, envValue });
+
+  if (!mode.enabled) {
+    return {
+      renderer: "dom",
+      reason: mode.source === "query" || mode.source === "env" ? "disabled" : "default",
+      modeSource: mode.source,
+      canvasRequested: false,
+    };
+  }
+
+  if (qaMapEditor) {
+    return {
+      renderer: "dom",
+      reason: "qa-editor",
+      modeSource: mode.source,
+      canvasRequested: true,
+    };
+  }
+
+  if (reducedCapability) {
+    return {
+      renderer: "dom",
+      reason: "reduced-capability",
+      modeSource: mode.source,
+      canvasRequested: true,
+    };
+  }
+
+  return {
+    renderer: "canvas",
+    reason: "enabled",
+    modeSource: mode.source,
+    canvasRequested: true,
+  };
 }
 
 function clampCssDimension(value: number): number {

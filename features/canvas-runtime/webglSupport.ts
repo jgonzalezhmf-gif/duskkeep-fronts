@@ -40,6 +40,7 @@ export type CanvasPixiInitOptions = {
   autoDensity: true;
   resolution: number;
   antialias: false;
+  backgroundAlpha: 0;
 };
 
 const DEFAULT_CONTEXT_TYPES: readonly CanvasWebglContextType[] = [
@@ -85,6 +86,7 @@ export function resolveCanvasPixiInitOptions({
     autoDensity: true,
     resolution: Math.min(safeDevicePixelRatio, safeMaxResolution),
     antialias: false,
+    backgroundAlpha: 0,
   };
 }
 

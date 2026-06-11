@@ -24,6 +24,8 @@ import {
   RouteRune,
 } from "./AdventureMapElements";
 import { getRouteControls } from "@/features/adventure/mapGeometry";
+import { buildAdventureCanvasSceneModel } from "@/features/canvas-runtime/adventureAdapter";
+import { AdventureCanvasMap } from "@/components/game/adventure/canvas/AdventureCanvasMap";
 import { useAdventureCampaignMapState } from "./useAdventureCampaignMapState";
 import type {
   AdventureCampaignMeta,
@@ -59,6 +61,7 @@ export function AdventureCampaignMap({
   onSelectInteraction,
   embedded = false,
   fullScreen = false,
+  canvasRuntimeEnabled = false,
 }: {
   meta: AdventureCampaignMeta;
   nodes: AdventureNodeState[];
@@ -71,6 +74,7 @@ export function AdventureCampaignMap({
   onSelectInteraction?: (id: string) => void;
   embedded?: boolean;
   fullScreen?: boolean;
+  canvasRuntimeEnabled?: boolean;
   showOverlayHeader?: boolean;
 }) {
   const { t } = useI18n();
@@ -106,6 +110,19 @@ export function AdventureCampaignMap({
     updateRoute,
     visualNodes,
   } = useAdventureCampaignMapState({ nodes, mapLayout, chapter, selectedId });
+  const shouldMountCanvasRuntime = canvasRuntimeEnabled && !qaEnabled;
+  const canvasSceneModel = shouldMountCanvasRuntime
+    ? buildAdventureCanvasSceneModel({
+        meta,
+        nodes,
+        mapLayout,
+        chapter,
+        selectedId,
+        selectedInteractionId,
+        interactionStates,
+        qaEnabled,
+      })
+    : null;
   return (
     <div
       className={cn(
@@ -116,6 +133,7 @@ export function AdventureCampaignMap({
         qaEnabled && "z-[70]",
       )}
       data-adventure-world-map
+      data-adventure-map-renderer={shouldMountCanvasRuntime ? "canvas" : "dom"}
       data-design-width={DESIGN_WIDTH}
       data-design-height={DESIGN_HEIGHT}
     >
@@ -273,6 +291,12 @@ export function AdventureCampaignMap({
           />
         ) : null}
       </div>
+      {canvasSceneModel ? (
+        <AdventureCanvasMap
+          sceneModel={canvasSceneModel}
+          className="pointer-events-none absolute inset-0 z-[3]"
+        />
+      ) : null}
     </div>
   );
 }

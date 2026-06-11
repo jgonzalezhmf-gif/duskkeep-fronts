@@ -24,6 +24,7 @@ import { createPendingActionKey } from "@/lib/pendingActions";
 import { announceNavigationTransition } from "@/lib/navigationTransition";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
 import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/features/adventure/mapLayout";
+import { resolveAdventureCanvasMapPresentation } from "@/features/canvas-runtime/runtimeConfig";
 import { getLocalizedChapterMeta } from "./AdventureChapterMeta";
 import type { AdventureNodeState, TranslateFn } from "@/features/adventure/campaignTypes";
 
@@ -87,6 +88,7 @@ export function useAdventureMapPageState(t: TranslateFn) {
   const [chaptersOpen, setChaptersOpen] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [qaMapEditor, setQaMapEditor] = useState(false);
+  const [adventureCanvasQuery, setAdventureCanvasQuery] = useState("");
   const [claimedRewardsByNode, setClaimedRewardsByNode] = useState<Record<string, Awaited<ReturnType<typeof claimAdventureNode>>>>({});
   const [claimedRewardsByInteraction, setClaimedRewardsByInteraction] = useState<Record<string, AdventureMapInteractionOpenResult | null>>({});
   const [cacheReveal, setCacheReveal] = useState<AdventureMapInteractionOpenResult | null>(null);
@@ -94,6 +96,7 @@ export function useAdventureMapPageState(t: TranslateFn) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    setAdventureCanvasQuery(window.location.search);
     setQaMapEditor(params.get("qa") === "adventure-map" || params.get("qa") === "map-editor");
   }, []);
 
@@ -167,6 +170,10 @@ export function useAdventureMapPageState(t: TranslateFn) {
     selectedInteractionId && selectedInteraction && isAdventureMapInteractionClaimActive(selectedInteraction, adventureMapClaims[selectedInteractionId], interactionNow)
       ? adventureMapClaims[selectedInteractionId]
       : undefined;
+  const canvasMapPresentation = resolveAdventureCanvasMapPresentation({
+    query: adventureCanvasQuery,
+    qaMapEditor,
+  });
 
   function selectNode(id: string) {
     setSelectedInteractionId(null);
@@ -221,6 +228,7 @@ export function useAdventureMapPageState(t: TranslateFn) {
     mapLayout,
     meta,
     qaMapEditor,
+    canvasMapPresentation,
     resources,
     resolveSelectedInteraction,
     resolveSelectedNode,

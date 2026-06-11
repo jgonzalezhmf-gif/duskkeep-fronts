@@ -91,6 +91,7 @@ describe("Adventure Pixi runtime lifecycle", () => {
       autoDensity: true,
       resolution: 2,
       antialias: false,
+      backgroundAlpha: 0,
     });
     expect(host.appendChild).toHaveBeenCalledWith(canvas);
     expect(runtime.getSnapshot()).toMatchObject({ status: "ready", reason: "mounted", app, canvas });
@@ -301,6 +302,7 @@ describe("Adventure Pixi application initialization", () => {
         autoDensity: true,
         resolution: 1,
         antialias: false,
+        backgroundAlpha: 0,
       }),
     ).rejects.toThrow("init failed after allocation");
     expect(app.destroy).toHaveBeenCalledWith(true, {
