@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/components/game/adventure/adventureMapLayout";
+import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/features/adventure/mapLayout";
 import {
   getAdventurePanelDockForY,
   getAdventureSelectedFocusY,

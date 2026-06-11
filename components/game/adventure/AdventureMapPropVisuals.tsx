@@ -7,8 +7,8 @@ import { ADVENTURE_PROP_ASSET_IDS, getAdventurePropAsset, type AdventurePropAsse
 import type { AdventureMapInteractionStatus } from "@/features/adventure/mapInteractions";
 import { HomeEffectSprite } from "@/components/game/home/HomeEffectSprite";
 import { HOME_EFFECT_IDS, type HomeEffectId } from "@/lib/homeEffectAssets";
-import type { AdventureMapPropLayout, AdventureMapPropType } from "./adventureMapLayout";
-import { getEffectDuration } from "./AdventureMapGeometry";
+import type { AdventureMapPropLayout, AdventureMapPropType } from "@/features/adventure/mapLayout";
+import { getEffectDuration } from "@/features/adventure/mapGeometry";
 
 const HOME_EFFECT_PROP_IDS = new Set<string>(HOME_EFFECT_IDS);
 const ADVENTURE_PROP_ASSET_ID_SET = new Set<string>(ADVENTURE_PROP_ASSET_IDS);

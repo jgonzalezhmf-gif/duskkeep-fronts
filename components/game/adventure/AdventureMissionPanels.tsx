@@ -16,7 +16,7 @@ import { frontlinePresetName } from "@/lib/i18n/frontlineText";
 import { useI18n } from "@/lib/i18n/useI18n";
 import { PendingActionLabel } from "@/components/game/shared/PendingActionFeedback";
 import { SceneButton, ScreenBadge, ScreenPanel } from "@/components/game/screens/ScreenChrome";
-import type { AdventureCampaignMeta, AdventureNodeState } from "./AdventureCampaignTypes";
+import type { AdventureCampaignMeta, AdventureNodeState } from "@/features/adventure/campaignTypes";
 import {
   EnemyCommanderRow,
   EnemyRow,

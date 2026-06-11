@@ -2,8 +2,9 @@
 
 import { cn } from "@/lib/cn";
 import type { AdventureMapInteractionStatus } from "@/features/adventure/mapInteractions";
-import type { AdventureMapPropLayout } from "./adventureMapLayout";
-import { getPropHeight, getPropVisualOpacity, getPropWidth, nodeStyle } from "./AdventureMapGeometry";
+import type { AdventureMapPropLayout } from "@/features/adventure/mapLayout";
+import { getPropHeight, getPropVisualOpacity, getPropWidth } from "@/features/adventure/mapGeometry";
+import { nodeStyle } from "./AdventureMapGeometry";
 import { InteractionPropContent, InteractionPropState, getPropContent } from "./AdventureMapPropVisuals";
 
 export function AdventureMapProp({

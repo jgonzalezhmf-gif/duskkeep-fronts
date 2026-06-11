@@ -9,18 +9,18 @@ import {
   type AdventureMapPropType,
   type AdventureMapRouteLayout,
   type AdventureNodeLayout,
-} from "./adventureMapLayout";
-import type { AdventureMapEditorSelection, AdventureNodeState } from "./AdventureCampaignTypes";
-import { buildAdventureVisualNodes } from "./AdventureCampaignVisualNodes";
+} from "@/features/adventure/mapLayout";
+import type { AdventureMapEditorSelection, AdventureNodeState } from "@/features/adventure/campaignTypes";
+import { buildAdventureVisualNodes } from "@/features/adventure/campaignVisualNodes";
 import {
   buildRoutes,
   clamp,
   getEditableRoutes,
   getPropHeight,
   getPropWidth,
-} from "./AdventureMapGeometry";
+} from "@/features/adventure/mapGeometry";
 import { createEditorNode, createEditorProp, createEditorRouteFromSelection, duplicateEditorNode, duplicateEditorProp, removeEditorSelectionFromLayout } from "./AdventureMapEditorFactories";
-import { isCompletedPartyNode } from "./AdventureMapStateHelpers";
+import { isCompletedPartyNode } from "@/features/adventure/mapStateHelpers";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
 const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;

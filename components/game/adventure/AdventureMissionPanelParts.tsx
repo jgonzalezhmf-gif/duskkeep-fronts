@@ -11,7 +11,7 @@ import { GameRewardToken } from "@/components/game/shared/GameRewardToken";
 import { CombatIcon } from "@/components/game/shared/CombatIcon";
 import { ResourceIcon } from "@/components/game/shared/ResourceIcon";
 import { frontlineCardName } from "@/lib/i18n/frontlineText";
-import type { AdventureNodeState, TranslateFn } from "./AdventureCampaignTypes";
+import type { AdventureNodeState, TranslateFn } from "@/features/adventure/campaignTypes";
 
 type RewardChipData = {
   icon: "gold" | "gem" | "dust" | "rewards" | "deck" | "adventure_key";

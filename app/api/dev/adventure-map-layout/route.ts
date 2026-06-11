@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 
 import { NextResponse, type NextRequest } from "next/server";
 
-import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/components/game/adventure/adventureMapLayout";
+import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/features/adventure/mapLayout";
 import { getDevSaveRouteRejectedResponse } from "../devRouteGuards";
 import {
   isFiniteNumber,

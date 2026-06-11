@@ -1,4 +1,4 @@
-import type { AdventureCampaignMeta, TranslateFn } from "./AdventureCampaignTypes";
+import type { AdventureCampaignMeta, TranslateFn } from "@/features/adventure/campaignTypes";
 
 const CHAPTER_META: Record<number, AdventureCampaignMeta> = {
   1: {

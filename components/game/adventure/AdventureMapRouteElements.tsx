@@ -1,8 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/cn";
-import type { AdventureVisualNode, AdventureVisualRoute } from "./AdventureCampaignTypes";
-import { curvedRoute, nodeStyle } from "./AdventureMapGeometry";
+import type { AdventureVisualNode, AdventureVisualRoute } from "@/features/adventure/campaignTypes";
+import { curvedRoute } from "@/features/adventure/mapGeometry";
+import { nodeStyle } from "./AdventureMapGeometry";
 
 export function AdventureMapRoute({ route }: { route: AdventureVisualRoute; accent: string }) {
   const { from, to } = route;

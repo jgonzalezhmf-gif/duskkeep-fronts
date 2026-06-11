@@ -15,10 +15,10 @@ import {
   type AdventureMapPropLayout,
   type AdventureMapPropType,
   type AdventureMapRouteState,
-} from "@/components/game/adventure/adventureMapLayout";
-import { buildAdventureVisualNodes } from "@/components/game/adventure/AdventureCampaignVisualNodes";
-import { buildRoutes, getPropHeight, getPropVisualOpacity, getPropWidth, getRouteControls } from "@/components/game/adventure/AdventureMapGeometry";
-import type { AdventureCampaignMeta, AdventureNodeState } from "@/components/game/adventure/AdventureCampaignTypes";
+} from "@/features/adventure/mapLayout";
+import { buildAdventureVisualNodes } from "@/features/adventure/campaignVisualNodes";
+import { buildRoutes, getPropHeight, getPropVisualOpacity, getPropWidth, getRouteControls } from "@/features/adventure/mapGeometry";
+import type { AdventureCampaignMeta, AdventureNodeState } from "@/features/adventure/campaignTypes";
 import type { AdventureMapInteractionKind, AdventureMapInteractionStatus } from "@/features/adventure/mapInteractions";
 
 export type AdventureCanvasIntent =

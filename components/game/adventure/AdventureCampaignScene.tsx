@@ -9,7 +9,7 @@ import {
   type AdventureMapNodeStatus,
   type AdventureMapNodeType,
   type AdventureNodeLayout,
-} from "./adventureMapLayout";
+} from "@/features/adventure/mapLayout";
 import { type AdventureMapInteractionStatus } from "@/features/adventure/mapInteractions";
 import { AdventureSkyAtmosphere } from "@/components/game/adventure/AdventureSkyAtmosphere";
 import { HomeEffectSpriteStyles } from "@/components/game/home/HomeEffectSprite";
@@ -23,12 +23,12 @@ import {
   RouteControlHandle,
   RouteRune,
 } from "./AdventureMapElements";
-import { getRouteControls } from "./AdventureMapGeometry";
+import { getRouteControls } from "@/features/adventure/mapGeometry";
 import { useAdventureCampaignMapState } from "./useAdventureCampaignMapState";
 import type {
   AdventureCampaignMeta,
   AdventureNodeState,
-} from "./AdventureCampaignTypes";
+} from "@/features/adventure/campaignTypes";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
 const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/cn";
 import { getAdventureNodeAsset } from "@/lib/adventureMapAssets";
 import GameIcon from "@/components/game/shared/GameIcon";
-import type { AdventureVisualNode, TranslateFn } from "./AdventureCampaignTypes";
+import type { AdventureVisualNode, TranslateFn } from "@/features/adventure/campaignTypes";
 import { nodeStyle } from "./AdventureMapGeometry";
 import { getNodeAssetId, getNodeAssetScale, getNodeIcon, getNodeTheme, getNodeVisualScale } from "./AdventureMapNodeVisuals";
 

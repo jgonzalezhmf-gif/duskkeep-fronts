@@ -11,9 +11,10 @@ import {
   type AdventureMapPropType,
   type AdventureMapRouteLayout,
   type AdventureNodeLayout,
-} from "./adventureMapLayout";
-import type { AdventureMapEditorSelection, AdventureVisualNode, AdventureVisualRoute } from "./AdventureCampaignTypes";
-import { clamp, getEditableRoutes, nodeStyle } from "./AdventureMapGeometry";
+} from "@/features/adventure/mapLayout";
+import type { AdventureMapEditorSelection, AdventureVisualNode, AdventureVisualRoute } from "@/features/adventure/campaignTypes";
+import { clamp, getEditableRoutes } from "@/features/adventure/mapGeometry";
+import { nodeStyle } from "./AdventureMapGeometry";
 import { SelectField } from "./AdventureMapEditorFields";
 import { NodeEditorFields, PartyEditorFields, PropEditorFields, RouteEditorFields } from "./AdventureMapEditorSelectionFields";
 

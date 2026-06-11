@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildAdventureCanvasSceneModel } from "@/features/canvas-runtime/adventureAdapter";
-import type { AdventureMapChapterLayout } from "@/components/game/adventure/adventureMapLayout";
-import type { AdventureCampaignMeta, AdventureNodeState } from "@/components/game/adventure/AdventureCampaignTypes";
+import type { AdventureMapChapterLayout } from "@/features/adventure/mapLayout";
+import type { AdventureCampaignMeta, AdventureNodeState } from "@/features/adventure/campaignTypes";
 
 const meta: AdventureCampaignMeta = {
   name: "Ash Road",

@@ -14,9 +14,9 @@ import {
   type AdventureMapRouteLayout,
   type AdventureMapRouteState,
   type AdventureNodeLayout,
-} from "./adventureMapLayout";
-import type { AdventureVisualNode } from "./AdventureCampaignTypes";
-import { getDefaultPropEffect, getEffectDuration, getPropHeight, getPropWidth } from "./AdventureMapGeometry";
+} from "@/features/adventure/mapLayout";
+import type { AdventureVisualNode } from "@/features/adventure/campaignTypes";
+import { getDefaultPropEffect, getEffectDuration, getPropHeight, getPropWidth } from "@/features/adventure/mapGeometry";
 import { NumberField, Readout, SelectField, TextField, parseNodeIdList } from "./AdventureMapEditorFields";
 
 export function NodeEditorFields({

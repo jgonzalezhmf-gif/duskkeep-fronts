@@ -1,7 +1,7 @@
 import {
   ADVENTURE_MAP_DESIGN,
   type AdventureMapChapterLayout,
-} from "./adventureMapLayout";
+} from "@/features/adventure/mapLayout";
 
 export type AdventurePanelDock = "top" | "bottom";
 

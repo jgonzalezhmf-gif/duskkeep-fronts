@@ -1,5 +1,5 @@
 import type { AdventureNodeAssetId } from "@/lib/adventureMapAssets";
-import type { AdventureVisualNode } from "./AdventureCampaignTypes";
+import type { AdventureVisualNode } from "@/features/adventure/campaignTypes";
 
 export function getNodeAssetId(node: AdventureVisualNode): AdventureNodeAssetId {
   if (node.status === "locked") return "locked";

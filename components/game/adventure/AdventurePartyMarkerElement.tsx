@@ -3,8 +3,8 @@
 import { cn } from "@/lib/cn";
 import { getAdventureNodeAsset } from "@/lib/adventureMapAssets";
 import { ModeIcon } from "@/components/game/shared/ModeIcon";
-import type { AdventureMapPartyMarkerLayout } from "./adventureMapLayout";
-import type { AdventureVisualNode } from "./AdventureCampaignTypes";
+import type { AdventureMapPartyMarkerLayout } from "@/features/adventure/mapLayout";
+import type { AdventureVisualNode } from "@/features/adventure/campaignTypes";
 import { nodeStyle } from "./AdventureMapGeometry";
 
 export function AdventurePartyMarker({

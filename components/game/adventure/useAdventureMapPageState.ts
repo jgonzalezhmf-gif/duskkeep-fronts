@@ -23,9 +23,9 @@ import { usePendingActions } from "@/components/game/shared/PendingActionFeedbac
 import { createPendingActionKey } from "@/lib/pendingActions";
 import { announceNavigationTransition } from "@/lib/navigationTransition";
 import { nextUnlockedLevel, useGameStore } from "@/lib/store";
-import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "./adventureMapLayout";
+import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/features/adventure/mapLayout";
 import { getLocalizedChapterMeta } from "./AdventureChapterMeta";
-import type { AdventureNodeState, TranslateFn } from "./AdventureCampaignTypes";
+import type { AdventureNodeState, TranslateFn } from "@/features/adventure/campaignTypes";
 
 export function useAdventureMapPageState(t: TranslateFn) {
   const progress = useGameStore((state) => state.adventureProgress);

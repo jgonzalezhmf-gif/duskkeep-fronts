@@ -1,5 +1,5 @@
 import { ADVENTURE, ADVENTURE_BY_ID } from "@/data/adventure";
-import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/components/game/adventure/adventureMapLayout";
+import { ADVENTURE_MAP_CHAPTER_LAYOUTS } from "@/features/adventure/mapLayout";
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
 import type { AdventureLevel } from "@/lib/types";
 

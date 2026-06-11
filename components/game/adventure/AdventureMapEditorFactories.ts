@@ -1,7 +1,7 @@
-import type { AdventureMapChapterLayout, AdventureMapPropLayout, AdventureMapPropType, AdventureMapRouteLayout, AdventureNodeLayout } from "./adventureMapLayout";
-import type { AdventureMapEditorSelection, AdventureVisualNode } from "./AdventureCampaignTypes";
-import { ADVENTURE_MAP_DESIGN } from "./adventureMapLayout";
-import { clamp, getDefaultPropDimensions, getDefaultPropEffect, getEditableRoutes } from "./AdventureMapGeometry";
+import type { AdventureMapChapterLayout, AdventureMapPropLayout, AdventureMapPropType, AdventureMapRouteLayout, AdventureNodeLayout } from "@/features/adventure/mapLayout";
+import type { AdventureMapEditorSelection, AdventureVisualNode } from "@/features/adventure/campaignTypes";
+import { ADVENTURE_MAP_DESIGN } from "@/features/adventure/mapLayout";
+import { clamp, getDefaultPropDimensions, getDefaultPropEffect, getEditableRoutes } from "@/features/adventure/mapGeometry";
 
 const DESIGN_WIDTH = ADVENTURE_MAP_DESIGN.width;
 const DESIGN_HEIGHT = ADVENTURE_MAP_DESIGN.height;

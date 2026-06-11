@@ -9,7 +9,7 @@ import {
   type AdventureMapNodeType,
   type AdventureMapPropType,
   type AdventureMapRouteState,
-} from "@/components/game/adventure/adventureMapLayout";
+} from "@/features/adventure/mapLayout";
 import { HOME_EFFECT_IDS, type HomeEffectId } from "@/lib/homeEffectAssets";
 
 const VALID_NODE_TYPES = new Set<AdventureMapNodeType>(ADVENTURE_MAP_NODE_TYPES);
