@@ -7,7 +7,7 @@ import type {
 } from "@/features/canvas-runtime/adventureAdapter";
 import type { CanvasRuntimeViewport } from "@/features/canvas-runtime/runtimeConfig";
 import { ADVENTURE_MAP_INTERACTION_ASSETS } from "@/lib/adventureMapInteractionAssets";
-import { getAdventurePropAsset } from "@/lib/adventureMapAssets";
+import { getAdventureNodeAsset, getAdventurePropAsset } from "@/lib/adventureMapAssets";
 import type { AdventureCanvasRuntimeApplication } from "./adventureCanvasRuntime";
 
 export type AdventureCanvasRoutePrimitive = {
@@ -28,6 +28,20 @@ export type AdventureCanvasNodePrimitive = {
   alpha: number;
   selected: boolean;
   locked: boolean;
+};
+
+export type AdventureCanvasNodeSpritePrimitive = {
+  id: string;
+  position: AdventureCanvasPoint;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  src: string;
+  alpha: number;
+  selected: boolean;
+  locked: boolean;
+  zIndex: number;
 };
 
 export type AdventureCanvasRouteMarkerPrimitive = {
@@ -83,6 +97,7 @@ export type AdventureCanvasRenderPlan = {
   routes: AdventureCanvasRoutePrimitive[];
   routeMarkers: AdventureCanvasRouteMarkerPrimitive[];
   nodes: AdventureCanvasNodePrimitive[];
+  nodeSprites: AdventureCanvasNodeSpritePrimitive[];
   props: AdventureCanvasPropPrimitive[];
   propSprites: AdventureCanvasPropSpritePrimitive[];
   propEffects: AdventureCanvasPropEffectPrimitive[];
@@ -156,6 +171,7 @@ export function buildAdventureCanvasRenderPlan(sceneModel: AdventureCanvasSceneM
     routes: sceneModel.routes.map(toRoutePrimitive),
     routeMarkers: sceneModel.routes.flatMap(toRouteMarkerPrimitives),
     nodes: sceneModel.nodes.map(toNodePrimitive),
+    nodeSprites: sceneModel.nodes.flatMap(toNodeSpritePrimitive),
     props: sceneModel.props.flatMap(toPropPrimitive),
     propSprites: sceneModel.props.flatMap(toPropSpritePrimitive),
     propEffects: sceneModel.props.flatMap(toPropEffectPrimitive),
@@ -283,6 +299,15 @@ export function renderAdventureCanvasScene({
     renderables.push(withZIndex(marker, 21));
   }
 
+  void renderNodeSprites({
+    stage,
+    pixi,
+    sprites: plan.nodeSprites,
+    scaleX,
+    scaleY,
+    renderToken,
+  });
+
   for (const prop of plan.props) {
     const marker = new pixi.Graphics();
     marker
@@ -350,6 +375,31 @@ function toNodePrimitive(node: AdventureCanvasNodeModel): AdventureCanvasNodePri
     selected: node.selected,
     locked,
   };
+}
+
+function toNodeSpritePrimitive(node: AdventureCanvasNodeModel): AdventureCanvasNodeSpritePrimitive[] {
+  const asset = getAdventureNodeAsset(node.assetRef.id);
+  if (!asset) return [];
+
+  const visualScale = getCanvasNodeVisualScale(node);
+  const assetScale = getCanvasNodeAssetScale(node);
+  const size = node.size * visualScale * assetScale;
+
+  return [
+    {
+      id: node.id,
+      position: node.position,
+      dimensions: {
+        width: size,
+        height: size,
+      },
+      src: asset.src,
+      alpha: getCanvasNodeSpriteAlpha(node),
+      selected: node.selected,
+      locked: node.stateFlags.locked,
+      zIndex: Math.max(24, node.zIndex + 20),
+    },
+  ];
 }
 
 function toPropPrimitive(prop: AdventureCanvasPropModel): AdventureCanvasPropPrimitive[] {
@@ -482,6 +532,49 @@ async function renderPropSprites({
   }
 }
 
+async function renderNodeSprites({
+  stage,
+  pixi,
+  sprites,
+  scaleX,
+  scaleY,
+  renderToken,
+}: {
+  stage: PixiStageLike;
+  pixi: AdventureCanvasPixiModule;
+  sprites: AdventureCanvasNodeSpritePrimitive[];
+  scaleX: number;
+  scaleY: number;
+  renderToken: symbol;
+}) {
+  if (!pixi.Sprite || sprites.length === 0) return;
+
+  for (const spritePrimitive of sprites) {
+    let texture: unknown = null;
+    try {
+      texture = pixi.Assets?.load ? await pixi.Assets.load(spritePrimitive.src) : null;
+    } catch {
+      texture = null;
+    }
+
+    if (stageRenderTokens.get(stage) !== renderToken) {
+      return;
+    }
+
+    const SpriteCtor = pixi.Sprite as unknown as { new (texture?: unknown): PixiSpriteLike };
+    const sprite = texture ? new SpriteCtor(texture) : pixi.Sprite.from?.(spritePrimitive.src);
+    if (!sprite) continue;
+
+    sprite.anchor?.set(0.5);
+    sprite.position?.set(spritePrimitive.position.x * scaleX, spritePrimitive.position.y * scaleY);
+    sprite.width = spritePrimitive.dimensions.width * scaleX;
+    sprite.height = spritePrimitive.dimensions.height * scaleY;
+    sprite.alpha = spritePrimitive.alpha;
+    sprite.zIndex = spritePrimitive.zIndex;
+    stage.addChild?.(sprite);
+  }
+}
+
 function getNodeFillColor(node: AdventureCanvasNodeModel) {
   if (node.stateFlags.locked) return COLOR.steel;
   if (node.stateFlags.cleared || node.stateFlags.claimed) return COLOR.emerald;
@@ -497,4 +590,28 @@ function getNodeHaloColor(node: AdventureCanvasNodeModel) {
   if (node.type === "chest") return COLOR.gold;
   if (node.stateFlags.cleared || node.stateFlags.claimed) return COLOR.emerald;
   return node.selected || node.stateFlags.current ? COLOR.gold : COLOR.sky;
+}
+
+function getCanvasNodeVisualScale(node: AdventureCanvasNodeModel) {
+  if (node.selected || node.stateFlags.current) return node.type === "boss" ? 1.38 : 1.34;
+  if (node.type === "boss") return 1.28;
+  if (node.type === "chest") return 1.22;
+  if (node.type === "elite") return 1.18;
+  if (node.status === "locked") return 0.86;
+  if (node.status === "cleared" || node.status === "claimed" || node.status === "completed") return 1.1;
+  return 1.18;
+}
+
+function getCanvasNodeAssetScale(node: AdventureCanvasNodeModel) {
+  if (node.selected || node.stateFlags.current) return 1.08;
+  if (node.type === "boss") return 1.08;
+  if (node.type === "chest") return 1.06;
+  if (node.status === "locked") return 0.96;
+  return 1.04;
+}
+
+function getCanvasNodeSpriteAlpha(node: AdventureCanvasNodeModel) {
+  if (node.stateFlags.locked) return 0.72;
+  if (node.stateFlags.cleared || node.stateFlags.claimed) return 0.88;
+  return 1;
 }

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { resolveAdventureCanvasMapPresentation } from "@/features/canvas-runtime/runtimeConfig";
 
 describe("Adventure canvas map wiring", () => {
@@ -44,5 +46,14 @@ describe("Adventure canvas map wiring", () => {
       modeSource: "query",
       canvasRequested: true,
     });
+  });
+
+  it("keeps Adventure node interactions in invisible DOM hit targets when canvas owns the visuals", () => {
+    const campaignSceneSource = readFileSync(resolve("components/game/adventure/AdventureCampaignScene.tsx"), "utf8");
+    const nodeElementSource = readFileSync(resolve("components/game/adventure/AdventureMapNodeElement.tsx"), "utf8");
+
+    expect(campaignSceneSource).toContain('visualMode={canvasSceneModel ? "canvasOverlay" : "dom"}');
+    expect(nodeElementSource).toContain('visualMode?: "dom" | "canvasOverlay";');
+    expect(nodeElementSource).toContain('data-adventure-canvas-hit-target="true"');
   });
 });

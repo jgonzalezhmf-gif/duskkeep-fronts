@@ -18,6 +18,7 @@ export function AdventureMapNode({
   editorSelected,
   onEditorSelect,
   onEditorDragStart,
+  visualMode = "dom",
 }: {
   visualNode: AdventureVisualNode;
   active: boolean;
@@ -29,6 +30,7 @@ export function AdventureMapNode({
   editorSelected: boolean;
   onEditorSelect: () => void;
   onEditorDragStart: () => void;
+  visualMode?: "dom" | "canvasOverlay";
 }) {
   const node = visualNode.node;
   const tone =
@@ -54,6 +56,39 @@ export function AdventureMapNode({
             : t("adventure.node.battle");
   const size = visualNode.size ?? (visualNode.type === "boss" ? 68 : visualNode.type === "chest" ? 54 : 48);
   const visualSize = Math.round(size * getNodeVisualScale(visualNode, active));
+  const buttonClassName = cn(
+    "group absolute z-[6] -translate-x-1/2 -translate-y-1/2 transition duration-200 hover:brightness-110",
+    active && "z-[8]",
+    visualNode.status === "locked" && "opacity-58",
+    editorSelected && "ring-2 ring-sky-200 ring-offset-2 ring-offset-black",
+  );
+  const buttonStyle = {
+    ...nodeStyle(visualNode.x, visualNode.y),
+    width: visualSize,
+    height: visualSize,
+    zIndex: visualNode.zIndex ?? undefined,
+  };
+
+  if (!qaEnabled && visualMode === "canvasOverlay") {
+    return (
+      <button
+        type="button"
+        data-adventure-node={visualNode.id}
+        data-node-status={visualNode.status}
+        data-node-type={visualNode.type}
+        data-adventure-canvas-hit-target="true"
+        aria-label={`${node.lvl.name} ${label}`}
+        onClick={() => onSelect(visualNode.id)}
+        onFocus={() => onSelect(visualNode.id)}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+        }}
+        className={cn(buttonClassName, "opacity-0")}
+        style={buttonStyle}
+      />
+    );
+  }
+
   const nodeTheme = getNodeTheme(visualNode, active, accent);
   const nodeAssetId = getNodeAssetId(visualNode);
   const nodeAsset = getAdventureNodeAsset(nodeAssetId);
@@ -89,13 +124,8 @@ export function AdventureMapNode({
         window.addEventListener("pointermove", move);
         window.addEventListener("pointerup", up, { once: true });
       }}
-      className={cn(
-        "group absolute z-[6] -translate-x-1/2 -translate-y-1/2 transition duration-200 hover:brightness-110",
-        active && "z-[8]",
-        visualNode.status === "locked" && "opacity-58",
-        editorSelected && "ring-2 ring-sky-200 ring-offset-2 ring-offset-black",
-      )}
-      style={{ ...nodeStyle(visualNode.x, visualNode.y), width: visualSize, height: visualSize, zIndex: visualNode.zIndex ?? undefined }}
+      className={buttonClassName}
+      style={buttonStyle}
     >
       <span className={cn("pointer-events-none absolute left-1/2 top-[88%] h-[22%] w-[78%] -translate-x-1/2 rounded-full bg-black/56 blur-[4px]", visualNode.status === "locked" && "opacity-50")} />
       {visualNode.status === "available" || active ? (

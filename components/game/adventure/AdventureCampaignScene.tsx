@@ -232,6 +232,7 @@ export function AdventureCampaignMap({
               }
             }}
             onEditorDragStart={() => setDragging({ kind: "node", id: visualNode.id })}
+            visualMode={canvasSceneModel ? "canvasOverlay" : "dom"}
           />
         ))}
 

@@ -43,6 +43,23 @@ describe("Adventure canvas render plan", () => {
         }),
       ]),
     );
+    expect(plan.nodeSprites).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "node-a",
+          src: "/assets/adventures/nodes/current_marker.png",
+          selected: true,
+          locked: false,
+        }),
+        expect.objectContaining({
+          id: "node-b",
+          src: "/assets/adventures/nodes/locked_node.png",
+          selected: false,
+          locked: true,
+        }),
+      ]),
+    );
+    expect(plan.nodeSprites[0]?.dimensions.width).toBeGreaterThan(50);
     expect(plan.focus).toEqual(
       expect.objectContaining({
         id: "node-a-focus",
