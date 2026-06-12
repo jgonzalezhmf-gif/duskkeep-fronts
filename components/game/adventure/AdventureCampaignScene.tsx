@@ -210,6 +210,7 @@ export function AdventureCampaignMap({
             onInteractionSelect={onSelectInteraction}
             onSelect={() => setSelectedEditor({ kind: "prop", id: prop.id })}
             onDragStart={() => setDragging({ kind: "prop", id: prop.id })}
+            visualMode={canvasSceneModel ? "canvasOverlay" : "dom"}
           />
         ))}
 

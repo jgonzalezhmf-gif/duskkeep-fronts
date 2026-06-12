@@ -6,6 +6,8 @@ import type {
   AdventureCanvasSceneModel,
 } from "@/features/canvas-runtime/adventureAdapter";
 import type { CanvasRuntimeViewport } from "@/features/canvas-runtime/runtimeConfig";
+import { ADVENTURE_MAP_INTERACTION_ASSETS } from "@/lib/adventureMapInteractionAssets";
+import { getAdventurePropAsset } from "@/lib/adventureMapAssets";
 import type { AdventureCanvasRuntimeApplication } from "./adventureCanvasRuntime";
 
 export type AdventureCanvasRoutePrimitive = {
@@ -52,12 +54,38 @@ export type AdventureCanvasPropPrimitive = {
   selected: boolean;
 };
 
+export type AdventureCanvasPropSpritePrimitive = {
+  id: string;
+  position: AdventureCanvasPoint;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  src: string;
+  alpha: number;
+  rotationDegrees: number;
+  interactive: boolean;
+};
+
+export type AdventureCanvasPropEffectPrimitive = {
+  id: string;
+  position: AdventureCanvasPoint;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  color: number;
+  alpha: number;
+};
+
 export type AdventureCanvasRenderPlan = {
   designSize: AdventureCanvasSceneModel["designSize"];
   routes: AdventureCanvasRoutePrimitive[];
   routeMarkers: AdventureCanvasRouteMarkerPrimitive[];
   nodes: AdventureCanvasNodePrimitive[];
   props: AdventureCanvasPropPrimitive[];
+  propSprites: AdventureCanvasPropSpritePrimitive[];
+  propEffects: AdventureCanvasPropEffectPrimitive[];
   focus: AdventureCanvasFocusPrimitive | null;
 };
 
@@ -67,14 +95,31 @@ type PixiGraphicsLike = {
   circle: (x: number, y: number, radius: number) => PixiGraphicsLike;
   stroke: (options: { width: number; color: number; alpha?: number }) => PixiGraphicsLike;
   fill: (options: { color: number; alpha?: number }) => PixiGraphicsLike;
+  zIndex?: number;
   destroy?: (options?: { children?: boolean }) => void;
 };
 
 type PixiGraphicsCtor = new () => PixiGraphicsLike;
 
+type PixiSpriteLike = {
+  anchor?: { set: (x: number, y?: number) => void };
+  position?: { set: (x: number, y: number) => void };
+  width?: number;
+  height?: number;
+  alpha?: number;
+  rotation?: number;
+  zIndex?: number;
+  destroy?: (options?: { children?: boolean }) => void;
+};
+
+type PixiSpriteFactory = {
+  from?: (source: string) => PixiSpriteLike;
+};
+
 type PixiStageLike = {
   addChild?: (...children: unknown[]) => unknown;
   removeChildren?: () => Array<{ destroy?: (options?: { children?: boolean }) => void }>;
+  sortableChildren?: boolean;
 };
 
 type PixiRenderableApplication = AdventureCanvasRuntimeApplication & {
@@ -83,7 +128,13 @@ type PixiRenderableApplication = AdventureCanvasRuntimeApplication & {
 
 export type AdventureCanvasPixiModule = {
   Graphics: PixiGraphicsCtor;
+  Sprite?: PixiSpriteFactory;
+  Assets?: {
+    load: (source: string) => Promise<unknown>;
+  };
 };
+
+const stageRenderTokens = new WeakMap<PixiStageLike, symbol>();
 
 const COLOR = {
   amber: 0xeeb456,
@@ -106,6 +157,8 @@ export function buildAdventureCanvasRenderPlan(sceneModel: AdventureCanvasSceneM
     routeMarkers: sceneModel.routes.flatMap(toRouteMarkerPrimitives),
     nodes: sceneModel.nodes.map(toNodePrimitive),
     props: sceneModel.props.flatMap(toPropPrimitive),
+    propSprites: sceneModel.props.flatMap(toPropSpritePrimitive),
+    propEffects: sceneModel.props.flatMap(toPropEffectPrimitive),
     focus: selectedNode
       ? {
           id: `${selectedNode.id}-focus`,
@@ -137,10 +190,13 @@ export function renderAdventureCanvasScene({
   }
 
   const plan = buildAdventureCanvasRenderPlan(sceneModel);
+  const renderToken = Symbol("adventure-canvas-render");
+  stageRenderTokens.set(stage, renderToken);
   const scaleX = viewport.cssWidth / plan.designSize.width;
   const scaleY = viewport.cssHeight / plan.designSize.height;
   const avgScale = (scaleX + scaleY) / 2;
-  const graphics: PixiGraphicsLike[] = [];
+  const renderables: unknown[] = [];
+  stage.sortableChildren = true;
 
   for (const route of plan.routes) {
     const underlay = new pixi.Graphics();
@@ -155,7 +211,7 @@ export function renderAdventureCanvasScene({
         route.points[3].y * scaleY,
       )
       .stroke({ width: Math.max(6, route.width * 2.5 * avgScale), color: COLOR.black, alpha: 0.38 });
-    graphics.push(underlay);
+    renderables.push(withZIndex(underlay, 4));
 
     const line = new pixi.Graphics();
     line
@@ -169,7 +225,7 @@ export function renderAdventureCanvasScene({
         route.points[3].y * scaleY,
       )
       .stroke({ width: Math.max(2, route.width * avgScale), color: route.color, alpha: route.alpha });
-    graphics.push(line);
+    renderables.push(withZIndex(line, 5));
   }
 
   for (const marker of plan.routeMarkers) {
@@ -177,22 +233,43 @@ export function renderAdventureCanvasScene({
     shadow
       .circle(marker.position.x * scaleX, marker.position.y * scaleY, marker.radius * 1.35 * avgScale)
       .fill({ color: COLOR.black, alpha: 0.36 });
-    graphics.push(shadow);
+    renderables.push(withZIndex(shadow, 6));
 
     const rune = new pixi.Graphics();
     rune
       .circle(marker.position.x * scaleX, marker.position.y * scaleY, marker.radius * avgScale)
       .fill({ color: marker.color, alpha: marker.alpha })
       .stroke({ width: Math.max(1, 2 * avgScale), color: COLOR.white, alpha: 0.32 });
-    graphics.push(rune);
+    renderables.push(withZIndex(rune, 7));
   }
+
+  for (const effect of plan.propEffects) {
+    const glow = new pixi.Graphics();
+    glow
+      .circle(
+        effect.position.x * scaleX,
+        effect.position.y * scaleY,
+        Math.max(effect.dimensions.width * scaleX, effect.dimensions.height * scaleY) * 0.5,
+      )
+      .fill({ color: effect.color, alpha: effect.alpha });
+    renderables.push(withZIndex(glow, 12));
+  }
+
+  void renderPropSprites({
+    stage,
+    pixi,
+    sprites: plan.propSprites,
+    scaleX,
+    scaleY,
+    renderToken,
+  });
 
   for (const node of plan.nodes) {
     const halo = new pixi.Graphics();
     halo
       .circle(node.position.x * scaleX, node.position.y * scaleY, node.radius * 1.55 * avgScale)
       .fill({ color: node.haloColor, alpha: node.selected ? 0.26 : node.locked ? 0.05 : 0.11 });
-    graphics.push(halo);
+    renderables.push(withZIndex(halo, 20));
 
     const marker = new pixi.Graphics();
     marker
@@ -203,7 +280,7 @@ export function renderAdventureCanvasScene({
         color: node.strokeColor,
         alpha: node.selected ? 0.92 : 0.66,
       });
-    graphics.push(marker);
+    renderables.push(withZIndex(marker, 21));
   }
 
   for (const prop of plan.props) {
@@ -212,7 +289,7 @@ export function renderAdventureCanvasScene({
       .circle(prop.position.x * scaleX, prop.position.y * scaleY, prop.radius * avgScale)
       .fill({ color: prop.color, alpha: prop.alpha })
       .stroke({ width: Math.max(1, 2 * avgScale), color: COLOR.white, alpha: prop.selected ? 0.54 : 0.18 });
-    graphics.push(marker);
+    renderables.push(withZIndex(marker, 34));
   }
 
   if (plan.focus) {
@@ -220,10 +297,10 @@ export function renderAdventureCanvasScene({
     focus
       .circle(plan.focus.position.x * scaleX, plan.focus.position.y * scaleY, plan.focus.radius * avgScale)
       .stroke({ width: Math.max(3, 5 * avgScale), color: plan.focus.color, alpha: 0.88 });
-    graphics.push(focus);
+    renderables.push(withZIndex(focus, 35));
   }
 
-  stage.addChild(...graphics);
+  stage.addChild(...renderables);
 }
 
 function toRoutePrimitive(route: AdventureCanvasRouteModel): AdventureCanvasRoutePrimitive {
@@ -287,6 +364,122 @@ function toPropPrimitive(prop: AdventureCanvasPropModel): AdventureCanvasPropPri
       selected: prop.interaction.selected,
     },
   ];
+}
+
+function toPropSpritePrimitive(prop: AdventureCanvasPropModel): AdventureCanvasPropSpritePrimitive[] {
+  const src = getPropSpriteSource(prop);
+  if (!src) return [];
+
+  return [
+    {
+      id: prop.id,
+      position: prop.position,
+      dimensions: prop.dimensions,
+      src,
+      alpha: prop.opacity,
+      rotationDegrees: prop.rotation.z,
+      interactive: Boolean(prop.interaction),
+    },
+  ];
+}
+
+function toPropEffectPrimitive(prop: AdventureCanvasPropModel): AdventureCanvasPropEffectPrimitive[] {
+  const effects: AdventureCanvasPropEffectPrimitive[] = [];
+
+  if (prop.assetRef.manifest === "homeEffect") {
+    const effectSize = Math.min(Math.max(Math.min(prop.dimensions.width, prop.dimensions.height), 18), 56);
+    effects.push({
+      id: `${prop.id}-effect`,
+      position: prop.position,
+      dimensions: {
+        width: effectSize,
+        height: effectSize,
+      },
+      color: getEffectColor(prop.assetRef.id),
+      alpha: Math.min(0.34, prop.opacity * 0.28),
+    });
+  }
+
+  if (prop.interaction?.status === "ready") {
+    effects.push({
+      id: `${prop.id}-ready-glow`,
+      position: prop.position,
+      dimensions: {
+        width: prop.dimensions.width * 1.36,
+        height: prop.dimensions.height * 1.12,
+      },
+      color: COLOR.gold,
+      alpha: prop.interaction.selected ? 0.28 : 0.18,
+    });
+  }
+
+  return effects;
+}
+
+function getPropSpriteSource(prop: AdventureCanvasPropModel) {
+  if (prop.assetRef.manifest === "adventureProp") {
+    return getAdventurePropAsset(prop.assetRef.id)?.src ?? null;
+  }
+  if (prop.assetRef.manifest === "adventureMapInteraction") {
+    return ADVENTURE_MAP_INTERACTION_ASSETS[prop.assetRef.id] ?? null;
+  }
+  return null;
+}
+
+function getEffectColor(effect: string) {
+  if (effect.includes("purple") || effect.includes("crystal")) return COLOR.violet;
+  if (effect.includes("blue") || effect.includes("portal")) return COLOR.sky;
+  if (effect.includes("lantern") || effect.includes("candle")) return COLOR.gold;
+  return COLOR.ember;
+}
+
+function withZIndex<T extends { zIndex?: number }>(displayObject: T, zIndex: number): T {
+  displayObject.zIndex = zIndex;
+  return displayObject;
+}
+
+async function renderPropSprites({
+  stage,
+  pixi,
+  sprites,
+  scaleX,
+  scaleY,
+  renderToken,
+}: {
+  stage: PixiStageLike;
+  pixi: AdventureCanvasPixiModule;
+  sprites: AdventureCanvasPropSpritePrimitive[];
+  scaleX: number;
+  scaleY: number;
+  renderToken: symbol;
+}) {
+  if (!pixi.Sprite || sprites.length === 0) return;
+
+  for (const spritePrimitive of sprites) {
+    let texture: unknown = null;
+    try {
+      texture = pixi.Assets?.load ? await pixi.Assets.load(spritePrimitive.src) : null;
+    } catch {
+      texture = null;
+    }
+
+    if (stageRenderTokens.get(stage) !== renderToken) {
+      return;
+    }
+
+    const SpriteCtor = pixi.Sprite as unknown as { new (texture?: unknown): PixiSpriteLike };
+    const sprite = texture ? new SpriteCtor(texture) : pixi.Sprite.from?.(spritePrimitive.src);
+    if (!sprite) continue;
+
+    sprite.anchor?.set(0.5);
+    sprite.position?.set(spritePrimitive.position.x * scaleX, spritePrimitive.position.y * scaleY);
+    sprite.width = spritePrimitive.dimensions.width * scaleX;
+    sprite.height = spritePrimitive.dimensions.height * scaleY;
+    sprite.alpha = spritePrimitive.alpha;
+    sprite.rotation = (spritePrimitive.rotationDegrees * Math.PI) / 180;
+    sprite.zIndex = spritePrimitive.interactive ? 32 : 14;
+    stage.addChild?.(sprite);
+  }
 }
 
 function getNodeFillColor(node: AdventureCanvasNodeModel) {

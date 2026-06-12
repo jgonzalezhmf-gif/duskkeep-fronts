@@ -16,6 +16,7 @@ export function AdventureMapProp({
   onInteractionSelect,
   onSelect,
   onDragStart,
+  visualMode = "dom",
 }: {
   prop: AdventureMapPropLayout;
   qaEnabled: boolean;
@@ -25,6 +26,7 @@ export function AdventureMapProp({
   onInteractionSelect?: (id: string) => void;
   onSelect: () => void;
   onDragStart: () => void;
+  visualMode?: "dom" | "canvasOverlay";
 }) {
   if (!prop.enabled && !qaEnabled) return null;
   const content = getPropContent(prop);
@@ -46,6 +48,42 @@ export function AdventureMapProp({
   };
 
   if (!qaEnabled) {
+    if (visualMode === "canvasOverlay") {
+      if (interaction?.id && onInteractionSelect) {
+        return (
+          <button
+            type="button"
+            className="absolute -translate-x-1/2 -translate-y-1/2 opacity-0"
+            style={style}
+            data-adventure-prop={prop.id}
+            data-adventure-interaction={interaction.id}
+            data-interaction-status={interactionStatus}
+            data-adventure-canvas-hit-target="true"
+            aria-label={interaction.id}
+            onClick={(event) => {
+              event.stopPropagation();
+              onInteractionSelect(interaction.id);
+            }}
+            onPointerDown={(event) => {
+              event.stopPropagation();
+              onInteractionSelect(interaction.id);
+            }}
+            onMouseDown={(event) => {
+              event.stopPropagation();
+              onInteractionSelect(interaction.id);
+            }}
+            onPointerUp={(event) => {
+              event.stopPropagation();
+              onInteractionSelect(interaction.id);
+            }}
+            onFocus={() => onInteractionSelect(interaction.id)}
+          />
+        );
+      }
+
+      return null;
+    }
+
     if (interaction?.id && onInteractionSelect) {
       return (
         <button

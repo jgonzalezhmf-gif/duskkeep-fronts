@@ -56,6 +56,33 @@ describe("Adventure canvas render plan", () => {
         color: 0xf5c451,
       }),
     ]);
+    expect(plan.propSprites).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "cache-a",
+          src: "/assets/adventures/interactions/key_chest_claimable.webp",
+          interactive: true,
+          rotationDegrees: 0,
+        }),
+        expect.objectContaining({
+          id: "camp-a",
+          src: "/assets/adventures/props/small_camp_prop.png",
+          interactive: false,
+        }),
+      ]),
+    );
+    expect(plan.propEffects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "flame-a-effect",
+          color: 0xff784e,
+        }),
+        expect.objectContaining({
+          id: "cache-a-ready-glow",
+          color: 0xf5c451,
+        }),
+      ]),
+    );
   });
 });
 
@@ -138,6 +165,27 @@ function createSceneModel(): AdventureCanvasSceneModel {
       },
     ],
     props: [
+      {
+        id: "camp-a",
+        type: "small_camp",
+        position: { x: 180, y: 320 },
+        dimensions: { width: 96, height: 90 },
+        zIndex: 18,
+        opacity: 0.85,
+        rotation: { x: 0, y: 0, z: -8 },
+        assetRef: { manifest: "adventureProp", id: "small_camp" },
+      },
+      {
+        id: "flame-a",
+        type: "flame_loop",
+        position: { x: 260, y: 320 },
+        dimensions: { width: 32, height: 32 },
+        zIndex: 35,
+        opacity: 1,
+        rotation: { x: 0, y: 0, z: 0 },
+        assetRef: { manifest: "homeEffect", id: "flame_loop" },
+        effectRef: { manifest: "homeEffect", id: "flame_loop" },
+      },
       {
         id: "cache-a",
         type: "key_chest",
