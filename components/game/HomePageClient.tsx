@@ -48,7 +48,7 @@ export default function HomePageClient({
   const syncLocalSnapshotOnlineFirst = useGameStore((state) => state.syncLocalSnapshotOnlineFirst);
   const loadServerSnapshotOnlineFirst = useGameStore((state) => state.loadServerSnapshotOnlineFirst);
   const [introDismissed, setIntroDismissed] = useState(false);
-  const [introSeenThisSession, setIntroSeenThisSession] = useState(() => introSeenInPageRuntime || readIntroSeenForSession());
+  const [introSeenThisSession, setIntroSeenThisSession] = useState(() => introSeenInPageRuntime);
   const [guestChoiceResolvedThisPageLoad, setGuestChoiceResolvedThisPageLoad] = useState(() => guestChoiceResolvedInPageRuntime);
   const introEligible = !qaClean && !qaEffects;
   const showIntro = shouldShowEntryIntro({
