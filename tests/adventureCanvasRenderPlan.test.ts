@@ -13,6 +13,21 @@ describe("Adventure canvas render plan", () => {
         alpha: expect.any(Number),
       }),
     ]);
+    expect(plan.routeMarkers).toHaveLength(2);
+    expect(plan.routeMarkers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "route-a-b-rune-0",
+          color: 0xf5c451,
+          alpha: expect.any(Number),
+        }),
+        expect.objectContaining({
+          id: "route-a-b-rune-1",
+          color: 0xf5c451,
+          alpha: expect.any(Number),
+        }),
+      ]),
+    );
     expect(plan.nodes).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

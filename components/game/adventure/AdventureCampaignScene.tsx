@@ -171,24 +171,33 @@ export function AdventureCampaignMap({
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.08),rgba(4,7,13,0.02)_34%,rgba(4,7,13,0.34)_100%)]" />
         <AdventureSkyAtmosphere />
 
-        <svg className="pointer-events-none absolute inset-0 z-[2] h-full w-full" viewBox={`0 0 ${DESIGN_WIDTH} ${DESIGN_HEIGHT}`} preserveAspectRatio="none">
-          <defs>
-            <filter id="adventureRouteGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          {routes.map((route) => (
-            <AdventureMapRoute key={route.id} route={route} accent={meta.accent} />
-          ))}
-        </svg>
+        {!canvasSceneModel ? (
+          <>
+            <svg
+              className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
+              viewBox={`0 0 ${DESIGN_WIDTH} ${DESIGN_HEIGHT}`}
+              preserveAspectRatio="none"
+              data-adventure-dom-route-layer
+            >
+              <defs>
+                <filter id="adventureRouteGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              {routes.map((route) => (
+                <AdventureMapRoute key={route.id} route={route} accent={meta.accent} />
+              ))}
+            </svg>
 
-        {routes.map((route, index) => (
-          <RouteRune key={`${route.id}-rune`} from={route.from} to={route.to} index={index} />
-        ))}
+            {routes.map((route, index) => (
+              <RouteRune key={`${route.id}-rune`} from={route.from} to={route.to} index={index} />
+            ))}
+          </>
+        ) : null}
 
         {(activeLayout.props ?? []).map((prop) => (
           <AdventureMapProp

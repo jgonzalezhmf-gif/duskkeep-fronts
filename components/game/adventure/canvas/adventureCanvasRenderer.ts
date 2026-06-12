@@ -28,6 +28,14 @@ export type AdventureCanvasNodePrimitive = {
   locked: boolean;
 };
 
+export type AdventureCanvasRouteMarkerPrimitive = {
+  id: string;
+  position: AdventureCanvasPoint;
+  radius: number;
+  color: number;
+  alpha: number;
+};
+
 export type AdventureCanvasFocusPrimitive = {
   id: string;
   position: AdventureCanvasPoint;
@@ -47,6 +55,7 @@ export type AdventureCanvasPropPrimitive = {
 export type AdventureCanvasRenderPlan = {
   designSize: AdventureCanvasSceneModel["designSize"];
   routes: AdventureCanvasRoutePrimitive[];
+  routeMarkers: AdventureCanvasRouteMarkerPrimitive[];
   nodes: AdventureCanvasNodePrimitive[];
   props: AdventureCanvasPropPrimitive[];
   focus: AdventureCanvasFocusPrimitive | null;
@@ -94,6 +103,7 @@ export function buildAdventureCanvasRenderPlan(sceneModel: AdventureCanvasSceneM
   return {
     designSize: sceneModel.designSize,
     routes: sceneModel.routes.map(toRoutePrimitive),
+    routeMarkers: sceneModel.routes.flatMap(toRouteMarkerPrimitives),
     nodes: sceneModel.nodes.map(toNodePrimitive),
     props: sceneModel.props.flatMap(toPropPrimitive),
     focus: selectedNode
@@ -162,6 +172,21 @@ export function renderAdventureCanvasScene({
     graphics.push(line);
   }
 
+  for (const marker of plan.routeMarkers) {
+    const shadow = new pixi.Graphics();
+    shadow
+      .circle(marker.position.x * scaleX, marker.position.y * scaleY, marker.radius * 1.35 * avgScale)
+      .fill({ color: COLOR.black, alpha: 0.36 });
+    graphics.push(shadow);
+
+    const rune = new pixi.Graphics();
+    rune
+      .circle(marker.position.x * scaleX, marker.position.y * scaleY, marker.radius * avgScale)
+      .fill({ color: marker.color, alpha: marker.alpha })
+      .stroke({ width: Math.max(1, 2 * avgScale), color: COLOR.white, alpha: 0.32 });
+    graphics.push(rune);
+  }
+
   for (const node of plan.nodes) {
     const halo = new pixi.Graphics();
     halo
@@ -212,6 +237,25 @@ function toRoutePrimitive(route: AdventureCanvasRouteModel): AdventureCanvasRout
     alpha: locked ? 0.18 : cleared ? 0.48 : 0.92,
     width: locked ? 2 : 4.5,
   };
+}
+
+function toRouteMarkerPrimitives(route: AdventureCanvasRouteModel, routeIndex: number): AdventureCanvasRouteMarkerPrimitive[] {
+  if (route.state === "locked") return [];
+  const [from, , , to] = route.pathPoints;
+
+  return [0.36, 0.64].map((progress, markerIndex) => {
+    const offset = (routeIndex + markerIndex) % 2 === 0 ? 10 : -10;
+    return {
+      id: `${route.id}-rune-${markerIndex}`,
+      position: {
+        x: from.x + (to.x - from.x) * progress + offset,
+        y: from.y + (to.y - from.y) * progress + (markerIndex === 0 ? -8 : 8),
+      },
+      radius: 6,
+      color: COLOR.gold,
+      alpha: route.state === "cleared" ? 0.48 : 0.72,
+    };
+  });
 }
 
 function toNodePrimitive(node: AdventureCanvasNodeModel): AdventureCanvasNodePrimitive {
