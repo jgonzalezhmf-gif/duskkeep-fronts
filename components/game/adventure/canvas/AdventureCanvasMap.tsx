@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AdventureCanvasSceneModel } from "@/features/canvas-runtime/adventureAdapter";
 import {
   createAdventureCanvasRuntime,
@@ -11,6 +11,10 @@ import {
   type AdventureCanvasRuntimeFallbackReason,
   type AdventureCanvasRuntimeHost,
 } from "./adventureCanvasRuntime";
+import {
+  renderAdventureCanvasScene,
+  type AdventureCanvasPixiModule,
+} from "./adventureCanvasRenderer";
 import type { CanvasPixiInitOptions } from "@/features/canvas-runtime/webglSupport";
 
 export type AdventureCanvasMapProps = {
@@ -22,7 +26,26 @@ export type AdventureCanvasMapProps = {
 export function AdventureCanvasMap({ sceneModel, className, onFallback }: AdventureCanvasMapProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const runtimeRef = useRef<AdventureCanvasRuntime | null>(null);
+  const pixiRef = useRef<AdventureCanvasPixiModule | null>(null);
+  const sceneModelRef = useRef(sceneModel);
   const [runtimeStatus, setRuntimeStatus] = useState<"idle" | "mounting" | "ready" | "fallback" | "destroyed">("idle");
+
+  const renderRuntimeScene = useCallback((model = sceneModelRef.current) => {
+    const runtime = runtimeRef.current;
+    const pixi = pixiRef.current;
+    const snapshot = runtime?.getSnapshot();
+
+    if (!pixi || snapshot?.status !== "ready") {
+      return;
+    }
+
+    renderAdventureCanvasScene({
+      app: snapshot.app,
+      pixi,
+      sceneModel: model,
+      viewport: snapshot.viewport,
+    });
+  }, []);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -41,6 +64,13 @@ export function AdventureCanvasMap({ sceneModel, className, onFallback }: Advent
         return host.clientHeight;
       },
       appendChild(canvas) {
+        const element = canvas as unknown as HTMLElement;
+        element.style.position = "absolute";
+        element.style.inset = "0";
+        element.style.display = "block";
+        element.style.width = "100%";
+        element.style.height = "100%";
+        element.style.pointerEvents = "none";
         host.appendChild(canvas as unknown as Node);
       },
       removeChild(canvas) {
@@ -55,7 +85,11 @@ export function AdventureCanvasMap({ sceneModel, className, onFallback }: Advent
       host: runtimeHost,
       supportCanvas,
       devicePixelRatio: window.devicePixelRatio,
-      createApplication: createPixiApplication,
+      createApplication: async (options) => {
+        const pixi = await import("pixi.js");
+        pixiRef.current = pixi;
+        return createPixiApplication(options, pixi);
+      },
     });
     runtimeRef.current = runtime;
 
@@ -68,7 +102,10 @@ export function AdventureCanvasMap({ sceneModel, className, onFallback }: Advent
       setRuntimeStatus(snapshot.status);
       if (snapshot.status === "fallback") {
         onFallback?.(snapshot.reason);
+        return;
       }
+
+      renderRuntimeScene();
     });
 
     const resizeObserver = new ResizeObserver(() => {
@@ -76,7 +113,9 @@ export function AdventureCanvasMap({ sceneModel, className, onFallback }: Advent
       setRuntimeStatus(snapshot.status);
       if (snapshot.status === "fallback") {
         onFallback?.(snapshot.reason);
+        return;
       }
+      renderRuntimeScene();
     });
     resizeObserver.observe(host);
 
@@ -85,8 +124,14 @@ export function AdventureCanvasMap({ sceneModel, className, onFallback }: Advent
       resizeObserver.disconnect();
       runtime.destroy();
       runtimeRef.current = null;
+      pixiRef.current = null;
     };
-  }, [onFallback]);
+  }, [onFallback, renderRuntimeScene]);
+
+  useEffect(() => {
+    sceneModelRef.current = sceneModel;
+    renderRuntimeScene(sceneModel);
+  }, [renderRuntimeScene, sceneModel]);
 
   return (
     <div
@@ -99,8 +144,11 @@ export function AdventureCanvasMap({ sceneModel, className, onFallback }: Advent
   );
 }
 
-async function createPixiApplication(options: CanvasPixiInitOptions): Promise<AdventureCanvasRuntimeApplication> {
-  const { Application } = await import("pixi.js");
+async function createPixiApplication(
+  options: CanvasPixiInitOptions,
+  pixi: AdventureCanvasPixiModule & { Application: new () => AdventureCanvasRuntimeInitializableApplication },
+): Promise<AdventureCanvasRuntimeApplication> {
+  const { Application } = pixi;
   const app = new Application() as unknown as AdventureCanvasRuntimeInitializableApplication;
 
   return initializeAdventureCanvasRuntimeApplication(app, options);

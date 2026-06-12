@@ -290,13 +290,13 @@ export function AdventureCampaignMap({
             }}
           />
         ) : null}
+        {canvasSceneModel ? (
+          <AdventureCanvasMap
+            sceneModel={canvasSceneModel}
+            className="pointer-events-none absolute inset-0 z-[4]"
+          />
+        ) : null}
       </div>
-      {canvasSceneModel ? (
-        <AdventureCanvasMap
-          sceneModel={canvasSceneModel}
-          className="pointer-events-none absolute inset-0 z-[3]"
-        />
-      ) : null}
     </div>
   );
 }
