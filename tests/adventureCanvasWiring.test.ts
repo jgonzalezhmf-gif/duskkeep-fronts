@@ -64,6 +64,14 @@ describe("Adventure canvas map wiring", () => {
     expect(campaignSceneSource).toContain("!canvasSceneModel ? (");
   });
 
+  it("keeps the party marker visual DOM-only outside the canvas-owned map", () => {
+    const campaignSceneSource = readFileSync(resolve("components/game/adventure/AdventureCampaignScene.tsx"), "utf8");
+    const partyMarkerSource = readFileSync(resolve("components/game/adventure/AdventurePartyMarkerElement.tsx"), "utf8");
+
+    expect(campaignSceneSource).toContain("!canvasSceneModel && partyNode");
+    expect(partyMarkerSource).toContain("data-adventure-party-marker");
+  });
+
   it("locks page scrolling while the Adventure canvas stage is active", () => {
     const adventurePageSource = readFileSync(resolve("app/adventure/page.tsx"), "utf8");
     const globalStylesSource = readFileSync(resolve("app/globals.css"), "utf8");

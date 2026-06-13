@@ -240,7 +240,7 @@ export function AdventureCampaignMap({
           />
         ))}
 
-        {partyNode ? (
+        {!canvasSceneModel && partyNode ? (
           <AdventurePartyMarker
             visualNode={partyNode}
             layout={activeLayout.partyMarker}

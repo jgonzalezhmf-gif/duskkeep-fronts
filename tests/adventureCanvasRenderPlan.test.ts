@@ -72,6 +72,24 @@ describe("Adventure canvas render plan", () => {
       ]),
     );
     expect(plan.nodeSprites[0]?.dimensions.width).toBeGreaterThan(50);
+    expect(plan.partyMarkerSprites).toEqual([
+      expect.objectContaining({
+        id: "party-marker",
+        src: "/assets/adventures/nodes/current_marker.png",
+        zIndex: expect.any(Number),
+        dimensions: expect.objectContaining({
+          width: expect.any(Number),
+          height: expect.any(Number),
+        }),
+      }),
+    ]);
+    expect(plan.partyMarkerSprites[0]?.dimensions.width).toBeGreaterThan(80);
+    expect(plan.partyMarkerEffects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "party-marker-shadow", color: 0x030201 }),
+        expect.objectContaining({ id: "party-marker-glow", color: 0xf5c451 }),
+      ]),
+    );
     expect(plan.focus).toEqual(
       expect.objectContaining({
         id: "node-a-focus",

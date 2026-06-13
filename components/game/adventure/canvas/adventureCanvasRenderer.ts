@@ -1,5 +1,6 @@
 import type {
   AdventureCanvasNodeModel,
+  AdventureCanvasPartyMarkerModel,
   AdventureCanvasPoint,
   AdventureCanvasPropModel,
   AdventureCanvasRouteModel,
@@ -108,6 +109,30 @@ export type AdventureCanvasPropEffectPrimitive = {
   alpha: number;
 };
 
+export type AdventureCanvasPartyMarkerSpritePrimitive = {
+  id: string;
+  position: AdventureCanvasPoint;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  src: string;
+  alpha: number;
+  zIndex: number;
+};
+
+export type AdventureCanvasPartyMarkerEffectPrimitive = {
+  id: string;
+  position: AdventureCanvasPoint;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  color: number;
+  alpha: number;
+  zIndex: number;
+};
+
 export type AdventureCanvasRenderPlan = {
   designSize: AdventureCanvasSceneModel["designSize"];
   background: AdventureCanvasBackgroundPrimitive;
@@ -119,6 +144,8 @@ export type AdventureCanvasRenderPlan = {
   props: AdventureCanvasPropPrimitive[];
   propSprites: AdventureCanvasPropSpritePrimitive[];
   propEffects: AdventureCanvasPropEffectPrimitive[];
+  partyMarkerSprites: AdventureCanvasPartyMarkerSpritePrimitive[];
+  partyMarkerEffects: AdventureCanvasPartyMarkerEffectPrimitive[];
   focus: AdventureCanvasFocusPrimitive | null;
 };
 
@@ -196,6 +223,8 @@ export function buildAdventureCanvasRenderPlan(sceneModel: AdventureCanvasSceneM
     props: sceneModel.props.flatMap(toPropPrimitive),
     propSprites: sceneModel.props.flatMap(toPropSpritePrimitive),
     propEffects: sceneModel.props.flatMap(toPropEffectPrimitive),
+    partyMarkerSprites: toPartyMarkerSpritePrimitive(sceneModel.partyMarker),
+    partyMarkerEffects: toPartyMarkerEffectPrimitives(sceneModel.partyMarker),
     focus: selectedNode
       ? {
           id: `${selectedNode.id}-focus`,
@@ -349,6 +378,27 @@ export function renderAdventureCanvasScene({
     stage,
     pixi,
     sprites: plan.nodeSprites,
+    scaleX,
+    scaleY,
+    renderToken,
+  });
+
+  for (const effect of plan.partyMarkerEffects) {
+    const glow = new pixi.Graphics();
+    glow
+      .circle(
+        effect.position.x * scaleX,
+        effect.position.y * scaleY,
+        Math.max(effect.dimensions.width * scaleX, effect.dimensions.height * scaleY) * 0.5,
+      )
+      .fill({ color: effect.color, alpha: effect.alpha });
+    renderables.push(withZIndex(glow, effect.zIndex));
+  }
+
+  void renderPartyMarkerSprites({
+    stage,
+    pixi,
+    sprites: plan.partyMarkerSprites,
     scaleX,
     scaleY,
     renderToken,
@@ -538,6 +588,69 @@ function toPropEffectPrimitive(prop: AdventureCanvasPropModel): AdventureCanvasP
   return effects;
 }
 
+function toPartyMarkerSpritePrimitive(marker: AdventureCanvasPartyMarkerModel | null): AdventureCanvasPartyMarkerSpritePrimitive[] {
+  if (!marker) return [];
+  const asset = getAdventureNodeAsset("current");
+  if (!asset) return [];
+
+  const size = marker.size * 1.34;
+  return [
+    {
+      id: "party-marker",
+      position: toPartyMarkerVisualPosition(marker, size),
+      dimensions: {
+        width: size,
+        height: size,
+      },
+      src: asset.src,
+      alpha: 1,
+      zIndex: Math.max(marker.zIndex ?? 42, 42),
+    },
+  ];
+}
+
+function toPartyMarkerEffectPrimitives(marker: AdventureCanvasPartyMarkerModel | null): AdventureCanvasPartyMarkerEffectPrimitive[] {
+  if (!marker) return [];
+  const size = marker.size * 1.34;
+  const basePosition = toPartyMarkerVisualPosition(marker, size);
+  const floorPosition = {
+    x: basePosition.x,
+    y: basePosition.y + size * 0.38,
+  };
+
+  return [
+    {
+      id: "party-marker-shadow",
+      position: floorPosition,
+      dimensions: {
+        width: size * 0.74,
+        height: size * 0.3,
+      },
+      color: COLOR.black,
+      alpha: 0.42,
+      zIndex: Math.max((marker.zIndex ?? 42) - 2, 38),
+    },
+    {
+      id: "party-marker-glow",
+      position: floorPosition,
+      dimensions: {
+        width: size * 0.6,
+        height: size * 0.24,
+      },
+      color: COLOR.gold,
+      alpha: 0.18,
+      zIndex: Math.max((marker.zIndex ?? 42) - 1, 39),
+    },
+  ];
+}
+
+function toPartyMarkerVisualPosition(marker: AdventureCanvasPartyMarkerModel, size: number): AdventureCanvasPoint {
+  return {
+    x: marker.position.x,
+    y: marker.position.y - size * 0.56,
+  };
+}
+
 function getPropSpriteSource(prop: AdventureCanvasPropModel) {
   if (prop.assetRef.manifest === "adventureProp") {
     return getAdventurePropAsset(prop.assetRef.id)?.src ?? null;
@@ -664,6 +777,49 @@ async function renderNodeSprites({
   stage: PixiStageLike;
   pixi: AdventureCanvasPixiModule;
   sprites: AdventureCanvasNodeSpritePrimitive[];
+  scaleX: number;
+  scaleY: number;
+  renderToken: symbol;
+}) {
+  if (!pixi.Sprite || sprites.length === 0) return;
+
+  for (const spritePrimitive of sprites) {
+    let texture: unknown = null;
+    try {
+      texture = pixi.Assets?.load ? await pixi.Assets.load(spritePrimitive.src) : null;
+    } catch {
+      texture = null;
+    }
+
+    if (stageRenderTokens.get(stage) !== renderToken) {
+      return;
+    }
+
+    const SpriteCtor = pixi.Sprite as unknown as { new (texture?: unknown): PixiSpriteLike };
+    const sprite = texture ? new SpriteCtor(texture) : pixi.Sprite.from?.(spritePrimitive.src);
+    if (!sprite) continue;
+
+    sprite.anchor?.set(0.5);
+    sprite.position?.set(spritePrimitive.position.x * scaleX, spritePrimitive.position.y * scaleY);
+    sprite.width = spritePrimitive.dimensions.width * scaleX;
+    sprite.height = spritePrimitive.dimensions.height * scaleY;
+    sprite.alpha = spritePrimitive.alpha;
+    sprite.zIndex = spritePrimitive.zIndex;
+    stage.addChild?.(sprite);
+  }
+}
+
+async function renderPartyMarkerSprites({
+  stage,
+  pixi,
+  sprites,
+  scaleX,
+  scaleY,
+  renderToken,
+}: {
+  stage: PixiStageLike;
+  pixi: AdventureCanvasPixiModule;
+  sprites: AdventureCanvasPartyMarkerSpritePrimitive[];
   scaleX: number;
   scaleY: number;
   renderToken: symbol;
