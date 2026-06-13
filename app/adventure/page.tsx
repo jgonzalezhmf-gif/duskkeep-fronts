@@ -20,6 +20,9 @@ export default function AdventureMapPage() {
   const { t } = useI18n();
   const [clientReady, setClientReady] = useState(false);
   const state = useAdventureMapPageState(t);
+  const canvasStageLocked = state.ready ? state.canvasMapPresentation.renderer === "canvas" : false;
+
+  useAdventureCanvasFixedStage(canvasStageLocked);
 
   useEffect(() => {
     setClientReady(true);
@@ -235,4 +238,26 @@ export default function AdventureMapPage() {
       </div>
     </ScreenScaffold>
   );
+}
+
+function useAdventureCanvasFixedStage(locked: boolean) {
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousStage = root.dataset.adventureCanvasStage;
+
+    if (!locked) {
+      return undefined;
+    }
+
+    root.dataset.adventureCanvasStage = "locked";
+
+    return () => {
+      if (previousStage) {
+        root.dataset.adventureCanvasStage = previousStage;
+        return;
+      }
+
+      delete root.dataset.adventureCanvasStage;
+    };
+  }, [locked]);
 }

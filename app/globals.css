@@ -23,6 +23,13 @@ html, body, #__next {
   -webkit-tap-highlight-color: transparent;
 }
 
+html[data-adventure-canvas-stage="locked"],
+html[data-adventure-canvas-stage="locked"] body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 html[data-text-scale="large"] {
   font-size: 17px;
 }
@@ -358,8 +365,11 @@ button { touch-action: manipulation; }
   filter: brightness(1.025);
 }
 
-.frontline-motion-action {
+.frontline-motion-action:not(.fixed):not(.absolute):not(.sticky):not(.relative) {
   position: relative;
+}
+
+.frontline-motion-action {
   transform: translateZ(0);
   transition:
     transform var(--frontline-motion-fast) var(--frontline-ease-out),

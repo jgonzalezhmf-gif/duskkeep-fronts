@@ -63,4 +63,16 @@ describe("Adventure canvas map wiring", () => {
     expect(campaignSceneSource).toContain("data-adventure-dom-background-layer");
     expect(campaignSceneSource).toContain("!canvasSceneModel ? (");
   });
+
+  it("locks page scrolling while the Adventure canvas stage is active", () => {
+    const adventurePageSource = readFileSync(resolve("app/adventure/page.tsx"), "utf8");
+    const globalStylesSource = readFileSync(resolve("app/globals.css"), "utf8");
+
+    expect(adventurePageSource).toContain("useAdventureCanvasFixedStage");
+    expect(adventurePageSource).toContain("document.documentElement");
+    expect(adventurePageSource).toContain("dataset.adventureCanvasStage");
+    expect(globalStylesSource).toContain('html[data-adventure-canvas-stage="locked"]');
+    expect(globalStylesSource).toContain("overflow: hidden");
+    expect(globalStylesSource).toContain(".frontline-motion-action:not(.fixed)");
+  });
 });
