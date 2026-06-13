@@ -6,6 +6,18 @@ describe("Adventure canvas render plan", () => {
   it("builds visible Pixi primitives for routes, nodes, selected focus and interaction props", () => {
     const plan = buildAdventureCanvasRenderPlan(createSceneModel());
 
+    expect(plan.background).toEqual(
+      expect.objectContaining({
+        id: "adventure-background",
+        src: "/assets/backgrounds/adventure_bg.webp",
+      }),
+    );
+    expect(plan.backgroundWashes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "adventure-atmosphere-wash" }),
+        expect.objectContaining({ id: "adventure-vignette-wash" }),
+      ]),
+    );
     expect(plan.routes).toEqual([
       expect.objectContaining({
         id: "route-a-b",
@@ -66,13 +78,15 @@ describe("Adventure canvas render plan", () => {
         radius: expect.any(Number),
       }),
     );
-    expect(plan.props).toEqual([
-      expect.objectContaining({
-        id: "cache-a",
-        selected: true,
-        color: 0xf5c451,
-      }),
-    ]);
+    expect(plan.props).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "cache-a",
+          selected: true,
+          color: 0xf5c451,
+        }),
+      ]),
+    );
     expect(plan.propSprites).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -98,8 +112,19 @@ describe("Adventure canvas render plan", () => {
           id: "cache-a-ready-glow",
           color: 0xf5c451,
         }),
+        expect.objectContaining({
+          id: "cache-large-ready-glow",
+          color: 0xf5c451,
+          dimensions: expect.objectContaining({
+            width: expect.any(Number),
+            height: expect.any(Number),
+          }),
+        }),
       ]),
     );
+    const largeGlow = plan.propEffects.find((effect) => effect.id === "cache-large-ready-glow");
+    expect(largeGlow?.dimensions.width).toBeLessThanOrEqual(112);
+    expect(largeGlow?.dimensions.height).toBeLessThanOrEqual(96);
   });
 });
 
@@ -115,7 +140,12 @@ function createSceneModel(): AdventureCanvasSceneModel {
       terrainLabel: "Ash road",
       threatLabel: "Low",
     },
-    background: { manifest: "screenBackground", id: "adventure" },
+    background: {
+      manifest: "screenBackground",
+      id: "adventure",
+      src: "/assets/backgrounds/adventure_bg.webp",
+      position: "50% 50%",
+    },
     selected: { nodeId: "node-a", interactionId: "cache-a" },
     routes: [
       {
@@ -218,6 +248,23 @@ function createSceneModel(): AdventureCanvasSceneModel {
           status: "ready",
           selected: true,
           intent: { type: "selectInteraction", interactionId: "cache-a" },
+        },
+      },
+      {
+        id: "cache-large",
+        type: "key_chest",
+        position: { x: 320, y: 360 },
+        dimensions: { width: 260, height: 220 },
+        zIndex: 32,
+        opacity: 1,
+        rotation: { x: 0, y: 0, z: 0 },
+        assetRef: { manifest: "adventureMapInteraction", id: "key_chest_claimable" },
+        interaction: {
+          id: "cache-large",
+          kind: "keyChest",
+          status: "ready",
+          selected: false,
+          intent: { type: "selectInteraction", interactionId: "cache-large" },
         },
       },
     ],

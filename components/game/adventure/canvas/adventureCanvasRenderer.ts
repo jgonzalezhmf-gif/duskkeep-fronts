@@ -18,6 +18,22 @@ export type AdventureCanvasRoutePrimitive = {
   width: number;
 };
 
+export type AdventureCanvasBackgroundPrimitive = {
+  id: string;
+  src: string | null;
+  position?: string;
+  fallbackColor: number;
+  alpha: number;
+  zIndex: number;
+};
+
+export type AdventureCanvasBackgroundWashPrimitive = {
+  id: string;
+  color: number;
+  alpha: number;
+  zIndex: number;
+};
+
 export type AdventureCanvasNodePrimitive = {
   id: string;
   position: AdventureCanvasPoint;
@@ -94,6 +110,8 @@ export type AdventureCanvasPropEffectPrimitive = {
 
 export type AdventureCanvasRenderPlan = {
   designSize: AdventureCanvasSceneModel["designSize"];
+  background: AdventureCanvasBackgroundPrimitive;
+  backgroundWashes: AdventureCanvasBackgroundWashPrimitive[];
   routes: AdventureCanvasRoutePrimitive[];
   routeMarkers: AdventureCanvasRouteMarkerPrimitive[];
   nodes: AdventureCanvasNodePrimitive[];
@@ -107,6 +125,7 @@ export type AdventureCanvasRenderPlan = {
 type PixiGraphicsLike = {
   moveTo: (x: number, y: number) => PixiGraphicsLike;
   bezierCurveTo: (cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number) => PixiGraphicsLike;
+  rect: (x: number, y: number, width: number, height: number) => PixiGraphicsLike;
   circle: (x: number, y: number, radius: number) => PixiGraphicsLike;
   stroke: (options: { width: number; color: number; alpha?: number }) => PixiGraphicsLike;
   fill: (options: { color: number; alpha?: number }) => PixiGraphicsLike;
@@ -168,6 +187,8 @@ export function buildAdventureCanvasRenderPlan(sceneModel: AdventureCanvasSceneM
 
   return {
     designSize: sceneModel.designSize,
+    background: toBackgroundPrimitive(sceneModel),
+    backgroundWashes: toBackgroundWashPrimitives(),
     routes: sceneModel.routes.map(toRoutePrimitive),
     routeMarkers: sceneModel.routes.flatMap(toRouteMarkerPrimitives),
     nodes: sceneModel.nodes.map(toNodePrimitive),
@@ -213,6 +234,31 @@ export function renderAdventureCanvasScene({
   const avgScale = (scaleX + scaleY) / 2;
   const renderables: unknown[] = [];
   stage.sortableChildren = true;
+
+  if (plan.background.src) {
+    void renderBackgroundSprite({
+      stage,
+      pixi,
+      background: plan.background,
+      width: viewport.cssWidth,
+      height: viewport.cssHeight,
+      renderToken,
+    });
+  } else {
+    const fallback = new pixi.Graphics();
+    fallback
+      .rect(0, 0, viewport.cssWidth, viewport.cssHeight)
+      .fill({ color: plan.background.fallbackColor, alpha: plan.background.alpha });
+    renderables.push(withZIndex(fallback, plan.background.zIndex));
+  }
+
+  for (const wash of plan.backgroundWashes) {
+    const overlay = new pixi.Graphics();
+    overlay
+      .rect(0, 0, viewport.cssWidth, viewport.cssHeight)
+      .fill({ color: wash.color, alpha: wash.alpha });
+    renderables.push(withZIndex(overlay, wash.zIndex));
+  }
 
   for (const route of plan.routes) {
     const underlay = new pixi.Graphics();
@@ -326,6 +372,34 @@ export function renderAdventureCanvasScene({
   }
 
   stage.addChild(...renderables);
+}
+
+function toBackgroundPrimitive(sceneModel: AdventureCanvasSceneModel): AdventureCanvasBackgroundPrimitive {
+  return {
+    id: "adventure-background",
+    src: sceneModel.background.src ?? null,
+    position: sceneModel.background.position,
+    fallbackColor: 0x070b12,
+    alpha: 1,
+    zIndex: 0,
+  };
+}
+
+function toBackgroundWashPrimitives(): AdventureCanvasBackgroundWashPrimitive[] {
+  return [
+    {
+      id: "adventure-atmosphere-wash",
+      color: 0x05080e,
+      alpha: 0.1,
+      zIndex: 1,
+    },
+    {
+      id: "adventure-vignette-wash",
+      color: 0x05080e,
+      alpha: 0.2,
+      zIndex: 2,
+    },
+  ];
 }
 
 function toRoutePrimitive(route: AdventureCanvasRouteModel): AdventureCanvasRoutePrimitive {
@@ -451,13 +525,11 @@ function toPropEffectPrimitive(prop: AdventureCanvasPropModel): AdventureCanvasP
   }
 
   if (prop.interaction?.status === "ready") {
+    const dimensions = getReadyInteractionGlowDimensions(prop);
     effects.push({
       id: `${prop.id}-ready-glow`,
       position: prop.position,
-      dimensions: {
-        width: prop.dimensions.width * 1.36,
-        height: prop.dimensions.height * 1.12,
-      },
+      dimensions,
       color: COLOR.gold,
       alpha: prop.interaction.selected ? 0.28 : 0.18,
     });
@@ -483,9 +555,58 @@ function getEffectColor(effect: string) {
   return COLOR.ember;
 }
 
+function getReadyInteractionGlowDimensions(prop: AdventureCanvasPropModel) {
+  const base = Math.min(Math.max(Math.min(prop.dimensions.width, prop.dimensions.height), 28), 88);
+  return {
+    width: base * 1.24,
+    height: base,
+  };
+}
+
 function withZIndex<T extends { zIndex?: number }>(displayObject: T, zIndex: number): T {
   displayObject.zIndex = zIndex;
   return displayObject;
+}
+
+async function renderBackgroundSprite({
+  stage,
+  pixi,
+  background,
+  width,
+  height,
+  renderToken,
+}: {
+  stage: PixiStageLike;
+  pixi: AdventureCanvasPixiModule;
+  background: AdventureCanvasBackgroundPrimitive;
+  width: number;
+  height: number;
+  renderToken: symbol;
+}) {
+  if (!pixi.Sprite || !background.src) return;
+
+  let texture: unknown = null;
+  try {
+    texture = pixi.Assets?.load ? await pixi.Assets.load(background.src) : null;
+  } catch {
+    texture = null;
+  }
+
+  if (stageRenderTokens.get(stage) !== renderToken) {
+    return;
+  }
+
+  const SpriteCtor = pixi.Sprite as unknown as { new (texture?: unknown): PixiSpriteLike };
+  const sprite = texture ? new SpriteCtor(texture) : pixi.Sprite.from?.(background.src);
+  if (!sprite) return;
+
+  sprite.anchor?.set(0.5);
+  sprite.position?.set(width / 2, height / 2);
+  sprite.width = width;
+  sprite.height = height;
+  sprite.alpha = background.alpha;
+  sprite.zIndex = background.zIndex;
+  stage.addChild?.(sprite);
 }
 
 async function renderPropSprites({

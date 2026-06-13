@@ -56,4 +56,11 @@ describe("Adventure canvas map wiring", () => {
     expect(nodeElementSource).toContain('visualMode?: "dom" | "canvasOverlay";');
     expect(nodeElementSource).toContain('data-adventure-canvas-hit-target="true"');
   });
+
+  it("keeps the DOM background layer out of the canvas-owned Adventure map", () => {
+    const campaignSceneSource = readFileSync(resolve("components/game/adventure/AdventureCampaignScene.tsx"), "utf8");
+
+    expect(campaignSceneSource).toContain("data-adventure-dom-background-layer");
+    expect(campaignSceneSource).toContain("!canvasSceneModel ? (");
+  });
 });

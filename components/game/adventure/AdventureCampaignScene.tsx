@@ -152,24 +152,28 @@ export function AdventureCampaignMap({
         onKeyDown={handleKeyDown}
         tabIndex={qaEnabled ? 0 : undefined}
       >
-        {background ? (
-          <img
-            src={background.src}
-            alt=""
-            aria-hidden="true"
-            loading="eager"
-            decoding="async"
-            draggable={false}
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: background.position ?? "50% 50%" }}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_25%,rgba(78,103,141,0.36),transparent_38%),linear-gradient(180deg,#182033,#060910)]" />
-        )}
+        {!canvasSceneModel ? (
+          <div className="pointer-events-none absolute inset-0" data-adventure-dom-background-layer>
+            {background ? (
+              <img
+                src={background.src}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                decoding="async"
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{ objectPosition: background.position ?? "50% 50%" }}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_25%,rgba(78,103,141,0.36),transparent_38%),linear-gradient(180deg,#182033,#060910)]" />
+            )}
 
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_52%_42%,transparent_0%,rgba(5,8,14,0.04)_50%,rgba(5,8,14,0.5)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.08),rgba(4,7,13,0.02)_34%,rgba(4,7,13,0.34)_100%)]" />
-        <AdventureSkyAtmosphere />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_52%_42%,transparent_0%,rgba(5,8,14,0.04)_50%,rgba(5,8,14,0.5)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.08),rgba(4,7,13,0.02)_34%,rgba(4,7,13,0.34)_100%)]" />
+            <AdventureSkyAtmosphere />
+          </div>
+        ) : null}
 
         {!canvasSceneModel ? (
           <>
