@@ -20,12 +20,12 @@ No incluye:
 
 ## Estado Actual
 
-- RC local cerrada en `0.37.63`; gates pre-deploy repetidos en `0.37.67` tras los fixes de progresion y Roster.
+- RC local cerrada de nuevo en `0.37.77`; gates pre-deploy repetidos el 2026-06-17 tras aparcar el spike Canvas/WebGL y volver a `main`.
 - `npm.cmd run check:supabase:remote` pasa contra el proyecto remoto configurado.
 - Desde `0.37.65`, aplicar la migracion `20260604211500_normalize_account_progress.sql` antes del smoke online para reparar XP/nivel acumulado y mantener el snapshot como fuente de verdad.
 - El proyecto Vercel `duskkeep-fronts` ya existe y esta asociado al repositorio correcto `jgonzalezhmf-gif/duskkeep-fronts`.
 - `.vercel/` no debe commitearse; si se enlaza localmente, queda ignorado por Git.
-- Vercel no debe validarse como demo hasta tener variables production y smoke post-deploy en verde.
+- Vercel no debe validarse como demo hasta desplegar el commit actual y tener smoke post-deploy en verde.
 
 ## Variables Production
 
@@ -106,9 +106,27 @@ Nota `0.37.68`:
 - El primer deploy production real de Duskkeep en Vercel llego al repositorio correcto, pero fallo en `npm install` porque `eslint-config-next@16.2.6` exige `eslint >= 9` y el proyecto seguia declarando `eslint@8.57.0`.
 - Se corrigio migrando a ESLint 9 y `eslint.config.mjs`; antes de volver a desplegar pasaron `npm.cmd run check`, `npm.cmd run test` y `npm.cmd run build`.
 
+Evidencia `0.37.77` del 2026-06-17:
+
+- `npm.cmd run check` paso: ESLint, `tsc --noEmit` y `check:store-boundaries`.
+- `npm.cmd run test` paso: 100 archivos, 674 tests.
+- `npm.cmd run build` paso con Next.js 16.2.6.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd install --no-audit --no-fund` paso desde `node_modules` limpio.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run audit:high` paso: 0 vulnerabilidades high o superiores; queda 1 low de `esbuild` en tooling de desarrollo.
+- `npm.cmd run audit:assets` paso: 292 assets publicos, 41.68 MB.
+- `npm.cmd run audit:asset-refs` paso: 0 candidatos no referenciados.
+- `npm.cmd run audit:build` paso: `.next/static` 3.15 MB, `.next/server/app` 0.88 MB.
+- `npm.cmd run check:performance` paso todos los presupuestos.
+- `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co` con aviso aceptado de rate limit en memoria para alpha.
+
+Nota de seguridad `0.37.77`:
+
+- `npm audit` detecto vulnerabilidades transitorias de tooling en Babel/ws/Vite/esbuild.
+- Se actualizo el lock para Babel/ws, se alineo `@types/node` con Vite 7 y se fijo `vite@7.3.5` via `overrides`, porque `vite@8.0.16` declaraba una dependencia no resoluble en el registry actual. El aviso residual low de `esbuild` afecta al dev server en Windows y no bloquea la RC production.
+
 Siguiente paso:
 
-- Esperar el deploy production generado por el commit con el fix de ESLint 9 y ejecutar el smoke post-deploy contra la URL production.
+- Desplegar el commit actual de `main` en production y ejecutar el smoke post-deploy contra la URL production.
 
 ## Post-Deploy Smoke
 

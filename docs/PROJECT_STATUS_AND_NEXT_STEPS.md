@@ -36,6 +36,14 @@ Estado operativo `0.37.68`:
 - El primer deploy llego al commit correcto con autor GitHub valido, pero fallo en `npm install` por incompatibilidad `eslint@8.57.0` vs `eslint-config-next@16.2.6`.
 - Corregido el bloqueo migrando a ESLint 9 y `eslint.config.mjs`; `check`, `test` y `build` pasaron localmente antes de pushear.
 
+Estado operativo `0.37.77`:
+
+- El spike Canvas/WebGL queda aparcado fuera de `main`; la rama `main` vuelve a ser la linea de estabilizacion TFM/RC.
+- Pre-deploy local repetido el 2026-06-17 en `main`: `check`, `test`, `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build`, `check:performance` y `check:supabase:remote` pasaron.
+- Instalacion limpia validada con `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd install --no-audit --no-fund`.
+- `npm audit` reporto vulnerabilidades transitorias en dependencias de tooling; las high se corrigieron actualizando el lock de Babel/ws y forzando `vite@7.3.5` mediante `overrides`, ya que `vite@8.0.16` declaraba una dependencia no resoluble en el registry actual. Queda un aviso low de `esbuild` en tooling de desarrollo.
+- Sigue pendiente redeploy production del commit actual y smoke post-deploy contra la URL publica.
+
 ## Bloques Estables Para Alpha
 
 ### Seguridad y backend autoritativo

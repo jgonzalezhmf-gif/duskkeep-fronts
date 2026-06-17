@@ -1,6 +1,6 @@
 {
   "name": "duskkeep-fronts",
-  "version": "0.37.76",
+  "version": "0.37.77",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -46,7 +46,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.59.1",
-    "@types/node": "20.12.12",
+    "@types/node": "^20.19.43",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "autoprefixer": "^10.5.0",
@@ -68,6 +68,7 @@
     },
     "@typescript-eslint/typescript-estree": {
       "brace-expansion": "5.0.6"
-    }
+    },
+    "vite": "7.3.5"
   }
 }

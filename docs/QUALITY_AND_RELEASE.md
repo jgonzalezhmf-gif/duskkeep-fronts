@@ -32,20 +32,25 @@ Una RC no queda lista si:
 
 ## Evidencia RC Local Actual
 
-Ultima pasada local registrada: `0.37.63` / 2026-06-04.
+Ultima pasada local registrada: `0.37.77` / 2026-06-17.
 
 - `npm.cmd run check`: pasa.
-- `npm.cmd test`: pasa con 97 test files y 652 tests.
-- `npm.cmd run build`: pasa.
-- `npm.cmd run audit:high`: 0 vulnerabilidades.
+- `npm.cmd run test`: pasa con 100 test files y 674 tests.
+- `npm.cmd run build`: pasa con Next.js 16.2.6.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd install --no-audit --no-fund`: pasa desde `node_modules` limpio.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run audit:high`: pasa con 0 vulnerabilidades high o superiores; queda 1 low de `esbuild` en tooling de desarrollo.
 - `npm.cmd run audit:assets`: 292 assets publicos, 41.68 MB.
 - `npm.cmd run audit:asset-refs`: 0 candidatos no referenciados.
-- `npm.cmd run audit:build`: `.next/static` 3.12 MB; server app 0.88 MB.
+- `npm.cmd run audit:build`: `.next/static` 3.15 MB; server app 0.88 MB.
 - `npm.cmd run check:performance`: pasa todos los presupuestos.
-- `npm.cmd run screenshots:auto`: 24/24 escenarios OK en `tmp/playwright-screenshots/2026-06-04T16-56-25-860Z/manifest.json`.
-- Validacion complementaria de rutas: 24/24 rutas desktop/mobile OK en `tmp/rc-route-validation/20260604-190306/manifest.json`.
+- `npm.cmd run check:supabase:remote`: pasa contra `https://vyuoegsmbgmsxexzciur.supabase.co`; queda el aviso aceptado para alpha de rate limit en memoria.
 
-Nota: esta evidencia es local/offline. El cierre de demo online requiere deploy production y smoke Supabase remoto post-deploy.
+Notas:
+
+- Antes de repetir el gate, se limpio `.next` porque la cache generada aun contenia tipos de un spike de Canvas/WebGL ya aparcado fuera de `main`.
+- `npm audit` reporto vulnerabilidades transitorias de tooling; las high quedaron mitigadas en el lock actual actualizando Babel/ws, alineando `@types/node` con Vite 7 y forzando `vite@7.3.5` mediante `overrides`. Queda un aviso low de `esbuild` ligado al dev server en Windows, no bloqueante para RC production.
+- La evidencia visual local previa sigue siendo util como referencia: `tmp/playwright-screenshots/2026-06-04T16-56-25-860Z/manifest.json` y `tmp/rc-route-validation/20260604-190306/manifest.json` tuvieron 24/24 escenarios OK.
+- El cierre de demo online requiere redeploy production del commit actual y smoke Supabase remoto post-deploy.
 
 ## Gate Production
 
@@ -58,7 +63,7 @@ Antes de considerar lista la demo online:
 - Ejecutar capturas o validacion browser contra la URL production.
 - Registrar URL, commit desplegado, fecha, comandos y riesgos residuales.
 
-Estado actual: Supabase remoto pasa preflight; falta crear/importar proyecto Vercel de Duskkeep, configurar variables y ejecutar smoke post-deploy.
+Estado actual: Supabase remoto pasa preflight y el proyecto Vercel `duskkeep-fronts` ya existe. Falta redeploy production del commit actual y ejecutar smoke post-deploy contra la URL publica.
 
 ## Comandos Requeridos
 

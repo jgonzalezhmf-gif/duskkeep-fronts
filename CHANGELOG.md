@@ -7,6 +7,16 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.77] - 2026-06-17
+
+### Changed
+- Registrada evidencia RC local actualizada para la entrega TFM: `check`, `test`, `build`, auditorias, presupuesto de rendimiento y preflight Supabase remoto en verde.
+- Actualizados los runbooks de calidad, estado y despliegue para reflejar que Canvas/WebGL queda aparcado y que el siguiente paso es redeploy production + smoke post-deploy.
+- Alineado `@types/node` con el peer requerido por Vite 7 para mantener una instalacion limpia en entorno de deploy.
+
+### Fixed
+- Corregido el gate `audit:high` actualizando dependencias transitivas de tooling y fijando `vite@7.3.5` mediante `overrides`, evitando vulnerabilidades high reportadas por `npm audit` sin adoptar el paquete `vite@8.0.16` que declaraba una dependencia no resoluble en el registry actual.
+
 ## [0.37.76] - 2026-06-08
 
 ### Fixed
