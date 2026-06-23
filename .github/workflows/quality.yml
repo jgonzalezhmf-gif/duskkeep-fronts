@@ -44,3 +44,37 @@ jobs:
 
       - name: Check performance budgets
         run: npm run check:performance
+
+  smoke:
+    name: Supabase Smokes
+    runs-on: ubuntu-latest
+    needs: quality
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Smoke — guest provisioning
+        run: supabase db query --local --file supabase/smoke-tests/auth_guest_provisioning.sql --output table
+
+      - name: Smoke — player snapshot RPC
+        run: supabase db query --local --file supabase/smoke-tests/player_snapshot_rpc.sql --output table
+
+      - name: Smoke — adventure and shop RPCs
+        run: supabase db query --local --file supabase/smoke-tests/adventure_shop_rpcs.sql --output table
+
+      - name: Smoke — ladder RPC
+        run: supabase db query --local --file supabase/smoke-tests/ladder_rpc.sql --output table
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
