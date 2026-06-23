@@ -13,6 +13,7 @@ import { getFrontlineHeroProfile, isFrontlineReadyHero } from "@/features/frontl
 import { cn } from "@/lib/cn";
 import { sfx } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { isPlayerHeroUnlocked } from "@/lib/playerHeroOwnership";
 import { useGameStore } from "@/lib/store";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import type { Rarity, Role } from "@/lib/types";
@@ -128,7 +129,7 @@ export default function RosterPage() {
       if (rarity !== "all" && hero.rarity !== rarity) return false;
       if (role !== "all" && hero.role !== role) return false;
       const playerHero = playerByHero.get(hero.id);
-      const isOwned = Boolean(playerHero && playerHero.stars > 0);
+      const isOwned = isPlayerHeroUnlocked(playerHero);
       if (owned === "owned" && !isOwned) return false;
       if (owned === "locked" && isOwned) return false;
       return true;
@@ -281,7 +282,7 @@ export default function RosterPage() {
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {filtered.map((hero) => {
             const playerHero = playerByHero.get(hero.id);
-            const ownedHero = Boolean(playerHero && playerHero.stars > 0);
+            const ownedHero = isPlayerHeroUnlocked(playerHero);
             const gate = heroUnlockLevel(hero.id);
             const gated = Boolean(gate && accountLevel < gate);
             const profile = getFrontlineHeroProfile(hero, playerHero);

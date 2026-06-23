@@ -2,14 +2,25 @@
 
 import type { AudioGraph } from "@/lib/audio-runtime";
 
+function createNoiseSample(seed: number) {
+  const nextSeed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+  return {
+    seed: nextSeed,
+    sample: (nextSeed / 2147483648 - 1),
+  };
+}
+
 function createImpulseBuffer(ctx: AudioContext, seconds: number, decay: number) {
   const length = Math.max(1, Math.floor(ctx.sampleRate * seconds));
   const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+  let seed = 0x9e3779b9;
   for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) {
     const data = impulse.getChannelData(channel);
     for (let index = 0; index < length; index += 1) {
       const envelope = Math.pow(1 - index / length, decay);
-      data[index] = (Math.random() * 2 - 1) * envelope;
+      const next = createNoiseSample(seed);
+      seed = next.seed;
+      data[index] = next.sample * envelope;
     }
   }
   return impulse;

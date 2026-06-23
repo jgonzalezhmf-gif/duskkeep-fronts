@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.79] - 2026-06-23
+
+### Fixed
+- Evitado que el sonido de victoria pueda dispararse varias veces por callbacks solapados de postbatalla.
+- Corregido el softlock de defensa de fortaleza: Castle Shot queda siempre disponible como accion base por turno y se ajusta su dano para compensar.
+- Corregida la pantalla de heroes para respetar el estado `unlocked` autoritativo del servidor y no mostrar como owned heroes bloqueados con filas de progreso heredadas.
+- Sustituido el uso de pseudoaleatoriedad en rutas de producto por entropia segura o ruido determinista donde corresponde, manteniendo limpio el gate de calidad estatica.
+
 ## [0.37.78] - 2026-06-19
 
 ### Changed

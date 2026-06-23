@@ -1,5 +1,6 @@
 import { callAuthoritativeOperation } from "@/features/server/authoritativeClient";
 import type { SupportedAuthoritativeApiOperation } from "@/features/server/authoritativeOperations";
+import { createEntropyToken } from "@/lib/clientEntropy";
 import type {
   AuthoritativeDispatcherOptions,
   AuthoritativeOperationCallResult,
@@ -8,8 +9,7 @@ import type {
 import { getSupabaseAccessToken } from "@/features/server/supabaseBrowserSession";
 
 export function createIdempotencyKey(scope: string, id: string) {
-  const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-  return `${scope}:${id}:${Date.now()}:${suffix}`;
+  return `${scope}:${id}:${Date.now()}:${createEntropyToken()}`;
 }
 
 export async function callOperationWithSession<TType extends SupportedAuthoritativeApiOperation>(

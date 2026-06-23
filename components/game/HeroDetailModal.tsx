@@ -8,6 +8,7 @@ import { LEVEL_UP_GOLD, MAX_STARS, SHARDS_FOR_STAR } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { sfx } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n/useI18n";
+import { isPlayerHeroUnlocked } from "@/lib/playerHeroOwnership";
 import { useGameStore } from "@/lib/store";
 import Button from "@/components/ui/Button";
 import GameIcon from "@/components/game/shared/GameIcon";
@@ -24,7 +25,7 @@ export default function HeroDetailModal({ heroId, onClose }: { heroId: string; o
   const starUp = useGameStore((state) => state.starUpHeroOnlineFirst);
   const [pendingAction, setPendingAction] = useState<"level" | "star" | null>(null);
 
-  const owned = Boolean(ph && ph.stars > 0);
+  const owned = isPlayerHeroUnlocked(ph);
   const shards = ph?.shards ?? 0;
   const gateLevel = heroUnlockLevel(heroId);
   const levelGated = gateLevel !== null && accountLevel < gateLevel;

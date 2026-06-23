@@ -1,4 +1,5 @@
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
+import { createEntropySeedMaterial } from "@/lib/clientEntropy";
 import { hashSeed, createRng } from "@/lib/rng";
 import { mergeRewards } from "@/lib/rewards";
 import type { Resources, Rewards } from "@/lib/types";
@@ -140,7 +141,7 @@ export function canClaimAdventureMapInteraction(args: Parameters<typeof getAdven
 
 export function rollAdventureMapInteractionLoot(
   interaction: AdventureMapInteractionDefinition,
-  seed = hashSeed(`${interaction.id}:${Date.now()}:${Math.random()}`),
+  seed = hashSeed(createEntropySeedMaterial(`adventure-map:${interaction.id}`)),
 ): AdventureMapInteractionOpenResult {
   const table = interaction.lootTable.filter((entry) => entry.weight > 0);
   if (!table.length) {

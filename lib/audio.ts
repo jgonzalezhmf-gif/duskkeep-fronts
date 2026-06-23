@@ -22,6 +22,7 @@ import {
   stopUntrackedMusicElements,
 } from "@/lib/audio-music-assets";
 import { createAudioGraph } from "@/lib/audio-graph";
+import { shouldStartStinger } from "@/lib/audioStingerGate";
 import { createSfxController } from "@/lib/audio-sfx";
 import {
   STORAGE_KEYS,
@@ -47,6 +48,14 @@ type SetThemeOptions = {
   immediate?: boolean;
   assetOnly?: boolean;
 };
+
+function createNoiseSample(seed: number) {
+  const nextSeed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+  return {
+    seed: nextSeed,
+    sample: nextSeed / 2147483648 - 1,
+  };
+}
 
 class AudioManager {
   private ctx: AudioContext | null = null;
@@ -83,6 +92,7 @@ class AudioManager {
   private musicAssetBuffers = new Map<AudioMusicAssetName, Promise<AudioBuffer | null>>();
   private sfxAssetBuffers = new Map<AudioSfxAssetName, Promise<AudioBuffer | null>>();
   private themeEntryCursor: Partial<Record<AudioThemeName, number>> = {};
+  private lastStingerStartedAt: Partial<Record<AudioStingerName, number>> = {};
   private musicVolume = 0.78;
   private sfxVolume = 0.92;
 
@@ -578,8 +588,11 @@ class AudioManager {
     const length = ctx.sampleRate;
     const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
     const data = buffer.getChannelData(0);
+    let seed = 0x6d2b79f5;
     for (let index = 0; index < length; index += 1) {
-      data[index] = Math.random() * 2 - 1;
+      const next = createNoiseSample(seed);
+      seed = next.seed;
+      data[index] = next.sample;
     }
     this.noiseBuffer = buffer;
     return buffer;
@@ -1175,6 +1188,8 @@ class AudioManager {
   }
 
   playStinger(name: AudioStingerName) {
+    if (!shouldStartStinger(this.lastStingerStartedAt, name)) return;
+
     if (this.playSfxAsset(name)) return;
     const graph = this.ensureGraph();
     if (!graph || this.muted || !this.ctx) return;

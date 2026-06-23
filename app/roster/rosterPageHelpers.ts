@@ -1,4 +1,5 @@
 import type { Hero, PlayerHero, Role } from "@/lib/types";
+import { isPlayerHeroUnlocked } from "@/lib/playerHeroOwnership";
 
 export const FRONTLINE_COMBAT_SLOT_COUNT = 3;
 export const DEFAULT_ROSTER_OWNED_FILTER = "owned";
@@ -19,7 +20,7 @@ export type RosterCombatSquadSlot = {
 export const ROSTER_ROLE_ORDER: Role[] = ["tank", "fighter", "archer", "mage", "support", "summoner"];
 
 export function isRosterHeroOwned(playerHero: PlayerHero | undefined | null) {
-  return Boolean(playerHero && playerHero.stars > 0);
+  return isPlayerHeroUnlocked(playerHero);
 }
 
 export function buildRosterOverview({

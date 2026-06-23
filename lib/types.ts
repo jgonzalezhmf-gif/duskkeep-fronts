@@ -66,6 +66,7 @@ export type PlayerHero = {
   shards: number; // toward next star
   xp: number;
   skillLevel: number; // 1..5 — enhanced via Arcane Dust
+  unlocked?: boolean;
 };
 
 export type Resources = {

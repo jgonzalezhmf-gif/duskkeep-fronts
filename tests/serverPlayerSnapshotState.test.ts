@@ -219,7 +219,7 @@ describe("server player snapshot state patch", () => {
       },
     });
 
-    expect(patch.heroes).toEqual([{ heroId: "bran", level: 4, stars: 2, shards: 12, xp: 80, skillLevel: 2 }]);
+    expect(patch.heroes).toEqual([{ heroId: "bran", level: 4, stars: 2, shards: 12, xp: 80, skillLevel: 2, unlocked: true }]);
     expect(patch.frontlineCardUnlocks).toEqual({ order_guard_wall: true });
     expect(patch.frontlineCardLevels).toEqual({ order_guard_wall: 3 });
     expect(patch.frontlineLoadout?.squad).toEqual(["bran", "kara", "mira"]);
@@ -231,6 +231,31 @@ describe("server player snapshot state patch", () => {
     expect(patch.arenaLosses).toBe(1);
     expect(patch.eventsPlayed).toEqual({ gold_rush: 3 });
     expect(patch.eventCompletions).toEqual({ gold_rush: "2026-05-16" });
+  });
+
+  it("preserves server hero ownership so locked shard rows are not shown as owned", () => {
+    const patch = createServerPlayerSnapshotPatch(currentState(), {
+      profileId: "profile-1",
+      snapshot: {
+        account: { name: "Commander", level: 1, xp: 0 },
+        resources: { gold: 500, dust: 50, gems: 50, arenaTickets: 5, adventureKeys: 0 },
+        heroes: [{ heroId: "ursa", level: 1, stars: 1, shards: 4, xp: 0, skillLevel: 1, unlocked: false }],
+        frontlineCardUnlocks: {},
+        frontlineCardLevels: {},
+        frontlineLoadout: null,
+        frontlineFortress: null,
+        adventureProgress: {},
+        adventureMapClaims: {},
+        missionsProgress: {},
+        dailyLoginClaims: {},
+        shopPurchases: [],
+        battleStats: { battlesWon: 0, arenaWins: 0, arenaLosses: 0 },
+        eventsPlayed: {},
+        eventCompletions: {},
+      },
+    });
+
+    expect(patch.heroes).toEqual([{ heroId: "ursa", level: 1, stars: 1, shards: 4, xp: 0, skillLevel: 1, unlocked: false }]);
   });
 
   it("applies server-owned missions, daily login and shop purchase state", () => {

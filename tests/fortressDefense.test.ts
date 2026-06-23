@@ -322,7 +322,7 @@ describe("fortress defense engine", () => {
 
     const next = resolveFortressDefenseTurn(state, "castle_shot", "target");
 
-    expect(next.enemies.find((enemy) => enemy.id === "target")?.hp).toBe(6);
+    expect(next.enemies.find((enemy) => enemy.id === "target")?.hp).toBe(12);
     expect(next.enemies.find((enemy) => enemy.id === "front")?.hp).toBe(30);
   });
 
@@ -332,7 +332,7 @@ describe("fortress defense engine", () => {
 
     const next = resolveFortressDefenseTurn(state, "castle_shot", "target");
 
-    expect(next.enemies.find((enemy) => enemy.id === "target")?.hp).toBe(11);
+    expect(next.enemies.find((enemy) => enemy.id === "target")?.hp).toBe(17);
   });
 
   it("makes Blade Rush a targeted Kara combo instead of another Volley", () => {
@@ -356,19 +356,19 @@ describe("fortress defense engine", () => {
     expect(next.enemies.find((enemy) => enemy.id === "target")?.hp).toBe(9);
   });
 
-  it("puts used orders on cooldown and blocks them until another turn passes", () => {
+  it("keeps Castle Shot available every turn while other orders still use cooldowns", () => {
     const state = testState([
       testEnemy({ id: "target", hp: 50, maxHp: 50, range: 5, moveSpeed: 0 }),
       testEnemy({ id: "other", hp: 50, maxHp: 50, range: 5, moveSpeed: 0 }),
     ], ["castle_shot", "volley"]);
 
     const afterShot = resolveFortressDefenseTurn(state, "castle_shot", "target");
-    const blockedShot = resolveFortressDefenseTurn(afterShot, "castle_shot", "other");
+    const secondShot = resolveFortressDefenseTurn(afterShot, "castle_shot", "other");
     const afterVolley = resolveFortressDefenseTurn(afterShot, "volley");
 
-    expect(actionState(afterShot, "castle_shot").currentCooldown).toBe(1);
-    expect(actionState(afterShot, "castle_shot").disabledReason).toBe("cooldown");
-    expect(blockedShot).toBe(afterShot);
+    expect(actionState(afterShot, "castle_shot").currentCooldown).toBe(0);
+    expect(actionState(afterShot, "castle_shot").disabledReason).toBeUndefined();
+    expect(secondShot.turn).toBe(afterShot.turn + 1);
     expect(actionState(afterVolley, "castle_shot").currentCooldown).toBe(0);
     expect(actionState(afterVolley, "volley").currentCooldown).toBe(2);
   });

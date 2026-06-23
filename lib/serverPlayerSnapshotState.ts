@@ -113,6 +113,7 @@ function normalizeHeroes(heroes: Array<Record<string, unknown>>): PlayerHero[] {
       shards: hero.shards,
       xp: hero.xp,
       skillLevel: hero.skillLevel,
+      unlocked: typeof hero.unlocked === "boolean" ? hero.unlocked : hero.stars > 0,
     }];
   });
 }

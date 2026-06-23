@@ -1,4 +1,5 @@
 import type { TacticalState } from "@/features/tactical/types";
+import { createEntropyToken } from "@/lib/clientEntropy";
 import type { Notification, NotificationKind } from "@/lib/storeTypes";
 import type { Resources } from "@/lib/types";
 
@@ -15,8 +16,8 @@ export function dismissNotificationState(notifications: Notification[], id: stri
   return notifications.filter((notification) => notification.id !== id);
 }
 
-export function createNotificationId(now = Date.now(), random = Math.random()) {
-  return `${now}:${random.toString(36).slice(2, 8)}`;
+export function createNotificationId(now = Date.now(), suffix = createEntropyToken(6).slice(0, 8)) {
+  return `${now}:${suffix}`;
 }
 
 export function nextStoreSeed(lastSeed: number) {

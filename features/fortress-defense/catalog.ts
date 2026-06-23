@@ -9,7 +9,7 @@ export const FORTRESS_DEFENSE_ACTIONS: Record<FortressDefenseActionId, FortressD
     summary: "Focused shot from the keep.",
     requiresTarget: true,
     targetType: "enemy",
-    cooldownTurns: 1,
+    cooldownTurns: 0,
   },
   deploy_guard: {
     id: "deploy_guard",

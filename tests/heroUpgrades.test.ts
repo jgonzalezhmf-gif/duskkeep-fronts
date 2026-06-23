@@ -72,4 +72,12 @@ describe("hero upgrades", () => {
     expect(applyHeroStarUp([lockedHero], "bran")).toEqual({ ok: false, reason: "hero_locked" });
     expect(applyHeroSkillUp([lockedHero], resources, "bran")).toEqual({ ok: false, reason: "hero_locked" });
   });
+
+  it("blocks upgrades for server-locked heroes even when legacy rows keep stars", () => {
+    const lockedHero = { ...hero, unlocked: false };
+
+    expect(applyHeroLevelUp([lockedHero], resources, "bran")).toEqual({ ok: false, reason: "hero_locked" });
+    expect(applyHeroStarUp([lockedHero], "bran")).toEqual({ ok: false, reason: "hero_locked" });
+    expect(applyHeroSkillUp([lockedHero], resources, "bran")).toEqual({ ok: false, reason: "hero_locked" });
+  });
 });

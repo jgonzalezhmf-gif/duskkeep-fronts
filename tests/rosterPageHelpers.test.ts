@@ -85,4 +85,20 @@ describe("roster page helpers", () => {
     expect(slots[1]).toMatchObject({ owned: false, hero: null });
     expect(slots[2]).toMatchObject({ owned: false, hero: null });
   });
+
+  it("treats server-locked heroes as locked even if their row has stars", () => {
+    const playerHeroes: PlayerHero[] = [
+      { heroId: "bran", level: 1, stars: 1, shards: 0, xp: 0, skillLevel: 1 },
+      { heroId: "ursa", level: 1, stars: 1, shards: 3, xp: 0, skillLevel: 1, unlocked: false },
+    ];
+
+    const summary = buildRosterOverview({
+      heroes: HEROES,
+      playerByHero: new Map(playerHeroes.map((hero) => [hero.heroId, hero] as const)),
+      isFrontlineReady: (heroId) => ["bran", "ursa"].includes(heroId),
+    });
+
+    expect(summary.ownedCount).toBe(1);
+    expect(summary.frontlineOwnedCount).toBe(1);
+  });
 });

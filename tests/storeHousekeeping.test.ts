@@ -43,7 +43,7 @@ describe("store housekeeping helpers", () => {
   });
 
   it("creates stable notification ids from injected entropy", () => {
-    expect(createNotificationId(1234, 0.5)).toBe("1234:i");
+    expect(createNotificationId(1234, "fixed")).toBe("1234:fixed");
   });
 
   it("advances the deterministic store seed", () => {

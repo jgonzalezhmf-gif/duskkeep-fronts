@@ -6,7 +6,7 @@ export const FORTRESS_DEFENSE_BALANCE = {
   },
   actions: {
     castleShot: {
-      damage: 34,
+      damage: 28,
       closeRangeBonus: 6,
     },
     bladeRush: {
