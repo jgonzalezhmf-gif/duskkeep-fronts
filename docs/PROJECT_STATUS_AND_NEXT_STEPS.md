@@ -2,11 +2,11 @@
 
 Este documento sirve para decidir que hacer cuando una sesion dice "sigamos", "siguiente" o "vamos alla". La regla es no seguir iterando sobre un bloque estable salvo bug real, validacion fallida o cambio explicito de alcance.
 
-## Modo Actual: Cierre TFM / Release Candidate
+## Modo Actual: Cierre de Release Candidate
 
 Estado: activo desde `0.37.62`.
 
-Objetivo: cerrar Duskkeep Fronts como entrega estable de fin de master y demo online, defendible despues como MVP publico.
+Objetivo: cerrar Duskkeep Fronts como release candidate estable y demo online, defendible despues como MVP publico.
 
 Reglas de alcance:
 
@@ -14,7 +14,7 @@ Reglas de alcance:
 - No anadir IA generativa dentro del juego.
 - No anadir monetizacion, pagos, premium currency ni ladder competitivo publico.
 - No seguir puliendo pantallas salvo bug visual concreto, overflow, error de consola o feedback explicito.
-- Mantener los documentos especificos de TFM fuera de Git hasta decision explicita del usuario.
+- Mantener los materiales privados de presentacion fuera de Git hasta decision explicita del usuario.
 - Si se documenta en el repo, debe ser documentacion operativa/producto: calidad, despliegue, demo, seguridad o estado.
 
 Siguiente foco:
@@ -38,7 +38,7 @@ Estado operativo `0.37.68`:
 
 Estado operativo `0.37.77`:
 
-- El spike Canvas/WebGL queda aparcado fuera de `main`; la rama `main` vuelve a ser la linea de estabilizacion TFM/RC.
+- El spike Canvas/WebGL queda aparcado fuera de `main`; la rama `main` vuelve a ser la linea de estabilizacion RC.
 - Pre-deploy local repetido el 2026-06-17 en `main`: `check`, `test`, `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build`, `check:performance` y `check:supabase:remote` pasaron.
 - Instalacion limpia validada con `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd install --no-audit --no-fund`.
 - `npm audit` reporto vulnerabilidades transitorias en dependencias de tooling; las high se corrigieron actualizando el lock de Babel/ws y forzando `vite@7.3.5` mediante `overrides`, ya que `vite@8.0.16` declaraba una dependencia no resoluble en el registry actual. Queda un aviso low de `esbuild` en tooling de desarrollo.
@@ -212,7 +212,7 @@ Validar:
 
 ### 3. Validacion browser de release candidate
 
-Estado: pasada localmente en `0.37.63` para cierre TFM/RC.
+Estado: pasada localmente en `0.37.63` para cierre RC.
 
 Objetivo: comprobar la experiencia real de usuario tras intro/login/Home y rutas principales.
 
@@ -369,7 +369,7 @@ Aplicacion al estado actual:
 - Events: iteracion no-combat cerrada en `0.37.58`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Deck: iteracion no-combat cerrada en `0.37.60`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
 - Roster: iteracion no-combat cerrada en `0.37.61`; no seguir tocandola salvo bug visual concreto o feedback del usuario.
-- Siguiente recomendado: no abrir mas polish por inercia. Ejecutar cierre TFM/Release Candidate: QA local completa, preparacion de despliegue production, smoke remoto post-deploy y documentacion operativa de evidencia/riesgos.
+- Siguiente recomendado: no abrir mas polish por inercia. Ejecutar cierre de release candidate: QA local completa, preparacion de despliegue production, smoke remoto post-deploy y documentacion operativa de evidencia/riesgos.
 
 ## Gates Generales Antes de Release Presentable
 

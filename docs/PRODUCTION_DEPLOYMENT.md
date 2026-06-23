@@ -1,6 +1,6 @@
 # Despliegue Production
 
-Este runbook prepara Duskkeep Fronts para una demo online estable de TFM y futuro MVP publico.
+Este runbook prepara Duskkeep Fronts para una demo online estable y futuro MVP publico.
 
 ## Alcance
 
@@ -16,7 +16,7 @@ No incluye:
 - Monetizacion, pagos o premium currency.
 - Ladder competitivo publico.
 - Rate limit distribuido.
-- Documentos privados de TFM dentro del repo.
+- Materiales privados de presentacion dentro del repo.
 
 ## Estado Actual
 
@@ -44,7 +44,7 @@ Reglas:
 
 - No usar service-role key en ninguna variable `NEXT_PUBLIC_*`.
 - No commitear `.env`, `.env.local`, `.vercel/`, dumps ni logs.
-- `AUTHORITATIVE_RATE_LIMIT_BACKEND=memory` es aceptable solo para TFM/demo alpha de baja concurrencia.
+- `AUTHORITATIVE_RATE_LIMIT_BACKEND=memory` es aceptable solo para demo alpha de baja concurrencia.
 - Para publico real, cambiar a rate limit distribuido y observabilidad mas fuerte antes de monetizacion o ladder.
 
 ## Opcion Recomendada: Vercel
@@ -168,7 +168,7 @@ Si falla la demo:
 4. Si el fallo es de Supabase/RPC, pausar la demo online y aplicar migracion correctiva hacia delante.
 5. No convertir cuentas vinculadas a fallback local como solucion rapida.
 
-## Riesgos Residuales Aceptados Para TFM
+## Riesgos Residuales Aceptados Para Demo Alpha
 
 - Rate limit en memoria.
 - Sink de eventos de seguridad en consola.

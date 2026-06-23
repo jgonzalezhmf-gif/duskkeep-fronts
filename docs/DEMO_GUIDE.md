@@ -15,7 +15,7 @@ Mostrar:
 - recompensas y persistencia
 - sistemas secundarios: Deck, Team/Roster, Shop, Missions, Arena, Events y Fortress
 
-Contexto para defensa TFM:
+Contexto de presentacion:
 
 - Presentar el juego como MVP creado con metodologia asistida por IA, SDD, agentes especializados, validacion automatizada y revisiones iterativas.
 - Explicar que la IA forma parte del proceso de ingenieria y calidad, no una feature generativa metida dentro del gameplay.

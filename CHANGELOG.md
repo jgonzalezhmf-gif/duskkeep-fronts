@@ -7,10 +7,18 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.37.78] - 2026-06-19
+
+### Changed
+- Eliminadas referencias academicas internas de la documentacion versionada para mantener el repositorio centrado en Duskkeep Fronts como producto.
+- Retirado el workflow de Datadog Synthetics al no encajar como gate obligatorio para una release alpha/hobby sin cuenta corporativa estable.
+- Reescrito el copy narrativo de la intro en ingles y espanol para que suene mas organico, conecte mejor con el lore dark fantasy y mantenga un tono de apertura cinematica.
+- Simplificado el copy de acceso/login en ingles y espanol para reducir friccion, ir mas al grano y mantener un tono mas natural dentro del universo del juego.
+
 ## [0.37.77] - 2026-06-17
 
 ### Changed
-- Registrada evidencia RC local actualizada para la entrega TFM: `check`, `test`, `build`, auditorias, presupuesto de rendimiento y preflight Supabase remoto en verde.
+- Registrada evidencia RC local actualizada para la release candidate: `check`, `test`, `build`, auditorias, presupuesto de rendimiento y preflight Supabase remoto en verde.
 - Actualizados los runbooks de calidad, estado y despliegue para reflejar que Canvas/WebGL queda aparcado y que el siguiente paso es redeploy production + smoke post-deploy.
 - Alineado `@types/node` con el peer requerido por Vite 7 para mantener una instalacion limpia en entorno de deploy.
 
@@ -99,15 +107,15 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 ## [0.37.63] - 2026-06-04
 
 ### Changed
-- Cerrada la RC QA local para entrega TFM: checks, test suite completa, build, audits, presupuesto de rendimiento, screenshots y validacion complementaria de rutas quedaron en verde.
+- Cerrada la RC QA local de la release candidate: checks, test suite completa, build, audits, presupuesto de rendimiento, screenshots y validacion complementaria de rutas quedaron en verde.
 - Registrada la evidencia local de release candidate y el riesgo residual: la siguiente fase sigue siendo deploy production con Supabase remoto y smoke post-deploy.
 
 ## [0.37.62] - 2026-06-04
 
 ### Changed
-- Cambiado el foco del backlog a cierre TFM/Release Candidate: alcance congelado, demo online, QA completa y documentacion operativa de evidencia/riesgos.
+- Cambiado el foco del backlog a cierre de release candidate: alcance congelado, demo online, QA completa y documentacion operativa de evidencia/riesgos.
 - Documentado que la entrega se defendera como producto desarrollado con metodologia asistida por IA, SDD y agentes, sin introducir IA generativa dentro del gameplay.
-- Separada la documentacion operativa del repo de los documentos privados de TFM, que quedan fuera de Git hasta decision explicita.
+- Separada la documentacion operativa del repo de materiales privados externos, que quedan fuera de Git hasta decision explicita.
 
 ## [0.37.61] - 2026-06-04
 
