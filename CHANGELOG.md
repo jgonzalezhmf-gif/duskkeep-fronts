@@ -12,6 +12,7 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 ### Changed
 - Eliminadas referencias academicas internas de la documentacion versionada para mantener el repositorio centrado en Duskkeep Fronts como producto.
 - Retirado el workflow de Datadog Synthetics al no encajar como gate obligatorio para una release alpha/hobby sin cuenta corporativa estable.
+- Anadida configuracion de SonarQube Cloud como gate CI de calidad estatica para codigo de aplicacion.
 - Reescrito el copy narrativo de la intro en ingles y espanol para que suene mas organico, conecte mejor con el lore dark fantasy y mantenga un tono de apertura cinematica.
 - Simplificado el copy de acceso/login en ingles y espanol para reducir friccion, ir mas al grano y mantener un tono mas natural dentro del universo del juego.
 
