@@ -44,9 +44,13 @@ UI reutilizable y presentacion de juego. Los componentes deben:
 
 Sistemas de dominio y logica de gameplay. Aqui deben vivir las reglas:
 
-- `features/frontline`: combate Duskkeep Fronts, cartas, presets, perfiles de heroe e integracion con Fortress.
-- `features/adventure`: resolucion de nodos Adventure, progresion, interacciones de mapa y rewards.
-- `features/frontline`: motor principal de combate Duskkeep Fronts.
+- `features/frontline/`: combate Duskkeep Fronts, cartas, presets, perfiles de heroe e integracion con Fortress.
+- `features/server/` — capa server-authoritative: parsers, operaciones RPC, dispatcher, proxy, rate limiting y seguridad de sesion.
+- `features/fortress-defense/` — motor de defensa de Fortress por oleadas (Last Bastion Defense), independiente del motor Frontline.
+- `features/ladder/` — estado de resultados y datos del sistema Ladder.
+- `features/arena/` — estado de resultados y mutadores de Arena Trials.
+- `features/events/` — estado de resultados de Events.
+- `features/adventure/` — resolucion de nodos, progresion e interacciones del mapa de aventura.
 
 ### `data/`
 
@@ -89,6 +93,7 @@ Modo local/offline:
 - Zustand persist escribe en `localStorage`.
 - Permite desarrollo, QA y demos locales sin servidor.
 - Es fallback de desarrollo/alpha, no fuente valida para economia, progreso o rankings de produccion.
+- En modo Supabase, Zustand persiste unicamente estado client-only (audio, idioma, preferencias visuales, intro/onboarding). El progreso de juego y economia viene de `get_player_snapshot`.
 
 Modo Supabase / produccion online:
 
@@ -109,7 +114,7 @@ Modo Supabase / produccion online:
 ## Riesgos Tecnicos Actuales
 
 - `lib/store.ts` sigue siendo amplio; extraer solo reglas duplicadas, sensibles o testeables con un beneficio claro, evitando micro-refactors por inercia.
-- Todavia existen sistemas legacy que deben aislarse del flujo principal Frontline.
+- Los engines legacy (battle, tactical, deckbattle, td) fueron eliminados. El motor activo de combate es `features/frontline/`; la defensa de Fortress tiene su propio motor en `features/fortress-defense/`.
 - La persistencia online es autoritativa para el MVP alpha, pero faltan gates de produccion como rate limit distribuido, observabilidad real y replay/simulacion server-side completa para competitivo publico.
 - La app es visualmente rica, por lo que smoke tests en navegador y validacion de assets importan antes de release.
 

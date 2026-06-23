@@ -254,8 +254,7 @@ Archivos:
 - `docs/REWARD_VISIBILITY_RULES.md`
 
 Pendiente:
-- Hacer que reward tokens vuelen hacia la barra de recursos.
-- Reutilizar el mismo patron en Events y Arena.
+- `RewardFlightOverlay` (`components/game/shared/RewardFlightOverlay.tsx`) activo en Battle Result, Fortress raids, Missions, Shop, Events y Arena desde v0.7.0. Extender a pantallas adicionales si corresponde.
 - Diferenciar visualmente gasto de recurso vs ganancia.
 - Completar validacion server-side de combate antes de ladder publico o economia premium.
 
@@ -305,6 +304,7 @@ Roster/Heroes:
 
 Fortress:
 - MVP funcional con edificios, garrison, raids y rewards.
+- Incluye Last Bastion Defense: modo de defensa jugable por oleadas con motor propio en `features/fortress-defense/`, operacion autoritativa `claimFrontlineFortressDefense`, escena full-screen con oleadas y heroes de garrison mapeados a habilidades defensivas (v0.37.0-0.37.2, 2026-05-21/22).
 - Usa iconos PNG fortress.
 - Pendiente: mas escena/landmark, feedback de upgrade/raid mas fuerte, progresion profunda y SFX/ambiente de castillo.
 
@@ -329,7 +329,7 @@ Arena:
 - Migrada en MVP a Frontline.
 - La placa de rango/progreso ya es visible tambien fuera de layouts grandes.
 - Evita refrescos locales de tickets cuando la persistencia es Supabase.
-- Ahora separa dos modos: Ladder sin tickets, con MMR Bronce III-II-I y rivales tipo jugador; y Arena Trials con tickets, mutadores visibles y rewards mas especiales.
+- Ahora separa dos modos: Ladder sin tickets, con MMR Bronce III-II-I y rivales tipo jugador (comandantes simulados con lider, heroes y cartas del pool del jugador, implementado v0.37.36, 2026-05-29); y Arena Trials con tickets, mutadores visibles y rewards mas especiales.
 - Ladder usa `recordLadderResult` server-authoritative para puntos, progreso de llave y rewards anti-farm.
 - Pendiente: mas ligas/rivales, mutadores reales en Trials, reward reveal propio y replay/simulacion server-side completa antes de competitivo publico.
 
@@ -351,13 +351,7 @@ Regla:
 - Si el texto es puramente decorativo/aria-hidden, se puede evitar texto nuevo.
 
 Idiomas objetivo:
-- Ingles.
-- Espanol.
-- Chino.
-- Japones.
-- Frances.
-- Aleman.
-- Portugues o coreano, segun prioridad futura.
+- MVP activo: ingles y espanol. Los demas idiomas (chino, japones, frances, aleman, portugues, coreano) fueron descartados del alcance del alpha (v0.37.57, 2026-06-03).
 
 Pendiente:
 - Migracion progresiva de todos los textos restantes.
@@ -410,7 +404,7 @@ Backlog tecnico:
 - Antes de monetizacion: completar validacion server-side robusta de combate/replays y ladder. El cliente/canvas nunca debe ser fuente de verdad porque F12, memoria, localStorage y requests siempre son manipulables.
 - Antes de monetizacion: rate limit distribuido, observabilidad operativa y webhooks backend-only si hay pagos.
 - Extraer datos hardcoded de Arena/Events si crecen.
-- Decidir destino de tactical/grid legacy.
+- Engines legacy (battle, tactical, deckbattle, td) eliminados en v0.38.0.
 - Mantener Supabase server-authoritative para produccion sin romper fallback local explicito de desarrollo/offline.
 - Mejorar tests de Frontline y store de progresion.
 

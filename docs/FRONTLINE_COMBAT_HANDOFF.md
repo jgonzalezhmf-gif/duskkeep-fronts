@@ -12,8 +12,7 @@ El sistema está en fase alpha aceptable:
 - Core por bando.
 - 3 Command por turno.
 - Mazo corto de 8 cartas.
-- Mano máxima de 5.
-- Robo de 2 al inicio de turno hasta máximo 5.
+- Mano inicial de 5 cartas; robo de 1 carta por turno a partir del segundo turno (cambiado en v0.37.42-43, 2026-05-30).
 - Clash obligatorio.
 - Breach al Core si un frente queda abierto.
 - Leader power simple.
@@ -25,7 +24,19 @@ El sistema está en fase alpha aceptable:
 
 - `features/frontline/types.ts`: tipos del núcleo Frontline.
 - `features/frontline/data.ts`: líderes, héroes de jugador, enemigos, supports, cartas y presets.
-- `features/frontline/engine.ts`: reglas de turno, cartas, Clash, Breach, leader power e IA básica.
+- `features/frontline/engine.ts`: orquestador principal (478 líneas). La lógica está distribuida en módulos especializados:
+  - `frontlineTurnPreparation.ts` — preparación de turno y robo
+  - `frontlineCardRules.ts` — reglas de cartas
+  - `frontlineActorStrike.ts` — resolución de golpes
+  - `frontlineClashEffects.ts` — efectos de Clash
+  - `frontlineBreachMath.ts` / `frontlineBreachRules.ts` — lógica de Breach
+  - `frontlineEnemyAi.ts` — IA enemiga
+  - `frontlineBossSignatures.ts` — ataques de jefe con firma
+  - `frontlineBattleSetup.ts` — inicialización de batalla
+  - `frontlineBattleOutcome.ts` — resolución de resultado
+  - `frontlineStrikeOrder.ts` — orden de golpes
+  - `battleEntryPresentation.ts` — metadata de entrada a combate (compartido entre modos)
+  - `battleSummary.ts` / `battleReplay.ts` — resumen y replay
 - `features/frontline/fortress.ts`: lógica de Fortaleza MVP.
 - `features/frontline/adventure.ts`: mapeo Adventure -> preset Frontline.
 - `components/game/frontline/FrontlineBattle.tsx`: UI de combate, standees, cartas, feedback y animaciones ligeras.
@@ -41,7 +52,7 @@ El sistema está en fase alpha aceptable:
 Catálogo y reglas técnicas en [FRONTLINE_SYNERGIES.md](FRONTLINE_SYNERGIES.md). Resumen:
 - 7 sinergias activas (tanda 2): Blade Strike Affinity, Archer's Focus, Shadow Strike, Bulwark Cohesion, Sanctified Healing, Howling Pack (forward) y Howling Pack Echo.
 - Tres categorías: Affinity (carta + trait del target), Presence (carta + trait de un ally vivo), Combo (carta + estado global como rally activo o support en campo).
-- UI genérica con un solo componente: `SynergyProcBadge` (sobre el standee si la sinergia tiene lane) y `SynergyGlobalToast` (banner central si es global).
+- UI genérica con un solo componente: `FrontlineTraitProcBadge.tsx` (sobre el standee si la sinergia tiene lane) y `FrontlineSynergyFeedback.tsx` (banner central si es global).
 - Detección dentro de `playCard` con helpers `livingAllyWithTrait`, `ralliedAllyCount` y `emitSynergy`.
 
 ## Reglas del Núcleo
@@ -182,10 +193,12 @@ Arena:
 - El flujo visible ya usa `FrontlineBattle`, con Ladder y Arena Trials separados.
 - Ladder registra resultados mediante `recordLadderResultOnlineFirst`; Arena Trials usa `recordArenaResultOnlineFirst`.
 - Antes de competitivo publico falta replay/simulacion server-side robusta.
+- Namespaces: `features/ladder/` (`data.ts`, `resultState.ts`), `features/arena/` (`resultState.ts`, `trialMutators.ts`).
 
 Events:
+- Namespace: `features/events/` (`resultState.ts`).
 - El flujo visible ya usa `FrontlineBattle` con operaciones Frontline y recompensa diaria.
-- `TowerDefenseRun` queda como prototipo/legacy fuera del flujo principal; decidir si se archiva o se convierte en modo futuro.
+- `TowerDefenseRun` y el engine `features/td/` fueron eliminados en v0.38.0. El modo de defensa activo es Last Bastion Defense en `features/fortress-defense/`.
 
 Team:
 - Es una vista ligera de revision del squad Frontline y no debe duplicar el builder de Deck.
@@ -198,6 +211,14 @@ Roster/Heroes:
 Shop:
 - Tiene catalogo MVP alineado con Frontline/Fortress/Arena y previews de cartas/heroes.
 - Quedan pendientes inventario real de cartas, cosmetics, tier materials y reward reveal propio.
+
+## Fortress Defense (motor separado)
+
+Fortress tiene su propio motor de combate independiente de Frontline: `features/fortress-defense/` con `engine.ts`, `turnResolution.ts`, `combatMath.ts`, `targeting.ts`, `grid.ts` y `catalog.ts`. No comparte lógica con `features/frontline/` — es un sistema separado para el modo por oleadas Last Bastion Defense.
+
+## Transición de entrada a combate
+
+`components/game/frontline/BattleEntryTransition.tsx` + `features/frontline/battleEntryPresentation.ts` implementan el sistema de transición compartido al entrar en combate. Aplica a Adventure, Ladder, Arena Trial, Events y Fortress Defense (implementado en v0.37.49, 2026-06-01).
 
 ## Deuda Técnica Conocida
 
