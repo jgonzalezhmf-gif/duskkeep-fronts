@@ -24,6 +24,33 @@ jobs:
           fetch-depth: 0
 
       - name: SonarQube Cloud Scan
+        id: sonar-scan
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@v7
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Show SonarQube Cloud task details
+        if: always() && steps.sonar-scan.outcome == 'failure'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          if [ ! -f .scannerwork/report-task.txt ]; then
+            echo "Sonar report-task.txt was not generated."
+            exit 0
+          fi
+
+          ce_task_url="$(grep '^ceTaskUrl=' .scannerwork/report-task.txt | cut -d= -f2-)"
+          dashboard_url="$(grep '^dashboardUrl=' .scannerwork/report-task.txt | cut -d= -f2-)"
+
+          echo "Sonar dashboard: ${dashboard_url}"
+          echo "Sonar CE task: ${ce_task_url}"
+
+          if [ -n "${ce_task_url}" ]; then
+            curl --fail --silent --show-error -u "${SONAR_TOKEN}:" "${ce_task_url}" | python3 -m json.tool || true
+          fi
+
+      - name: Fail when SonarQube Cloud scan failed
+        if: steps.sonar-scan.outcome == 'failure'
+        run: exit 1
