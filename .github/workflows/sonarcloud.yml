@@ -48,7 +48,15 @@ jobs:
           echo "Sonar CE task: ${ce_task_url}"
 
           if [ -n "${ce_task_url}" ]; then
-            curl --fail --silent --show-error -u "${SONAR_TOKEN}:" "${ce_task_url}" | python3 -m json.tool || true
+            curl --fail --silent --show-error -u "${SONAR_TOKEN}:" "${ce_task_url}" -o ce-task.json || true
+            python3 -m json.tool ce-task.json || true
+
+            analysis_id="$(python3 -c 'import json; print(json.load(open("ce-task.json", encoding="utf-8")).get("task", {}).get("analysisId", ""))' 2>/dev/null || true)"
+            if [ -n "${analysis_id}" ]; then
+              quality_gate_url="https://sonarcloud.io/api/qualitygates/project_status?analysisId=${analysis_id}"
+              echo "Sonar quality gate: ${quality_gate_url}"
+              curl --fail --silent --show-error -u "${SONAR_TOKEN}:" "${quality_gate_url}" | python3 -m json.tool || true
+            fi
           fi
 
       - name: Fail when SonarQube Cloud scan failed
