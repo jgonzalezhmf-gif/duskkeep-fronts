@@ -46,7 +46,7 @@ Sistemas de dominio y logica de gameplay. Aqui deben vivir las reglas:
 
 - `features/frontline`: combate Duskkeep Fronts, cartas, presets, perfiles de heroe e integracion con Fortress.
 - `features/adventure`: resolucion de nodos Adventure, progresion, interacciones de mapa y rewards.
-- `features/battle` y `features/tactical`: sistemas legacy/prototipo que no deben crecer salvo reactivacion explicita.
+- `features/frontline`: motor principal de combate Duskkeep Fronts.
 
 ### `data/`
 

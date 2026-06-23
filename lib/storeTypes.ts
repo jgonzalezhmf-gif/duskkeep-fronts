@@ -3,7 +3,6 @@ import type { FortressDefenseClaimPayload } from "@/features/fortress-defense/en
 import type { FrontlineBattleSummaryPayload } from "@/features/server/authoritativeOperations";
 import type { AdventureProgressEntry } from "@/features/adventure/nodeResolution";
 import type { FrontlineCardLevels, FrontlineCardUnlocks } from "@/features/frontline/cardProgression";
-import type { TacticalState } from "@/features/tactical/types";
 import type { LocaleCode } from "@/lib/i18n/locales";
 import type {
   AccountState,
@@ -59,7 +58,6 @@ export type GameState = {
   heroesUpgraded: number;
   lastSeed: number;
   notifications: Notification[];
-  savedBattle: { levelId: string; state: TacticalState } | null;
   dailyLogin: { streak: number; lastClaim: string | null };
   roadmapClaimed: Record<string, boolean>;
   milestonesClaimed: Record<number, boolean>;
@@ -173,8 +171,6 @@ export type GameActions = {
   nextSeed: () => number;
   ensureMissionsInitialized: () => void;
   updateMissionProgress: (metric: Mission["metric"], delta: number) => void;
-  saveBattle: (levelId: string, state: TacticalState) => void;
-  clearSavedBattle: () => void;
   claimDailyLogin: () => Rewards | null;
   claimDailyLoginOnlineFirst: () => Promise<Rewards | null>;
   claimRoadmapStep: (id: string) => Rewards | null;

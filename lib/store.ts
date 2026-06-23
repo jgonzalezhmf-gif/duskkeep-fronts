@@ -29,7 +29,7 @@ import { getMissionAuthoritativeClaimPlan } from "@/lib/missionAuthoritativeClai
 import { applyAuthoritativeRewardsToGameState, applyRewardsToGameState } from "@/lib/rewardApplication";
 import { canAfford, spendResources } from "@/lib/resourceMath";
 import { applyShopOfferPurchase, getShopOfferRemaining, validateShopOfferPurchase } from "@/lib/shopPurchases";
-import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, saveBattleState, setOnboardingStepState } from "@/lib/storeHousekeeping";
+import { addNotificationState, completeOnboardingState, createNotificationId, dismissNotificationState, markEventCompletedState, nextStoreSeed, refreshArenaTicketsState, refreshShopState, setOnboardingStepState } from "@/lib/storeHousekeeping";
 import { isRoadmapStepComplete } from "@/lib/storeSelectors";
 import { createLocalSyncSnapshot, LOCAL_SYNC_SNAPSHOT_VERSION } from "@/lib/localSyncSnapshot";
 import { gameStorePersistOptions } from "@/lib/storePersistence";
@@ -976,10 +976,6 @@ export const useGameStore = create<GameState & GameActions>()(
         const missionsProgress = ensureMissionProgress(get().missionsProgress, ALL_MISSIONS);
         if (missionsProgress) set({ missionsProgress });
       },
-
-      saveBattle: (levelId, state) => set(saveBattleState(levelId, state)),
-
-      clearSavedBattle: () => set({ savedBattle: null }),
 
       claimDailyLogin: () => {
         if (blockClientSensitiveMutationIfNeeded(get)) return null;

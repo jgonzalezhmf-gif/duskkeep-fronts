@@ -1,4 +1,3 @@
-import type { TacticalState } from "@/features/tactical/types";
 import { createEntropyToken } from "@/lib/clientEntropy";
 import type { Notification, NotificationKind } from "@/lib/storeTypes";
 import type { Resources } from "@/lib/types";
@@ -62,11 +61,6 @@ export function refreshArenaTicketsState({
     arenaTicketsRefreshedAt: today,
     resources: { ...resources, arenaTickets: Math.max(resources.arenaTickets, dailyArenaTickets) },
   };
-}
-
-export function saveBattleState(levelId: string, state: TacticalState) {
-  if (state.winner) return { savedBattle: null };
-  return { savedBattle: { levelId, state } };
 }
 
 export function setOnboardingStepState(onboarding: { step: number; completed: boolean }, step: number) {

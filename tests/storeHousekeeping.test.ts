@@ -8,10 +8,8 @@ import {
   nextStoreSeed,
   refreshArenaTicketsState,
   refreshShopState,
-  saveBattleState,
   setOnboardingStepState,
 } from "@/lib/storeHousekeeping";
-import type { TacticalState } from "@/features/tactical/types";
 
 const resources = {
   gold: 100,
@@ -20,19 +18,6 @@ const resources = {
   arenaTickets: 1,
   adventureKeys: 0,
 };
-
-const tacticalState = {
-  grid: { w: 3, h: 3 },
-  obstacles: [],
-  units: [],
-  round: 1,
-  side: "ally",
-  selectedUid: null,
-  mode: "idle",
-  log: [],
-  winner: null,
-  seed: 1,
-} satisfies TacticalState;
 
 describe("store housekeeping helpers", () => {
   it("adds and dismisses notifications", () => {
@@ -82,11 +67,6 @@ describe("store housekeeping helpers", () => {
         dailyArenaTickets: 5,
       })?.resources.arenaTickets,
     ).toBe(9);
-  });
-
-  it("does not persist completed battles", () => {
-    expect(saveBattleState("c1l1", tacticalState)).toEqual({ savedBattle: { levelId: "c1l1", state: tacticalState } });
-    expect(saveBattleState("c1l1", { ...tacticalState, winner: "ally" })).toEqual({ savedBattle: null });
   });
 
   it("updates onboarding state", () => {

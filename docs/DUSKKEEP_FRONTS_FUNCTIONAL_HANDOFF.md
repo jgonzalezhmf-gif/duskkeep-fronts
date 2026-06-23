@@ -58,8 +58,6 @@ Directorios principales:
 - `components/game/shared/`: chrome, iconos, recursos, rewards, botones comunes.
 - `components/ui/`: primitives visuales reutilizables.
 - `features/frontline/`: motor y datos funcionales de Frontline.
-- `features/battle/`: auto-battle legacy.
-- `features/tactical/`: grid tactical legacy/prototipo.
 - `data/`: seed data.
 - `lib/store.ts`: store cliente, cache/snapshot, fallback local explicito y acciones online-first.
 - `lib/rewards.ts`: helpers compartidos para combinar y describir rewards sin depender de motores legacy.

@@ -201,14 +201,7 @@ Shop:
 
 ## Deuda Técnica Conocida
 
-- Coexisten motores antiguos:
-  - `features/battle/*`
-  - `features/tactical/*`
-  - `features/deckbattle/*`
-  - `features/frontline/*`
-- `savedBattle` en store todavía guarda `TacticalState`; Adventure nuevo no lo usa.
 - `data/adventure.ts` conserva `enemyTeam` legacy por compatibilidad, aunque los nodos de combate usan `frontlinePresetId`.
-- `TacticalBattle`, `DeckBattle` y `TowerDefenseRun` siguen presentes como legacy/prototipos; no hacerlos crecer salvo encargo explicito.
 
 ## Próximos Pasos Recomendados
 

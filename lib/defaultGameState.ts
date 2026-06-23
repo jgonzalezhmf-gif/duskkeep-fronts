@@ -62,7 +62,6 @@ export function defaultInitial() {
     battlesWon: 0,
     heroesUpgraded: 0,
     lastSeed: 1,
-    savedBattle: null,
     dailyLogin: { streak: 0, lastClaim: null },
     roadmapClaimed: {},
     milestonesClaimed: {},
