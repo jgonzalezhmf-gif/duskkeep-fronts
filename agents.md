@@ -15,13 +15,13 @@
 - Cierre amplio: `npm.cmd run check`, `npm.cmd run test`, `npm.cmd run build`; `npm.cmd run check:full` encadena todo si el entorno permite procesos hijos.
 - En sandboxes/Windows restringidos, Vitest o Next build pueden fallar por `spawn EPERM`; reporta el bloqueo si `check` pasa.
 - Screenshots: `npm.cmd run screenshots:auto`; si Playwright falla por navegador, probar `$env:PLAYWRIGHT_CHANNEL="msedge"; npm.cmd run screenshots:auto`.
-- No hay CI de npm checks; `.github/workflows/datadog-synthetics.yml` solo corre Datadog synthetics.
+- CI ejecuta `.github/workflows/quality.yml` con `check`, `test`, `build`, `audit:high`, auditoria de build, performance budgets y smokes Supabase separados tras el gate principal.
 
 ## Arquitectura Que No Debe Confundirse
 - `app/*` son rutas App Router y wiring; muchas paginas son client components que componen UI de `components/game/*`.
 - `components/game/*` renderiza pantallas y feedback; no debe esconder reglas de balance, economia ni combate.
 - `features/frontline/*` es el combate manual principal: 3 frentes, cores, command, cartas, clash, breach, boss/signatures y replay helpers.
-- `features/battle/*`, `features/tactical/*`, `features/deckbattle/*` y `features/td/*` son legacy/prototipos; no los hagas crecer salvo pedido explicito.
+- Los engines legacy `battle`, `tactical`, `deckbattle` y `td` fueron eliminados; no los reintroduzcas salvo decision explicita y cambio documentado.
 - `data/*` contiene seed/config alpha; el comportamiento reutilizable va en `features/*` o helpers de `lib/*`, no en JSX.
 - `lib/store.ts` sigue siendo el orquestador grande de meta-loop, recursos, misiones, shop, Adventure, Deck, Fortress, Arena/ladder y acciones online-first. Lee la seccion relevante antes de tocarlo.
 - Tipos compartidos viven en `lib/types.ts` o `lib/storeTypes.ts`; tipos de motor viven en su `features/*/types.ts`.
@@ -45,7 +45,7 @@
 
 ## Gameplay Y Rewards
 - Adventure es el camino principal temprano; `/adventure/[levelId]` abre precombate Frontline mediante `BattlePageClient` si el nodo es combate.
-- Arena y Events ya usan Frontline; no sigas docs viejos que digan que dependen de `TacticalBattle` sin confirmar en codigo.
+- Arena y Events ya usan Frontline; trata cualquier referencia a combates legacy como documentacion antigua hasta confirmar en codigo.
 - Las recompensas reclamables deben pasar por `lib/rewardVisibility.ts`; no muestres first-clear, daily o one-shot como disponibles si ya fueron reclamadas.
 - No cambies economia, balance o reglas de Frontline como parte de polish visual salvo instruccion explicita.
 

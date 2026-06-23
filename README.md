@@ -204,8 +204,11 @@ components/
 features/
   frontline/           # motor principal Frontline, datos y helpers
   adventure/           # helpers de nodos, interacciones y recompensas Adventure
-  battle/              # motor legacy/auto-battle
-  tactical/            # prototipo tactico legacy
+  arena/               # reglas y resultados de Arena Trials
+  events/              # operaciones y resultados de Events
+  fortress-defense/    # defensa activa Last Bastion
+  ladder/              # ladder/rivales y resultado clasificado MVP
+  server/              # cliente/contratos de operaciones autoritativas
 data/                  # seed data de heroes, aventura, misiones, eventos, shop, arena
 lib/                   # store, persistencia, rng, tipos, manifests, constantes
 supabase/              # migraciones, seed, smokes y RPCs Supabase

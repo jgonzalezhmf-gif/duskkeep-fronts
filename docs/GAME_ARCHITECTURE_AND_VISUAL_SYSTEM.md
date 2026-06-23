@@ -1,6 +1,6 @@
 # Game Architecture and Visual System
 
-Fecha de corte: 2026-04-24
+Fecha de corte: 2026-06-23
 
 Este documento es la guia de producto para evitar que cada pantalla evolucione aislada. El objetivo es que Duskkeep Fronts se sienta como un unico juego: mismas reglas visuales, mismos assets reutilizables, misma logica de navegacion y dependencias claras entre pantallas.
 
@@ -20,8 +20,9 @@ Este documento es la guia de producto para evitar que cada pantalla evolucione a
    - Evitar que Deck, Heroes, Shop y Combat tengan cada uno su propia version incompatible de cartas, retratos o recursos.
 
 4. Duskkeep Fronts es la columna vertebral del combate manual.
-   - Adventure, Arena y Events deben migrar hacia Frontline.
-   - TacticalBattle, DeckBattle y TowerDefense quedan como legacy/prototipos hasta decision explicita.
+   - Adventure, Arena, Ladder y Events usan Frontline como flujo visible.
+   - Fortress Defense usa Last Bastion Defense en `features/fortress-defense/`.
+   - Los engines legacy de combate/defensa fueron eliminados en `0.38.0`.
 
 5. Assets futuros deben entrar por manifest, no por rutas inventadas.
    - Heroes, enemigos, cartas, summons, efectos e iconos deben tener claves estables.
@@ -317,7 +318,7 @@ Pendiente:
 ### Events y Arena dependen de
 - Arena ya usa `FrontlineBattle` embebido con rivales `FrontlinePreset`, tickets, wins/losses y rewards.
 - Events ya usa operaciones Frontline MVP con presets enemigos, rewards diarios y post-battle propio.
-- TowerDefense queda fuera del flujo visible principal; su contenido se representa provisionalmente como una operacion Frontline de siege.
+- Fortress Defense queda separado como modo de defensa del bastion y no depende del engine de defensa legacy.
 
 Pendiente:
 - Crear mutadores Frontline reales por evento.
@@ -373,9 +374,9 @@ Pantallas con mayor riesgo de sentirse fuera del juego:
 
 ### Paso 6 - Arena y Events
 - Arena migrada a Frontline en MVP: seleccion de rivales, tickets, recompensas y `FrontlineBattle` embebido.
-- Events migrada a Frontline en MVP: operaciones, recompensas diarias y siege representado como preset Frontline.
+- Events migrada a Frontline en MVP: operaciones, recompensas diarias y presets Frontline propios.
 - Crear presets y reglas especiales.
-- Eliminar dependencia del combate viejo para flujos principales. Hecho para Arena/Events visibles; queda decidir si se borra o se archiva TowerDefense.
+- La dependencia de engines de combate viejos ya fue eliminada en `0.38.0`.
 
 ### Paso 7 - Fortress polish
 - Mantener la base de castillo interactivo.
@@ -401,7 +402,6 @@ Antes de tocar una pantalla:
 - `GameFixedStage` global obligatorio antes de monetización: definir una resolución lógica fija para el juego completo y migrar progresivamente Home, Adventure, Combat y pantallas posicionables para que fondo, nodos, props, hotspots y VFX escalen como una unidad controlada.
 - Backend autoritativo obligatorio antes de monetización: Supabase/backend debe validar moneda premium, compras, claims, inventario, recompensas y progreso sensible. No confiar en canvas, DOM, localStorage ni requests del cliente como fuente de verdad.
 - Si `Team` se mantiene como Squad Review, se renombra o se fusiona finalmente con `Deck`.
-- Si `TowerDefenseRun` se mantiene como modo futuro o se absorbe en Fortress raids.
 - Como evolucionar Arena desde rival selection simple hacia ladder por rangos o draft ligero.
 - Como se representaran visualmente tiers de heroes: nuevo PNG por tier, marco por tier o ambos.
 - Que parte de Shop vendera poder, cosmetica o conveniencia sin romper early game.

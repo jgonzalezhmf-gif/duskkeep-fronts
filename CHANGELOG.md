@@ -7,6 +7,20 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.38.0] - 2026-06-23
+
+### Removed
+- Eliminados motores, componentes y tests legacy no usados (`battle`, `tactical`, `deckbattle`, `td`) para reducir deuda y evitar rutas de combate obsoletas.
+
+### Changed
+- Fijada la version exacta de Next.js en `16.2.6` para hacer los builds reproducibles.
+- Actualizada la toolchain de test/build a Node 24 en CI, `@types/node` 24, Vitest 4.1.9 y Vite 8.1.0.
+- Sincronizada la documentacion operativa con el estado actual: Frontline, Fortress Defense, Supabase autoritativo y ausencia de engines legacy visibles.
+
+### Fixed
+- Cerrada la vulnerabilidad low residual de `esbuild` en tooling de desarrollo actualizando Vite/Vitest; `npm audit --audit-level=low` queda sin vulnerabilidades reportadas.
+- Separados los smokes Supabase en CI despues del gate de calidad para que el build/test principal y la validacion local de RPCs queden diagnosticados por separado.
+
 ## [0.37.79] - 2026-06-23
 
 ### Fixed

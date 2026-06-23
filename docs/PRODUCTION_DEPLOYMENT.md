@@ -20,7 +20,7 @@ No incluye:
 
 ## Estado Actual
 
-- RC local cerrada de nuevo en `0.37.77`; gates pre-deploy repetidos el 2026-06-17 tras aparcar el spike Canvas/WebGL y volver a `main`.
+- RC local cerrada de nuevo en `0.38.0`; gates pre-deploy repetidos el 2026-06-23 tras limpiar engines legacy, fijar Next.js y actualizar tooling.
 - `npm.cmd run check:supabase:remote` pasa contra el proyecto remoto configurado.
 - Desde `0.37.65`, aplicar la migracion `20260604211500_normalize_account_progress.sql` antes del smoke online para reparar XP/nivel acumulado y mantener el snapshot como fuente de verdad.
 - El proyecto Vercel `duskkeep-fronts` ya existe y esta asociado al repositorio correcto `jgonzalezhmf-gif/duskkeep-fronts`.
@@ -123,6 +123,24 @@ Nota de seguridad `0.37.77`:
 
 - `npm audit` detecto vulnerabilidades transitorias de tooling en Babel/ws/Vite/esbuild.
 - Se actualizo el lock para Babel/ws, se alineo `@types/node` con Vite 7 y se fijo `vite@7.3.5` via `overrides`, porque `vite@8.0.16` declaraba una dependencia no resoluble en el registry actual. El aviso residual low de `esbuild` afecta al dev server en Windows y no bloquea la RC production.
+
+Evidencia `0.38.0` del 2026-06-23:
+
+- `npm.cmd run check` paso: ESLint, `tsc --noEmit` y `check:store-boundaries`.
+- `npm.cmd run test` paso: 98 archivos, 654 tests.
+- `npm.cmd run build` paso con Next.js 16.2.6.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd ci --no-audit --no-fund` paso en instalacion limpia temporal de dependencias.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd audit --audit-level=low` paso: 0 vulnerabilidades.
+- `npm.cmd run audit:assets` paso: 292 assets publicos, 41.68 MB.
+- `npm.cmd run audit:asset-refs` paso: 0 candidatos no referenciados.
+- `npm.cmd run audit:build` paso: `.next/static` 3.23 MB, `.next/server/app` 0.88 MB.
+- `npm.cmd run check:performance` paso todos los presupuestos, con `.next/static` cerca del limite (`3.23 MB / 3.25 MB`).
+- `npm.cmd run check:supabase:remote` paso contra `https://vyuoegsmbgmsxexzciur.supabase.co` con aviso aceptado de rate limit en memoria para alpha.
+
+Nota de seguridad `0.38.0`:
+
+- Vite/Vitest se actualizaron para eliminar el aviso low residual de `esbuild`.
+- El CI principal usa Node 24 y mantiene los smokes Supabase como job separado posterior al gate de calidad.
 
 Siguiente paso:
 

@@ -152,7 +152,7 @@ Fallbacks:
 
 ## Adventure Integrado
 
-Adventure ya no debe lanzar el `DeckBattle` viejo.
+Adventure ya no debe lanzar engines de combate obsoletos.
 
 Estado actual:
 - `/adventure` sigue siendo el mapa de campaña.
@@ -187,7 +187,7 @@ Fortress:
 
 Adventure:
 - Debe usar `features/frontline/adventure.ts`.
-- Debe dejar de depender de Tactical/DeckBattle para combate manual.
+- Ya no depende de engines legacy para combate manual.
 
 Arena:
 - El flujo visible ya usa `FrontlineBattle`, con Ladder y Arena Trials separados.
@@ -198,7 +198,7 @@ Arena:
 Events:
 - Namespace: `features/events/` (`resultState.ts`).
 - El flujo visible ya usa `FrontlineBattle` con operaciones Frontline y recompensa diaria.
-- `TowerDefenseRun` y el engine `features/td/` fueron eliminados en v0.38.0. El modo de defensa activo es Last Bastion Defense en `features/fortress-defense/`.
+- El engine de defensa legacy fue eliminado en v0.38.0. El modo de defensa activo es Last Bastion Defense en `features/fortress-defense/`.
 
 Team:
 - Es una vista ligera de revision del squad Frontline y no debe duplicar el builder de Deck.

@@ -32,23 +32,24 @@ Una RC no queda lista si:
 
 ## Evidencia RC Local Actual
 
-Ultima pasada local registrada: `0.37.77` / 2026-06-17.
+Ultima pasada local registrada: `0.38.0` / 2026-06-23.
 
 - `npm.cmd run check`: pasa.
-- `npm.cmd run test`: pasa con 100 test files y 674 tests.
+- `npm.cmd run test`: pasa con 98 test files y 654 tests.
 - `npm.cmd run build`: pasa con Next.js 16.2.6.
-- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd install --no-audit --no-fund`: pasa desde `node_modules` limpio.
-- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run audit:high`: pasa con 0 vulnerabilidades high o superiores; queda 1 low de `esbuild` en tooling de desarrollo.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd ci --no-audit --no-fund`: pasa en instalacion limpia temporal de dependencias.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run audit:high`: pasa con 0 vulnerabilidades high o superiores.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd audit --audit-level=low`: pasa con 0 vulnerabilidades.
 - `npm.cmd run audit:assets`: 292 assets publicos, 41.68 MB.
 - `npm.cmd run audit:asset-refs`: 0 candidatos no referenciados.
-- `npm.cmd run audit:build`: `.next/static` 3.15 MB; server app 0.88 MB.
+- `npm.cmd run audit:build`: `.next/static` 3.23 MB; server app 0.88 MB.
 - `npm.cmd run check:performance`: pasa todos los presupuestos.
 - `npm.cmd run check:supabase:remote`: pasa contra `https://vyuoegsmbgmsxexzciur.supabase.co`; queda el aviso aceptado para alpha de rate limit en memoria.
 
 Notas:
 
-- Antes de repetir el gate, se limpio `.next` porque la cache generada aun contenia tipos de un spike de Canvas/WebGL ya aparcado fuera de `main`.
-- `npm audit` reporto vulnerabilidades transitorias de tooling; las high quedaron mitigadas en el lock actual actualizando Babel/ws, alineando `@types/node` con Vite 7 y forzando `vite@7.3.5` mediante `overrides`. Queda un aviso low de `esbuild` ligado al dev server en Windows, no bloqueante para RC production.
+- `0.38.0` elimina engines legacy no usados, fija Next.js en `16.2.6`, sube CI a Node 24 y actualiza Vite/Vitest para cerrar el aviso low residual de `esbuild`.
+- El presupuesto de `.next/static` queda cerca del limite (`3.23 MB / 3.25 MB`); cualquier asset/chunk nuevo debe revisar `npm.cmd run check:performance`.
 - La evidencia visual local previa sigue siendo util como referencia: `tmp/playwright-screenshots/2026-06-04T16-56-25-860Z/manifest.json` y `tmp/rc-route-validation/20260604-190306/manifest.json` tuvieron 24/24 escenarios OK.
 - El cierre de demo online requiere redeploy production del commit actual y smoke Supabase remoto post-deploy.
 

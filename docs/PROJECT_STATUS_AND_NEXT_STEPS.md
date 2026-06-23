@@ -44,6 +44,14 @@ Estado operativo `0.37.77`:
 - `npm audit` reporto vulnerabilidades transitorias en dependencias de tooling; las high se corrigieron actualizando el lock de Babel/ws y forzando `vite@7.3.5` mediante `overrides`, ya que `vite@8.0.16` declaraba una dependencia no resoluble en el registry actual. Queda un aviso low de `esbuild` en tooling de desarrollo.
 - Sigue pendiente redeploy production del commit actual y smoke post-deploy contra la URL publica.
 
+Estado operativo `0.38.0`:
+
+- Engines legacy no usados (`battle`, `tactical`, `deckbattle`, `td`) eliminados de codigo, tests y referencias operativas.
+- Next.js queda fijado exactamente en `16.2.6`; CI usa Node 24 y los smokes Supabase corren como job separado despues del gate principal.
+- Tooling actualizado a Vitest 4.1.9 / Vite 8.1.0 / `@types/node` 24.13.2; `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd audit --audit-level=low` pasa con 0 vulnerabilidades.
+- Gates locales repetidos el 2026-06-23 en `main`: `check`, `test` (98 archivos / 654 tests), `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build`, `check:performance` y `check:supabase:remote` pasaron.
+- Sigue pendiente redeploy production del commit actual y smoke post-deploy contra la URL publica.
+
 ## Bloques Estables Para Alpha
 
 ### Seguridad y backend autoritativo

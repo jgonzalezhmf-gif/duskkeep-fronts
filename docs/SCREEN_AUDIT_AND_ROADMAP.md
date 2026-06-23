@@ -146,19 +146,16 @@ Punto importante:
 Estado actual:
 - `/events` ya fue migrada a Duskkeep Fronts en MVP.
 - Usa operaciones con presets enemigos Frontline, rewards diarios, estado de clear diario y post-battle propio.
-- El contenido de Tower Defense queda representado provisionalmente como una operacion `Siege Event` con preset Frontline pesado.
+- Los engines legacy ya no forman parte del flujo visible; Events se apoya en presets Frontline y Fortress Defense queda como modo separado.
 - La pantalla ya usa Home nav y recursos compartidos, sin dock inferior ni HUD legacy.
 
 Recuperable o rediseño:
 - Recuperable.
-- Ya no necesita migracion funcional base; necesita mutadores reales, reward feel y decision final sobre TowerDefense.
+- Ya no necesita migracion funcional base; necesita mutadores reales y mejor reward feel.
 
 Tareas:
 - Crear eventos con mutadores Frontline reales: +1 Command, supports extra, enemigos especificos, core alterado.
 - Extraer operaciones a `data/frontlineEvents.ts` si crece el contenido.
-- Decidir que hacer con TowerDefense legacy:
-  - Mantener como modo especial futuro.
-  - O archivar y sustituir por raids automaticos de Fortress.
 - Usar enemigos nuevos/tiered enemies.
 - Mejorar reward feel de evento.
 
@@ -167,10 +164,8 @@ Plan:
 2. Extraer datos de operaciones si se superan los 3 eventos hardcoded/derivados.
 3. Implementar mutadores MVP.
 4. Añadir reward reveal especifico de Events.
-5. Decidir si TowerDefense se borra, se oculta o se convierte en evento especial futuro.
-
 Punto importante:
-- Events ya no lanza `TacticalBattle` en el flujo visible. El riesgo ahora es que se quede como selector de presets sin identidad propia.
+- Events ya no depende de engines legacy. El riesgo ahora es que se quede como selector de presets sin identidad propia.
 
 ## Arena
 
