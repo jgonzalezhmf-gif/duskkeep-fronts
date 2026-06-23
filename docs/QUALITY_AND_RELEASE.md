@@ -50,8 +50,10 @@ Notas:
 
 - `0.38.0` elimina engines legacy no usados, fija Next.js en `16.2.6`, sube CI a Node 24 y actualiza Vite/Vitest para cerrar el aviso low residual de `esbuild`.
 - El presupuesto de `.next/static` queda cerca del limite (`3.23 MB / 3.25 MB`); cualquier asset/chunk nuevo debe revisar `npm.cmd run check:performance`.
+- Evidencia visual production: `tmp/playwright-screenshots/2026-06-23T22-30-58-731Z/manifest.json` tuvo 24/24 escenarios OK contra `https://project-8m2ja.vercel.app`.
+- Smoke autoritativo production: `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run smoke:authoritative-api -- --base-url https://project-8m2ja.vercel.app --auth anonymous` paso con `saveLoadout` y `claimAdventureBattleResult`.
 - La evidencia visual local previa sigue siendo util como referencia: `tmp/playwright-screenshots/2026-06-04T16-56-25-860Z/manifest.json` y `tmp/rc-route-validation/20260604-190306/manifest.json` tuvieron 24/24 escenarios OK.
-- El cierre de demo online requiere redeploy production del commit actual y smoke Supabase remoto post-deploy.
+- La demo online queda validada para alpha; repetir smoke post-deploy tras cualquier nuevo push a `main`.
 
 ## Gate Production
 
@@ -64,7 +66,7 @@ Antes de considerar lista la demo online:
 - Ejecutar capturas o validacion browser contra la URL production.
 - Registrar URL, commit desplegado, fecha, comandos y riesgos residuales.
 
-Estado actual: Supabase remoto pasa preflight y el proyecto Vercel `duskkeep-fronts` ya existe. Falta redeploy production del commit actual y ejecutar smoke post-deploy contra la URL publica.
+Estado actual: Supabase remoto pasa preflight, el proyecto Vercel despliega correctamente desde `main` y la URL publica `https://project-8m2ja.vercel.app` paso smoke autoritativo + validacion browser production. La URL unica de deployment de Vercel puede estar protegida por SSO; usar el dominio publico estable para demo y smokes externos.
 
 ## Comandos Requeridos
 

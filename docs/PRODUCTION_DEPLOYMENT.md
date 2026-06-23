@@ -21,6 +21,8 @@ No incluye:
 ## Estado Actual
 
 - RC local cerrada de nuevo en `0.38.0`; gates pre-deploy repetidos el 2026-06-23 tras limpiar engines legacy, fijar Next.js y actualizar tooling.
+- URL production publica validada: `https://project-8m2ja.vercel.app`.
+- La URL unica de deployment generada por Vercel puede redirigir a SSO/proteccion de deployment; para demo y smokes usar el dominio publico estable.
 - `npm.cmd run check:supabase:remote` pasa contra el proyecto remoto configurado.
 - Desde `0.37.65`, aplicar la migracion `20260604211500_normalize_account_progress.sql` antes del smoke online para reparar XP/nivel acumulado y mantener el snapshot como fuente de verdad.
 - El proyecto Vercel `duskkeep-fronts` ya existe y esta asociado al repositorio correcto `jgonzalezhmf-gif/duskkeep-fronts`.
@@ -142,9 +144,18 @@ Nota de seguridad `0.38.0`:
 - Vite/Vitest se actualizaron para eliminar el aviso low residual de `esbuild`.
 - El CI principal usa Node 24 y mantiene los smokes Supabase como job separado posterior al gate de calidad.
 
+Evidencia post-deploy production `0.38.0`:
+
+- Vercel reporto deployment production correcto desde `main` y GitHub checks quedaron en verde: Quality Gates, Supabase Smokes, SonarQube Cloud, SonarCloud Code Analysis, Supabase Preview y Vercel.
+- `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd run smoke:authoritative-api -- --base-url https://project-8m2ja.vercel.app --auth anonymous` paso contra `https://project-8m2ja.vercel.app/api/server/authoritative`.
+- Operaciones cubiertas por smoke production: `saveLoadout` y `claimAdventureBattleResult` con idempotencia.
+- `$env:NODE_OPTIONS="--use-system-ca"; $env:BASE_URL="https://project-8m2ja.vercel.app"; $env:SCREENSHOT_RUN_TIMEOUT_MS="600000"; npm.cmd run screenshots` genero 24/24 escenarios OK en desktop/mobile.
+- Manifest local de evidencia visual: `tmp/playwright-screenshots/2026-06-23T22-30-58-731Z/manifest.json`.
+- Se comparo el HTML production con chunks del build local para confirmar que el dominio publico sirve el build esperado.
+
 Siguiente paso:
 
-- Desplegar el commit actual de `main` en production y ejecutar el smoke post-deploy contra la URL production.
+- Mantener la URL production estable y repetir smoke post-deploy tras cada nuevo push a `main`.
 
 ## Post-Deploy Smoke
 

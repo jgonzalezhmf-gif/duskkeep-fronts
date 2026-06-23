@@ -19,11 +19,10 @@ Reglas de alcance:
 
 Siguiente foco:
 
-1. Crear/importar/enlazar proyecto production en Vercel.
-2. Configurar variables production seguras.
-3. Ejecutar deploy production.
-4. Ejecutar smoke post-deploy.
-5. Documentar evidencia, riesgos residuales y recorrido de demo.
+1. Consolidar README/evidencia para evaluacion externa.
+2. Preparar recorrido de demo y credenciales de prueba.
+3. Preparar materiales privados de presentacion fuera de Git salvo decision explicita.
+4. Mantener production estable y repetir smoke post-deploy solo tras nuevos cambios en `main`.
 
 Estado operativo `0.37.67`:
 
@@ -50,7 +49,7 @@ Estado operativo `0.38.0`:
 - Next.js queda fijado exactamente en `16.2.6`; CI usa Node 24 y los smokes Supabase corren como job separado despues del gate principal.
 - Tooling actualizado a Vitest 4.1.9 / Vite 8.1.0 / `@types/node` 24.13.2; `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd audit --audit-level=low` pasa con 0 vulnerabilidades.
 - Gates locales repetidos el 2026-06-23 en `main`: `check`, `test` (98 archivos / 654 tests), `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build`, `check:performance` y `check:supabase:remote` pasaron.
-- Sigue pendiente redeploy production del commit actual y smoke post-deploy contra la URL publica.
+- Production deploy validado en `https://project-8m2ja.vercel.app`: smoke autoritativo anonimo paso contra `/api/server/authoritative` y Playwright capturo 24/24 escenarios desktop/mobile sin errores (`tmp/playwright-screenshots/2026-06-23T22-30-58-731Z/manifest.json`).
 
 ## Bloques Estables Para Alpha
 
