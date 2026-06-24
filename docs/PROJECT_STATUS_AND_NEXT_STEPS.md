@@ -19,10 +19,9 @@ Reglas de alcance:
 
 Siguiente foco:
 
-1. Consolidar README/evidencia para evaluacion externa.
-2. Preparar recorrido de demo y credenciales de prueba.
-3. Preparar materiales privados de presentacion fuera de Git salvo decision explicita.
-4. Mantener production estable y repetir smoke post-deploy solo tras nuevos cambios en `main`.
+1. Preparar recorrido de demo y credenciales de prueba.
+2. Preparar materiales privados de presentacion fuera de Git salvo decision explicita.
+3. Mantener production estable y repetir smoke post-deploy solo tras nuevos cambios en `main`.
 
 Estado operativo `0.37.67`:
 
@@ -50,6 +49,7 @@ Estado operativo `0.38.0`:
 - Tooling actualizado a Vitest 4.1.9 / Vite 8.1.0 / `@types/node` 24.13.2; `$env:NODE_OPTIONS="--use-system-ca"; npm.cmd audit --audit-level=low` pasa con 0 vulnerabilidades.
 - Gates locales repetidos el 2026-06-23 en `main`: `check`, `test` (98 archivos / 654 tests), `build`, `audit:high`, `audit:assets`, `audit:asset-refs`, `audit:build`, `check:performance` y `check:supabase:remote` pasaron.
 - Production deploy validado en `https://project-8m2ja.vercel.app`: smoke autoritativo anonimo paso contra `/api/server/authoritative` y Playwright capturo 24/24 escenarios desktop/mobile sin errores (`tmp/playwright-screenshots/2026-06-23T22-30-58-731Z/manifest.json`).
+- README actualizado como entrada de revision rapida: estado actual, URL production, ruta de demo y evidencia de release candidate.
 
 ## Bloques Estables Para Alpha
 

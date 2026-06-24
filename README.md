@@ -2,11 +2,28 @@
 
 Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actual se centra en Duskkeep Fronts: Home como hub, flujo de Adventure, pre-combate, combate de cartas en tres frentes, progresion de Deck, Fortress, Market, Missions, Events y Arena. Funciona en modo local para desarrollo y tambien tiene persistencia online opcional con Supabase mediante operaciones server-authoritative.
 
+## Estado Actual
+
+| Area | Estado |
+|------|--------|
+| Version | `0.38.0` |
+| Demo production | `https://project-8m2ja.vercel.app` |
+| Alcance jugable | Vertical slice alpha con Home, Adventure Chapter 1, Frontline Combat, Roster, Deck, Fortress, Market, Missions, Events y Arena |
+| Persistencia | Local para desarrollo/offline y Supabase server-authoritative para production |
+| Validacion reciente | `check`, `test`, `build`, auditorias, smoke autoritativo production y capturas Playwright 24/24 |
+
 > Fuentes de referencia: `AGENTS.md`, `docs/DOCUMENTATION_INDEX.md`,
 > `docs/DUSKKEEP_FRONTS_FUNCTIONAL_HANDOFF.md`, `docs/ARCHITECTURE.md`,
 > `docs/ENGINEERING_STANDARDS.md`, `docs/GAMEPLAY_GUIDE.md`,
 > `docs/QUALITY_AND_RELEASE.md`, `docs/PRODUCTION_DEPLOYMENT.md` y
 > `docs/SECURITY_AND_BACKEND_ROADMAP.md`.
+
+## Ruta Rapida de Revision
+
+1. Abrir la demo production: `https://project-8m2ja.vercel.app`.
+2. Entrar como invitado o con una cuenta de prueba preparada.
+3. Seguir el recorrido de `docs/DEMO_GUIDE.md`: Intro/Auth -> Home -> Adventure -> Combat -> Rewards -> Deck/Roster -> Fortress/Market/Missions/Arena.
+4. Revisar evidencia de calidad en `docs/QUALITY_AND_RELEASE.md` y pasos de despliegue en `docs/PRODUCTION_DEPLOYMENT.md`.
 
 ## Stack
 
@@ -176,6 +193,20 @@ npm run build
 Usar `npm run check:full` cuando el entorno permita procesos hijos de Vitest/esbuild y workers de build de Next. En sandboxes restringidos, tests o build pueden fallar con `spawn EPERM` aunque el codigo sea correcto.
 
 Para una demo funcional, seguir `docs/DEMO_GUIDE.md`.
+
+### Evidencia de Release Candidate
+
+La ultima baseline validada es `0.38.0`.
+
+| Gate | Evidencia |
+|------|-----------|
+| Calidad local | `npm run check`, `npm run test`, `npm run build` |
+| Seguridad de dependencias | `npm audit --audit-level=low` sin vulnerabilidades abiertas |
+| Production smoke | `npm run smoke:authoritative-api -- --base-url https://project-8m2ja.vercel.app --auth anonymous` |
+| Validacion visual | Playwright production 24/24 escenarios OK en desktop/mobile |
+| CI/CD | GitHub checks y Vercel deployment en verde para `main` |
+
+Ver detalle completo en `docs/QUALITY_AND_RELEASE.md` y `docs/PRODUCTION_DEPLOYMENT.md`.
 
 ## Implementado en el Alpha
 
