@@ -7,6 +7,11 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.38.1] - 2026-06-30
+
+### Fixed
+- Corregido el estado de Daily Tribute para que una recompensa diaria autoritativa no vuelva visualmente a `Day 1` si el refresco posterior del snapshot llega sin claims diarios recientes.
+
 ## [0.38.0] - 2026-06-23
 
 ### Removed

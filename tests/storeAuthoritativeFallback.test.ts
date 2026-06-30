@@ -506,6 +506,7 @@ describe("store authoritative fallback policy", () => {
 
     expect(result).toEqual({ gold: 100, accountXp: 10 });
     expect(loadServerPlayerSnapshot).toHaveBeenCalledTimes(1);
+    expect(useGameStore.getState().dailyLogin).toEqual({ streak: 2, lastClaim: "2026-05-16" });
     expect(useGameStore.getState().account.level).toBe(2);
     expect(useGameStore.getState().account.xp).toBe(15);
     expect(useGameStore.getState().resources.gold).toBe(600);

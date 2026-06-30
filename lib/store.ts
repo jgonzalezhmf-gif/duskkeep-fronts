@@ -1011,6 +1011,19 @@ export const useGameStore = create<GameState & GameActions>()(
           };
         });
         await refreshServerSnapshotAfterAuthoritativeMutation(get);
+        set((state) => {
+          const snapshotDay = state.dailyLogin.lastClaim;
+          if (snapshotDay && snapshotDay >= authoritative.dayKey) {
+            return {};
+          }
+
+          return {
+            dailyLogin: {
+              streak: authoritative.streak,
+              lastClaim: authoritative.dayKey,
+            },
+          };
+        });
         get().pushNotification("success", "Daily reward claimed");
         return authoritative.rewards;
       },
