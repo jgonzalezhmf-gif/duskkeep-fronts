@@ -10,8 +10,6 @@ import {
   CornerAction,
   DockShrine,
   FightCrystal,
-  MiniActionCharm,
-  SideCharm,
   WorldHotspot,
 } from "@/components/game/home/HomeWorldMapWidgets";
 import {
@@ -25,7 +23,6 @@ import { HOME_LANDMARK_EFFECT_DEFS, getHomeWorldEffects, groupHomeLandmarkEffect
 import { type HomeHotspot, type HomeZoneId } from "@/components/game/home/types";
 import {
   DOCK_ACTIONS,
-  SIDE_ACTIONS,
   formatCompact,
   formatCountdown,
   msUntilDailyHour,
@@ -188,6 +185,7 @@ export default function HomeWorldMap({
   }, []);
 
   const cleanMode = qaClean || hideOverlays;
+  const desktopDockActions = useMemo(() => DOCK_ACTIONS.filter((action) => !action.mobileOnly), []);
   const groupedQaEffects = useMemo(() => groupHomeLandmarkEffects(qaEffectDefs), [qaEffectDefs]);
   const worldQaEffects = useMemo(() => getHomeWorldEffects(qaEffectDefs), [qaEffectDefs]);
   const updateQaEffect = useCallback<HomeEffectsQaEditorState["onChange"]>((id, patch) => {
@@ -406,12 +404,6 @@ export default function HomeWorldMap({
         </div>
       </div>
 
-      <div className="pointer-events-auto absolute right-3 top-[8.9rem] z-30 hidden flex-col gap-2.5 md:right-5 md:flex">
-        {SIDE_ACTIONS.map((action, index) => (
-          <SideCharm key={action.href} {...action} label={t(action.labelKey)} sublabel={t(action.sublabelKey)} delay={`${index * 0.16}s`} />
-        ))}
-      </div>
-
       {tutorialOpen && !cleanMode ? (
         <div className="pointer-events-none absolute right-5 top-[6.8rem] z-30 hidden md:block">
           <div className="rounded-full border border-[#f0c75a]/20 bg-[linear-gradient(180deg,rgba(18,13,7,0.68),rgba(9,10,16,0.94))] px-3.5 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-[#fff1bf] shadow-[0_14px_28px_rgba(0,0,0,0.28)]">
@@ -456,17 +448,11 @@ export default function HomeWorldMap({
           </div>
           <div aria-hidden className="h-1" />
           <div className="flex justify-start gap-3 md:gap-5">
-            {DOCK_ACTIONS.slice(2).map((action, index) => (
+            {desktopDockActions.slice(2).map((action, index) => (
               <DockShrine key={action.href} {...action} label={t(action.labelKey)} delay={`${(index + 2) * 0.08}s`} />
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="pointer-events-auto absolute right-3 top-[5rem] z-30 flex gap-2 md:hidden">
-        {SIDE_ACTIONS.map((action, index) => (
-          <MiniActionCharm key={action.href} {...action} label={t(action.labelKey)} delay={`${index * 0.12}s`} />
-        ))}
       </div>
 
       {qaEffects ? (

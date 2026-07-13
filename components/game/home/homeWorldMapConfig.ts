@@ -1,16 +1,10 @@
 import type { HomeTone } from "@/components/game/home/types";
 
-export const SIDE_ACTIONS = [
-  { href: "/shop", labelKey: "nav.offers", sublabelKey: "home.hotDrops", icon: "offers" as const, tone: "rose" as const },
-  { href: "/missions", labelKey: "nav.rewards", sublabelKey: "home.claim", icon: "rewards" as const, tone: "gold" as const },
-  { href: "/events", labelKey: "nav.events", sublabelKey: "home.liveNow", icon: "events" as const, modeIcon: "daily_event" as const, tone: "violet" as const },
-];
-
 export const DOCK_ACTIONS = [
   { href: "/team", labelKey: "nav.team", icon: "team" as const, tone: "sky" as const },
   { href: "/missions", labelKey: "nav.quests", icon: "missions" as const, tone: "gold" as const },
   { href: "/roster", labelKey: "nav.heroes", icon: "heroes" as const, tone: "violet" as const },
-  { href: "/deck", labelKey: "nav.deck", icon: "deck" as const, tone: "emerald" as const },
+  { href: "/deck", labelKey: "nav.deck", icon: "deck" as const, tone: "emerald" as const, mobileOnly: true },
 ];
 
 export const TONE_STYLES: Record<

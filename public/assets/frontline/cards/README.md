@@ -8,10 +8,17 @@ Expected filenames use card ids, for example:
 - `tactic_sanctuary.webp`
 - `tactic_smokescreen.webp`
 - `tactic_core_burst.webp`
+- `guard_break.webp`
+- `quick_step.webp`
+- `iron_skin.webp`
+- `piercing_shot.webp`
+- `dark_bolt.webp`
+- `war_drums.webp`
 - `tactic_rally_cry.webp`
 - `tactic_poisoned_dagger.webp`
 - `summon_wolf.webp`
 - `summon_barrier.webp`
+- `summon_totem.webp`
 
 After adding a file, register it in
 `components/game/frontline/frontlineVisualAssets.ts`:
@@ -34,7 +41,14 @@ Currently registered MVP card arts:
 - `tactic_sanctuary`
 - `tactic_smokescreen`
 - `tactic_core_burst`
+- `guard_break`
+- `quick_step`
+- `iron_skin`
+- `piercing_shot`
+- `dark_bolt`
+- `war_drums`
 - `tactic_rally_cry`
 - `tactic_poisoned_dagger`
 - `summon_wolf`
 - `summon_barrier`
+- `summon_totem`

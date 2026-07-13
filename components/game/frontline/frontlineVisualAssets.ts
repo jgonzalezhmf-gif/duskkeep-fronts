@@ -54,6 +54,7 @@ const FRONTLINE_CARD_ART_ASSETS: FrontlineAssetManifest = {
   tactic_poisoned_dagger: `${FRONTLINE_ASSET_ROOT}/cards/tactic_poisoned_dagger.webp`,
   summon_wolf: `${FRONTLINE_ASSET_ROOT}/cards/summon_wolf.webp`,
   summon_barrier: `${FRONTLINE_ASSET_ROOT}/cards/summon_barrier.webp`,
+  summon_totem: `${FRONTLINE_ASSET_ROOT}/cards/summon_totem.webp`,
 };
 
 const FRONTLINE_EFFECT_ASSETS: FrontlineAssetManifest = {

@@ -7,6 +7,14 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.38.3] - 2026-07-13
+
+### Fixed
+- Simplificado el Home para evitar accesos duplicados: Deck queda como landmark del mapa en escritorio y se conserva como acceso rapido solo en movil.
+- Retirado el rail lateral permanente de Offers/Rewards/Events para no duplicar Market, Missions y Events como navegacion secundaria sin alerta real.
+- Registrado el arte de War Totem como asset WebP optimizado y encajado en composicion vertical de carta.
+- Anadidas seis cartas visibles al pool de progresion como bloqueadas inicialmente (`Guard Break`, `Quick Step`, `Iron Skin`, `Piercing Shot`, `Dark Bolt`, `War Drums`) para mejorar la sensacion de coleccion del MVP sin cambiar el mazo inicial.
+
 ## [0.38.2] - 2026-07-13
 
 ### Fixed
