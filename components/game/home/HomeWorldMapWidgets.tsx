@@ -292,15 +292,15 @@ export function CornerAction({
       onMouseEnter={() => sfx.hover()}
       onPointerDown={() => sfx.tap()}
       className={cn(
-        "flex items-center gap-2 rounded-[22px] border bg-[linear-gradient(180deg,rgba(12,17,26,0.68),rgba(7,10,18,0.96))] px-2 py-1.5 shadow-[0_16px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl",
+        "flex min-h-[4.6rem] items-center gap-2.5 rounded-[22px] border bg-[linear-gradient(180deg,rgba(12,17,26,0.68),rgba(7,10,18,0.96))] px-2.5 py-2 shadow-[0_16px_24px_rgba(0,0,0,0.28)] backdrop-blur-xl",
         compact && "scale-[0.92] opacity-92",
         palette.ring,
       )}
     >
-      <span className="relative flex h-12 w-12 items-end justify-center">
+      <span className="relative flex h-[3.35rem] w-[3.35rem] items-center justify-center">
         <span className="absolute bottom-1 h-3 w-9 rounded-full bg-black/28 blur-md" />
-        <span className={cn("absolute bottom-[0.25rem] h-[2.95rem] w-[2.95rem] rounded-full bg-gradient-to-br opacity-74 blur-xl", palette.wash)} />
-        <span className="relative h-[2.85rem] w-[2.85rem]">
+        <span className={cn("absolute inset-[0.1rem] rounded-full bg-gradient-to-br opacity-74 blur-xl", palette.wash)} />
+        <span className="relative h-[3rem] w-[3rem]">
           <HomeVisualIcon icon={icon} modeIcon={modeIcon} />
         </span>
       </span>
@@ -320,7 +320,7 @@ export function FightCrystal({ href }: { href: string }) {
       href={href}
       onMouseEnter={() => sfx.hover()}
       onPointerDown={() => sfx.tap()}
-      className="group relative flex items-center gap-3 rounded-[28px] border border-[#f0c75a]/34 bg-[linear-gradient(180deg,rgba(45,23,16,0.84),rgba(10,11,18,0.98))] px-4 py-3.5 shadow-[0_26px_52px_rgba(0,0,0,0.34),0_0_34px_rgba(255,151,103,0.16)] backdrop-blur-xl transition hover:-translate-y-0.5 md:gap-4 md:rounded-[34px] md:px-6 md:py-4.5"
+      className="group relative flex min-h-[6.2rem] min-w-[22rem] items-center gap-3 rounded-[28px] border border-[#f0c75a]/34 bg-[linear-gradient(180deg,rgba(45,23,16,0.84),rgba(10,11,18,0.98))] px-5 py-4 shadow-[0_26px_52px_rgba(0,0,0,0.34),0_0_34px_rgba(255,151,103,0.16)] backdrop-blur-xl transition hover:-translate-y-0.5 md:min-h-[7rem] md:min-w-[30rem] md:gap-4 md:rounded-[34px] md:px-7 md:py-5"
     >
       <span className="absolute -bottom-5 left-1/2 h-8 w-[76%] -translate-x-1/2 rounded-[999px] bg-[radial-gradient(circle_at_50%_50%,rgba(14,19,30,0.62),transparent_70%)] blur-2xl" />
       <span className="absolute inset-x-[18%] -bottom-2 h-5 rounded-[0_0_20px_20px] border border-[#f0c75a]/16 border-t-0 bg-[linear-gradient(180deg,rgba(36,22,16,0.92),rgba(11,12,18,0.98))]" />
@@ -328,10 +328,10 @@ export function FightCrystal({ href }: { href: string }) {
       <span className="absolute right-[18%] bottom-1 h-6 w-10 rounded-[14px_14px_8px_8px] border border-[#f0c75a]/16 bg-[linear-gradient(180deg,rgba(18,21,31,0.92),rgba(8,10,16,0.98))] opacity-70" />
       <span className="absolute inset-x-[14%] top-0 h-[48%] rounded-full bg-white/10 blur-lg opacity-80" />
       <span className="absolute inset-x-[24%] top-[0.55rem] h-px bg-[linear-gradient(90deg,transparent,rgba(255,233,187,0.68),transparent)] opacity-76" />
-      <span className="relative flex h-16 w-16 items-end justify-center md:h-[4.9rem] md:w-[4.9rem]">
+      <span className="relative flex h-16 w-16 items-center justify-center md:h-[4.9rem] md:w-[4.9rem]">
         <span className="absolute inset-[-12%] rounded-full bg-[radial-gradient(circle_at_50%_30%,rgba(255,216,122,0.64),rgba(255,126,103,0.2)_58%,transparent_78%)] blur-2xl" />
         <span className="absolute bottom-1 h-4 w-11 rounded-full bg-black/34 blur-md" />
-        <span className="relative z-10 h-[3.55rem] w-[3.55rem] transition group-hover:scale-[1.08] md:h-[4.2rem] md:w-[4.2rem]">
+        <span className="relative z-10 h-[3.75rem] w-[3.75rem] -translate-y-0.5 transition group-hover:scale-[1.08] md:h-[4.35rem] md:w-[4.35rem]">
           <ModeIcon name="campaign" size="xl" className="h-full w-full" />
         </span>
       </span>

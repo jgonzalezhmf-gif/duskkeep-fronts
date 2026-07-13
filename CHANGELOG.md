@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.38.2] - 2026-07-13
+
+### Fixed
+- Pulido el Home para eliminar contadores duplicados superiores de Rewards/Pass, mantener un unico acceso temporizado inferior y hacer que el contador de Pass avance en tiempo real.
+- Ajustado el CTA principal de Adventure para ampliar su area clicable y alinear mejor el icono dentro del bloque de mision principal.
+
 ## [0.38.1] - 2026-06-30
 
 ### Fixed

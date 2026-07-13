@@ -85,3 +85,12 @@ export function msUntilMidnight(now: number) {
   const midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
   return midnight.getTime() - now;
 }
+
+export function msUntilDailyHour(now: number, hour: number) {
+  const date = new Date(now);
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour);
+  if (target.getTime() <= now) {
+    target.setDate(target.getDate() + 1);
+  }
+  return target.getTime() - now;
+}

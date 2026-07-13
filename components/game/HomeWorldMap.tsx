@@ -12,7 +12,6 @@ import {
   FightCrystal,
   MiniActionCharm,
   SideCharm,
-  TimedCharm,
   WorldHotspot,
 } from "@/components/game/home/HomeWorldMapWidgets";
 import {
@@ -29,6 +28,7 @@ import {
   SIDE_ACTIONS,
   formatCompact,
   formatCountdown,
+  msUntilDailyHour,
   msUntilMidnight,
 } from "@/components/game/home/homeWorldMapConfig";
 import { GameResourceBar } from "@/components/game/shared/GameRewardToken";
@@ -315,8 +315,7 @@ export default function HomeWorldMap({
 
   const timers = {
     reward: now === null ? "--:--:--" : formatCountdown(msUntilMidnight(now)),
-    ranking: formatCountdown(1000 * 60 * 60 * 6 + 1000 * 60 * 32),
-    event: formatCountdown(1000 * 60 * 60 * 20 + 1000 * 60 * 11),
+    event: now === null ? "--:--:--" : formatCountdown(msUntilDailyHour(now, 20)),
   };
 
   return (
@@ -397,12 +396,6 @@ export default function HomeWorldMap({
             <DailyLoginCharm />
           </div>
         ) : null}
-        {!cleanMode ? (
-          <div className="hidden gap-2 md:flex">
-            <TimedCharm label={t("nav.rewards")} value={timers.reward} tone="gold" icon="quests" />
-            <TimedCharm label={t("nav.pass")} value={timers.event} tone="violet" icon="pass" />
-          </div>
-        ) : null}
       </div>
 
       <div className="pointer-events-auto absolute right-3 top-3 z-30 flex max-w-[calc(100vw-18rem)] flex-col items-end gap-1.5 md:right-5 md:top-4 md:max-w-none md:flex-row md:items-start md:gap-2">
@@ -438,7 +431,7 @@ export default function HomeWorldMap({
           <CornerAction href="/missions" label={t("nav.quests")} sublabel={timers.reward} tone="gold" icon="quests" compact={cleanMode} />
         </div>
         <div
-          className="origin-bottom translate-y-4 justify-self-center scale-[var(--home-cta-mobile-scale)] md:translate-y-9 md:scale-100"
+          className="origin-bottom translate-y-1 justify-self-center scale-[var(--home-cta-mobile-scale)] md:translate-y-4 md:scale-100"
           style={{ ["--home-cta-mobile-scale" as string]: HOME_CTA_LAYOUT.mobileScale }}
         >
           <FightCrystal href="/adventure" />
