@@ -6,7 +6,7 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 
 | Area | Estado |
 |------|--------|
-| Version | `0.38.0` |
+| Version | `0.38.5` |
 | Demo production | `https://project-8m2ja.vercel.app` |
 | Alcance jugable | Vertical slice alpha con Home, Adventure Chapter 1, Frontline Combat, Roster, Deck, Fortress, Market, Missions, Events y Arena |
 | Persistencia | Local para desarrollo/offline y Supabase server-authoritative para production |
@@ -21,9 +21,22 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 ## Ruta Rapida de Revision
 
 1. Abrir la demo production: `https://project-8m2ja.vercel.app`.
-2. Entrar como invitado o con una cuenta de prueba preparada.
+2. Entrar como invitado o con la cuenta de prueba indicada en la seccion de acceso de evaluacion.
 3. Seguir el recorrido de `docs/DEMO_GUIDE.md`: Intro/Auth -> Home -> Adventure -> Combat -> Rewards -> Deck/Roster -> Fortress/Market/Missions/Arena.
 4. Revisar evidencia de calidad en `docs/QUALITY_AND_RELEASE.md` y pasos de despliegue en `docs/PRODUCTION_DEPLOYMENT.md`.
+
+## Acceso de Evaluacion
+
+| Recurso | Valor |
+|---|---|
+| Repositorio | `https://github.com/jgonzalezhmf-gif/duskkeep-fronts` |
+| Produccion | `https://project-8m2ja.vercel.app` |
+| Usuario de prueba | `duskkeep.demo@gmail.com` |
+| Contrasena de prueba | `Duskkeep-TFM-2026!Demo-47` |
+| Presentacion | `Duskkeep_Fronts_TFM_FINAL.pptx` se entrega como material adjunto de la presentacion academica. |
+| Video explicativo | `Duskkeep_fronts_TFM.mp4` se entrega como video academico/publicacion externa segun formulario de entrega. |
+
+La cuenta de prueba esta pensada solo para revision academica y puede rotarse tras la evaluacion.
 
 ## Stack
 
@@ -196,7 +209,7 @@ Para una demo funcional, seguir `docs/DEMO_GUIDE.md`.
 
 ### Evidencia de Release Candidate
 
-La ultima baseline validada es `0.38.0`.
+La ultima baseline validada es `0.38.5`.
 
 | Gate | Evidencia |
 |------|-----------|
