@@ -7,6 +7,13 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.38.5] - 2026-07-15
+
+### Fixed
+- Eliminada la accion Replay Intro del menu de configuracion para evitar reabrir la cinematica sobre el Home ya cargado.
+- Eliminado el forzado de replay de intro por query string para que la intro solo se muestre en la entrada normal de sesion.
+- Retiradas las claves de traduccion del panel de intro al no formar parte del menu de opciones del MVP.
+
 ## [0.38.4] - 2026-07-15
 
 ### Fixed

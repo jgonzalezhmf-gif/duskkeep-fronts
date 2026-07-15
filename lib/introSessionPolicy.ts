@@ -7,18 +7,15 @@ type IntroSessionEventTarget = Pick<EventTarget, "dispatchEvent">;
 export function shouldShowEntryIntro({
   hydrated,
   introEligible,
-  forceIntro,
   introDismissed,
   introSeenThisSession,
 }: {
   hydrated: boolean;
   introEligible: boolean;
-  forceIntro: boolean;
   introDismissed: boolean;
   introSeenThisSession: boolean;
 }) {
   if (!hydrated || !introEligible || introDismissed) return false;
-  if (forceIntro) return true;
   return !introSeenThisSession;
 }
 

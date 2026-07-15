@@ -34,7 +34,6 @@ describe("intro session policy", () => {
       shouldShowEntryIntro({
         hydrated: true,
         introEligible: true,
-        forceIntro: false,
         introDismissed: false,
         introSeenThisSession: false,
       }),
@@ -44,28 +43,17 @@ describe("intro session policy", () => {
       shouldShowEntryIntro({
         hydrated: true,
         introEligible: true,
-        forceIntro: false,
         introDismissed: false,
         introSeenThisSession: true,
       }),
     ).toBe(false);
   });
 
-  it("keeps force-intro available without showing behind hydration or QA gates", () => {
-    expect(
-      shouldShowEntryIntro({
-        hydrated: true,
-        introEligible: true,
-        forceIntro: true,
-        introDismissed: false,
-        introSeenThisSession: true,
-      }),
-    ).toBe(true);
+  it("does not show the intro before hydration, inside QA gates, or after dismissal", () => {
     expect(
       shouldShowEntryIntro({
         hydrated: false,
         introEligible: true,
-        forceIntro: true,
         introDismissed: false,
         introSeenThisSession: false,
       }),
@@ -74,8 +62,15 @@ describe("intro session policy", () => {
       shouldShowEntryIntro({
         hydrated: true,
         introEligible: false,
-        forceIntro: true,
         introDismissed: false,
+        introSeenThisSession: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowEntryIntro({
+        hydrated: true,
+        introEligible: true,
+        introDismissed: true,
         introSeenThisSession: false,
       }),
     ).toBe(false);

@@ -33,11 +33,9 @@ let guestChoiceResolvedInPageRuntime = false;
 export default function HomePageClient({
   qaClean = false,
   qaEffects = false,
-  forceIntro = false,
 }: {
   qaClean?: boolean;
   qaEffects?: boolean;
-  forceIntro?: boolean;
 }) {
   const { t } = useI18n();
   const store = useGameStore();
@@ -54,7 +52,6 @@ export default function HomePageClient({
   const showIntro = shouldShowEntryIntro({
     hydrated: store.hydrated,
     introEligible,
-    forceIntro,
     introDismissed,
     introSeenThisSession,
   });
@@ -63,7 +60,7 @@ export default function HomePageClient({
   // HUD before the cinematic mounts (the user reported this). Cover the
   // viewport with a solid black layer while we wait so the first frame is
   // always either black or the intro itself.
-  const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed && (forceIntro || !introSeenThisSession);
+  const showPreHydrationVeil = !store.hydrated && introEligible && !introDismissed && !introSeenThisSession;
   const showAuthGate = shouldShowEntryAuthGate({
     hydrated: store.hydrated,
     introEligible,
@@ -92,7 +89,7 @@ export default function HomePageClient({
   }
 
   useEffect(() => {
-    if (!introEligible || forceIntro) return;
+    if (!introEligible) return;
 
     function syncIntroSeenForCurrentSession() {
       if (!readIntroSeenForSession()) return;
@@ -104,7 +101,7 @@ export default function HomePageClient({
     syncIntroSeenForCurrentSession();
     window.addEventListener(INTRO_SEEN_SESSION_EVENT, syncIntroSeenForCurrentSession);
     return () => window.removeEventListener(INTRO_SEEN_SESSION_EVENT, syncIntroSeenForCurrentSession);
-  }, [forceIntro, introEligible]);
+  }, [introEligible]);
 
   const hotspots: HomeHotspot[] = [
     {
