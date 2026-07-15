@@ -7,6 +7,12 @@ Formato basado en Keep a Changelog y versionado semantico pragmatico:
 - `MINOR`: nuevas pantallas, sistemas, integraciones jugables, pipelines visuales o cambios perceptibles de UX.
 - `PATCH`: fixes, ajustes visuales pequenos, documentacion, tests o mantenimiento sin cambio funcional grande.
 
+## [0.38.4] - 2026-07-15
+
+### Fixed
+- Eliminado el bloque de opciones de confort del menu de configuracion para evitar que Reduced Motion, Visual Effects y Text Size degraden la experiencia visual del MVP.
+- Ajustado el subtitulo del menu de opciones para describir solo las secciones disponibles: idioma, audio y cuenta.
+
 ## [0.38.3] - 2026-07-13
 
 ### Fixed

@@ -41,12 +41,6 @@ export default function GameOptionsButton({ className }: { className?: string })
   const setMuted = useGameStore((state) => state.setAudioMuted);
   const setMusicVolume = useGameStore((state) => state.setMusicVolume);
   const setSfxVolume = useGameStore((state) => state.setSfxVolume);
-  const reducedMotion = useGameStore((state) => state.reducedMotion);
-  const setReducedMotion = useGameStore((state) => state.setReducedMotion);
-  const visualEffects = useGameStore((state) => state.visualEffects);
-  const setVisualEffects = useGameStore((state) => state.setVisualEffects);
-  const textScale = useGameStore((state) => state.textScale);
-  const setTextScale = useGameStore((state) => state.setTextScale);
   const accountLinkMode = useGameStore((state) => state.accountLinkMode);
   const setAccountLinkMode = useGameStore((state) => state.setAccountLinkMode);
   const loadServerSnapshotOnlineFirst = useGameStore((state) => state.loadServerSnapshotOnlineFirst);
@@ -157,14 +151,6 @@ export default function GameOptionsButton({ className }: { className?: string })
                       if (!muted) sfx.hover();
                     }}
                   />
-                </OptionPanel>
-
-                <OptionPanel title={t("options.comfort")}>
-                  <div className="grid gap-2 sm:grid-cols-3">
-                    <TogglePill active={reducedMotion} label={t("options.reducedMotion")} onClick={() => setReducedMotion(!reducedMotion)} />
-                    <TogglePill active={visualEffects} label={t("options.visualEffects")} onClick={() => setVisualEffects(!visualEffects)} />
-                    <TogglePill active={textScale === "large"} label={`${t("options.textScale")}: ${textScale === "large" ? t("options.large") : t("options.normal")}`} onClick={() => setTextScale(textScale === "large" ? "normal" : "large")} />
-                  </div>
                 </OptionPanel>
 
                 <OptionPanel title={t("options.account")} hint={t("options.accountHint")}>
@@ -358,17 +344,3 @@ function OptionSlider({ label, value, muted, onChange }: { label: string; value:
   );
 }
 
-function TogglePill({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "frontline-motion-action rounded-[18px] border px-3 py-3 text-left text-[11px] font-black uppercase tracking-[0.14em] transition",
-        active ? "border-[#f5c451]/34 bg-[#f5c451]/14 text-[#f5d498]" : "border-white/10 bg-white/[0.045] text-white/62",
-      )}
-    >
-      {label}
-    </button>
-  );
-}
