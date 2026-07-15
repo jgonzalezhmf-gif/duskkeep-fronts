@@ -33,8 +33,8 @@ Juego tactico de fantasia oscura por turnos para **web y mobile**. El alpha actu
 | Produccion | `https://project-8m2ja.vercel.app` |
 | Usuario de prueba | `duskkeep.demo@gmail.com` |
 | Contrasena de prueba | `Duskkeep-TFM-2026!Demo-47` |
-| Presentacion | `Duskkeep_Fronts_TFM_FINAL.pptx` se entrega como material adjunto de la presentacion academica. |
-| Video explicativo | `Duskkeep_fronts_TFM.mp4` se entrega como video academico/publicacion externa segun formulario de entrega. |
+| Presentacion | `https://1drv.ms/p/c/38c9127ab8081391/IQBRhGwgZHu-TbpBWTN8fPqyAaVaF64hmZ5dFso_aOx9M34?e=dl3WVy` |
+| Video explicativo | `https://drive.google.com/file/d/1v1-X-LpIS5VxfmCxakBKFkCWMg-4asYl/view?usp=sharing` |
 
 La cuenta de prueba esta pensada solo para revision academica y puede rotarse tras la evaluacion.
 
